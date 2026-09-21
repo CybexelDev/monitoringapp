@@ -1663,6 +1663,11 @@ def teamlead_project_assigning(request):
         for image in request.FILES.getlist("upload_image[]"):
             ProjectImage.objects.create(project=project, image=image)
 
+        messages.success(
+            request,
+            f'Project "{project.work_name}" assigned successfully!'
+        )
+
         return redirect("teamlead_project_assigning")
 
     projects = ProjectAssign.objects.filter(team=team_lead.team)
@@ -1705,6 +1710,10 @@ def project_assign_edit(request, pk):
         # ✅ Save new images (without removing old ones)
         for image in request.FILES.getlist("upload_image[]"):
             ProjectImage.objects.create(project=project, image=image)
+        messages.success(
+            request,
+            f'Project "{project.work_name}" updated successfully!'
+        )
 
         return redirect("teamlead_project_assigning")
 
@@ -1716,7 +1725,12 @@ def project_assign_edit(request, pk):
 
 def project_assign_delete(request, pk):
     project = get_object_or_404(ProjectAssign, id=pk)
+    project_name = project.work_name
     project.delete()
+    messages.success(
+        request,
+        f'Project "{project_name}" deleted successfully!'
+    )
     return redirect("teamlead_project_assigning")
 
 @never_cache
@@ -1809,9 +1823,17 @@ def teamlead_notepad(request):
             note.title = title
             note.content = content
             note.save()
+            messages.success(
+                request,
+                f'Note "{title}" updated successfully!'
+            )
         else:
             # ✅ New note tied to this user
             note = Notepad.objects.create(user=user, title=title, content=content)
+            messages.success(
+                request,
+                f'Note "{title}" saved successfully!'
+            )
 
         return redirect(f"{request.path}?note_id={note.id}")
 
@@ -1901,6 +1923,10 @@ def teamlead_repository(request):
             link=link,
             file=file
         )
+        messages.success(
+            request,
+            f'Resource "{title}" added successfully!'
+        )
         return redirect("teamlead_repository")
 
     knowledge_items = Knowledge.objects.filter(department=user.department).order_by("-created_at")
@@ -1920,8 +1946,14 @@ def teamlead_repository_delete(request, pk):
     resource = get_object_or_404(Knowledge, id=pk, department=user.department)
 
     if request.method == "POST":
+        title = resource.title
         resource.delete()
+        messages.success(
+            request,
+            f'Resource "{title}" deleted successfully!'
+        )
         return redirect("teamlead_repository")
+    return redirect("teamlead_repository")
 
 from django.shortcuts import redirect, get_object_or_404
 from django.views.decorators.cache import never_cache
@@ -2264,13 +2296,24 @@ def teamlead_task(request):
     if request.method == "POST":
         title = request.POST.get("title")
         description = request.POST.get("description")
-        if title:  # prevent creating empty tasks
-            Task.objects.create(
-                title=title,
-                description=description,
-                assigned_to=user,
-                created_by=user
+        if not title:  # prevent creating empty tasks
+            messages.error(
+                request,
+                "Task title is required."
             )
+            return redirect("teamlead_task")
+
+        Task.objects.create(
+            title=title,
+            description=description,
+            assigned_to=user,
+            created_by=user
+        )
+        messages.success(
+            request,
+            f'Task "{title}" created successfully.'
+        )
+
         return redirect("teamlead_task")
 
     response = render(request, 'teamlead_task.html', {"tasks": tasks})
@@ -2283,6 +2326,10 @@ def teamlead_task(request):
 def update_task_teamlead(request, task_id):
     user_id = request.session.get("user_id")
     if not user_id:
+        messages.error(
+            request,
+            "You must be logged in."
+        )
         return redirect("login_view")
 
     user = User.objects.get(id=user_id)
@@ -2291,9 +2338,29 @@ def update_task_teamlead(request, task_id):
 
     if request.method == "POST":
         status = request.POST.get("status")
+        valid_statuses = {
+            "pending": 0,
+            "in_progress": 50,
+            "completed": 100
+        }
+
+        if status not in valid_statuses:
+
+            messages.error(
+                request,
+                "Invalid task status."
+            )
+
+            return redirect("teamlead_task")
         task.status = status
-        task.progress = {"pending": 0, "in_progress": 50, "completed": 100}.get(status, 0)
+        # task.progress = {"pending": 0, "in_progress": 50, "completed": 100}.get(status, 0)
+        task.progress = valid_statuses[status]
         task.save()
+        messages.success(
+            request,
+            f'Task "{task.title}" updated to '
+            f'"{task.get_status_display()}".'
+        )
 
     return redirect('teamlead_task')
 
@@ -2301,6 +2368,10 @@ def update_task_teamlead(request, task_id):
 def delete_task_teamlead(request, task_id):
     user_id = request.session.get("user_id")
     if not user_id:
+        messages.error(
+            request,
+            "You must be logged in."
+        )
         return redirect("login_view")
 
     user = User.objects.get(id=user_id)
@@ -2308,7 +2379,18 @@ def delete_task_teamlead(request, task_id):
     task = get_object_or_404(Task, id=task_id, created_by=user)
 
     if request.method == "POST":
+        task_title = task.title
         task.delete()
+        messages.success(
+            request,
+            f'Task "{task_title}" deleted successfully.'
+        )
+    else:
+        messages.error(
+            request,
+            "Invalid request."
+        )
+
 
     return redirect("teamlead_task")
 

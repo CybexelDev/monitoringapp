@@ -9,6 +9,37 @@
   <title>Team Lead Dashboard - Cybexel</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+  <style>
+.toast-message {
+    animation: toastSlideIn 0.35s ease-out;
+}
+
+.toast-message.toast-hide {
+    animation: toastSlideOut 0.35s ease-in forwards;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+</style>
 </head>
 <body class="bg-black text-white font-sans select-none">
 
@@ -131,7 +162,7 @@
 </div>
 
 
-<script>
+<!-- <script>
   const profileDisplay = document.getElementById("profile-display");
 const profileInput = document.getElementById("profile-input");
 
@@ -166,9 +197,307 @@ profileInput.addEventListener("change", () => {
   .catch(err => console.error(err));
 });
 
+</script> -->
+<!-- =========================================================
+     TOAST CONTAINER
+========================================================= -->
+
+<div id="toast-container"
+     class="fixed bottom-5 right-5 z-[9999] space-y-3 w-[350px] max-w-[calc(100%-2rem)]">
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div class="toast-message flex items-center gap-3
+                        bg-[#250f1e] text-white
+                        border border-purple-600
+                        px-5 py-4 rounded-lg
+                        shadow-2xl">
+
+                {% if message.tags == "error" %}
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="w-6 h-6 flex-shrink-0 text-red-400"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"/>
+
+                    </svg>
+
+                {% else %}
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="w-6 h-6 flex-shrink-0 text-green-400"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M5 13l4 4L19 7"/>
+
+                    </svg>
+
+                {% endif %}
+
+                <span class="flex-1 text-sm font-medium">
+                    {{ message }}
+                </span>
+
+                <button type="button"
+                        onclick="removeToast(this.parentElement)"
+                        class="text-gray-300 hover:text-white text-xl leading-none">
+
+                    &times;
+
+                </button>
+
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+</div>
+<script>
+
+const profileDisplay = document.getElementById("profile-display");
+const profileInput = document.getElementById("profile-input");
+const profileContainer = document.getElementById("profile-container");
+
+
+/* =========================================================
+   TOAST FUNCTION
+========================================================= */
+
+function showToast(message, type = "success") {
+
+    const container = document.getElementById("toast-container");
+
+    if (!container) {
+        return;
+    }
+
+    const toast = document.createElement("div");
+
+    toast.className =
+        "toast-message flex items-center gap-3 " +
+        "bg-[#250f1e] text-white " +
+        "border border-purple-600 " +
+        "px-5 py-4 rounded-lg " +
+        "shadow-2xl";
+
+
+    let icon = "";
+
+    if (type === "error") {
+
+        icon = `
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="w-6 h-6 flex-shrink-0 text-red-400"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke="currentColor">
+
+                <path stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"/>
+
+            </svg>
+        `;
+
+    } else {
+
+        icon = `
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="w-6 h-6 flex-shrink-0 text-green-400"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke="currentColor">
+
+                <path stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M5 13l4 4L19 7"/>
+
+            </svg>
+        `;
+    }
+
+
+    toast.innerHTML = `
+        ${icon}
+
+        <span class="flex-1 text-sm font-medium">
+            ${message}
+        </span>
+
+        <button type="button"
+                class="text-gray-300 hover:text-white text-xl leading-none"
+                onclick="removeToast(this.parentElement)">
+
+            &times;
+
+        </button>
+    `;
+
+
+    container.appendChild(toast);
+
+
+    setTimeout(function () {
+        removeToast(toast);
+    }, 4000);
+}
+
+
+/* =========================================================
+   REMOVE TOAST
+========================================================= */
+
+function removeToast(toast) {
+
+    if (!toast) {
+        return;
+    }
+
+    toast.classList.add("toast-hide");
+
+    setTimeout(function () {
+
+        if (toast.parentElement) {
+            toast.remove();
+        }
+
+    }, 350);
+}
+
+
+/* =========================================================
+   DJANGO MESSAGE TOAST AUTO CLOSE
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const toasts = document.querySelectorAll(".toast-message");
+
+    toasts.forEach(function (toast) {
+
+        setTimeout(function () {
+
+            removeToast(toast);
+
+        }, 4000);
+
+    });
+
+});
+
+
+/* =========================================================
+   PROFILE IMAGE CLICK
+========================================================= */
+
+profileContainer.addEventListener("click", function () {
+
+    profileInput.click();
+
+});
+
+
+/* =========================================================
+   PROFILE IMAGE AJAX UPLOAD
+========================================================= */
+
+profileInput.addEventListener("change", function () {
+
+    const file = profileInput.files[0];
+
+    if (!file) {
+        return;
+    }
+
+
+    const formData = new FormData();
+
+    formData.append(
+        "profile_image",
+        file
+    );
+
+    formData.append(
+        "action",
+        "edit_profile"
+    );
+
+    formData.append(
+        "csrfmiddlewaretoken",
+        "{{ csrf_token }}"
+    );
+
+
+    fetch(
+        "{% url 'teamlead_profile' %}",
+        {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        }
+    )
+
+    .then(function (response) {
+
+        return response.json();
+
+    })
+
+    .then(function (data) {
+
+        if (data.success) {
+
+            profileDisplay.src =
+                data.image_url + "?t=" + new Date().getTime();
+
+            showToast(
+                "Profile image updated successfully!",
+                "success"
+            );
+
+        } else {
+
+            showToast(
+                data.error || "Failed to update profile image.",
+                "error"
+            );
+
+        }
+
+    })
+
+    .catch(function (error) {
+
+        console.error(error);
+
+        showToast(
+            "Something went wrong while updating the profile image.",
+            "error"
+        );
+
+    });
+
+});
+
 </script>
-
-
 
 
 

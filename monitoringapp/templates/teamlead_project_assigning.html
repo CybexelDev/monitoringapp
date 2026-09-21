@@ -40,6 +40,40 @@ select:focus {
     outline: none;
     box-shadow: none;
 }
+
+
+.toast-message {
+    animation: toastSlideIn 0.35s ease-out;
+}
+
+.toast-message.toast-hide {
+    animation: toastSlideOut 0.35s ease-in forwards;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes toastSlideOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
 </style>
 
 
@@ -396,10 +430,96 @@ select:focus {
 </div>
 
 
+<!-- Toast Messages -->
+<div id="toast-container"
+     class="fixed bottom-5 right-5 z-[9999] space-y-3 w-[350px] max-w-[calc(100%-2rem)]">
+
+    {% if messages %}
+        {% for message in messages %}
+
+            <div class="toast-message flex items-center gap-3
+                        bg-[#250f1e] text-white
+                        border border-purple-600
+                        px-5 py-4 rounded-lg
+                        shadow-2xl">
+
+                {% if message.tags == "error" %}
+
+                    <!-- Error Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="w-6 h-6 flex-shrink-0 text-red-400"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+
+                {% else %}
+
+                    <!-- Success Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="w-6 h-6 flex-shrink-0 text-green-400"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M5 13l4 4L19 7"/>
+                    </svg>
+
+                {% endif %}
+
+                <span class="flex-1 text-sm font-medium">
+                    {{ message }}
+                </span>
+
+                <button type="button"
+                        onclick="removeToast(this.parentElement)"
+                        class="text-gray-300 hover:text-white text-xl leading-none">
+                    &times;
+                </button>
+
+            </div>
+
+        {% endfor %}
+    {% endif %}
+
+</div>
 
 
+<script>
+function removeToast(toast) {
+    if (!toast) return;
 
+    toast.classList.add("toast-hide");
 
+    setTimeout(function () {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 350);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const toasts = document.querySelectorAll(".toast-message");
+
+    toasts.forEach(function (toast) {
+
+        setTimeout(function () {
+            removeToast(toast);
+        }, 4000);
+
+    });
+
+});
+</script>
 
 
 
