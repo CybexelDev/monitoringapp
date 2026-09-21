@@ -4,374 +4,390 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Member Chat - Cybexel</title>
+    <title>Chat Room - Cybexel</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
     <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin_chat.css' %}">
 </head>
-<body class="bg-black text-white font-sans select-none">
+<body class="chat-page">
 
-<div id="sidebar"
-     class="fixed top-0 left-0 h-full w-64 bg-[#250f1e] overflow-y-auto text-white p-6 z-50 transition-transform duration-300 ease-in-out">
-  <div class="flex items-center justify-between mb-6">
-    <div class="w-full flex justify-center select-none">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 object-contain">
-    </div>
-    <button class="menu-toggle md:hidden text-white text-2xl max-md:mt-[-9rem]">&times;</button>
-  </div>
-
-  <nav class="select-none">
-  {% if user_role == "team_lead" %}
-    <ul class="space-y-8 text-sm">
-      <li><a href="{% url 'teamlead_dashboard' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Team Lead Dashboard</a></li>
-      <li><a href="{% url 'teamlead_reports' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Reports</a></li>
-      <li><a href="{% url 'teamlead_project_assigning' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Project Assigning</a></li>
-      <li><a href="{% url 'teamlead_notepad' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Notepad</a></li>
-      <li><a href="{% url 'teamlead_repository' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Knowledge Repository</a></li>
-      <li><a href="{% url 'teamlead_profile' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Profile</a></li>
-      <li><a href="{% url 'teamlead_task' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">My task</a></li>
-      <li><a href="{% url 'teamlead_chat' %}" class="block py-2 px-4 rounded bg-white text-black">Chat</a></li>
-      <li>
-        <a href="https://meet.google.com/" target="_blank" class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-      </li>
-      <li><a href="{% url 'teamlead_logout' %}" class="block py-2 px-4 rounded bg-[red] text-white">Logout</a></li>
-    </ul>
-
-  {% elif user_role == "management" %}
-    <ul class="space-y-6 text-sm">
-        <li><a href="{% url 'admin_dashboard' %}"
-            class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Dashboard</a></li>
-        <li><a href="{% url 'admin_usermanagement' %}"
-            class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">User Management</a></li>
-            <li>
-        <a href="{% url 'admin_reports' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Reports</a>
-      </li>
-<li>
-        <a href="{% url 'admin_chat' %}" class="block py-2 px-4 rounded bg-white text-[#151a37]">Chat</a>
-      </li>
-      <li>
-        <a href="{% url 'admin_profile' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Profile</a>
-      </li>        <li>
-          <a href="https://meet.google.com/" target="_blank"
-            class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-        </li>
-        <li><a href="{% url 'admin_logout' %}" class="block py-2 px-4 rounded bg-[red] text-white">Logout</a></li>
-      </ul>
-
-  {% else %}
-    <ul class="space-y-8 text-sm">
-      <li><a href="{% url 'teammember_dashboard' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Team member Dashboard</a></li>
-      <li><a href="{% url 'teammember_project' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Team member Project</a></li>
-      <li><a href="{% url 'teammember_notepad' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Notepad</a></li>
-      <li><a href="{% url 'teammember_repository' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Knowledge Repository</a></li>
-      <li><a href="{% url 'teammember_profile' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Profile</a></li>
-      <li><a href="{% url 'teammember_task' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">My task</a></li>
-      <li><a href="{% url 'teammember_chat' %}" class="block py-2 px-4 rounded bg-white text-black">Chat</a></li>
-      <li>
-        <a href="https://meet.google.com/" target="_blank" class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-      </li>
-      <li><a href="{% url 'teammember_logout' %}" class="block py-2 px-4 rounded bg-red-600 text-white">Logout</a></li>
-    </ul>
-  {% endif %}
-</nav>
-
-</div>
-<!-- Mobile Toggle -->
-<button class="menu-toggle md:hidden fixed top-8 left-4 z-50 text-white p-2 rounded shadow-lg">&#9776;</button>
-
-<!-- Main Content -->
-<div class="flex h-screen md:ml-64">  <!-- 👈 Added ml-64 to move right of sidebar -->
-
-  <!-- Left Chat List -->
-  <div class="w-80 bg-[#111b21] text-white flex flex-col">
-    <!-- Header -->
-    <div class="flex items-center justify-between p-4 border-b border-gray-700">
-      <h2 class="font-bold text-lg">Chats</h2>
-<button onclick="openModal()" class="p-2 rounded-full hover:bg-gray-700">
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M12 5v14M5 12h14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
+<button class="menu-toggle mobile-menu-button" type="button" aria-label="Open menu">
+    <i data-lucide="menu"></i>
 </button>
 
-    </div>
-
-    <!-- Team Members -->
-    <div class="p-4 overflow-y-auto flex-1">
-      <h2 class="font-bold text-lg mb-4">Team Members</h2>
-
-<div id="user-list" class="flex-1 overflow-y-auto">
-  {% for user in users %}
-  <div class="p-3 flex items-center hover:bg-[#202c33] cursor-pointer">
-    <a href="{% url 'chat_room' user.id %}" class="flex items-center w-full">
-      <!-- {% if user.profile_image %}
-        <img src="{{ user.profile_image.url }}" class="w-10 h-10 rounded-full mr-3" />
-      {% else %}
-        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white border border-white font-bold mr-3">
-          {% if user.id == current_user.id %}
-            M
-          {% else %}
-            {{ user.name|first|upper }}
-          {% endif %}
+<aside id="sidebar" class="glass-sidebar">
+    <div class="sidebar-profile">
+        <div class="sidebar-logo">
+            <img src="{% static 'images/logo.png' %}" alt="Developer Logo">
         </div>
-      {% endif %} -->
-      <div class="relative mr-3">
-  {% if user.profile_image %}
-    <img src="{{ user.profile_image.url }}" class="w-10 h-10 rounded-full" />
-  {% else %}
-    <div class="w-10 h-10 rounded-full flex items-center justify-center text-white border border-white font-bold">
-      {% if user.id == current_user.id %}
-        M
-      {% else %}
-        {{ user.name|first|upper }}
-      {% endif %}
+        <div class="sidebar-profile-text">
+            <h3>DEVELOPER</h3>
+            <span>TAGGING HERE</span>
+        </div>
     </div>
-  {% endif %}
 
-  <!-- Status Dot -->
-<span
-  class="user-status-dot absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#111b21] bg-green-500"
-  data-user-id="{{ user.id }}"
-  title="Active">
-</span>
-</div>
-      <div>
-        {% if user.id == current_user.id %}
-          <p class="font-medium">Me</p>
-          <p class="text-gray-400 text-sm">{{ user.phone }}</p>
+    <nav class="sidebar-nav">
+        {% if user_role == "team_lead" %}
+        <a href="{% url 'teamlead_dashboard' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="layout-dashboard"></i></span><span>Team Lead Dashboard</span>
+        </a>
+        <a href="{% url 'teamlead_reports' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="chart-no-axes-combined"></i></span><span>Reports</span>
+        </a>
+        <a href="{% url 'teamlead_project_assigning' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="folder-kanban"></i></span><span>Project Assigning</span>
+        </a>
+        <a href="{% url 'teamlead_notepad' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="notebook-pen"></i></span><span>Notepad</span>
+        </a>
+        <a href="{% url 'teamlead_repository' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="library"></i></span><span>Knowledge Repository</span>
+        </a>
+        <a href="{% url 'teamlead_profile' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="circle-user-round"></i></span><span>Profile</span>
+        </a>
+        <a href="{% url 'teamlead_task' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="list-checks"></i></span><span>My task</span>
+        </a>
+        <a href="{% url 'teamlead_chat' %}" class="sidebar-item active">
+            <span class="sidebar-icon"><i data-lucide="message-circle"></i></span><span>Chat</span>
+        </a>
+        <a href="https://meet.google.com/" target="_blank" rel="noopener noreferrer" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="video"></i></span><span>Google Meet</span>
+            <span class="sidebar-external"><i data-lucide="arrow-up-right"></i></span>
+        </a>
+        {% elif user_role == "management" %}
+        <a href="{% url 'admin_dashboard' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="layout-dashboard"></i></span><span>Dashboard</span>
+        </a>
+        <a href="{% url 'admin_usermanagement' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="users"></i></span><span>User Management</span>
+        </a>
+        <a href="{% url 'admin_reports' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="chart-no-axes-combined"></i></span><span>Reports</span>
+        </a>
+        <a href="{% url 'admin_chat' %}" class="sidebar-item active">
+            <span class="sidebar-icon"><i data-lucide="message-circle"></i></span><span>Chat</span>
+        </a>
+        <a href="{% url 'admin_profile' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="circle-user-round"></i></span><span>Profile</span>
+        </a>
+        <a href="https://meet.google.com/" target="_blank" rel="noopener noreferrer" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="video"></i></span><span>Google Meet</span>
+            <span class="sidebar-external"><i data-lucide="arrow-up-right"></i></span>
+        </a>
         {% else %}
-          <p class="font-medium">{{ user.name }}</p>
-          <p class="text-gray-400 text-sm">{{ user.phone }}</p>
+        <a href="{% url 'teammember_dashboard' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="layout-dashboard"></i></span><span>Team member Dashboard</span>
+        </a>
+        <a href="{% url 'teammember_project' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="folder-kanban"></i></span><span>Team member Project</span>
+        </a>
+        <a href="{% url 'teammember_notepad' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="notebook-pen"></i></span><span>Notepad</span>
+        </a>
+        <a href="{% url 'teammember_repository' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="library"></i></span><span>Knowledge Repository</span>
+        </a>
+        <a href="{% url 'teammember_profile' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="circle-user-round"></i></span><span>Profile</span>
+        </a>
+        <a href="{% url 'teammember_task' %}" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="list-checks"></i></span><span>My task</span>
+        </a>
+        <a href="{% url 'teammember_chat' %}" class="sidebar-item active">
+            <span class="sidebar-icon"><i data-lucide="message-circle"></i></span><span>Chat</span>
+        </a>
+        <a href="https://meet.google.com/" target="_blank" rel="noopener noreferrer" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="video"></i></span><span>Google Meet</span>
+            <span class="sidebar-external"><i data-lucide="arrow-up-right"></i></span>
+        </a>
         {% endif %}
-      </div>
-    </a>
-  </div>
-  {% endfor %}
-</div>
+    </nav>
 
+    <div class="sidebar-bottom">
+        {% if user_role == "team_lead" %}
+        <a href="{% url 'teamlead_logout' %}" class="sidebar-logout">
+        {% elif user_role == "management" %}
+        <a href="{% url 'admin_logout' %}" class="sidebar-logout">
+        {% else %}
+        <a href="{% url 'teammember_logout' %}" class="sidebar-logout">
+        {% endif %}
+            <span class="sidebar-icon"><i data-lucide="log-out"></i></span>
+            <span>Logout</span>
+        </a>
+    </div>
+</aside>
 
+<main class="chat-main">
+    <div class="chat-shell">
 
-
-  
-
-
-
-<div class="mb-4">
-  <div class="flex justify-between items-center mb-2">
-    <h3 class="font-semibold text-lg text-white">Groups</h3>
-    <!-- + icon button for creating group -->
-    <button id="openModal" class="text-white hover:text-gray-300">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-      </svg>
-    </button>
-  </div>
-
-  <div class="space-y-2">
-    {% for group in groups %}
-      <a href="{% url 'group_chat_view' group.id %}" class="block bg-[#202c33] hover:bg-[#2a3b44] text-white p-3 rounded flex justify-between items-center">
-        <span class="font-medium">{{ group.name }}</span>
-       
-      </a>
-    {% empty %}
-      <p class="text-gray-400 text-sm">No group chats yet.</p>
-    {% endfor %}
-  </div>
-</div>
-
-
-
+<section class="chat-list-panel">
+    <div class="chat-list-header">
+        <div>
+            <span class="chat-eyebrow">MESSAGING</span>
+            <h2>Chats</h2>
+        </div>
+        <button type="button" id="openModalTop" class="chat-icon-button" aria-label="Create group">
+            <i data-lucide="plus"></i>
+        </button>
     </div>
 
+    <div class="chat-list-scroll">
+        <div class="chat-section">
+            <div class="chat-section-title">
+                <span>Team Members</span>
+                <span class="chat-count">{{ users|length }}</span>
+            </div>
 
+            <div id="user-list" class="chat-user-list">
+                {% for user in users %}
+                <a href="{% url 'chat_room' user.id %}" class="chat-user-row">
+                    <div class="chat-avatar-wrap">
+                        {% if user.profile_image %}
+                        <img src="{{ user.profile_image.url }}" class="chat-avatar" alt="{{ user.name }}">
+                        {% else %}
+                        <div class="chat-avatar chat-avatar-fallback">
+                            {% if user.id == current_user.id %}M{% else %}{{ user.name|first|upper }}{% endif %}
+                        </div>
+                        {% endif %}
+                        <span class="user-status-dot" data-user-id="{{ user.id }}" title="Active"></span>
+                    </div>
+                    <div class="chat-user-info">
+                        <p class="chat-user-name">
+                            {% if user.id == current_user.id %}Me{% else %}{{ user.name }}{% endif %}
+                        </p>
+                        <p class="chat-user-sub">{{ user.phone }}</p>
+                    </div>
+                </a>
+                {% empty %}
+                <div class="chat-empty">No team members found.</div>
+                {% endfor %}
+            </div>
+        </div>
 
+        <div class="chat-section groups-section">
+            <div class="chat-section-title">
+                <span>Groups</span>
+                <button type="button" id="openModal" class="chat-small-plus" aria-label="Create group">
+                    <i data-lucide="plus"></i>
+                </button>
+            </div>
 
-
-
-  </div>
-
-<div id="chat-window" class="flex-1 flex flex-col">
-  <!-- Chat Header -->
-  <div class="flex items-center justify-between p-4 bg-[#202c33] text-white">
-    <div class="flex items-center">
-      <!-- {% if other_user.profile_image %}
-        <img id="chat-avatar" src="{{ other_user.profile_image.url }}" class="w-10 h-10 rounded-full mr-3" />
-      {% else %}
-        <div class="w-10 h-10 rounded-full bg-gray-500 mr-3"></div>
-      {% endif %} -->
-
-      <div class="relative mr-3">
-  {% if other_user.profile_image %}
-    <img
-      id="chat-avatar"
-      src="{{ other_user.profile_image.url }}"
-      class="w-10 h-10 rounded-full"
-    />
-  {% else %}
-    <div class="w-10 h-10 rounded-full bg-gray-500"></div>
-  {% endif %}
-
-  <!-- Status Dot -->
-<span
-  class="user-status-dot absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#202c33] bg-green-500"
-  data-user-id="{{ other_user.id }}"
-  title="Active">
-</span>
-</div>
-      <div>
-        <p id="chat-username" class="font-medium">{{ other_user.name }}</p>
-        <p id="chat-userphone" class="text-xs text-gray-400">{{ other_user.phone }}</p>
-      </div>
+            <div class="chat-group-list">
+                {% for group in groups %}
+                <a href="{% url 'group_chat_view' group.id %}" class="chat-group-row">
+                    <span class="chat-group-icon"><i data-lucide="users-round"></i></span>
+                    <span class="chat-group-name">{{ group.name }}</span>
+                    <i data-lucide="chevron-right" class="chat-row-arrow"></i>
+                </a>
+                {% empty %}
+                <div class="chat-empty">No group chats yet.</div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
-  </div>
+</section>
 
-  <!-- Messages -->
-  <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 bg-[#0b141a]">
-    {% for msg in messages %}
-      {% if msg.sender.id == current_user.id %}
-        <div class="text-right">
-          <p class="inline-block p-2 rounded-2xl text-sm bg-green-500 text-white">{{ msg.content }}</p>
-        </div>
-      {% else %}
-        <div class="text-left flex items-start space-x-2">
-          {% if msg.sender.profile_image %}
-            <img src="{{ msg.sender.profile_image.url }}" class="w-6 h-6 rounded-full" />
-          {% else %}
-            <div class="w-6 h-6 rounded-full bg-gray-500"></div>
-          {% endif %}
-          <p class="inline-block p-2 rounded-2xl text-sm bg-gray-700 text-white">{{ msg.content }}</p>
-        </div>
-      {% endif %}
-    {% endfor %}
-  </div>
+        <section id="chat-window" class="chat-conversation">
+            <header class="chat-conversation-header">
+                <div class="conversation-user">
+                    <div class="chat-avatar-wrap large">
+                        {% if other_user.profile_image %}
+                        <img id="chat-avatar" src="{{ other_user.profile_image.url }}" class="chat-avatar" alt="{{ other_user.name }}">
+                        {% else %}
+                        <div id="chat-avatar" class="chat-avatar chat-avatar-fallback">{{ other_user.name|first|upper }}</div>
+                        {% endif %}
+                        <span class="user-status-dot large-dot" data-user-id="{{ other_user.id }}" title="Active"></span>
+                    </div>
+                    <div>
+                        <p id="chat-username" class="conversation-name">{{ other_user.name }}</p>
+                        <p id="chat-userphone" class="conversation-sub">{{ other_user.phone }}</p>
+                    </div>
+                </div>
+                <div class="conversation-status">
+                    <span class="status-dot"></span> Online
+                </div>
+            </header>
 
-  <!-- Input -->
-  <div class="p-4 bg-[#202c33] flex items-center">
-    <input id="chat-input" type="text"
-           placeholder="Type a message"
-           class="flex-1 px-3 py-2 rounded-full bg-[#111b21] text-white border-none focus:ring-0 text-sm" />
-    <button id="sendBtn" class="ml-3 bg-green-500 px-4 py-2 rounded-full text-white">Send</button>
-  </div>
+            <div id="chat-messages" class="chat-messages">
+                {% for msg in messages %}
+                {% if msg.sender.id == current_user.id %}
+                <div class="message-row sent">
+                    <p class="message-bubble sent-bubble">{{ msg.content }}</p>
+                </div>
+                {% else %}
+                <div class="message-row received">
+                    {% if msg.sender.profile_image %}
+                    <img src="{{ msg.sender.profile_image.url }}" class="message-avatar" alt="{{ msg.sender.name }}">
+                    {% else %}
+                    <div class="message-avatar message-avatar-fallback">{{ msg.sender.name|first|upper }}</div>
+                    {% endif %}
+                    <p class="message-bubble received-bubble">{{ msg.content }}</p>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="chat-composer">
+                <input id="chat-input" type="text" placeholder="Type a message..." autocomplete="off">
+                <button id="sendBtn" type="button" class="send-button">
+                    <i data-lucide="send"></i>
+                    <span>Send</span>
+                </button>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div id="groupModal" class="chat-modal hidden">
+    <div class="chat-modal-card">
+        <div class="chat-modal-header">
+            <div>
+                <span class="chat-eyebrow">GROUP CHAT</span>
+                <h2>Create New Group</h2>
+            </div>
+            <button type="button" id="closeModal" class="chat-modal-close" aria-label="Close">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+
+        <form method="POST" class="chat-modal-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_group">
+
+            <label for="group-name">Group Name</label>
+            <input id="group-name" type="text" name="group_name"
+                   placeholder="Enter group name" required>
+
+            <label for="group-members">Add Members</label>
+            <select id="group-members" name="members" multiple>
+                {% for user in users %}
+                <option value="{{ user.id }}">{{ user.name }}</option>
+                {% endfor %}
+            </select>
+
+            <div class="chat-modal-actions">
+                <button type="button" id="cancelModal" class="chat-secondary-btn">Cancel</button>
+                <button type="submit" class="chat-primary-btn">
+                    <i data-lucide="plus"></i> Create Group
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
-  const roomId = "{{ room.id }}";
-  const currentUserId = Number("{{ current_user.id }}");
-  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-  const chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${roomId}/`);
+const roomId = "{{ room.id }}";
+const currentUserId = Number("{{ current_user.id }}");
+const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+const chatSocket = new WebSocket(`${wsScheme}://${window.location.host}/ws/chat/${roomId}/`);
 
-  const messagesContainer = document.querySelector('#chat-messages');
-  const input = document.querySelector('#chat-input');
-  const sendBtn = document.querySelector('#sendBtn');
+const messagesContainer = document.querySelector("#chat-messages");
+const input = document.querySelector("#chat-input");
+const sendBtn = document.querySelector("#sendBtn");
 
-  // --- Append message to chat ---
-  function appendMessage(message, senderId, senderName = '', senderProfile = null) {
+function appendMessage(message, senderId, senderName = "", senderProfile = null) {
     const isCurrentUser = Number(senderId) === currentUserId;
 
-    const wrapper = document.createElement('div');
-    wrapper.className = isCurrentUser
-      ? 'text-right mb-2'
-      : 'text-left flex items-start space-x-2 mb-2';
-
-    const bubble = document.createElement('p');
-    bubble.className = `inline-block p-2 rounded-2xl text-sm ${
-      isCurrentUser ? 'bg-green-500 text-white' : 'bg-gray-700 text-white'
-    }`;
-    bubble.textContent = message;
+    const wrapper = document.createElement("div");
+    wrapper.className = isCurrentUser ? "message-row sent dynamic-message" : "message-row received dynamic-message";
 
     if (!isCurrentUser) {
-      const avatar = document.createElement('img');
-      avatar.src = senderProfile || '';
-      avatar.className = 'w-6 h-6 rounded-full';
-      wrapper.appendChild(avatar);
+        const avatar = document.createElement("img");
+        avatar.src = senderProfile || "";
+        avatar.className = "message-avatar";
+        avatar.alt = senderName || "User";
+        wrapper.appendChild(avatar);
     }
+
+    const bubble = document.createElement("p");
+    bubble.className = isCurrentUser
+        ? "message-bubble sent-bubble"
+        : "message-bubble received-bubble";
+    bubble.textContent = message;
 
     wrapper.appendChild(bubble);
     messagesContainer.appendChild(wrapper);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  }
+}
 
-  // --- Receive messages ---
-  chatSocket.onmessage = (e) => {
+chatSocket.onmessage = (e) => {
     const data = JSON.parse(e.data);
     const senderId = Number(data.sender_id);
-    const message = data.message;
-
-    // ✅ Only append if message is from OTHER users
     if (senderId !== currentUserId) {
-      appendMessage(message, senderId, data.sender, data.sender_profile || null);
+        appendMessage(data.message, senderId, data.sender, data.sender_profile || null);
     }
-  };
+};
 
-  // --- Send message ---
-  sendBtn.onclick = () => {
+sendBtn.onclick = () => {
     const message = input.value.trim();
     if (!message) return;
 
-    // Append locally for instant preview
     appendMessage(message, currentUserId);
 
-    // Send through WebSocket
     chatSocket.send(JSON.stringify({
-      message: message,
-      sender_id: currentUserId
+        message: message,
+        sender_id: currentUserId
     }));
 
-    input.value = '';
-  };
+    input.value = "";
+    input.focus();
+};
 
-  // --- Enter key sends message ---
-  input.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      sendBtn.click();
+input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        sendBtn.click();
     }
-  });
+});
 
-  // --- Scroll to bottom on load ---
-  window.addEventListener('load', () => {
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  });
+window.addEventListener("load", () => {
+    if (messagesContainer) messagesContainer.scrollTop = messagesContainer.scrollHeight;
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("groupModal");
+    const openButtons = [
+        document.getElementById("openModal"),
+        document.getElementById("openModalTop")
+    ].filter(Boolean);
+    const closeButtons = [
+        document.getElementById("closeModal"),
+        document.getElementById("cancelModal")
+    ].filter(Boolean);
+
+    openButtons.forEach(btn => btn.addEventListener("click", () => modal?.classList.remove("hidden")));
+    closeButtons.forEach(btn => btn.addEventListener("click", () => modal?.classList.add("hidden")));
+    modal?.addEventListener("click", (event) => {
+        if (event.target === modal) modal.classList.add("hidden");
+    });
+});
 </script>
-
-
-<div id="groupModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
-  <div class="bg-[#250f1e] rounded-lg w-96 p-6 mx-2 max-h-[90vh] overflow-y-auto">
-    <h2 class="text-xl font-bold mb-4">Create New Group</h2>
-    <form method="POST">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="create_group">
-
-      <label class="block mb-2 font-semibold">Group Name:</label>
-      <input type="text" name="group_name" class="border p-2 rounded w-full mb-4" placeholder="Enter group name" required>
-
-      <label class="block mb-2 font-semibold">Add Members:</label>
-      <select name="members" multiple class="border p-2 rounded w-full mb-4">
-        {% for user in users %}
-        <option value="{{ user.id }}">{{ user.name }}</option>
-        {% endfor %}
-      </select>
-
-      <div class="flex justify-end space-x-2">
-        <button type="button" id="closeModal" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
-        <button type="submit" class="bg-[#03314d] text-white px-4 py-2 rounded hover:bg-[#4f595f]">Create</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-
-
-<!-- ✅ Modal JS -->
-<script>
-const openModal = document.getElementById('openModal');
-const closeModal = document.getElementById('closeModal');
-const modal = document.getElementById('groupModal');
-
-openModal.addEventListener('click', () => modal.classList.remove('hidden'));
-closeModal.addEventListener('click', () => modal.classList.add('hidden'));
-</script>
-
-
 <script src="{% static 'js/admin.js' %}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.lucide) lucide.createIcons();
+
+    document.querySelectorAll(".menu-toggle").forEach((button) => {
+        button.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.toggle("open");
+        });
+    });
+
+    const sidebar = document.getElementById("sidebar");
+    document.querySelectorAll(".sidebar-item").forEach((item) => {
+        item.addEventListener("click", () => {
+            if (window.innerWidth <= 768) sidebar.classList.remove("open");
+        });
+    });
+});
+</script>
 <script src="{% static 'js/activity.js' %}"></script>
+
 </body>
 </html>

@@ -1,33 +1,837 @@
-
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Login - Cybexel</title>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <style>
+
+        /* =========================================================
+           CYBEXEL ADMIN LOGIN
+           MATCHES ADMIN DASHBOARD GLASS DESIGN
+        ========================================================= */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+
+            color: #ffffff;
+
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at 15% 10%,
+                    rgba(92, 47, 145, .16),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 85% 15%,
+                    rgba(40, 88, 160, .12),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 50% 100%,
+                    rgba(92, 47, 145, .10),
+                    transparent 32%
+                ),
+                #08080d;
+        }
+
+
+        /* =========================================================
+           BACKGROUND AMBIENT GLOW
+        ========================================================= */
+
+        .login-page {
+            position: relative;
+
+            width: 100%;
+            height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 24px;
+
+            overflow: hidden;
+        }
+
+
+        .ambient-glow {
+            position: absolute;
+
+            width: 420px;
+            height: 420px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(111, 76, 190, .12);
+
+            filter: blur(100px);
+
+            pointer-events: none;
+        }
+
+        .ambient-glow.one {
+            top: -180px;
+            left: -150px;
+        }
+
+        .ambient-glow.two {
+            right: -170px;
+            bottom: -180px;
+
+            background:
+                rgba(63, 79, 153, .12);
+        }
+
+
+        /* =========================================================
+           LOGIN GLASS CARD
+        ========================================================= */
+
+        .login-card {
+
+            position: relative;
+
+            width: min(430px, 100%);
+
+            padding: 34px;
+
+            border-radius: 28px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(38, 24, 49, .94),
+                    rgba(14, 14, 21, .97)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, .12);
+
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+
+            box-shadow:
+                0 30px 90px rgba(0, 0, 0, .48),
+                inset 0 1px 0 rgba(255, 255, 255, .055);
+
+            overflow: hidden;
+        }
+
+
+        /* Card purple glow */
+
+        .login-card::before {
+
+            content: "";
+
+            position: absolute;
+
+            width: 250px;
+            height: 250px;
+
+            top: -150px;
+            right: -100px;
+
+            background:
+                rgba(139, 92, 246, .16);
+
+            filter: blur(75px);
+
+            pointer-events: none;
+        }
+
+
+        /* subtle bottom glow */
+
+        .login-card::after {
+
+            content: "";
+
+            position: absolute;
+
+            width: 220px;
+            height: 160px;
+
+            bottom: -130px;
+            left: -100px;
+
+            background:
+                rgba(79, 70, 229, .10);
+
+            filter: blur(70px);
+
+            pointer-events: none;
+        }
+
+
+        .login-content {
+            position: relative;
+            z-index: 2;
+        }
+
+
+        /* =========================================================
+           BRAND
+        ========================================================= */
+
+        .brand {
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            margin-bottom: 28px;
+        }
+
+
+        .brand-icon {
+
+            width: 76px;
+            height: 76px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 14px;
+
+            border-radius: 21px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255,255,255,.09),
+                    rgba(255,255,255,.025)
+                );
+
+            border:
+                1px solid rgba(255,255,255,.10);
+
+            box-shadow:
+                0 14px 35px rgba(0,0,0,.28),
+                inset 0 1px 0 rgba(255,255,255,.06);
+        }
+
+
+        .brand-icon svg {
+
+            width: 30px;
+            height: 30px;
+
+            color: #b79cff;
+
+            stroke-width: 1.7;
+
+            filter:
+                drop-shadow(
+                    0 0 10px
+                    rgba(139,92,246,.35)
+                );
+        }
+
+
+        .eyebrow {
+
+            margin-bottom: 8px;
+
+            color: #a78bfa;
+
+            font-size: 9px;
+
+            font-weight: 800;
+
+            letter-spacing: 3px;
+
+            text-transform: uppercase;
+
+            text-align: center;
+        }
+
+
+        .brand h1 {
+
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 27px;
+
+            line-height: 1.1;
+
+            font-weight: 900;
+
+            letter-spacing: -.6px;
+
+            text-align: center;
+        }
+
+
+        .brand p {
+
+            margin: 9px 0 0;
+
+            color: #85818d;
+
+            font-size: 11px;
+
+            text-align: center;
+        }
+
+
+        /* =========================================================
+           DJANGO MESSAGES
+        ========================================================= */
+
+        .messages {
+
+            margin-bottom: 17px;
+
+            padding: 11px 13px;
+
+            border-radius: 12px;
+
+            background:
+                rgba(255, 70, 100, .055);
+
+            border:
+                1px solid rgba(255, 80, 110, .16);
+
+            color: #ff9aaa;
+
+            font-size: 10px;
+
+            line-height: 1.5;
+        }
+
+        .messages ul {
+
+            margin: 0;
+            padding-left: 16px;
+        }
+
+
+        /* =========================================================
+           FORM
+        ========================================================= */
+
+        .login-form {
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 17px;
+        }
+
+
+        .field {
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 7px;
+        }
+
+
+        .field label {
+
+            color: #aaa6b2;
+
+            font-size: 9px;
+
+            font-weight: 800;
+
+            letter-spacing: 1.4px;
+
+            text-transform: uppercase;
+        }
+
+
+        .input-wrap {
+
+            position: relative;
+        }
+
+
+        .input-icon {
+
+            position: absolute;
+
+            left: 14px;
+            top: 50%;
+
+            width: 17px;
+            height: 17px;
+
+            transform: translateY(-50%);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #817b8c;
+
+            pointer-events: none;
+
+            transition: color .2s ease;
+        }
+
+
+        .input-icon svg {
+
+            width: 17px;
+            height: 17px;
+
+            stroke-width: 1.7;
+        }
+
+
+        .field input {
+
+            width: 100%;
+
+            height: 48px;
+
+            padding:
+                0 14px
+                0 42px;
+
+            outline: none;
+
+            color: #ffffff;
+
+            font-family: inherit;
+
+            font-size: 11px;
+
+            background:
+                rgba(255,255,255,.035);
+
+            border:
+                1px solid rgba(255,255,255,.08);
+
+            border-radius: 13px;
+
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,.025);
+
+            transition:
+                border-color .22s ease,
+                background .22s ease,
+                box-shadow .22s ease;
+        }
+
+
+        .field input::placeholder {
+
+            color: #67636e;
+        }
+
+
+        .field input:focus {
+
+            background:
+                rgba(255,255,255,.05);
+
+            border-color:
+                rgba(139,92,246,.48);
+
+            box-shadow:
+                0 0 0 3px rgba(139,92,246,.08),
+                inset 0 1px 0 rgba(255,255,255,.035);
+        }
+
+
+        .field input:focus + .input-icon {
+
+            color: #a78bfa;
+        }
+
+
+        /* =========================================================
+           LOGIN BUTTON
+        ========================================================= */
+
+        .login-button {
+
+            position: relative;
+
+            width: 100%;
+
+            height: 48px;
+
+            margin-top: 4px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 9px;
+
+            border: 1px solid rgba(154,122,255,.35);
+
+            border-radius: 13px;
+
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #7048c6,
+                    #5554c8
+                );
+
+            box-shadow:
+                0 12px 28px rgba(99,102,241,.20),
+                inset 0 1px 0 rgba(255,255,255,.13);
+
+            font-family: inherit;
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            transition:
+                transform .22s ease,
+                box-shadow .22s ease,
+                filter .22s ease;
+        }
+
+
+        .login-button::before {
+
+            content: "";
+
+            position: absolute;
+
+            top: 1px;
+            left: 14%;
+            right: 14%;
+
+            height: 1px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255,255,255,.35),
+                    transparent
+                );
+        }
+
+
+        .login-button svg {
+
+            width: 16px;
+            height: 16px;
+
+            stroke-width: 2;
+        }
+
+
+        .login-button:hover {
+
+            transform: translateY(-2px);
+
+            filter: brightness(1.07);
+
+            box-shadow:
+                0 16px 34px rgba(99,102,241,.28),
+                0 0 20px rgba(139,92,246,.10),
+                inset 0 1px 0 rgba(255,255,255,.16);
+        }
+
+
+        .login-button:active {
+
+            transform: translateY(0);
+        }
+
+
+        /* =========================================================
+           FOOTER
+        ========================================================= */
+
+        .login-footer {
+
+            margin-top: 22px;
+
+            padding-top: 17px;
+
+            border-top:
+                1px solid rgba(255,255,255,.06);
+
+            color: #625e69;
+
+            font-size: 8px;
+
+            font-weight: 700;
+
+            letter-spacing: 1.6px;
+
+            text-align: center;
+
+            text-transform: uppercase;
+        }
+
+
+        .login-footer span {
+
+            color: #8170ad;
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 480px) {
+
+            .login-page {
+
+                padding: 16px;
+            }
+
+            .login-card {
+
+                padding: 27px 22px;
+
+                border-radius: 23px;
+            }
+
+            .brand {
+
+                margin-bottom: 24px;
+            }
+
+            .brand-icon {
+
+                width: 68px;
+                height: 68px;
+
+                border-radius: 19px;
+            }
+
+            .brand h1 {
+
+                font-size: 24px;
+            }
+
+            .field input,
+            .login-button {
+
+                height: 46px;
+            }
+        }
+
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="bg-white p-8 rounded shadow-md w-96">
-        <h2 class="text-xl font-bold mb-4 text-center">Admin Login</h2>
-        {% if messages %}
-            <ul class="text-red-500 text-sm mb-4">
-                {% for message in messages %}
-                    <li>{{ message }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-        <form method="POST">
-            {% csrf_token %}
-            <div class="mb-4">
-                <label class="block mb-1 font-medium">Username</label>
-                <input type="text" name="username" class="w-full border p-2 rounded" required>
+
+
+<body>
+
+<div class="login-page">
+
+    <!-- Ambient background -->
+    <div class="ambient-glow one"></div>
+    <div class="ambient-glow two"></div>
+
+
+    <!-- =====================================================
+         LOGIN CARD
+    ====================================================== -->
+
+    <div class="login-card">
+
+        <div class="login-content">
+
+
+            <!-- BRAND -->
+
+            <div class="brand">
+
+                <div class="brand-icon">
+                    <i data-lucide="shield-check"></i>
+                </div>
+
+                <div class="eyebrow">
+                    CYBEXEL ADMIN PANEL
+                </div>
+
+                <h1>
+                    Admin Login
+                </h1>
+
+                <p>
+                    Sign in to manage your dashboard
+                </p>
+
             </div>
-            <div class="mb-4">
-                <label class="block mb-1 font-medium">Password</label>
-                <input type="password" name="password" class="w-full border p-2 rounded" required>
+
+
+            <!-- DJANGO MESSAGES -->
+
+            {% if messages %}
+
+                <div class="messages">
+
+                    <ul>
+
+                        {% for message in messages %}
+
+                            <li>
+                                {{ message }}
+                            </li>
+
+                        {% endfor %}
+
+                    </ul>
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- LOGIN FORM -->
+
+            <form
+                method="POST"
+                class="login-form"
+            >
+
+                {% csrf_token %}
+
+
+                <!-- USERNAME -->
+
+                <div class="field">
+
+                    <label for="username">
+                        Username
+                    </label>
+
+                    <div class="input-wrap">
+
+                        <input
+                            id="username"
+                            type="text"
+                            name="username"
+                            placeholder="Enter your username"
+                            autocomplete="username"
+                            required
+                        >
+
+                        <span class="input-icon">
+                            <i data-lucide="user-round"></i>
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="field">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <div class="input-wrap">
+
+                        <input
+                            id="password"
+                            type="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <span class="input-icon">
+                            <i data-lucide="lock-keyhole"></i>
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- LOGIN -->
+
+                <button
+                    type="submit"
+                    class="login-button"
+                >
+
+                    <i data-lucide="log-in"></i>
+
+                    <span>
+                        Sign In
+                    </span>
+
+                </button>
+
+            </form>
+
+
+            <!-- FOOTER -->
+
+            <div class="login-footer">
+                Secure access · <span>Cybexel</span>
             </div>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full">Login</button>
-        </form>
+
+
+        </div>
+
     </div>
+
+</div>
+
+
+<script>
+    lucide.createIcons();
+</script>
+
 </body>
 </html>

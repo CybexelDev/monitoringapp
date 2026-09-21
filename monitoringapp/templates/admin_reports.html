@@ -2,181 +2,1796 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard - Cybexel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <title>Team Reports - Cybexel</title>
 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <style>
+        /* =========================================================
+           REPORT PAGE — SAME GLASS UI AS ADMIN DASHBOARD
+        ========================================================= */
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden !important;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    circle at 15% 10%,
+                    rgba(92, 47, 145, 0.16),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 85% 15%,
+                    rgba(40, 88, 160, 0.12),
+                    transparent 30%
+                ),
+                #08080d;
+
+            color: #ffffff;
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
+
+        .glass-sidebar {
+            position: fixed;
+            top: 18px;
+            left: 16px;
+            bottom: 18px;
+
+            width: 242px;
+
+            z-index: 100;
+
+            display: flex;
+            flex-direction: column;
+
+            padding: 18px 14px;
+
+            border-radius: 27px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(38, 24, 49, 0.96),
+                    rgba(14, 14, 21, 0.96)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.12);
+
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+
+            box-shadow:
+                0 25px 70px rgba(0, 0, 0, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+            overflow: hidden;
+        }
+
+        .glass-sidebar::before {
+            content: "";
+
+            position: absolute;
+
+            width: 190px;
+            height: 190px;
+
+            top: -85px;
+            left: -65px;
+
+            background: rgba(139, 92, 246, 0.20);
+
+            filter: blur(70px);
+
+            pointer-events: none;
+        }
+
+        /* =========================================================
+           SIDEBAR PROFILE
+        ========================================================= */
+
+        .sidebar-profile {
+            position: relative;
+            z-index: 2;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            padding: 2px 5px 20px;
+
+            margin-bottom: 8px;
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .sidebar-logo {
+            width: 86px;
+            height: 86px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 8px;
+
+            border-radius: 23px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255, 255, 255, 0.08),
+                    rgba(255, 255, 255, 0.025)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .sidebar-logo img {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+        }
+
+        .sidebar-profile-text {
+            text-align: center;
+        }
+
+        .sidebar-profile-text h3 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-profile-text span {
+            display: block;
+            margin-top: 3px;
+            color: #898592;
+            font-size: 7px;
+            letter-spacing: 1.7px;
+            font-weight: 600;
+        }
+
+        /* =========================================================
+           NAVIGATION
+        ========================================================= */
+
+        .sidebar-nav {
+            position: relative;
+            z-index: 2;
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .sidebar-item {
+            position: relative;
+
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            min-height: 44px;
+
+            padding: 0 14px;
+
+            border-radius: 13px;
+
+            color: #aaa6b2;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            border: 1px solid transparent;
+
+            transition:
+                background 0.25s ease,
+                color 0.25s ease,
+                transform 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+        .sidebar-item:hover {
+            color: #ffffff;
+
+            background: rgba(255, 255, 255, 0.055);
+
+            border-color: rgba(255, 255, 255, 0.06);
+
+            transform: translateX(3px);
+        }
+
+        .sidebar-item.active {
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(111, 76, 190, 0.82),
+                    rgba(63, 79, 153, 0.72)
+                );
+
+            border: 1px solid rgba(154, 122, 255, 0.38);
+
+            box-shadow:
+                0 10px 28px rgba(99, 102, 241, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+            transform: translateX(2px);
+        }
+
+        .sidebar-item.active::before {
+            content: "";
+
+            position: absolute;
+
+            left: -14px;
+            top: 9px;
+
+            width: 3px;
+            height: 26px;
+
+            border-radius: 0 5px 5px 0;
+
+            background: #b99cff;
+
+            box-shadow:
+                0 0 12px rgba(185, 156, 255, 0.8);
+        }
+
+        .sidebar-icon {
+            width: 20px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #8d8995;
+        }
+
+        .sidebar-icon svg {
+            width: 19px;
+            height: 19px;
+            stroke-width: 1.8;
+        }
+
+        .sidebar-item.active .sidebar-icon {
+            color: #ffffff;
+        }
+
+        .sidebar-external {
+            margin-left: auto;
+            color: #77727f;
+        }
+
+        .sidebar-external svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* =========================================================
+           LOGOUT
+        ========================================================= */
+
+        .sidebar-bottom {
+            position: relative;
+            z-index: 2;
+
+            margin-top: auto;
+            padding-top: 14px;
+        }
+
+        .sidebar-logout {
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            min-height: 43px;
+
+            padding: 0 14px;
+
+            border-radius: 13px;
+
+            color: #ff9ba4;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            background: rgba(255, 70, 85, 0.055);
+
+            border: 1px solid rgba(255, 70, 85, 0.13);
+
+            transition: all 0.25s ease;
+        }
+
+        .sidebar-logout:hover {
+            color: #ffffff;
+            background: rgba(255, 70, 85, 0.13);
+            transform: translateY(-2px);
+        }
+
+        /* =========================================================
+           MAIN AREA
+        ========================================================= */
+
+        .main-area {
+            position: fixed;
+
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 275px;
+
+            padding: 18px 20px;
+
+            overflow: hidden;
+        }
+
+        /* =========================================================
+           BIG GLASS BOX
+        ========================================================= */
+
+        .dashboard-box {
+            position: relative;
+
+            width: 100%;
+            height: 100%;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            padding: 16px;
+
+            border-radius: 28px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(17, 16, 24, 0.94),
+                    rgba(8, 9, 14, 0.96)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.10);
+
+            box-shadow:
+                0 25px 80px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+
+            scrollbar-width: thin;
+            scrollbar-color:
+                rgba(151, 112, 235, 0.65)
+                transparent;
+        }
+
+        .dashboard-box::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        .dashboard-box::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .dashboard-box::-webkit-scrollbar-thumb {
+            background:
+                linear-gradient(
+                    180deg,
+                    #8b5cf6,
+                    #4f46e5
+                );
+
+            border-radius: 20px;
+        }
+
+        /* =========================================================
+           HEADER
+        ========================================================= */
+
+        .dashboard-header {
+            position: relative;
+
+            min-height: 168px;
+
+            display: flex;
+            align-items: center;
+
+            padding: 30px 32px;
+
+            border-radius: 25px;
+
+            overflow: hidden;
+
+            background:
+                linear-gradient(
+                    110deg,
+                    rgba(44, 32, 55, 0.62),
+                    rgba(18, 23, 31, 0.72),
+                    rgba(30, 31, 59, 0.62)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.10);
+
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .dashboard-header::before {
+            content: "";
+
+            position: absolute;
+
+            width: 260px;
+            height: 260px;
+
+            right: -100px;
+            top: -130px;
+
+            background: rgba(99, 102, 241, 0.13);
+
+            filter: blur(80px);
+
+            pointer-events: none;
+        }
+
+        .dashboard-header-content {
+            position: relative;
+            z-index: 2;
+
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 25px;
+        }
+
+        .dashboard-eyebrow {
+            margin-bottom: 15px;
+
+            color: #a78bfa;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            letter-spacing: 3px;
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+
+            font-size: clamp(34px, 4vw, 52px);
+
+            line-height: 1;
+            font-weight: 900;
+
+            letter-spacing: -2px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #ffffff 0%,
+                    #c4b5fd 45%,
+                    #67c8ff 100%
+                );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard-header p {
+            margin: 18px 0 0;
+
+            color: #96939e;
+
+            font-size: 14px;
+        }
+
+        /* =========================================================
+           SYSTEM STATUS
+        ========================================================= */
+
+        .system-status {
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+
+            gap: 9px;
+
+            padding: 10px 18px;
+
+            border-radius: 30px;
+
+            color: #9ee7ba;
+
+            font-size: 12px;
+
+            background: rgba(52, 211, 153, 0.055);
+
+            border: 1px solid rgba(52, 211, 153, 0.17);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: #4ade80;
+
+            box-shadow:
+                0 0 12px rgba(74, 222, 128, 0.75);
+        }
+
+        /* =========================================================
+           CONTENT
+        ========================================================= */
+
+        .dashboard-content {
+            padding: 32px 0 35px;
+        }
+
+        /* =========================================================
+           REPORT TOOLBAR
+        ========================================================= */
+
+        .report-toolbar {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-bottom: 25px;
+
+            padding: 18px;
+
+            border-radius: 20px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.09);
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+
+        .report-actions {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+        }
+
+        .glass-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            min-height: 42px;
+
+            padding: 0 15px;
+
+            border-radius: 12px;
+
+            color: #ffffff;
+
+            text-decoration: none;
+
+            font-size: 11px;
+            font-weight: 700;
+
+            border: 1px solid rgba(255, 255, 255, 0.09);
+
+            background:
+                rgba(255, 255, 255, 0.045);
+
+            transition: all 0.22s ease;
+        }
+
+        .glass-button:hover {
+            transform: translateY(-2px);
+
+            background:
+                rgba(139, 92, 246, 0.15);
+
+            border-color:
+                rgba(139, 92, 246, 0.35);
+        }
+
+        .glass-button.primary {
+            background:
+                linear-gradient(
+                    135deg,
+                    #7c4bd4,
+                    #5b32a7
+                );
+
+            border-color:
+                rgba(167, 139, 250, 0.35);
+
+            box-shadow:
+                0 10px 25px rgba(124, 75, 212, 0.18);
+        }
+
+        .glass-button.export {
+            background:
+                rgba(52, 211, 153, 0.07);
+
+            border-color:
+                rgba(52, 211, 153, 0.20);
+
+            color: #9ee7ba;
+        }
+
+        .glass-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* =========================================================
+           FILTER
+        ========================================================= */
+
+        .filter-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .date-input {
+            height: 42px;
+
+            padding: 0 13px;
+
+            border-radius: 12px;
+
+            outline: none;
+
+            color: #ffffff;
+
+            background:
+                rgba(7, 7, 11, 0.60);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.10);
+
+            font-size: 11px;
+        }
+
+        .date-input:focus {
+            border-color:
+                rgba(139, 92, 246, 0.55);
+
+            box-shadow:
+                0 0 0 3px rgba(139, 92, 246, 0.08);
+        }
+
+        /* =========================================================
+           REPORT SECTIONS
+        ========================================================= */
+
+        .report-section {
+            margin-bottom: 25px;
+        }
+
+        .section-heading {
+            display: flex;
+
+            align-items: center;
+
+            gap: 18px;
+
+            margin-bottom: 15px;
+        }
+
+        .section-title-block {
+            flex-shrink: 0;
+        }
+
+        .section-eyebrow {
+            display: block;
+
+            margin-bottom: 6px;
+
+            color: #a78bfa;
+
+            font-size: 9px;
+
+            font-weight: 800;
+
+            letter-spacing: 2.5px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 20px;
+
+            font-weight: 800;
+        }
+
+        .heading-line {
+            flex: 1;
+
+            height: 1px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0.12),
+                    transparent
+                );
+        }
+
+        /* =========================================================
+           REPORT CARD
+        ========================================================= */
+
+        .report-card {
+            width: 100%;
+
+            padding: 0;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.20),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+
+        .table-wrapper {
+            width: 100%;
+
+            overflow-x: auto;
+
+            scrollbar-width: thin;
+
+            scrollbar-color:
+                rgba(139, 92, 246, 0.45)
+                transparent;
+        }
+
+        .table-wrapper::-webkit-scrollbar {
+            height: 5px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background:
+                rgba(139, 92, 246, 0.45);
+
+            border-radius: 20px;
+        }
+
+        .report-table {
+            width: 100%;
+
+            min-width: 900px;
+
+            border-collapse: collapse;
+        }
+
+        .report-table thead {
+            background:
+                rgba(255, 255, 255, 0.035);
+        }
+
+        .report-table th {
+            height: 47px;
+
+            padding: 0 16px;
+
+            color: #85818d;
+
+            text-align: left;
+
+            font-size: 9px;
+
+            font-weight: 800;
+
+            letter-spacing: 1px;
+
+            text-transform: uppercase;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .report-table td {
+            min-height: 58px;
+
+            padding: 14px 16px;
+
+            color: #dedbe2;
+
+            font-size: 12px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.055);
+
+            vertical-align: middle;
+        }
+
+        .report-table tbody tr {
+            transition:
+                background 0.2s ease;
+        }
+
+        .report-table tbody tr:hover {
+            background:
+                rgba(255, 255, 255, 0.025);
+        }
+
+        .report-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* =========================================================
+           NAME
+        ========================================================= */
+
+        .user-name {
+            display: flex;
+
+            align-items: center;
+
+            gap: 9px;
+
+            white-space: nowrap;
+
+            font-weight: 700;
+
+            color: #ffffff;
+        }
+
+        .user-dot {
+            width: 7px;
+            height: 7px;
+
+            flex-shrink: 0;
+
+            border-radius: 50%;
+
+            background: #a78bfa;
+
+            box-shadow:
+                0 0 9px rgba(167, 139, 250, 0.65);
+        }
+
+        /* =========================================================
+           STATUS
+        ========================================================= */
+
+        .status-badge {
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-width: 70px;
+
+            padding: 6px 10px;
+
+            border-radius: 9px;
+
+            color: #9ee7ba;
+
+            font-size: 10px;
+
+            font-weight: 700;
+
+            background:
+                rgba(52, 211, 153, 0.07);
+
+            border:
+                1px solid rgba(52, 211, 153, 0.18);
+        }
+
+        /* =========================================================
+           REPORT TEXT
+        ========================================================= */
+
+        .report-text {
+            max-width: 420px;
+
+            line-height: 1.6;
+
+            color: #b8b4be;
+        }
+
+        /* =========================================================
+           EMPTY
+        ========================================================= */
+
+        .empty-row {
+            height: 100px;
+
+            text-align: center;
+
+            color: #77727e !important;
+
+            font-size: 11px !important;
+        }
+
+        /* =========================================================
+           MOBILE MENU
+        ========================================================= */
+
+        .mobile-menu-button {
+            display: none;
+
+            position: fixed;
+
+            top: 18px;
+            left: 18px;
+
+            z-index: 200;
+
+            width: 42px;
+            height: 42px;
+
+            border:
+                1px solid rgba(255,255,255,0.10);
+
+            border-radius: 13px;
+
+            color: #ffffff;
+
+            background:
+                rgba(25, 20, 32, 0.88);
+
+            backdrop-filter: blur(15px);
+
+            cursor: pointer;
+        }
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1100px) {
+
+            .glass-sidebar {
+                width: 220px;
+            }
+
+            .main-area {
+                left: 250px;
+                padding: 14px;
+            }
+
+            .dashboard-header {
+                padding: 26px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 42px;
+            }
+
+            .report-toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            body {
+                overflow: hidden;
+            }
+
+            .glass-sidebar {
+                top: 10px;
+                left: 10px;
+                bottom: 10px;
+
+                width: 250px;
+
+                transform:
+                    translateX(-120%);
+
+                transition:
+                    transform 0.3s ease;
+            }
+
+            .glass-sidebar.open {
+                transform:
+                    translateX(0);
+            }
+
+            .mobile-menu-button {
+                display: flex;
+
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-area {
+                left: 0;
+
+                top: 0;
+                right: 0;
+                bottom: 0;
+
+                padding: 10px;
+            }
+
+            .dashboard-box {
+                padding: 12px;
+                border-radius: 22px;
+            }
+
+            .dashboard-header {
+                min-height: auto;
+
+                padding: 25px 20px;
+
+                border-radius: 20px;
+            }
+
+            .dashboard-header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .dashboard-header h1 {
+                font-size: 34px;
+                letter-spacing: -1px;
+            }
+
+            .dashboard-header p {
+                font-size: 12px;
+                line-height: 1.6;
+            }
+
+            .system-status {
+                align-self: flex-start;
+            }
+
+            .dashboard-content {
+                padding: 25px 2px;
+            }
+
+            .report-toolbar {
+                padding: 15px;
+            }
+
+            .report-actions {
+                width: 100%;
+            }
+
+            .glass-button {
+                flex: 1;
+            }
+
+            .filter-area {
+                width: 100%;
+            }
+
+            .date-input {
+                flex: 1;
+            }
+
+            .section-heading {
+                gap: 10px;
+            }
+
+            .section-heading h2 {
+                font-size: 18px;
+            }
+
+            .heading-line {
+                display: none;
+            }
+
+            .report-card {
+                border-radius: 17px;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .dashboard-header h1 {
+                font-size: 28px;
+            }
+
+            .dashboard-header {
+                padding: 22px 17px;
+            }
+
+            .report-toolbar {
+                padding: 13px;
+            }
+
+            .report-actions {
+                flex-direction: column;
+            }
+
+            .glass-button {
+                width: 100%;
+            }
+
+            .filter-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .date-input {
+                width: 100%;
+            }
+
+            .section-heading h2 {
+                font-size: 17px;
+            }
+        }
+    </style>
 </head>
-<body class="bg-black text-white font-sans select-none">
 
-  
+<body>
 
+<!-- =========================================================
+     MOBILE MENU BUTTON
+========================================================= -->
 
-<div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-[#250f1e] text-white p-6 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-  <div class="flex items-center justify-between mb-6">
-    <div class="w-full flex justify-center select-none">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 object-contain">
-    </div>
-    <button class="menu-toggle md:hidden text-white text-2xl max-md:mt-[-9rem]">&times;</button>
-  </div>
-
-  <nav class="select-none">
-    <ul class="space-y-6 text-sm"> 
-      <li>
-        <a href="{% url 'admin_dashboard' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Dashboard</a>
-      </li>
-      <li>
-        <a href="{% url 'admin_usermanagement' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">User Management</a>
-      </li>
-      <li>
-        <a href="{% url 'admin_reports' %}" class="block py-2 px-4 rounded bg-white text-[#151a37]">Reports</a>
-      </li>
-      <li>
-        <a href="{% url 'admin_chat' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Chat</a>
-      </li>
-      <li>
-        <a href="{% url 'admin_profile' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Profile</a>
-      </li>
-      <li>
-      <a href="https://meet.google.com/" target="_blank" class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-    </li>
-      <li>
-        <a href="{% url 'admin_logout' %}" class="block py-2 px-4 rounded bg-[red] text-white">Logout</a>
-      </li>
-    </ul>
-  </nav>
-</div>
-
-
-<button class="menu-toggle md:hidden fixed top-8 left-4 z-50  text-white p-2 rounded shadow-lg">
-  &#9776;
+<button
+    class="menu-toggle mobile-menu-button"
+    type="button"
+>
+    ☰
 </button>
 
 
+<!-- =========================================================
+     LEFT SIDEBAR
+========================================================= -->
 
+<aside id="sidebar" class="glass-sidebar">
 
+    <div class="sidebar-profile">
 
+        <div class="sidebar-logo">
+            <img
+                src="{% static 'images/logo.png' %}"
+                alt="Developer Logo"
+            >
+        </div>
 
-
-
-
-<div class="ml-0 md:ml-64 p-4 md:p-6 max-md:mt-[5rem]">
-  <!-- Header -->
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-2 md:gap-0">
-    <h1 class="text-2xl md:text-3xl font-bold">Team Reports</h1>
-    <div class="flex flex-wrap gap-2">
-      {% if show_all %}
-        <a href="{% url 'admin_reports' %}"
-           class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm md:text-base">
-          Today’s Reports
-        </a>
-      {% else %}
-        <a href="{% url 'admin_reports' %}?all=1"
-           class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm md:text-base">
-          All Reports
-        </a>
-      {% endif %}
-      <a href="{% url 'admin_reports' %}?date={{ filter_date }}&export=1"
-   class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm md:text-base">
-  Export to Excel
-</a>
+        <div class="sidebar-profile-text">
+            <h3>DEVELOPER</h3>
+            <span>TAGGING HERE</span>
+        </div>
 
     </div>
-  </div>
-
-<form method="GET" class="mb-4 flex flex-wrap gap-2 items-center">
-  <input type="date" name="date" value="{{ filter_date|default_if_none:'' }}"
-         class="px-2 py-1 border border-gray-300 rounded">
-  {% if show_all %}
-    <input type="hidden" name="all" value="1">
-  {% endif %}
-  <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded">Filter</button>
-  <a href="{% url 'admin_reports' %}{% if show_all %}?all=1{% endif %}"
-     class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded">Reset</a>
-</form>
 
 
-<div class="mb-10">
-  <h2 class="text-xl md:text-2xl font-semibold mb-4">Morning Reports</h2>
-  <div class="overflow-x-auto bg-white rounded-lg shadow">
-    <table class="min-w-full divide-y divide-gray-200 text-sm md:text-base text-black">
-      <thead class="bg-[#250f1e] text-white">
-        <tr>
-          <th class="px-2 md:px-4 py-2 text-left">Date</th>
-          <th class="px-2 md:px-4 py-2 text-left">Time</th>
-          <th class="px-2 md:px-4 py-2 text-left">Name</th>
-          <th class="px-2 md:px-4 py-2 text-left">Team</th>
-          <th class="px-2 md:px-4 py-2 text-left">Department</th>
-          <th class="px-2 md:px-4 py-2 text-left">Report</th>
-          <th class="px-2 md:px-4 py-2 text-left">Status</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-200">
-        {% for report in morning_reports %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.created_at|date:"Y-m-d" }}</td>
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.created_at|time:"h:i A" }}</td>
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.user.name }}</td>
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.team }}</td>
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.department }}</td>
-          <td class="px-2 md:px-4 py-2">{{ report.report_text }}</td>
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap font-medium">{{ report.status }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6" class="px-2 md:px-4 py-3 text-center text-gray-500">
-            No morning reports found
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+    <nav class="sidebar-nav">
+
+        <!-- Dashboard -->
+        <a
+            href="{% url 'admin_dashboard' %}"
+            class="sidebar-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"
+        >
+            <span class="sidebar-icon">
+                <i data-lucide="layout-dashboard"></i>
+            </span>
+
+            <span>Dashboard</span>
+        </a>
 
 
-  <!-- Evening Reports -->
-  <div>
-    <h2 class="text-xl md:text-2xl font-semibold mb-4">Evening Reports</h2>
-    <div class="overflow-x-auto bg-white rounded-lg shadow">
-      <table class="min-w-full divide-y divide-gray-200 text-sm md:text-base text-black">
-        <thead class="bg-[#250f1e] text-white">
-          <tr>
-            <th class="px-2 md:px-4 py-2 text-left">Date</th>
-            <th class="px-2 md:px-4 py-2 text-left">Time</th>
-            <th class="px-2 md:px-4 py-2 text-left">Name</th>
-            <th class="px-2 md:px-4 py-2 text-left">Team</th>
-            <th class="px-2 md:px-4 py-2 text-left">Department</th>
-            <th class="px-2 md:px-4 py-2 text-left">Report</th>
-            <th class="px-2 md:px-4 py-2 text-left">Status</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
-          {% for report in evening_reports %}
-          <tr class="hover:bg-gray-50">
-            <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.created_at|date:"Y-m-d" }}</td>
-            <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.created_at|time:"h:i A" }}</td>
-            <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.user.name }}</td>
-            <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.team }}</td>
-            <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.department }}</td>
-            <td class="px-2 md:px-4 py-2">{{ report.report_text }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="5" class="px-2 md:px-4 py-3 text-center text-gray-500">No evening reports found</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+        <!-- User Management -->
+        <a
+            href="{% url 'admin_usermanagement' %}"
+            class="sidebar-item {% if request.resolver_match.url_name == 'admin_usermanagement' %}active{% endif %}"
+        >
+            <span class="sidebar-icon">
+                <i data-lucide="users"></i>
+            </span>
+
+            <span>User Management</span>
+        </a>
+
+
+        <!-- Reports -->
+        <a
+            href="{% url 'admin_reports' %}"
+            class="sidebar-item {% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}"
+        >
+            <span class="sidebar-icon">
+                <i data-lucide="chart-no-axes-combined"></i>
+            </span>
+
+            <span>Reports</span>
+        </a>
+
+
+        <!-- Chat -->
+        <a
+            href="{% url 'admin_chat' %}"
+            class="sidebar-item {% if request.resolver_match.url_name == 'admin_chat' %}active{% endif %}"
+        >
+            <span class="sidebar-icon">
+                <i data-lucide="message-circle"></i>
+            </span>
+
+            <span>Chat</span>
+        </a>
+
+
+        <!-- Profile -->
+        <a
+            href="{% url 'admin_profile' %}"
+            class="sidebar-item {% if request.resolver_match.url_name == 'admin_profile' %}active{% endif %}"
+        >
+            <span class="sidebar-icon">
+                <i data-lucide="circle-user-round"></i>
+            </span>
+
+            <span>Profile</span>
+        </a>
+
+
+        <!-- Google Meet -->
+        <a
+            href="https://meet.google.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="sidebar-item"
+        >
+            <span class="sidebar-icon">
+                <i data-lucide="video"></i>
+            </span>
+
+            <span>Google Meet</span>
+
+            <span class="sidebar-external">
+                <i data-lucide="arrow-up-right"></i>
+            </span>
+        </a>
+
+    </nav>
+
+
+    <!-- Logout -->
+    <div class="sidebar-bottom">
+
+        <a
+            href="{% url 'admin_logout' %}"
+            class="sidebar-logout"
+        >
+            <span class="sidebar-icon">
+                <i data-lucide="log-out"></i>
+            </span>
+
+            <span>Logout</span>
+        </a>
+
     </div>
-  </div>
-</div>
 
+</aside>
+
+
+<!-- =========================================================
+     MAIN AREA
+========================================================= -->
+
+<main class="main-area">
+
+    <div class="dashboard-box">
+
+
+        <!-- =====================================================
+             HEADER
+        ====================================================== -->
+
+        <section class="dashboard-header">
+
+            <div class="dashboard-header-content">
+
+                <div>
+
+                    <div class="dashboard-eyebrow">
+                        CYBEXEL ADMIN PANEL
+                    </div>
+
+                    <h1>
+                        TEAM REPORTS
+                    </h1>
+
+                    <p>
+                        Review and manage daily team reports from one place.
+                    </p>
+
+                </div>
+
+
+                <div class="system-status">
+
+                    <span class="status-dot"></span>
+
+                    <span>
+                        System Online
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             CONTENT
+        ====================================================== -->
+
+        <section class="dashboard-content">
+
+
+            <!-- =================================================
+                 REPORT TOOLBAR
+            ================================================== -->
+
+            <div class="report-toolbar">
+
+                <div class="report-actions">
+
+                    {% if show_all %}
+
+                        <a
+                            href="{% url 'admin_reports' %}"
+                            class="glass-button primary"
+                        >
+                            <i data-lucide="calendar-days"></i>
+                            Today's Reports
+                        </a>
+
+                    {% else %}
+
+                        <a
+                            href="{% url 'admin_reports' %}?all=1"
+                            class="glass-button primary"
+                        >
+                            <i data-lucide="files"></i>
+                            All Reports
+                        </a>
+
+                    {% endif %}
+
+
+                    <a
+                        href="{% url 'admin_reports' %}?date={{ filter_date }}&export=1"
+                        class="glass-button export"
+                    >
+                        <i data-lucide="file-spreadsheet"></i>
+                        Export to Excel
+                    </a>
+
+                </div>
+
+
+                <!-- Filter -->
+
+                <form
+                    method="GET"
+                    class="filter-area"
+                >
+
+                    <input
+                        type="date"
+                        name="date"
+                        value="{{ filter_date|default_if_none:'' }}"
+                        class="date-input"
+                    >
+
+                    {% if show_all %}
+                        <input
+                            type="hidden"
+                            name="all"
+                            value="1"
+                        >
+                    {% endif %}
+
+                    <button
+                        type="submit"
+                        class="glass-button primary"
+                    >
+                        <i data-lucide="filter"></i>
+                        Filter
+                    </button>
+
+                    <a
+                        href="{% url 'admin_reports' %}{% if show_all %}?all=1{% endif %}"
+                        class="glass-button"
+                    >
+                        <i data-lucide="rotate-ccw"></i>
+                        Reset
+                    </a>
+
+                </form>
+
+            </div>
+
+
+            <!-- =================================================
+                 MORNING REPORTS
+            ================================================== -->
+
+            <div class="report-section">
+
+                <div class="section-heading">
+
+                    <div class="section-title-block">
+
+                        <span class="section-eyebrow">
+                            DAILY REPORTS
+                        </span>
+
+                        <h2>
+                            Morning Reports
+                        </h2>
+
+                    </div>
+
+                    <div class="heading-line"></div>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    <div class="table-wrapper">
+
+                        <table class="report-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Date</th>
+
+                                    <th>Time</th>
+
+                                    <th>Name</th>
+
+                                    <th>Team</th>
+
+                                    <th>Department</th>
+
+                                    <th>Report</th>
+
+                                    <th>Status</th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {% for report in morning_reports %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ report.created_at|date:"Y-m-d" }}
+                                    </td>
+
+                                    <td>
+                                        {{ report.created_at|time:"h:i A" }}
+                                    </td>
+
+                                    <td>
+
+                                        <div class="user-name">
+
+                                            <span class="user-dot"></span>
+
+                                            {{ report.user.name }}
+
+                                        </div>
+
+                                    </td>
+
+                                    <td>
+                                        {{ report.team }}
+                                    </td>
+
+                                    <td>
+                                        {{ report.department }}
+                                    </td>
+
+                                    <td>
+
+                                        <div class="report-text">
+                                            {{ report.report_text }}
+                                        </div>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="status-badge">
+                                            {{ report.status }}
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+                                {% empty %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="7"
+                                        class="empty-row"
+                                    >
+                                        No morning reports found
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 EVENING REPORTS
+            ================================================== -->
+
+            <div class="report-section">
+
+                <div class="section-heading">
+
+                    <div class="section-title-block">
+
+                        <span class="section-eyebrow">
+                            DAILY REPORTS
+                        </span>
+
+                        <h2>
+                            Evening Reports
+                        </h2>
+
+                    </div>
+
+                    <div class="heading-line"></div>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    <div class="table-wrapper">
+
+                        <table class="report-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Date</th>
+
+                                    <th>Time</th>
+
+                                    <th>Name</th>
+
+                                    <th>Team</th>
+
+                                    <th>Department</th>
+
+                                    <th>Report</th>
+
+                                    <th>Status</th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {% for report in evening_reports %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ report.created_at|date:"Y-m-d" }}
+                                    </td>
+
+                                    <td>
+                                        {{ report.created_at|time:"h:i A" }}
+                                    </td>
+
+                                    <td>
+
+                                        <div class="user-name">
+
+                                            <span class="user-dot"></span>
+
+                                            {{ report.user.name }}
+
+                                        </div>
+
+                                    </td>
+
+                                    <td>
+                                        {{ report.team }}
+                                    </td>
+
+                                    <td>
+                                        {{ report.department }}
+                                    </td>
+
+                                    <td>
+
+                                        <div class="report-text">
+                                            {{ report.report_text }}
+                                        </div>
+
+                                    </td>
+
+                                    <td>
+
+                                        <span class="status-badge">
+                                            {{ report.status|default:"Submitted" }}
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+                                {% empty %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="7"
+                                        class="empty-row"
+                                    >
+                                        No evening reports found
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+    </div>
+
+</main>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
 
 <script src="{% static 'js/admin.js' %}"></script>
 <script src="{% static 'js/activity.js' %}"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const sidebar = document.getElementById("sidebar");
+
+    const menuButtons =
+        document.querySelectorAll(".menu-toggle");
+
+
+    menuButtons.forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            sidebar.classList.toggle("open");
+
+        });
+
+    });
+
+
+    /* Render Lucide icons */
+
+    if (window.lucide) {
+
+        lucide.createIcons();
+
+    }
+
+});
+
+</script>
+
 </body>
 </html>

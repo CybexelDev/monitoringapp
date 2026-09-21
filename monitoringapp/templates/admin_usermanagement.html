@@ -2,611 +2,2264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard - Cybexel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Cybexel</title>
 
-  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
 <style>
-/* Style the dropdown (collapsed state) */
-select {
-    color: white;                 
-    background-color: #d6c9c9ff;       
-    border: 1px solid #444;
-    border-radius: 0.5rem;
-    padding: 0.5rem;
+/* =========================================================
+   CYBEXEL USER MANAGEMENT
+   FIXED RESPONSIVE GLASS UI
+   ========================================================= */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
     width: 100%;
-    appearance: none;             /* hide default arrow in some browsers */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    cursor: pointer;
+    min-width: 0;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
 }
 
-/* Style options inside dropdown */
-select option {
-    color: black;                 
-    background-color: #dfdadaff;       
+body {
+    min-height: 100vh;
+    color: #fff;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(91,63,170,.20), transparent 28%),
+        radial-gradient(circle at 85% 15%, rgba(42,112,190,.18), transparent 25%),
+        radial-gradient(circle at 75% 85%, rgba(116,55,170,.15), transparent 30%),
+        #07080d;
 }
 
-/* Override hover/focus/selected states */
-select:hover,
-select:focus,
-select option:hover,
-select option:focus,
-select option:checked {
-    color: black !important;
-    background-color: #c0bebeff !important;
+/* ---------------- SIDEBAR ---------------- */
+
+.glass-sidebar {
+    position: fixed;
+    top: 22px;
+    left: 22px;
+    bottom: 22px;
+    width: 250px;
+    min-width: 250px;
+    padding: 22px 16px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 28px;
+    background: linear-gradient(145deg, rgba(25,27,40,.90), rgba(13,15,25,.84));
+    box-shadow: 0 25px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    z-index: 1000;
 }
 
-/* Remove outline for cleaner look */
-select:focus {
+.sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 8px 22px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.sidebar-logo {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 15px;
+    background: rgba(255,255,255,.05);
+}
+
+.sidebar-logo img {
+    width: 38px;
+    height: 38px;
+    object-fit: contain;
+}
+
+.sidebar-profile-text h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .12em;
+}
+
+.sidebar-profile-text span {
+    display: block;
+    margin-top: 3px;
+    color: rgba(255,255,255,.42);
+    font-size: 10px;
+    letter-spacing: .12em;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.sidebar-item,
+.sidebar-logout {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 13px;
+    color: rgba(255,255,255,.58);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    transition: .2s ease;
+}
+
+.sidebar-item:hover,
+.sidebar-logout:hover {
+    color: #fff;
+    background: rgba(255,255,255,.055);
+    border-color: rgba(255,255,255,.07);
+    transform: translateX(2px);
+}
+
+.sidebar-item.active {
+    color: #fff;
+    background: linear-gradient(135deg, rgba(117,82,210,.30), rgba(53,109,196,.18));
+    border-color: rgba(145,116,255,.24);
+    box-shadow: 0 8px 25px rgba(65,47,130,.18), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.sidebar-icon {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 1.8;
+}
+
+.sidebar-item > span:last-of-type,
+.sidebar-logout > span:last-of-type {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-external {
+    margin-left: auto;
+    display: inline-flex;
+}
+
+.sidebar-external svg {
+    width: 13px;
+    height: 13px;
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.sidebar-logout:hover {
+    color: #ff8d9c;
+    background: rgba(255,70,90,.07);
+    border-color: rgba(255,70,90,.12);
+}
+
+.mobile-menu-button {
+    display: none;
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 14px;
+    background: rgba(20,22,32,.88);
+    color: #fff;
+    box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    z-index: 1001;
+}
+
+/* ---------------- MAIN AREA ---------------- */
+/* IMPORTANT FIX:
+   Do not use width:calc(100% - ...) together with a left margin.
+   That combination was causing the right side to overflow.
+*/
+
+.main-area {
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    height: 100vh;
+    margin-left: 274px;
+    padding: 22px;
+    overflow: hidden;
+}
+
+.dashboard-box {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    height: calc(100vh - 44px);
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid rgba(255,255,255,.075);
+    border-radius: 30px;
+    background: linear-gradient(145deg, rgba(18,20,30,.91), rgba(9,11,18,.94));
+    box-shadow: 0 30px 80px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.035);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(150,125,255,.30) transparent;
+}
+
+.dashboard-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dashboard-box::-webkit-scrollbar-thumb {
+    background: rgba(150,125,255,.25);
+    border-radius: 20px;
+}
+
+/* ---------------- HEADER ---------------- */
+
+.dashboard-header {
+    min-width: 0;
+    padding: 34px 36px 28px;
+    border-bottom: 1px solid rgba(255,255,255,.065);
+}
+
+.dashboard-header-content {
+    min-width: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 25px;
+}
+
+.dashboard-eyebrow,
+.section-eyebrow,
+.table-eyebrow {
+    color: #9986ff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .18em;
+}
+
+.dashboard-eyebrow {
+    margin-bottom: 8px;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    color: #fff;
+    font-size: clamp(2rem, 3vw, 3rem);
+    line-height: 1.05;
+    font-weight: 800;
+    letter-spacing: -.04em;
+    overflow-wrap: anywhere;
+}
+
+.dashboard-header p {
+    margin: 10px 0 0;
+    color: rgba(255,255,255,.43);
+    font-size: 13px;
+}
+
+.system-status {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 13px;
+    border-radius: 999px;
+    background: rgba(63,201,132,.07);
+    border: 1px solid rgba(63,201,132,.13);
+    color: rgba(255,255,255,.60);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    border-radius: 50%;
+    background: #55e39a;
+    box-shadow: 0 0 0 4px rgba(85,227,154,.08), 0 0 12px rgba(85,227,154,.55);
+}
+
+/* ---------------- CONTENT ---------------- */
+
+.dashboard-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 30px 36px 40px;
+    overflow: hidden;
+}
+
+.section-heading {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+.section-heading > div:first-child {
+    min-width: 0;
+}
+
+.section-eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    color: #8d7df2;
+    font-size: 9px;
+}
+
+.section-heading h2 {
+    margin: 0;
+    color: #fff;
+    font-size: 21px;
+    font-weight: 750;
+}
+
+.heading-line {
+    flex: 1 1 auto;
+    min-width: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255,255,255,.10), transparent);
+}
+
+.dashboard-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 24px;
+    margin-bottom: 28px;
+    border: 1px solid rgba(255,255,255,.075);
+    border-radius: 22px;
+    background: linear-gradient(145deg, rgba(28,30,43,.76), rgba(16,18,28,.66));
+    box-shadow: 0 15px 35px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.035);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+.card-heading {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 23px;
+}
+
+.card-icon {
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(126,96,230,.25), rgba(54,105,194,.15));
+    border: 1px solid rgba(145,120,255,.18);
+    color: #a798ff;
+}
+
+.card-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.card-heading h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.card-heading p {
+    margin: 4px 0 0;
+    color: rgba(255,255,255,.38);
+    font-size: 11px;
+}
+
+/* ---------------- FORM ---------------- */
+
+.user-form,
+.edit-form-grid {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 17px 18px;
+}
+
+.form-group,
+.edit-form-group {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.form-group.full,
+.edit-form-group.full,
+.create-button,
+.modal-actions {
+    grid-column: 1 / -1;
+}
+
+.form-label,
+.edit-label {
+    display: block;
+    margin-bottom: 7px;
+    color: rgba(255,255,255,.62);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+}
+
+.input-wrapper,
+.select-wrapper,
+.password-wrapper {
+    position: relative;
+    min-width: 0;
+}
+
+.input-icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,.30);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.input-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.glass-input,
+.glass-select,
+.glass-file,
+.edit-input,
+.edit-select {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     outline: none;
-    box-shadow: none;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 12px;
+    background: rgba(255,255,255,.035);
+    color: #fff;
+    font-size: 12px;
 }
-</style>
 
-</head>
-<body class="bg-black text-[#151a37] font-sans select-none">
+.glass-input,
+.glass-select,
+.edit-input,
+.edit-select {
+    padding: 11px 13px;
+}
 
-<div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-[#250f1e] text-white p-6 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-  <div class="flex items-center justify-between mb-6">
-    <div class="w-full flex justify-center select-none">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 object-contain">
-    </div>
-    <button class="menu-toggle md:hidden text-white text-2xl max-md:mt-[-9rem]">&times;</button>
-  </div>
-  <nav class="select-none">
-    <ul class="space-y-6 text-sm"> 
-      <li>
-        <a href="{% url 'admin_dashboard' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Dashboard</a>
-      </li>
-      <li>
-        <a href="{% url 'admin_usermanagement' %}" class="block py-2 px-4 rounded bg-white text-[#151a37]">User Management</a>
-      </li>
-      <li>
-        <a href="{% url 'admin_reports' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Reports</a>
-      </li>
-      <li>
-        <a href="{% url 'admin_chat' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Chat</a>
-      </li>
-      <li>
-        <a href="{% url 'admin_profile' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Profile</a>
-      </li>
-            <li>
-      <a href="https://meet.google.com/" target="_blank" class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-    </li>
-      <li>
-        <a href="{% url 'admin_logout' %}" class="block py-2 px-4 rounded bg-[red] text-white">Logout</a>
-      </li>
-    </ul>
-  </nav>
-</div>
+.input-wrapper .glass-input {
+    padding-left: 40px;
+}
 
-<button class="menu-toggle md:hidden fixed top-8 left-4 z-50 text-white p-2 rounded shadow-lg">
-  &#9776;
-</button>
+.glass-input::placeholder,
+.edit-input::placeholder {
+    color: rgba(255,255,255,.25);
+}
 
-<div class="bg-[#181316] w-full h-28 flex items-center justify-center select-none mt-20">
-  <h1 class="uppercase text-white text-2xl md:text-4xl font-bold">Admin User Management</h1>
-</div>
-<!-- ALERT MESSAGE (centered and compact) -->
-{% if messages %}
-  <div id="messages-container" class="flex justify-center mt-6">
-    {% for message in messages %}
-      <div class="message w-full max-w-lg text-center p-3 rounded-lg text-white font-medium shadow-lg
-        {% if message.tags == 'success' %} bg-green-600 
-        {% elif message.tags == 'error' %} bg-red-600 
-        {% else %} bg-gray-700 {% endif %}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  </div>
+.glass-input:focus,
+.glass-select:focus,
+.glass-file:focus,
+.edit-input:focus,
+.edit-select:focus {
+    border-color: rgba(139,116,255,.48);
+    background: rgba(117,93,220,.055);
+    box-shadow: 0 0 0 3px rgba(118,94,220,.08);
+}
 
-  <script>
-    // Smooth fade-out after 3 seconds
-    setTimeout(() => {
-      document.querySelectorAll('#messages-container .message').forEach(msg => {
-        msg.style.transition = "opacity 0.5s";
-        msg.style.opacity = '0';
-        setTimeout(() => msg.remove(), 500);
-      });
-    }, 3000);
-  </script>
-{% endif %}
-
-<div class="flex justify-center items-center mt-10 px-4 md:ml-[17rem] transition-all duration-300">
-
-  <form method="POST" enctype="multipart/form-data" 
-        class="border-2 border-[#250f1e] bg-transparent hover:text-black shadow-lg rounded-xl p-6 sm:p-8 w-full max-w-4xl">
-    {% csrf_token %}
-
-    <div class="mb-6">
-      <label for="profile_image" class="block text-gray-700 font-medium mb-1">Profile Picture</label>
-      <input type="file" id="profile_image" name="profile_image" accept="image/*" 
-             class="w-full border border-gray-300 rounded-lg p-2 bg-transparent focus:ring-2 focus:ring-purple-600">
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-      <div>
-        <label for="name" class="block text-gray-700 font-medium mb-1">Full Name</label>
-        <input type="text" id="name" name="name" 
-               class="w-full border border-gray-300 rounded-lg p-2 bg-transparent focus:ring-2 focus:ring-purple-600" required>
-      </div>
-      <div>
-        <label for="employee_id" class="block text-gray-700 font-medium mb-1">Employee ID</label>
-        <input type="text" id="employee_id" name="employee_id" 
-               class="w-full border border-gray-300 rounded-lg p-2 bg-transparent focus:ring-2 focus:ring-purple-600" required>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-      <div>
-        <label for="email" class="block text-gray-700 font-medium mb-1">Email</label>
-        <input type="email" id="email" name="email" 
-               class="w-full border border-gray-300 rounded-lg p-2 bg-transparent focus:ring-2 focus:ring-purple-600" required>
-      </div>
-      <div>
-        <label for="phone" class="block text-gray-700 font-medium mb-1">Phone</label>
-        <input type="text" id="phone" name="phone" 
-               class="w-full border border-gray-300 rounded-lg p-2 bg-transparent focus:ring-2 focus:ring-purple-600">
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-  <div>
-    <label for="department" class="block text-gray-700 font-medium mb-1">Department</label>
-<select id="department" name="department" 
-        class="w-full border border-gray-300 rounded-lg p-2 bg-black text-white focus:ring-2 focus:ring-purple-600" required>
-  <option value="">Select Department</option>
-  {% for dept in departments %}
-    <option value="{{ dept.id }}">{{ dept.name }}</option>
-  {% endfor %}
-</select>
-
-
-
-  </div>
-  <div>
-    <label for="team" class="block text-gray-700 font-medium mb-1">Team</label>
-    <select id="team" name="team"
-        class="w-full border border-gray-300 rounded-lg p-2 bg-transparent focus:ring-2 focus:ring-purple-600">
-  <option value="">Select Team</option>
-  {% for team in teams %}
-    <option value="{{ team.id }}">{{ team.name }}</option>
-  {% endfor %}
-</select>
-  </div>
-</div>
-
-
-   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-  <div class="md:col-span-2">
-    <label for="job_Position" class="block text-gray-700 font-medium mb-1">Job Position</label>
-    <select id="job_Position" name="job_Position"
-        class="w-full border border-gray-300 rounded-lg p-2 bg-transparent focus:ring-2 focus:ring-purple-600"
-        required>
-  <option value="">-- Select Job Position --</option>
-  <option value="Team Lead">Team Lead</option>
-  <option value="Team Member">Team Member</option>
-   <option value="Management">Management</option>
-</select>
-
-  </div>
-
-  <div>
-    <label for="designation" class="block text-gray-700 font-medium mb-1">Designation</label>
-    <input type="text" id="designation" name="designation" 
-           class="w-full border border-gray-300 rounded-lg p-2 bg-transparent focus:ring-2 focus:ring-purple-600" required>
-  </div>
-
-  <div>
-    <label for="work_location" class="block text-gray-700 font-medium mb-1">Work Location</label>
-    <input type="text" id="work_location" name="work_location" 
-           class="w-full border border-gray-300 rounded-lg p-2 bg-transparent focus:ring-2 focus:ring-purple-600">
-  </div>
-</div>
-
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-  <div>
-    <label for="joining_date" class="block text-gray-700 font-medium mb-1">Joining Date</label>
-    <input type="date" id="joining_date" name="joining_date" 
-           class="w-full border border-gray-300 rounded-lg p-2 bg-transparent focus:ring-2 focus:ring-purple-600" required>
-  </div>
-  
-  <div>
-    <label for="username" class="block text-gray-700 font-medium mb-1">Username</label>
-    <input type="text" id="username" name="username" 
-           class="w-full border border-gray-300 rounded-lg p-2 bg-transparent placeholder-white focus:ring-2 focus:ring-purple-600"
-           placeholder="Enter username" required>
-  </div>
-</div>
-
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-     <div class="relative">
-  <label for="password" class="block text-gray-700 font-medium mb-1">Password</label>
-  <input type="password" id="password" name="password"
-         class="w-full border border-gray-300 rounded-lg p-2 pr-10 bg-transparent text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600"
-         required>
-
-  <button type="button" id="togglePassword" class="absolute top-9 right-2 text-gray-400 hover:text-white">
-    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-         stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round"
-            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-      <path stroke-linecap="round" stroke-linejoin="round"
-            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-    </svg>
-  </button>
-</div>
-
-
-
-      <div>
-        <label for="status" class="block text-gray-700 font-medium mb-1">Status</label>
-        <select id="status" name="status" 
-                class="w-full border border-gray-300 rounded-lg p-2 bg-transparent focus:ring-2 focus:ring-purple-600">
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="text-center">
-      <button type="submit" class="bg-[#250f1e] text-white font-semibold py-2 px-6 rounded hover:bg-purple-800 transition duration-200">
-        Create User
-      </button>
-    </div>
-  </form>
-</div>
-
-
-
-
-
-
-<div class="container mx-auto p-4 sm:p-6 lg:ml-[18rem] mt-6 lg:mt-10">
-  <h2 class="text-xl sm:text-2xl font-bold mb-4 text-white">Employee List</h2>
-
-  <!-- 🔍 FILTER FORM -->
-  <form id="filterForm" class="border border-[#250f1e] p-6 rounded-lg shadow-md mb-8 overflow-x-auto pr-20">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-3">
-      <h3 class="text-lg font-semibold text-white">Filters</h3>
-      <div class="flex flex-wrap gap-3 items-center">
-        <!-- Search -->
-        <input
-          type="text"
-          name="search"
-          value="{{ request.GET.search }}"
-          placeholder="Search by name, email, or emp ID"
-          class="border border-[#3a1f2f] bg-[#1a0b14] text-white px-3 py-2 rounded-lg w-52 focus:outline-none focus:ring-2 focus:ring-[#a84c84]"
-        />
-
-        <!-- Department -->
-        <div class="custom-select">
-          <select name="department" class="select-dark">
-            <option value="">All Departments</option>
-            {% for dept in departments %}
-              <option value="{{ dept.name }}" {% if request.GET.department == dept.name %}selected{% endif %}>{{ dept.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <!-- Team -->
-        <div class="custom-select">
-          <select name="team" class="select-dark">
-            <option value="">All Teams</option>
-            {% for t in teams %}
-              <option value="{{ t.name }}" {% if request.GET.team == t.name %}selected{% endif %}>{{ t.name }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <!-- Job Position -->
-        <div class="custom-select">
-          <select name="position" class="select-dark">
-            <option value="">All Positions</option>
-            {% for p in job_positions %}
-  {% if p %}
-    <option value="{{ p }}" {% if request.GET.position == p %}selected{% endif %}>{{ p }}</option>
-  {% endif %}
-{% endfor %}
-
-          </select>
-        </div>
-      </div>
-    </div>
-  </form>
-
-  <!-- 🧾 EMPLOYEE TABLE -->
-  <div class="overflow-x-auto max-w-5xl border border-gray-300 rounded-lg">
-    <table class="min-w-[1200px] border-collapse border text-sm text-white">
-      <thead class="bg-gray-200 text-black">
-        <tr>
-          <th class="p-2 border whitespace-nowrap">Image</th>
-          <th class="p-2 border whitespace-nowrap">Emp ID</th>
-          <th class="p-2 border whitespace-nowrap">Department</th>
-          <th class="p-2 border whitespace-nowrap">Team</th>
-          <th class="p-2 border whitespace-nowrap">Job position</th>
-          <th class="p-2 border whitespace-nowrap">Designation</th>
-          <th class="p-2 border whitespace-nowrap">Name</th>
-          <th class="p-2 border whitespace-nowrap">Email</th>
-          <th class="p-2 border whitespace-nowrap">Phone</th>
-          <th class="p-2 border whitespace-nowrap">Work Location</th>
-          <th class="p-2 border whitespace-nowrap">Joining Date</th>
-          <th class="p-2 border whitespace-nowrap">Username</th>
-          <th class="p-2 border whitespace-nowrap">Status</th>
-          <th class="p-2 border whitespace-nowrap">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="employeeTableBody">
-        {% for user in users %}
-        <tr class="hover:bg-gray-700">
-          <td class="p-2 border whitespace-nowrap">
-            <!-- {% if user.profile_image %}
-              <img src="{{ user.profile_image.url }}" class="w-10 h-10 rounded-full">
-            {% else %}
-              No Image
-            {% endif %} -->
-            <div class="relative inline-block">
-  {% if user.profile_image %}
-    <img src="{{ user.profile_image.url }}" class="w-10 h-10 rounded-full">
-  {% else %}
-    <div class="w-10 h-10 rounded-full bg-gray-600 flex items-center justify-center text-white">
-      {{ user.name|first|upper }}
-    </div>
-  {% endif %}
-
-  <!-- Status Dot -->
-<span
-  class="user-status-dot absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-black bg-green-500"
-  data-user-id="{{ user.id }}"
-  title="Active">
-</span>
-</div>
-
-          </td>
-          <td class="p-2 border whitespace-nowrap">{{ user.employee_id }}</td>
-          <td class="p-2 border whitespace-nowrap">{{ user.department }}</td>
-          <td class="p-2 border whitespace-nowrap">{{ user.team }}</td>
-          <td class="p-2 border whitespace-nowrap">{{ user.job_Position }}</td>
-          <td class="p-2 border whitespace-nowrap">{{ user.designation }}</td>
-          <td class="p-2 border whitespace-nowrap">{{ user.name }}</td>
-          <td class="p-2 border whitespace-nowrap">{{ user.email }}</td>
-          <td class="p-2 border whitespace-nowrap">{{ user.phone }}</td>
-          <td class="p-2 border whitespace-nowrap">{{ user.work_location }}</td>
-          <td class="p-2 border whitespace-nowrap">{{ user.joining_date }}</td>
-          <td class="p-2 border whitespace-nowrap">{{ user.username }}</td>
-          <td class="p-2 border whitespace-nowrap">{{ user.status }}</td>
-          <td class="p-2 border flex gap-2 justify-center whitespace-nowrap">
-            <button 
-              onclick="openEditModal(this)" 
-              class="bg-blue-500 text-white px-3 py-1 rounded"
-              data-id="{{ user.id }}"
-              data-empid="{{ user.employee_id }}"
-              data-name="{{ user.name }}"
-              data-email="{{ user.email }}"
-              data-phone="{{ user.phone }}"
-              data-department="{{ user.department }}"
-              data-team="{{ user.team }}"
-              data-designation="{{ user.designation }}"
-              data-job_position="{{ user.job_Position }}" 
-              data-worklocation="{{ user.work_location }}"
-              data-joining="{{ user.joining_date }}"
-              data-username="{{ user.username }}"
-              data-status="{{ user.status }}"
-              data-profile="{% if user.profile_image %}{{ user.profile_image.url }}{% endif %}">
-              Edit
-            </button>
-            <a href="{% url 'delete_user' user.id %}" class="bg-red-500 text-white px-3 py-1 rounded">Delete</a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="14" class="text-center text-gray-400 py-4">No users found</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- 🎨 Styles -->
-<style>
-  .select-dark {
-    background-color: #1a0b14;
-    color: white;
-    border: 1px solid #3a1f2f;
-    border-radius: 0.5rem;
-    padding: 0.5rem 2rem 0.5rem 0.75rem;
-    font-size: 0.95rem;
-    cursor: pointer;
+.glass-select,
+.edit-select {
     appearance: none;
-    width: 180px;
-  }
-  .custom-select { position: relative; }
-  .custom-select::after {
-    content: "▼";
-    font-size: 0.75rem;
+    -webkit-appearance: none;
+    cursor: pointer;
+    padding-right: 35px;
+}
+
+.select-wrapper::after {
+    content: "";
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-right: 1px solid rgba(255,255,255,.50);
+    border-bottom: 1px solid rgba(255,255,255,.50);
+    transform: translateY(-65%) rotate(45deg);
+    pointer-events: none;
+}
+
+.glass-select option,
+.edit-select option,
+.filter-select option {
+    background: #171924;
+    color: #fff;
+}
+
+.glass-file {
+    padding: 8px 10px;
+}
+
+.glass-file::file-selector-button {
+    margin-right: 10px;
+    padding: 7px 11px;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(125,98,220,.22);
+    color: #fff;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.password-wrapper .glass-input {
+    padding-right: 42px;
+}
+
+.password-toggle {
     position: absolute;
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
-    color: #a84c84;
-    pointer-events: none;
-  }
+    border: 0;
+    background: transparent;
+    color: rgba(255,255,255,.35);
+    cursor: pointer;
+}
+
+.password-toggle:hover {
+    color: #fff;
+}
+
+.create-button {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+    padding: 12px 18px;
+    border: 1px solid rgba(144,120,255,.25);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(119,88,220,.75), rgba(56,102,184,.72));
+    color: #fff;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(74,52,155,.18);
+    transition: .2s ease;
+}
+
+.create-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+}
+
+.create-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* ---------------- MESSAGES ---------------- */
+
+.messages-container {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.message {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.07);
+    background: rgba(255,255,255,.05);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.message.success {
+    background: rgba(40,180,110,.10);
+    border-color: rgba(70,220,145,.16);
+}
+
+.message.error {
+    background: rgba(230,60,75,.10);
+    border-color: rgba(255,90,105,.17);
+}
+
+/* ---------------- EMPLOYEE LIST / FILTER ---------------- */
+
+.employee-card {
+    margin-bottom: 0;
+}
+
+.table-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 18px;
+}
+
+.table-eyebrow {
+    display: block;
+    color: #8d7df2;
+    font-size: 9px;
+    letter-spacing: .16em;
+}
+
+.table-section-header h4 {
+    margin: 4px 0 0;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 750;
+}
+
+.count-badge {
+    min-width: 32px;
+    height: 28px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(126,96,230,.13);
+    border: 1px solid rgba(126,96,230,.20);
+    color: #a89cff;
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.filter-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-bottom: 20px;
+    padding: 18px;
+    border-radius: 17px;
+    background: rgba(255,255,255,.025);
+    border: 1px solid rgba(255,255,255,.06);
+}
+
+.filter-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 13px;
+    color: rgba(255,255,255,.70);
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.filter-heading svg {
+    width: 15px;
+    height: 15px;
+    color: #9d8cff;
+}
+
+.filter-grid {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.filter-input,
+.filter-select {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 10px;
+    background: rgba(0,0,0,.18);
+    color: rgba(255,255,255,.76);
+    outline: none;
+    font-size: 11px;
+}
+
+.filter-input::placeholder {
+    color: rgba(255,255,255,.27);
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    border-color: rgba(139,116,255,.40);
+    background: rgba(115,91,220,.04);
+}
+
+.filter-select {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+
+/* ---------------- TABLE ---------------- */
+
+.table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 15px;
+    background: rgba(0,0,0,.10);
+}
+
+.employee-table {
+    width: 100%;
+    min-width: 1400px;
+    border-collapse: collapse;
+    color: rgba(255,255,255,.65);
+    font-size: 11px;
+}
+
+.employee-table thead {
+    background: linear-gradient(90deg, rgba(115,90,220,.10), rgba(46,93,170,.08));
+}
+
+.employee-table th {
+    padding: 13px 12px;
+    text-align: left;
+    color: rgba(255,255,255,.50);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(255,255,255,.065);
+}
+
+.employee-table td {
+    padding: 12px;
+    white-space: nowrap;
+    color: rgba(255,255,255,.62);
+    border-bottom: 1px solid rgba(255,255,255,.045);
+}
+
+.employee-table tbody tr:hover {
+    background: rgba(255,255,255,.025);
+}
+
+.employee-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.employee-avatar-wrapper {
+    position: relative;
+    width: 38px;
+    height: 38px;
+}
+
+.employee-avatar,
+.employee-avatar-fallback {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+.employee-avatar-fallback {
+    background: linear-gradient(135deg, rgba(118,91,215,.35), rgba(49,93,168,.28));
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.user-status-dot {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 9px;
+    height: 9px;
+    border: 2px solid #171923;
+    border-radius: 50%;
+    background: #45dc91;
+    box-shadow: 0 0 8px rgba(69,220,145,.55);
+}
+
+.employee-name {
+    color: #fff !important;
+    font-weight: 700;
+}
+
+.status-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.035);
+    border: 1px solid rgba(255,255,255,.06);
+    font-size: 10px;
+}
+
+.status-text::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #45dc91;
+}
+
+.status-text.status-inactive::before {
+    background: #ff6978;
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.edit-button,
+.delete-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 10px;
+    border-radius: 9px;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: .18s ease;
+}
+
+.edit-button {
+    border: 1px solid rgba(90,140,255,.17);
+    background: rgba(68,119,210,.10);
+    color: #8cb8ff;
+}
+
+.edit-button:hover {
+    background: rgba(68,119,210,.18);
+    transform: translateY(-1px);
+}
+
+.delete-button {
+    border: 1px solid rgba(255,80,95,.15);
+    background: rgba(255,70,85,.07);
+    color: #ff8994;
+}
+
+.delete-button:hover {
+    background: rgba(255,70,85,.14);
+    transform: translateY(-1px);
+}
+
+.edit-button svg,
+.delete-button svg {
+    width: 13px;
+    height: 13px;
+}
+
+.empty-row {
+    padding: 35px !important;
+    text-align: center;
+    color: rgba(255,255,255,.28) !important;
+}
+
+/* ---------------- EDIT MODAL ---------------- */
+
+.edit-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0,0,0,.68);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 2000;
+}
+
+.edit-modal.hidden {
+    display: none;
+}
+
+.edit-modal-box {
+    width: 100%;
+    max-width: 850px;
+    max-height: 90vh;
+    min-width: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 25px;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 24px;
+    background: linear-gradient(145deg, rgba(28,30,43,.97), rgba(12,14,22,.97));
+    box-shadow: 0 35px 90px rgba(0,0,0,.60), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+.modal-title-wrap {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    background: rgba(117,89,220,.16);
+    border: 1px solid rgba(139,112,255,.18);
+    color: #a99bff;
+}
+
+.modal-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.modal-title {
+    margin: 0;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.modal-subtitle {
+    margin: 3px 0 0;
+    color: rgba(255,255,255,.32);
+    font-size: 10px;
+}
+
+.close-modal {
+    width: 35px;
+    height: 35px;
+    flex: 0 0 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 10px;
+    background: rgba(255,255,255,.035);
+    color: rgba(255,255,255,.50);
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    color: #fff;
+    background: rgba(255,255,255,.07);
+}
+
+.edit-form-grid {
+    gap: 15px 17px;
+}
+
+.edit-label {
+    margin-bottom: 6px;
+}
+
+.edit-input,
+.edit-select {
+    font-size: 11px;
+}
+
+.profile-preview {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-preview img {
+    width: 58px;
+    height: 58px;
+    flex: 0 0 58px;
+    object-fit: cover;
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.03);
+}
+
+.profile-preview-text {
+    margin-bottom: 7px;
+    color: rgba(255,255,255,.35);
+    font-size: 10px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+    margin-top: 5px;
+    padding-top: 17px;
+    border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.modal-cancel,
+.modal-save {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.modal-cancel {
+    border: 1px solid rgba(255,255,255,.07);
+    background: rgba(255,255,255,.035);
+    color: rgba(255,255,255,.55);
+}
+
+.modal-cancel:hover {
+    color: #fff;
+    background: rgba(255,255,255,.06);
+}
+
+.modal-save {
+    border: 1px solid rgba(139,116,255,.22);
+    background: linear-gradient(135deg, rgba(119,88,220,.75), rgba(56,102,184,.72));
+    color: #fff;
+}
+
+.modal-save:hover {
+    filter: brightness(1.08);
+}
+
+.modal-cancel svg,
+.modal-save svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ---------------- RESPONSIVE ---------------- */
+
+@media (max-width: 1200px) {
+    .glass-sidebar {
+        width: 225px;
+        min-width: 225px;
+    }
+
+    .main-area {
+        margin-left: 248px;
+    }
+
+    .filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .dashboard-header,
+    .dashboard-content {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .dashboard-header-content {
+        flex-direction: column;
+    }
+
+    .user-form {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        overflow: hidden;
+    }
+
+    .mobile-menu-button {
+        display: flex;
+    }
+
+    .glass-sidebar {
+        top: 12px;
+        left: 12px;
+        bottom: 12px;
+        transform: translateX(-115%);
+        transition: transform .28s ease;
+    }
+
+    .glass-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main-area {
+        width: 100%;
+        height: 100vh;
+        margin-left: 0;
+        padding: 12px;
+    }
+
+    .dashboard-box {
+        height: calc(100vh - 24px);
+        max-height: calc(100vh - 24px);
+        border-radius: 24px;
+    }
+
+    .dashboard-header {
+        padding: 25px 20px;
+    }
+
+    .dashboard-content {
+        padding: 20px;
+    }
+
+    .user-form,
+    .edit-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.full,
+    .edit-form-group.full,
+    .create-button,
+    .modal-actions {
+        grid-column: auto;
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-area {
+        padding: 8px;
+    }
+
+    .dashboard-box {
+        height: calc(100vh - 16px);
+        max-height: calc(100vh - 16px);
+        border-radius: 20px;
+    }
+
+    .dashboard-header {
+        padding: 22px 16px;
+    }
+
+    .dashboard-content {
+        padding: 16px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.8rem;
+    }
+
+    .dashboard-card {
+        padding: 17px;
+        border-radius: 18px;
+    }
+
+    .card-heading {
+        align-items: flex-start;
+    }
+
+    .card-icon {
+        width: 41px;
+        height: 41px;
+        min-width: 41px;
+    }
+
+    .employee-table {
+        min-width: 1400px;
+    }
+
+    .edit-modal {
+        padding: 10px;
+    }
+
+    .edit-modal-box {
+        padding: 18px;
+        border-radius: 19px;
+    }
+
+    .profile-preview {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .modal-cancel,
+    .modal-save {
+        width: 100%;
+    }
+}
+
+
+/* =========================================================
+   EXACT ADMIN DASHBOARD THEME OVERRIDES
+   User Management keeps all existing Django functionality.
+========================================================= */
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden !important;
+}
+
+body {
+    background:
+        radial-gradient(circle at 15% 10%, rgba(92,47,145,.16), transparent 28%),
+        radial-gradient(circle at 85% 15%, rgba(40,88,160,.12), transparent 30%),
+        #08080d;
+}
+
+.glass-sidebar {
+    top: 18px;
+    left: 16px;
+    bottom: 18px;
+    width: 242px;
+    min-width: 242px;
+    padding: 18px 14px;
+    border-radius: 27px;
+    background: linear-gradient(145deg, rgba(38,24,49,.96), rgba(14,14,21,.96));
+    border: 1px solid rgba(255,255,255,.12);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    box-shadow: 0 25px 70px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.sidebar-profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2px 5px 20px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+}
+
+.sidebar-logo {
+    width: 86px;
+    height: 86px;
+    flex: 0 0 86px;
+    margin-bottom: 8px;
+    border-radius: 23px;
+    background: linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.025));
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow: 0 15px 35px rgba(0,0,0,.25);
+}
+
+.sidebar-logo img {
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+}
+
+.sidebar-profile-text {
+    text-align: center;
+}
+
+.sidebar-profile-text h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.sidebar-profile-text span {
+    display: block;
+    margin-top: 3px;
+    color: #898592;
+    font-size: 7px;
+    letter-spacing: 1.7px;
+    font-weight: 600;
+}
+
+.sidebar-nav {
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.sidebar-item {
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 13px;
+    color: #aaa6b2;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.sidebar-item.active {
+    color: #fff;
+    background: linear-gradient(135deg, rgba(111,76,190,.82), rgba(63,79,153,.72));
+    border: 1px solid rgba(154,122,255,.38);
+    box-shadow: 0 10px 28px rgba(99,102,241,.18), inset 0 1px 0 rgba(255,255,255,.12);
+    transform: translateX(2px);
+}
+
+.sidebar-item.active::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    top: 9px;
+    width: 3px;
+    height: 26px;
+    border-radius: 0 5px 5px 0;
+    background: #b99cff;
+    box-shadow: 0 0 12px rgba(185,156,255,.8);
+}
+
+.main-area {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 275px;
+    width: auto;
+    height: auto;
+    margin-left: 0;
+    padding: 18px 20px;
+    overflow: hidden;
+}
+
+.dashboard-box {
+    width: 100%;
+    height: 100%;
+    padding: 16px;
+    border-radius: 28px;
+    background: linear-gradient(145deg, rgba(17,16,24,.94), rgba(8,9,14,.96));
+    border: 1px solid rgba(255,255,255,.10);
+    box-shadow: 0 25px 80px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.035);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+.dashboard-header {
+    min-height: 168px;
+    padding: 30px 32px;
+    border-radius: 25px;
+    background: linear-gradient(110deg, rgba(44,32,55,.62), rgba(18,23,31,.72), rgba(30,31,59,.62));
+    border: 1px solid rgba(255,255,255,.10);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.dashboard-eyebrow,
+.section-eyebrow,
+.table-eyebrow {
+    color: #a78bfa;
+}
+
+.dashboard-eyebrow {
+    margin-bottom: 15px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+
+.dashboard-header h1 {
+    font-size: clamp(34px,4vw,58px);
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(90deg,#fff 0%,#c4b5fd 45%,#67c8ff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.dashboard-header p {
+    margin: 18px 0 0;
+    color: #96939e;
+    font-size: 14px;
+}
+
+.dashboard-content {
+    padding: 38px 0 35px;
+}
+
+.section-heading {
+    gap: 22px;
+    margin-bottom: 24px;
+}
+
+.section-eyebrow {
+    margin-bottom: 8px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+
+.section-heading h2 {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.dashboard-card {
+    padding: 26px;
+    border-radius: 23px;
+    background: linear-gradient(145deg, rgba(27,26,34,.90), rgba(16,16,22,.92));
+    border: 1px solid rgba(255,255,255,.09);
+    box-shadow: 0 20px 50px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.dashboard-card:hover {
+    border-color: rgba(139,92,246,.23);
+    transform: translateY(-2px);
+}
+
+.card-heading h3 {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.card-heading p {
+    color: #8f8c96;
+    font-size: 11px;
+}
+
+.create-button,
+.modal-save {
+    background: linear-gradient(135deg,#7c4bd4,#5b32a7);
+}
+
+@media (max-width: 1100px) {
+    .glass-sidebar { width: 220px; min-width: 220px; }
+    .main-area { left: 250px; padding: 14px; }
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-button { display: flex !important; }
+    .glass-sidebar {
+        top: 10px;
+        left: 10px;
+        bottom: 10px;
+        transform: translateX(-120%);
+        transition: transform .3s ease;
+    }
+    .glass-sidebar.open { transform: translateX(0); }
+    .main-area {
+        left: 0;
+        width: 100%;
+        padding: 10px;
+    }
+    .dashboard-box {
+        height: calc(100vh - 20px);
+        border-radius: 22px;
+    }
+    .dashboard-header { padding: 25px 20px; }
+    .dashboard-header-content { flex-direction: column; align-items: flex-start; }
+    .system-status { align-self: flex-start; }
+    .dashboard-content { padding: 28px 2px; }
+    .section-heading { gap: 10px; }
+    .heading-line { display: none; }
+    .user-form, .edit-form-grid { grid-template-columns: 1fr; }
+    .filter-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+    .main-area { padding: 8px; }
+    .dashboard-box { height: calc(100vh - 16px); border-radius: 20px; }
+    .dashboard-header { padding: 22px 17px; }
+    .dashboard-content { padding: 16px 2px; }
+    .dashboard-header h1 { font-size: 28px; }
+    .dashboard-card { padding: 15px; }
+}
 </style>
+</head>
 
-<!-- ⚡ AJAX Filtering -->
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const filterForm = document.getElementById("filterForm");
-  const tableBody = document.getElementById("employeeTableBody");
+<body>
 
-  filterForm.querySelectorAll("input, select").forEach((el) => {
-    el.addEventListener("input", applyFilters);
-    el.addEventListener("change", applyFilters);
-  });
+<button class="mobile-menu-button menu-toggle" type="button" aria-label="Open menu">
+    <i data-lucide="menu"></i>
+</button>
 
-  function applyFilters() {
-    const formData = new FormData(filterForm);
-    const params = new URLSearchParams(formData).toString();
+<aside id="sidebar" class="glass-sidebar">
+    <div class="sidebar-profile">
+        <div class="sidebar-logo">
+            <img src="{% static 'images/logo.png' %}" alt="Developer Logo">
+        </div>
+        <div class="sidebar-profile-text">
+            <h3>DEVELOPER</h3>
+            <span>TAGGING HERE</span>
+        </div>
+    </div>
 
-    fetch(`?${params}`, {
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-    })
-      .then((res) => res.text())
-      .then((html) => {
-        const parser = new DOMParser();
-        const newBody = parser
-          .parseFromString(html, "text/html")
-          .querySelector("#employeeTableBody");
-        if (newBody) tableBody.innerHTML = newBody.innerHTML;
-      })
-      .catch((err) => console.error("AJAX Filter Error:", err));
-  }
-});
-</script>
+    <nav class="sidebar-nav">
+        <a href="{% url 'admin_dashboard' %}" class="sidebar-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="layout-dashboard"></i></span>
+            <span>Dashboard</span>
+        </a>
 
+        <a href="{% url 'admin_usermanagement' %}" class="sidebar-item {% if request.resolver_match.url_name == 'admin_usermanagement' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="users"></i></span>
+            <span>User Management</span>
+        </a>
 
+        <a href="{% url 'admin_reports' %}" class="sidebar-item {% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="chart-no-axes-combined"></i></span>
+            <span>Reports</span>
+        </a>
 
+        <a href="{% url 'admin_chat' %}" class="sidebar-item {% if request.resolver_match.url_name == 'admin_chat' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="message-circle"></i></span>
+            <span>Chat</span>
+        </a>
 
+        <a href="{% url 'admin_profile' %}" class="sidebar-item {% if request.resolver_match.url_name == 'admin_profile' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="circle-user-round"></i></span>
+            <span>Profile</span>
+        </a>
 
-<div id="editModal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
-  <div class="bg-gray-900 text-white p-4 sm:p-6 rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-    <h2 class="text-xl font-bold mb-4">Edit Employee</h2>
-    
-    <form id="editForm" method="POST" enctype="multipart/form-data" 
-          action="{% url 'edit_user' %}"
-          class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {% csrf_token %}
-      <!-- Hidden field for ID -->
-      <input type="hidden" id="edit_id" name="id">
+        <a href="https://meet.google.com/" target="_blank" rel="noopener noreferrer" class="sidebar-item">
+            <span class="sidebar-icon"><i data-lucide="video"></i></span>
+            <span>Google Meet</span>
+            <span class="sidebar-external"><i data-lucide="arrow-up-right"></i></span>
+        </a>
+    </nav>
 
-      <div>
-        <label class="block mb-1 font-medium">Employee ID</label>
-        <input type="text" id="edit_emp_id" name="edit_emp_id" 
-               class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">Full Name</label>
-        <input type="text" id="edit_name" name="edit_name" class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">Email</label>
-        <input type="email" id="edit_email" name="edit_email" class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">Phone</label>
-        <input type="text" id="edit_phone" name="edit_phone" class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-      </div>
+    <div class="sidebar-bottom">
+        <a href="{% url 'admin_logout' %}" class="sidebar-logout">
+            <span class="sidebar-icon"><i data-lucide="log-out"></i></span>
+            <span>Logout</span>
+        </a>
+    </div>
+</aside>
 
-      <div>
-        <label class="block mb-1 font-medium">Department</label>
-        <select id="edit_department" name="edit_department" class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-          {% for dept in departments %}
-            <option value="{{ dept.id }}">{{ dept.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
+<main class="main-area">
+    <div class="dashboard-box">
 
-      <div>
-        <label class="block mb-1 font-medium">Team</label>
-        <select id="edit_team" name="edit_team" class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-          {% for team in teams %}
-            <option value="{{ team.id }}">{{ team.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
+        <section class="dashboard-header">
+            <div class="dashboard-header-content">
+                <div>
+                    <div class="dashboard-eyebrow">CYBEXEL ADMIN PANEL</div>
+                    <h1>USER MANAGEMENT</h1>
+                    <p>Create, manage and maintain your organization users.</p>
+                </div>
 
-      <div>
-        <label class="block mb-1 font-medium">Job Position</label>
-        <input type="text" id="edit_job_position" name="edit_job_position" class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">Designation</label>
-        <input type="text" id="edit_designation" name="edit_designation" class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">Work Location</label>
-        <input type="text" id="edit_work_location" name="edit_work_location" class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">Joining Date</label>
-        <input type="date" id="edit_joining_date" name="edit_joining_date" class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">Username</label>
-        <input type="text" id="edit_username" name="edit_username" class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">Password</label>
-        <input type="password" id="edit_password" name="edit_password" class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">Status</label>
-        <select id="edit_status" name="edit_status" class="w-full border border-gray-700 p-2 rounded bg-gray-800 text-white">
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-      </div>
-      <div>
-        <label class="block mb-1 font-medium">Profile Image</label>
-        <img id="edit_profile_image" src="" class="w-20 h-20 rounded-full mb-2">
-        <input type="file" id="edit_profile_upload" name="edit_profile_upload" class="w-full border border-gray-700 p-2 rounded text-white">
-      </div>
+                <div class="system-status">
+                    <span class="status-dot"></span>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </section>
 
-      <div class="col-span-2 mt-4 flex justify-end">
-        <button type="button" onclick="closeEditModal()" class="bg-gray-600 px-4 py-2 rounded mr-2">Cancel</button>
-        <button type="submit" class="bg-[#250f1e] text-white px-4 py-2 rounded">Save</button>
-      </div>
-    </form>
-  </div>
+        <section class="dashboard-content">
+
+            {% if messages %}
+            <div id="messages-container" class="messages-container">
+                {% for message in messages %}
+                <div class="message {% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="section-heading">
+                <div>
+                    <span class="section-eyebrow">USER ADMINISTRATION</span>
+                    <h2>Create New User</h2>
+                </div>
+                <div class="heading-line"></div>
+            </div>
+
+            <div class="dashboard-card create-user-card">
+                <div class="card-heading">
+                    <div class="card-icon"><i data-lucide="user-plus"></i></div>
+                    <div>
+                        <h3>Add Employee</h3>
+                        <p>Enter the employee information below</p>
+                    </div>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" class="user-form">
+                    {% csrf_token %}
+
+                    <div class="form-group full">
+                        <label for="profile_image" class="form-label">Profile Picture</label>
+                        <input type="file" id="profile_image" name="profile_image" accept="image/*" class="glass-file">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name" class="form-label">Full Name</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i data-lucide="user"></i></span>
+                            <input type="text" id="name" name="name" class="glass-input" placeholder="Enter full name" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="employee_id" class="form-label">Employee ID</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i data-lucide="badge"></i></span>
+                            <input type="text" id="employee_id" name="employee_id" class="glass-input" placeholder="Employee ID" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i data-lucide="mail"></i></span>
+                            <input type="email" id="email" name="email" class="glass-input" placeholder="employee@company.com" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone" class="form-label">Phone</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i data-lucide="phone"></i></span>
+                            <input type="text" id="phone" name="phone" class="glass-input" placeholder="Phone number">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="department" class="form-label">Department</label>
+                        <div class="select-wrapper">
+                            <select id="department" name="department" class="glass-select" required>
+                                <option value="">Select Department</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="team" class="form-label">Team</label>
+                        <div class="select-wrapper">
+                            <select id="team" name="team" class="glass-select">
+                                <option value="">Select Team</option>
+                                {% for team in teams %}
+                                <option value="{{ team.id }}">{{ team.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="job_Position" class="form-label">Job Position</label>
+                        <div class="select-wrapper">
+                            <select id="job_Position" name="job_Position" class="glass-select" required>
+                                <option value="">Select Job Position</option>
+                                <option value="Team Lead">Team Lead</option>
+                                <option value="Team Member">Team Member</option>
+                                <option value="Management">Management</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="designation" class="form-label">Designation</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i data-lucide="briefcase-business"></i></span>
+                            <input type="text" id="designation" name="designation" class="glass-input" placeholder="Designation" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="work_location" class="form-label">Work Location</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i data-lucide="map-pin"></i></span>
+                            <input type="text" id="work_location" name="work_location" class="glass-input" placeholder="Work location">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="joining_date" class="form-label">Joining Date</label>
+                        <input type="date" id="joining_date" name="joining_date" class="glass-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="username" class="form-label">Username</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon"><i data-lucide="at-sign"></i></span>
+                            <input type="text" id="username" name="username" class="glass-input" placeholder="Enter username" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="password" name="password" class="glass-input" placeholder="Enter password" required>
+                            <button type="button" id="togglePassword" class="password-toggle" aria-label="Show password">
+                                <i data-lucide="eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status" class="form-label">Status</label>
+                        <div class="select-wrapper">
+                            <select id="status" name="status" class="glass-select">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="create-button">
+                        <i data-lucide="user-plus"></i>
+                        Create User
+                    </button>
+                </form>
+            </div>
+
+            <div class="section-heading">
+                <div>
+                    <span class="section-eyebrow">USER DIRECTORY</span>
+                    <h2>Employee List</h2>
+                </div>
+                <div class="heading-line"></div>
+            </div>
+
+            <div class="dashboard-card employee-card">
+                <div class="filter-card">
+                    <div class="filter-heading">
+                        <i data-lucide="sliders-horizontal"></i>
+                        <span>FILTER EMPLOYEES</span>
+                    </div>
+
+                    <form id="filterForm">
+                        <div class="filter-grid">
+                            <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search name, email or employee ID..." class="filter-input">
+
+                            <select name="department" class="filter-select">
+                                <option value="">All Departments</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept.name }}" {% if request.GET.department == dept.name %}selected{% endif %}>
+                                    {{ dept.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+
+                            <select name="team" class="filter-select">
+                                <option value="">All Teams</option>
+                                {% for t in teams %}
+                                <option value="{{ t.name }}" {% if request.GET.team == t.name %}selected{% endif %}>
+                                    {{ t.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+
+                            <select name="position" class="filter-select">
+                                <option value="">All Positions</option>
+                                {% for p in job_positions %}
+                                    {% if p %}
+                                    <option value="{{ p }}" {% if request.GET.position == p %}selected{% endif %}>
+                                        {{ p }}
+                                    </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-section-header">
+                    <div>
+                        <span class="table-eyebrow">EMPLOYEES</span>
+                        <h4>Registered Users</h4>
+                    </div>
+                    <span class="count-badge" id="employeeCount">{{ users|length }}</span>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="employee-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Emp ID</th>
+                                <th>Department</th>
+                                <th>Team</th>
+                                <th>Job Position</th>
+                                <th>Designation</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Work Location</th>
+                                <th>Joining Date</th>
+                                <th>Username</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="employeeTableBody">
+                            {% for user in users %}
+                            <tr>
+                                <td>
+                                    <div class="employee-avatar-wrapper">
+                                        {% if user.profile_image %}
+                                        <img src="{{ user.profile_image.url }}" class="employee-avatar" alt="{{ user.name }}">
+                                        {% else %}
+                                        <div class="employee-avatar-fallback">{{ user.name|first|upper }}</div>
+                                        {% endif %}
+                                        <span class="user-status-dot" data-user-id="{{ user.id }}" title="Active"></span>
+                                    </div>
+                                </td>
+
+                                <td>{{ user.employee_id }}</td>
+                                <td>{{ user.department }}</td>
+                                <td>{{ user.team }}</td>
+                                <td>{{ user.job_Position }}</td>
+                                <td>{{ user.designation }}</td>
+                                <td class="employee-name">{{ user.name }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.phone }}</td>
+                                <td>{{ user.work_location }}</td>
+                                <td>{{ user.joining_date }}</td>
+                                <td>{{ user.username }}</td>
+
+                                <td>
+                                    <span class="status-text {% if user.status == 'inactive' %}status-inactive{% endif %}">
+                                        {{ user.status }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <div class="action-buttons">
+                                        <button
+                                            type="button"
+                                            onclick="openEditModal(this)"
+                                            class="edit-button"
+                                            data-id="{{ user.id }}"
+                                            data-empid="{{ user.employee_id }}"
+                                            data-name="{{ user.name }}"
+                                            data-email="{{ user.email }}"
+                                            data-phone="{{ user.phone }}"
+                                            data-department="{{ user.department }}"
+                                            data-team="{{ user.team }}"
+                                            data-designation="{{ user.designation }}"
+                                            data-job_position="{{ user.job_Position }}"
+                                            data-worklocation="{{ user.work_location }}"
+                                            data-joining="{{ user.joining_date }}"
+                                            data-username="{{ user.username }}"
+                                            data-status="{{ user.status }}"
+                                            data-profile="{% if user.profile_image %}{{ user.profile_image.url }}{% endif %}"
+                                        >
+                                            <i data-lucide="pencil"></i>
+                                            Edit
+                                        </button>
+
+                                        <a href="{% url 'delete_user' user.id %}" class="delete-button">
+                                            <i data-lucide="trash-2"></i>
+                                            Delete
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {% empty %}
+                            <tr>
+                                <td colspan="14" class="empty-row">No users found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="edit-modal hidden">
+    <div class="edit-modal-box">
+
+        <div class="modal-header">
+            <div class="modal-title-wrap">
+                <div class="modal-icon"><i data-lucide="user-pen"></i></div>
+                <div>
+                    <h2 class="modal-title">Edit Employee</h2>
+                    <p class="modal-subtitle">Update employee information</p>
+                </div>
+            </div>
+
+            <button type="button" class="close-modal" onclick="closeEditModal()" aria-label="Close">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+
+        <form id="editForm" method="POST" enctype="multipart/form-data" action="{% url 'edit_user' %}" class="edit-form-grid">
+            {% csrf_token %}
+            <input type="hidden" id="edit_id" name="id">
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_emp_id">Employee ID</label>
+                <input type="text" id="edit_emp_id" name="edit_emp_id" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_name">Full Name</label>
+                <input type="text" id="edit_name" name="edit_name" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_email">Email</label>
+                <input type="email" id="edit_email" name="edit_email" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_phone">Phone</label>
+                <input type="text" id="edit_phone" name="edit_phone" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_department">Department</label>
+                <select id="edit_department" name="edit_department" class="edit-select">
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_team">Team</label>
+                <select id="edit_team" name="edit_team" class="edit-select">
+                    {% for team in teams %}
+                    <option value="{{ team.id }}">{{ team.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_job_position">Job Position</label>
+                <input type="text" id="edit_job_position" name="edit_job_position" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_designation">Designation</label>
+                <input type="text" id="edit_designation" name="edit_designation" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_work_location">Work Location</label>
+                <input type="text" id="edit_work_location" name="edit_work_location" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_joining_date">Joining Date</label>
+                <input type="date" id="edit_joining_date" name="edit_joining_date" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_username">Username</label>
+                <input type="text" id="edit_username" name="edit_username" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_password">Password</label>
+                <input type="password" id="edit_password" name="edit_password" class="edit-input" placeholder="Leave blank to keep current">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_status">Status</label>
+                <select id="edit_status" name="edit_status" class="edit-select">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+
+            <div class="edit-form-group full">
+                <label class="edit-label">Profile Image</label>
+                <div class="profile-preview">
+                    <img id="edit_profile_image" src="" alt="Profile Preview">
+                    <div>
+                        <div class="profile-preview-text">Current profile image</div>
+                        <input type="file" id="edit_profile_upload" name="edit_profile_upload" class="glass-file" accept="image/*">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" onclick="closeEditModal()" class="modal-cancel">
+                    <i data-lucide="x"></i>
+                    Cancel
+                </button>
+
+                <button type="submit" class="modal-save">
+                    <i data-lucide="save"></i>
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
-
-<script>
-function openEditModal(button) {
-  document.getElementById("edit_id").value = button.dataset.id;
-  document.getElementById("edit_emp_id").value = button.dataset.empid;
-  document.getElementById("edit_name").value = button.dataset.name;
-  document.getElementById("edit_email").value = button.dataset.email;
-  document.getElementById("edit_phone").value = button.dataset.phone;
-  document.getElementById("edit_department").value = button.dataset.department;
-  document.getElementById("edit_team").value = button.dataset.team;
-  document.getElementById("edit_designation").value = button.dataset.designation;
-  document.getElementById("edit_job_position").value = button.dataset.job_position;
-  document.getElementById("edit_work_location").value = button.dataset.worklocation;
-
-  let joiningDate = button.dataset.joining;
-  if (joiningDate) {
-    let formatted = new Date(joiningDate).toISOString().split("T")[0];
-    document.getElementById("edit_joining_date").value = formatted;
-  } else {
-    document.getElementById("edit_joining_date").value = "";
-  }
-
-  document.getElementById("edit_username").value = button.dataset.username;
-  document.getElementById("edit_status").value = button.dataset.status;
-
-  let imgSrc = button.dataset.profile;
-  document.getElementById("edit_profile_image").src = imgSrc ? imgSrc : "";
-
-  document.getElementById("editModal").classList.remove("hidden");
-}
-
-function closeEditModal() {
-  document.getElementById("editModal").classList.add("hidden");
-}
-</script>
-
-
-
-
-
 
 <script src="{% static 'js/admin.js' %}"></script>
 <script src="{% static 'js/activity.js' %}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.getElementById("sidebar");
+
+    document.querySelectorAll(".menu-toggle").forEach(function (button) {
+        button.addEventListener("click", function () {
+            sidebar.classList.toggle("open");
+        });
+    });
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+});
+
+/* MESSAGE AUTO FADE */
+setTimeout(function () {
+    document.querySelectorAll("#messages-container .message").forEach(function (msg) {
+        msg.style.transition = "opacity .5s";
+        msg.style.opacity = "0";
+
+        setTimeout(function () {
+            msg.remove();
+        }, 500);
+    });
+}, 3000);
+
+/* PASSWORD TOGGLE */
+const togglePassword = document.getElementById("togglePassword");
+const password = document.getElementById("password");
+
+if (togglePassword && password) {
+    togglePassword.addEventListener("click", function () {
+        const type = password.getAttribute("type") === "password" ? "text" : "password";
+        password.setAttribute("type", type);
+
+        togglePassword.innerHTML =
+            type === "password"
+                ? '<i data-lucide="eye"></i>'
+                : '<i data-lucide="eye-off"></i>';
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    });
+}
+
+/* AJAX FILTERING */
+document.addEventListener("DOMContentLoaded", function () {
+    const filterForm = document.getElementById("filterForm");
+    const tableBody = document.getElementById("employeeTableBody");
+
+    if (!filterForm || !tableBody) return;
+
+    let filterTimer;
+
+    filterForm.querySelectorAll("input, select").forEach(function (element) {
+        element.addEventListener("change", applyFilters);
+
+        if (element.tagName === "INPUT") {
+            element.addEventListener("input", function () {
+                clearTimeout(filterTimer);
+                filterTimer = setTimeout(applyFilters, 250);
+            });
+        }
+    });
+
+    function applyFilters() {
+        const formData = new FormData(filterForm);
+        const params = new URLSearchParams(formData).toString();
+
+        fetch(`?${params}`, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+        .then(function (response) {
+            return response.text();
+        })
+        .then(function (html) {
+            const parser = new DOMParser();
+            const newBody = parser
+                .parseFromString(html, "text/html")
+                .querySelector("#employeeTableBody");
+
+            if (newBody) {
+                tableBody.innerHTML = newBody.innerHTML;
+
+                const newCount = newBody.querySelectorAll("tr").length;
+                const empty = newBody.querySelector(".empty-row");
+
+                const countBadge = document.getElementById("employeeCount");
+                if (countBadge) {
+                    countBadge.textContent = empty ? "0" : newCount;
+                }
+
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+        })
+        .catch(function (error) {
+            console.error("AJAX Filter Error:", error);
+        });
+    }
+});
+
+/* SELECT VALUE HELPER
+   Handles both ID values and displayed department/team names. */
+function setSelectValueOrText(selectId, value) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    const cleanValue = String(value ?? "").trim();
+
+    select.value = cleanValue;
+
+    if (select.value === cleanValue) return;
+
+    const option = Array.from(select.options).find(function (opt) {
+        return opt.text.trim() === cleanValue;
+    });
+
+    if (option) {
+        select.value = option.value;
+    }
+}
+
+/* EDIT MODAL */
+function openEditModal(button) {
+    document.getElementById("edit_id").value = button.dataset.id || "";
+    document.getElementById("edit_emp_id").value = button.dataset.empid || "";
+    document.getElementById("edit_name").value = button.dataset.name || "";
+    document.getElementById("edit_email").value = button.dataset.email || "";
+    document.getElementById("edit_phone").value = button.dataset.phone || "";
+
+    setSelectValueOrText("edit_department", button.dataset.department);
+    setSelectValueOrText("edit_team", button.dataset.team);
+
+    document.getElementById("edit_designation").value = button.dataset.designation || "";
+    document.getElementById("edit_job_position").value = button.dataset.job_position || "";
+    document.getElementById("edit_work_location").value = button.dataset.worklocation || "";
+
+    const joiningDate = button.dataset.joining || "";
+    const joiningInput = document.getElementById("edit_joining_date");
+
+    if (joiningDate) {
+        try {
+            joiningInput.value = new Date(joiningDate).toISOString().split("T")[0];
+        } catch (error) {
+            joiningInput.value = joiningDate;
+        }
+    } else {
+        joiningInput.value = "";
+    }
+
+    document.getElementById("edit_username").value = button.dataset.username || "";
+    document.getElementById("edit_password").value = "";
+    document.getElementById("edit_status").value = button.dataset.status || "active";
+
+    const preview = document.getElementById("edit_profile_image");
+    const imgSrc = button.dataset.profile || "";
+
+    if (imgSrc) {
+        preview.src = imgSrc;
+    } else {
+        preview.removeAttribute("src");
+    }
+
+    document.getElementById("editModal").classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+}
+
+function closeEditModal() {
+    const modal = document.getElementById("editModal");
+    if (modal) {
+        modal.classList.add("hidden");
+    }
+
+    document.body.style.overflow = "";
+}
+
+/* CLOSE ON BACKDROP */
+document.getElementById("editModal").addEventListener("click", function (event) {
+    if (event.target === this) {
+        closeEditModal();
+    }
+});
+
+/* ESCAPE KEY */
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        const modal = document.getElementById("editModal");
+
+        if (modal && !modal.classList.contains("hidden")) {
+            closeEditModal();
+        }
+    }
+});
+</script>
+
 </body>
 </html>
