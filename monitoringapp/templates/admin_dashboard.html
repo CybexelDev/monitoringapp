@@ -1,167 +1,884 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard - Cybexel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
+    <title>Admin Dashboard - Cybexel</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+<style>
+/* =========================================================
+   RESPONSIVE GLASS DASHBOARD + MATCHING LUCIDE ICONS
+   Presentation only — Django functionality is unchanged.
+   ========================================================= */
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden !important;
+}
+
+body {
+    min-height: 100vh;
+}
+
+.dashboard-box {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.sidebar-icon,
+.sidebar-external,
+.card-icon,
+.input-icon,
+.button-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+}
+
+.sidebar-icon svg {
+    width: 19px;
+    height: 19px;
+    stroke-width: 1.8;
+}
+
+.sidebar-external svg {
+    width: 14px;
+    height: 14px;
+}
+
+.card-icon svg {
+    width: 25px;
+    height: 25px;
+    stroke-width: 1.7;
+}
+
+.input-icon svg {
+    width: 17px;
+    height: 17px;
+    stroke-width: 1.8;
+}
+
+.button-icon svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.2;
+}
+
+.sidebar-item,
+.sidebar-logout {
+    min-width: 0;
+}
+
+.sidebar-item > span:last-of-type,
+.sidebar-logout > span:last-of-type {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.add-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+@media (max-width: 1100px) {
+    .organization-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .dashboard-header-content {
+        gap: 20px;
+    }
+
+    .dashboard-card {
+        min-width: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-button {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+    }
+
+    .glass-sidebar {
+        z-index: 1000;
+        transform: translateX(-110%);
+        transition: transform .28s ease;
+    }
+
+    .glass-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .main-area {
+        width: 100% !important;
+        margin-left: 0 !important;
+        padding: 12px !important;
+    }
+
+    .dashboard-box {
+        height: calc(100vh - 24px) !important;
+        max-height: calc(100vh - 24px) !important;
+        border-radius: 24px !important;
+    }
+
+    .dashboard-header {
+        padding: 24px 20px !important;
+    }
+
+    .dashboard-header-content {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+
+    .system-status {
+        align-self: flex-start;
+    }
+
+    .dashboard-content {
+        padding: 20px !important;
+    }
+
+    .section-heading {
+        gap: 12px;
+    }
+
+    .heading-line {
+        display: none;
+    }
+
+    .add-form {
+        grid-template-columns: 1fr !important;
+    }
+
+    .add-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-area {
+        padding: 8px !important;
+    }
+
+    .dashboard-box {
+        height: calc(100vh - 16px) !important;
+        max-height: calc(100vh - 16px) !important;
+        border-radius: 20px !important;
+    }
+
+    .dashboard-header {
+        padding: 22px 16px !important;
+    }
+
+    .dashboard-content {
+        padding: 16px !important;
+    }
+
+    .dashboard-header h1 {
+        font-size: clamp(1.55rem, 8vw, 2.1rem) !important;
+        line-height: 1.05;
+    }
+
+    .dashboard-header p {
+        font-size: .86rem !important;
+    }
+
+    .dashboard-card {
+        padding: 16px !important;
+        border-radius: 18px !important;
+    }
+
+    .card-heading {
+        align-items: flex-start;
+    }
+
+    .card-icon {
+        width: 42px !important;
+        height: 42px !important;
+        min-width: 42px !important;
+    }
+
+    .table-wrapper {
+        margin-left: -4px;
+        margin-right: -4px;
+        width: calc(100% + 8px);
+    }
+
+    table {
+        min-width: 430px;
+    }
+
+    .table-section-header {
+        gap: 10px;
+    }
+
+    .count-badge {
+        flex-shrink: 0;
+    }
+}
+</style>
 
 </head>
-<body class="bg-black text-[#151a37] font-sans select-none">
-
-  
 
 
-<div id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-[#250f1e] text-white p-6 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-  <div class="flex items-center justify-between mb-6">
-    <div class="w-full flex justify-center select-none">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 object-contain">
-    </div>
-    <button class="menu-toggle md:hidden text-white text-2xl max-md:mt-[-9rem]">&times;</button>
-  </div>
+<body>
 
-  <nav class="select-none">
-    <ul class="space-y-6 text-sm"> 
-      <li>
-        <a href="{% url 'admin_dashboard' %}" class="block py-2 px-4 rounded bg-white text-[#151a37]">Dashboard</a>
-      </li>
-      <li>
-        <a href="{% url 'admin_usermanagement' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">User Management</a>
-      </li>
-      <li>
-        <a href="{% url 'admin_reports' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Reports</a>
-      </li>
-   <li>
-       <a href="{% url 'admin_chat' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Chat</a>
-     </li>
-    <li>
-        <a href="{% url 'admin_profile' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Profile</a>
-    </li>
-      <li>
-      <a href="https://meet.google.com/" target="_blank" class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-    </li>
-      <li>
-        <a href="{% url 'admin_logout' %}" class="block py-2 px-4 rounded bg-[red] text-white">Logout</a>
-      </li>
-    </ul>
-  </nav>
-</div>
+<!-- =========================================================
+     MOBILE MENU BUTTON
+========================================================= -->
 
-
-<button class="menu-toggle md:hidden fixed top-8 left-4 z-50  text-white p-2 rounded shadow-lg">
-  &#9776;
+<button class="menu-toggle mobile-menu-button" type="button">
+    ☰
 </button>
 
-<div class="bg-[#181316] w-full h-28 flex items-center justify-center select-none mt-20">
-  <h1 class="uppercase text-white text-2xl md:text-4xl font-bold">Admin Dashboard</h1>
-</div>
 
+<!-- =========================================================
+     LEFT SIDEBAR
+     LEFT SIDE IS NOT PART OF THE SCROLLING AREA
+========================================================= -->
 
-<div class="flex-1 p-6 mt-6 md:mt-20 md:ml-64 max-w-full overflow-x-hidden">
-  <div class="grid md:grid-cols-2 gap-6">
+<aside id="sidebar" class="glass-sidebar">
 
-    <div class="border-2 border-[#250f1e] p-6 rounded-lg shadow-lg text-white">
-      <h2 class="text-xl font-bold mb-4">Add Department</h2>
-      <form method="POST">
-        {% csrf_token %}
-        <input type="text" name="department_name" placeholder="Department Name" required
-               class="w-full mb-4 px-3 py-2 rounded text-white bg-transparent border ">
-        <button type="submit" name="add_department"
-                class="px-4 py-2 bg-[#250f1e] rounded  transition">
-          Add Department
-        </button>
-      </form>
+    <!-- Logo / Profile -->
+    <div class="sidebar-profile">
 
-      <h3 class="mt-6 font-semibold">Existing Departments</h3>
-      <table class="table-auto w-full mt-2 border border-gray-300">
-  <thead>
-    <tr class="bg-gray-800">
-      <th class="px-4 py-2 border">#</th>
-      <th class="px-4 py-2 border">Department Name</th>
-      <th class="px-4 py-2 border">Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for dept in departments %}
-    <tr>
-      <td class="px-4 py-2 border">{{ forloop.counter }}</td>
-      <td class="px-4 py-2 border">{{ dept.name }}</td>
-      <td class="px-4 py-2 border">
-        <form action="{% url 'delete_department' dept.id %}" method="post" onsubmit="return confirm('Delete this department?');">
-          {% csrf_token %}
-          <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
-            Delete
-          </button>
-        </form>
-      </td>
-    </tr>
-    {% empty %}
-    <tr>
-      <td colspan="3" class="px-4 py-2 text-center border">No departments added yet.</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+        <div class="sidebar-logo">
+            <img src="{% static 'images/logo.png' %}" alt="Developer Logo">
+        </div>
+
+        <div class="sidebar-profile-text">
+            <h3>DEVELOPER</h3>
+            <span>TAGGING HERE</span>
+        </div>
+
     </div>
 
-   <div class="border-2 border-[#250f1e] p-6 rounded-lg shadow-lg text-white">
-  <h2 class="text-xl font-bold mb-4">Add Team</h2>
-  <form method="POST">
-    {% csrf_token %}
-    <input type="text" name="team_name" placeholder="Team Name" required
-           class="w-full mb-4 px-3 py-2 rounded text-white bg-transparent border">
-    
-    <button type="submit" name="add_team"
-            class="px-4 py-2 bg-[#250f1e] rounded transition">
-      Add Team
-    </button>
-  </form>
 
-  <h3 class="mt-6 font-semibold">Existing Teams</h3>
-  <table class="table-auto w-full mt-2 border border-gray-300">
-  <thead>
-    <tr class="bg-gray-800">
-      <th class="px-4 py-2 border">#</th>
-      <th class="px-4 py-2 border">Team Name</th>
-      <th class="px-4 py-2 border">Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for team in teams %}
-    <tr>
-      <td class="px-4 py-2 border">{{ forloop.counter }}</td>
-      <td class="px-4 py-2 border">{{ team.name }}</td>
-      <td class="px-4 py-2 border">
-        <form action="{% url 'delete_team' team.id %}" method="post" onsubmit="return confirm('Delete this team?');">
-          {% csrf_token %}
-          <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
-            Delete
-          </button>
-        </form>
-      </td>
-    </tr>
-    {% empty %}
-    <tr>
-      <td colspan="3" class="px-4 py-2 text-center border">No teams added yet.</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+
+        <!-- Dashboard -->
+        <a href="{% url 'admin_dashboard' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+
+            <span class="sidebar-icon"><i data-lucide="layout-dashboard"></i></span>
+            <span>Dashboard</span>
+
+        </a>
 
 
-  </div>
-</div>
+        <!-- User Management -->
+        <a href="{% url 'admin_usermanagement' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'admin_usermanagement' %}active{% endif %}">
+
+            <span class="sidebar-icon"><i data-lucide="users"></i></span>
+            <span>User Management</span>
+
+        </a>
 
 
+        <!-- Reports -->
+        <a href="{% url 'admin_reports' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">
+
+            <span class="sidebar-icon"><i data-lucide="chart-no-axes-combined"></i></span>
+            <span>Reports</span>
+
+        </a>
+
+
+        <!-- Chat -->
+        <a href="{% url 'admin_chat' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'admin_chat' %}active{% endif %}">
+
+            <span class="sidebar-icon"><i data-lucide="message-circle"></i></span>
+            <span>Chat</span>
+
+        </a>
+
+
+        <!-- Profile -->
+        <a href="{% url 'admin_profile' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'admin_profile' %}active{% endif %}">
+
+            <span class="sidebar-icon"><i data-lucide="circle-user-round"></i></span>
+            <span>Profile</span>
+
+        </a>
+
+
+        <!-- Google Meet -->
+        <a href="https://meet.google.com/"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="sidebar-item">
+
+            <span class="sidebar-icon"><i data-lucide="video"></i></span>
+            <span>Google Meet</span>
+
+            <span class="sidebar-external"><i data-lucide="arrow-up-right"></i></span>
+
+        </a>
+
+    </nav>
+
+
+    <!-- Logout -->
+    <div class="sidebar-bottom">
+
+        <a href="{% url 'admin_logout' %}" class="sidebar-logout">
+
+            <span class="sidebar-icon"><i data-lucide="log-out"></i></span>
+            <span>Logout</span>
+
+        </a>
+
+    </div>
+
+</aside>
+
+
+<!-- =========================================================
+     RIGHT SIDE MAIN AREA
+========================================================= -->
+
+<main class="main-area">
+
+
+    <!-- =====================================================
+         THE BIG BOX
+         EVERYTHING ON THE RIGHT SIDE IS INSIDE THIS BOX
+         ONLY THIS BOX WILL SCROLL
+    ====================================================== -->
+
+    <div class="dashboard-box">
+
+
+        <!-- =================================================
+             DASHBOARD HEADER
+        ================================================== -->
+
+        <section class="dashboard-header">
+
+            <div class="dashboard-header-content">
+
+                <div>
+
+                    <div class="dashboard-eyebrow">
+                        CYBEXEL ADMIN PANEL
+                    </div>
+
+                    <h1>
+                        ADMIN DASHBOARD
+                    </h1>
+
+                    <p>
+                        Manage your departments and teams from one place.
+                    </p>
+
+                </div>
+
+
+                <!-- System status -->
+                <div class="system-status">
+
+                    <span class="status-dot"></span>
+
+                    <span>
+                        System Online
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             DASHBOARD CONTENT
+        ================================================== -->
+
+        <section class="dashboard-content">
+
+
+            <!-- Section heading -->
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-eyebrow">
+                        MANAGEMENT
+                    </span>
+
+                    <h2>
+                        Organization Setup
+                    </h2>
+
+                </div>
+
+                <div class="heading-line"></div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 DEPARTMENT + TEAM GRID
+            ================================================== -->
+
+            <div class="organization-grid">
+
+
+                <!-- =================================================
+                     DEPARTMENT CARD
+                ================================================== -->
+
+                <div class="dashboard-card">
+
+                    <!-- Card heading -->
+                    <div class="card-heading">
+
+                        <div class="card-icon department-icon"><i data-lucide="building-2"></i></div>
+
+                        <div>
+
+                            <h3>
+                                Add Department
+                            </h3>
+
+                            <p>
+                                Create and manage company departments
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Department Form -->
+                    <form method="POST" class="add-form">
+
+                        {% csrf_token %}
+
+                        <div class="input-wrapper">
+
+                            <span class="input-icon"><i data-lucide="layers-3"></i></span>
+
+                            <input
+                                type="text"
+                                name="department_name"
+                                placeholder="Department Name"
+                                required
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            name="add_department"
+                            class="add-button"
+                        >
+
+                            <span class="button-icon"><i data-lucide="plus"></i></span>
+
+                            Add Department
+
+                        </button>
+
+                    </form>
+
+
+
+                    <!-- Department title -->
+                    <div class="table-section-header">
+
+                        <div>
+
+                            <span class="table-eyebrow">
+                                DEPARTMENTS
+                            </span>
+
+                            <h4>
+                                Existing Departments
+                            </h4>
+
+                        </div>
+
+
+                        <span class="count-badge">
+                            {{ departments|length }}
+                        </span>
+
+                    </div>
+
+
+
+                    <!-- Department table -->
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>#</th>
+
+                                    <th>
+                                        Department Name
+                                    </th>
+
+                                    <th>
+                                        Action
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {% for dept in departments %}
+
+                                <tr>
+
+                                    <td>
+
+                                        <span class="number-badge">
+                                            {{ forloop.counter }}
+                                        </span>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <div class="name-cell">
+
+                                            <span class="name-dot"></span>
+
+                                            {{ dept.name }}
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <form
+                                            action="{% url 'delete_department' dept.id %}"
+                                            method="post"
+                                            onsubmit="return confirm('Delete this department?');"
+                                        >
+
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="delete-button"
+                                            >
+                                                Delete
+                                            </button>
+
+                                        </form>
+
+                                    </td>
+
+                                </tr>
+
+                                {% empty %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="3"
+                                        class="empty-row"
+                                    >
+                                        No departments added yet.
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     TEAM CARD
+                ================================================== -->
+
+                <div class="dashboard-card team-card">
+
+                    <!-- Card heading -->
+                    <div class="card-heading">
+
+                        <div class="card-icon team-icon"><i data-lucide="users-round"></i></div>
+
+                        <div>
+
+                            <h3>
+                                Add Team
+                            </h3>
+
+                            <p>
+                                Create and manage company teams
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Team Form -->
+                    <form method="POST" class="add-form">
+
+                        {% csrf_token %}
+
+                        <div class="input-wrapper">
+
+                            <span class="input-icon"><i data-lucide="layers-3"></i></span>
+
+                            <input
+                                type="text"
+                                name="team_name"
+                                placeholder="Team Name"
+                                required
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            name="add_team"
+                            class="add-button"
+                        >
+
+                            <span class="button-icon"><i data-lucide="plus"></i></span>
+
+                            Add Team
+
+                        </button>
+
+                    </form>
+
+
+
+                    <!-- Team title -->
+                    <div class="table-section-header">
+
+                        <div>
+
+                            <span class="table-eyebrow">
+                                TEAMS
+                            </span>
+
+                            <h4>
+                                Existing Teams
+                            </h4>
+
+                        </div>
+
+
+                        <span class="count-badge">
+                            {{ teams|length }}
+                        </span>
+
+                    </div>
+
+
+
+                    <!-- Team table -->
+                    <div class="table-wrapper">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>#</th>
+
+                                    <th>
+                                        Team Name
+                                    </th>
+
+                                    <th>
+                                        Action
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+                                {% for team in teams %}
+
+                                <tr>
+
+                                    <td>
+
+                                        <span class="number-badge">
+                                            {{ forloop.counter }}
+                                        </span>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <div class="name-cell">
+
+                                            <span class="name-dot"></span>
+
+                                            {{ team.name }}
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        <form
+                                            action="{% url 'delete_team' team.id %}"
+                                            method="post"
+                                            onsubmit="return confirm('Delete this team?');"
+                                        >
+
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="delete-button"
+                                            >
+                                                Delete
+                                            </button>
+
+                                        </form>
+
+                                    </td>
+
+                                </tr>
+
+                                {% empty %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="3"
+                                        class="empty-row"
+                                    >
+                                        No teams added yet.
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!--
+                Future dashboard contents can be added here.
+                They will automatically stay INSIDE the big box.
+            -->
+
+
+        </section>
+
+    </div>
+
+</main>
+
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
 
 <script src="{% static 'js/admin.js' %}"></script>
 <script src="{% static 'js/activity.js' %}"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const sidebar = document.getElementById("sidebar");
+    const menuButtons = document.querySelectorAll(".menu-toggle");
+
+    menuButtons.forEach(function(button) {
+
+        button.addEventListener("click", function() {
+
+            sidebar.classList.toggle("open");
+
+        });
+
+    });
+
+});
+
+
+    // Render matching Lucide icons without changing any existing functionality.
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+
+</script>
+
 </body>
 </html>
