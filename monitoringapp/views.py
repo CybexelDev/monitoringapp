@@ -1014,137 +1014,534 @@ def group_chat_view(request, group_id):
     }
     return render(request, 'group_chat.html', context)
 
-
 @never_cache
 def teammember_dashboard(request):
-    # ❌ Redirect if not logged in or invalid session
-    if not request.session.get("user_id") or request.session.get("position") != "team_member":
+
+    # =========================================================
+    # CHECK LOGIN / SESSION
+    # =========================================================
+
+    if (
+        not request.session.get("user_id")
+        or request.session.get("position") != "team_member"
+    ):
+        messages.error(
+            request,
+            "Your session has expired. Please log in again."
+        )
         return redirect("login_view")
 
-    # ✅ Fetch logged-in team member
+
+    # =========================================================
+    # FETCH LOGGED-IN TEAM MEMBER
+    # =========================================================
+
     try:
-        team_member = User.objects.get(id=request.session['user_id'])
+
+        team_member = User.objects.get(
+            id=request.session["user_id"]
+        )
+
     except User.DoesNotExist:
+
         request.session.flush()
+
+        messages.error(
+            request,
+            "Your account session is no longer valid. Please log in again."
+        )
+
         return redirect("login_view")
+
 
     team_name = team_member.team
 
-    # 🕒 Convert login time from session
-    login_time_str = request.session.get('login_time')
-    login_time = parse_datetime(login_time_str) if login_time_str else None
+
+    # =========================================================
+    # LOGIN TIME
+    # =========================================================
+
+    login_time_str = request.session.get("login_time")
+
+    login_time = (
+        parse_datetime(login_time_str)
+        if login_time_str
+        else None
+    )
+
     if login_time:
+
         if is_naive(login_time):
             login_time = make_aware(login_time)
+
         login_time = localtime(login_time)
 
-    # 🕗 Fetch configurable report submission windows from DB
-    morning_setting = ReportTimeSetting.objects.filter(report_type='morning').first()
-    evening_setting = ReportTimeSetting.objects.filter(report_type='evening').first()
 
-    # Default/fallback times
-    morning_start = morning_setting.start_time if morning_setting else time(9, 30)
-    morning_end = morning_setting.end_time if morning_setting else time(10, 30)
-    evening_start = evening_setting.start_time if evening_setting else time(17, 0)
-    evening_end = evening_setting.end_time if evening_setting else time(18, 15)
+    # =========================================================
+    # REPORT TIME SETTINGS
+    # =========================================================
 
-    # 📝 Handle report submissions
+    morning_setting = ReportTimeSetting.objects.filter(
+        report_type="morning"
+    ).first()
+
+    evening_setting = ReportTimeSetting.objects.filter(
+        report_type="evening"
+    ).first()
+
+
+    # Default times
+
+    morning_start = (
+        morning_setting.start_time
+        if morning_setting
+        else time(9, 30)
+    )
+
+    morning_end = (
+        morning_setting.end_time
+        if morning_setting
+        else time(10, 30)
+    )
+
+    evening_start = (
+        evening_setting.start_time
+        if evening_setting
+        else time(15, 0)
+    )
+
+    evening_end = (
+        evening_setting.end_time
+        if evening_setting
+        else time(18, 15)
+    )
+
+
+    # =========================================================
+    # HANDLE POST REQUESTS
+    # =========================================================
+
     if request.method == "POST":
+
         now_time = localtime().time()
 
-        # 🌅 Morning report submission
-        if 'morning_submit' in request.POST:
-            if is_within_time_range(morning_start, morning_end, now_time):
-                report_text = request.POST.get("morning_report")
-                status = request.POST.get("morning_status")
 
-                if report_text and status:
-                    MorningReport.objects.create(
-                        user=team_member,
-                        department=str(team_member.department.name) if team_member.department else "Unassigned",
-                        team=str(team_member.team.name) if team_member.team else "Unassigned",
-                        report_text=report_text,
-                        status=status
-                    )
-                    messages.success(request, "Morning report submitted successfully.")
-                    return redirect('teammember_dashboard')
-                else:
-                    messages.error(request, "Please fill in all fields before submitting.")
-            else:
+        # =====================================================
+        # MORNING REPORT
+        # =====================================================
+
+        if "morning_submit" in request.POST:
+
+            report_text = request.POST.get(
+                "morning_report",
+                ""
+            ).strip()
+
+            status = request.POST.get(
+                "morning_status",
+                ""
+            ).strip()
+
+
+            # ---------------------------------------------
+            # CHECK TIME
+            # ---------------------------------------------
+
+            if not is_within_time_range(
+                morning_start,
+                morning_end,
+                now_time
+            ):
+
                 messages.error(
                     request,
-                    f"You can only submit morning reports between "
-                    f"{morning_start.strftime('%I:%M %p')} and {morning_end.strftime('%I:%M %p')}."
+                    f"Morning report can only be submitted between "
+                    f"{morning_start.strftime('%I:%M %p')} and "
+                    f"{morning_end.strftime('%I:%M %p')}."
                 )
 
-        # 🌇 Evening report submission
-        elif 'evening_submit' in request.POST:
-            if is_within_time_range(evening_start, evening_end, now_time):
-                report_text = request.POST.get("evening_report")
-                status = request.POST.get("evening_status")
+                return redirect("teammember_dashboard")
 
-                if report_text and status:
-                    EveningReport.objects.create(
-                        user=team_member,
-                        department=str(team_member.department.name) if team_member.department else "Unassigned",
-                        team=str(team_member.team.name) if team_member.team else "Unassigned",
-                        report_text=report_text,
-                        status=status
-                    )
-                    messages.success(request, "Evening report submitted successfully.")
-                    return redirect('teammember_dashboard')
-                else:
-                    messages.error(request, "Please fill in all fields before submitting.")
-            else:
+
+            # ---------------------------------------------
+            # CHECK REQUIRED FIELDS
+            # ---------------------------------------------
+
+            if not report_text:
+
                 messages.error(
                     request,
-                    f"You can only submit evening reports between "
-                    f"{evening_start.strftime('%I:%M %p')} and {evening_end.strftime('%I:%M %p')}."
+                    "Please enter your morning report."
                 )
 
-    # 📊 Fetch reports submitted in the last 24 hours
+                return redirect("teammember_dashboard")
+
+
+            if not status:
+
+                messages.error(
+                    request,
+                    "Please select a status for your morning report."
+                )
+
+                return redirect("teammember_dashboard")
+
+
+            # ---------------------------------------------
+            # CREATE MORNING REPORT
+            # ---------------------------------------------
+
+            MorningReport.objects.create(
+
+                user=team_member,
+
+                department=(
+                    str(team_member.department.name)
+                    if team_member.department
+                    else "Unassigned"
+                ),
+
+                team=(
+                    str(team_member.team.name)
+                    if team_member.team
+                    else "Unassigned"
+                ),
+
+                report_text=report_text,
+
+                status=status
+            )
+
+
+            # ---------------------------------------------
+            # SUCCESS TOAST
+            # ---------------------------------------------
+
+            messages.success(
+                request,
+                f"Morning report submitted successfully with status: {status}."
+            )
+
+            return redirect("teammember_dashboard")
+
+
+        # =====================================================
+        # EVENING REPORT
+        # =====================================================
+
+        elif "evening_submit" in request.POST:
+
+            report_text = request.POST.get(
+                "evening_report",
+                ""
+            ).strip()
+
+            status = request.POST.get(
+                "evening_status",
+                ""
+            ).strip()
+
+
+            # ---------------------------------------------
+            # CHECK TIME
+            # ---------------------------------------------
+
+            if not is_within_time_range(
+                evening_start,
+                evening_end,
+                now_time
+            ):
+
+                messages.error(
+                    request,
+                    f"Evening report can only be submitted between "
+                    f"{evening_start.strftime('%I:%M %p')} and "
+                    f"{evening_end.strftime('%I:%M %p')}."
+                )
+
+                return redirect("teammember_dashboard")
+
+
+            # ---------------------------------------------
+            # CHECK REQUIRED FIELDS
+            # ---------------------------------------------
+
+            if not report_text:
+
+                messages.error(
+                    request,
+                    "Please enter your evening report."
+                )
+
+                return redirect("teammember_dashboard")
+
+
+            if not status:
+
+                messages.error(
+                    request,
+                    "Please select a status for your evening report."
+                )
+
+                return redirect("teammember_dashboard")
+
+
+            # ---------------------------------------------
+            # CREATE EVENING REPORT
+            # ---------------------------------------------
+
+            EveningReport.objects.create(
+
+                user=team_member,
+
+                department=(
+                    str(team_member.department.name)
+                    if team_member.department
+                    else "Unassigned"
+                ),
+
+                team=(
+                    str(team_member.team.name)
+                    if team_member.team
+                    else "Unassigned"
+                ),
+
+                report_text=report_text,
+
+                status=status
+            )
+
+
+            # ---------------------------------------------
+            # SUCCESS TOAST
+            # ---------------------------------------------
+
+            messages.success(
+                request,
+                f"Evening report submitted successfully with status: {status}."
+            )
+
+            return redirect("teammember_dashboard")
+
+
+    # =========================================================
+    # FETCH REPORTS - LAST 24 HOURS
+    # =========================================================
+
     report_cutoff = now() - timedelta(hours=24)
+
 
     morning_reports = MorningReport.objects.filter(
         user=team_member,
         created_at__gte=report_cutoff
-    ).values("report_text", "status", "created_at")
+    ).values(
+        "report_text",
+        "status",
+        "created_at"
+    )
 
-    for r in morning_reports:
-        r["type"] = "Morning"
+    for report in morning_reports:
+        report["type"] = "Morning"
+
 
     evening_reports = EveningReport.objects.filter(
         user=team_member,
         created_at__gte=report_cutoff
-    ).values("report_text", "status", "created_at")
+    ).values(
+        "report_text",
+        "status",
+        "created_at"
+    )
 
-    for r in evening_reports:
-        r["type"] = "Evening"
+    for report in evening_reports:
+        report["type"] = "Evening"
 
-    # Combine & sort all reports
+
+    # =========================================================
+    # COMBINE REPORTS
+    # =========================================================
+
     all_reports = sorted(
         list(morning_reports) + list(evening_reports),
         key=lambda x: x["created_at"],
         reverse=True
     )
 
+
+    # =========================================================
+    # ANNOUNCEMENTS
+    # =========================================================
+
     announcements = Announcement.objects.filter(
         created_by__team=team_member.team,
         created_at__gte=now() - timedelta(hours=12)
-    ).order_by('-created_at')
+    ).order_by("-created_at")
 
-    # 🧭 Render dashboard
-    return render(request, 'teammember_dashboard.html', {
-        'announcements': announcements,
-        'morning_allowed': is_within_time_range(morning_start, morning_end),
-        'evening_allowed': is_within_time_range(evening_start, evening_end),
-        'login_time': login_time,
-        'all_reports': all_reports,
-        'morning_start': morning_start,
-        'morning_end': morning_end,
-        'evening_start': evening_start,
-        'evening_end': evening_end,
-    })
+
+    # =========================================================
+    # RENDER DASHBOARD
+    # =========================================================
+
+    return render(
+        request,
+        "teammember_dashboard.html",
+        {
+            "announcements": announcements,
+
+            "morning_allowed": is_within_time_range(
+                morning_start,
+                morning_end
+            ),
+
+            "evening_allowed": is_within_time_range(
+                evening_start,
+                evening_end
+            ),
+
+            "login_time": login_time,
+
+            "all_reports": all_reports,
+
+            "morning_start": morning_start,
+
+            "morning_end": morning_end,
+
+            "evening_start": evening_start,
+
+            "evening_end": evening_end,
+        }
+    )
+
+# @never_cache
+# def teammember_dashboard(request):
+#     # ❌ Redirect if not logged in or invalid session
+#     if not request.session.get("user_id") or request.session.get("position") != "team_member":
+#         return redirect("login_view")
+
+#     # ✅ Fetch logged-in team member
+#     try:
+#         team_member = User.objects.get(id=request.session['user_id'])
+#     except User.DoesNotExist:
+#         request.session.flush()
+#         return redirect("login_view")
+
+#     team_name = team_member.team
+
+#     # 🕒 Convert login time from session
+#     login_time_str = request.session.get('login_time')
+#     login_time = parse_datetime(login_time_str) if login_time_str else None
+#     if login_time:
+#         if is_naive(login_time):
+#             login_time = make_aware(login_time)
+#         login_time = localtime(login_time)
+
+#     # 🕗 Fetch configurable report submission windows from DB
+#     morning_setting = ReportTimeSetting.objects.filter(report_type='morning').first()
+#     evening_setting = ReportTimeSetting.objects.filter(report_type='evening').first()
+
+#     # Default/fallback times
+#     morning_start = morning_setting.start_time if morning_setting else time(9, 30)
+#     morning_end = morning_setting.end_time if morning_setting else time(10, 30)
+#     evening_start = evening_setting.start_time if evening_setting else time(17, 0)
+#     evening_end = evening_setting.end_time if evening_setting else time(18, 15)
+
+#     # 📝 Handle report submissions
+#     if request.method == "POST":
+#         now_time = localtime().time()
+
+#         # 🌅 Morning report submission
+#         if 'morning_submit' in request.POST:
+#             if is_within_time_range(morning_start, morning_end, now_time):
+#                 report_text = request.POST.get("morning_report")
+#                 status = request.POST.get("morning_status")
+
+#                 if report_text and status:
+#                     MorningReport.objects.create(
+#                         user=team_member,
+#                         department=str(team_member.department.name) if team_member.department else "Unassigned",
+#                         team=str(team_member.team.name) if team_member.team else "Unassigned",
+#                         report_text=report_text,
+#                         status=status
+#                     )
+#                     messages.success(request, "Morning report submitted successfully.")
+#                     return redirect('teammember_dashboard')
+#                 else:
+#                     messages.error(request, "Please fill in all fields before submitting.")
+#             else:
+#                 messages.error(
+#                     request,
+#                     f"You can only submit morning reports between "
+#                     f"{morning_start.strftime('%I:%M %p')} and {morning_end.strftime('%I:%M %p')}."
+#                 )
+
+#         # 🌇 Evening report submission
+#         elif 'evening_submit' in request.POST:
+#             if is_within_time_range(evening_start, evening_end, now_time):
+#                 report_text = request.POST.get("evening_report")
+#                 status = request.POST.get("evening_status")
+
+#                 if report_text and status:
+#                     EveningReport.objects.create(
+#                         user=team_member,
+#                         department=str(team_member.department.name) if team_member.department else "Unassigned",
+#                         team=str(team_member.team.name) if team_member.team else "Unassigned",
+#                         report_text=report_text,
+#                         status=status
+#                     )
+#                     messages.success(request, "Evening report submitted successfully.")
+#                     return redirect('teammember_dashboard')
+#                 else:
+#                     messages.error(request, "Please fill in all fields before submitting.")
+#             else:
+#                 messages.error(
+#                     request,
+#                     f"You can only submit evening reports between "
+#                     f"{evening_start.strftime('%I:%M %p')} and {evening_end.strftime('%I:%M %p')}."
+#                 )
+
+#     # 📊 Fetch reports submitted in the last 24 hours
+#     report_cutoff = now() - timedelta(hours=24)
+
+#     morning_reports = MorningReport.objects.filter(
+#         user=team_member,
+#         created_at__gte=report_cutoff
+#     ).values("report_text", "status", "created_at")
+
+#     for r in morning_reports:
+#         r["type"] = "Morning"
+
+#     evening_reports = EveningReport.objects.filter(
+#         user=team_member,
+#         created_at__gte=report_cutoff
+#     ).values("report_text", "status", "created_at")
+
+#     for r in evening_reports:
+#         r["type"] = "Evening"
+
+#     # Combine & sort all reports
+#     all_reports = sorted(
+#         list(morning_reports) + list(evening_reports),
+#         key=lambda x: x["created_at"],
+#         reverse=True
+#     )
+
+#     announcements = Announcement.objects.filter(
+#         created_by__team=team_member.team,
+#         created_at__gte=now() - timedelta(hours=12)
+#     ).order_by('-created_at')
+
+#     # 🧭 Render dashboard
+#     return render(request, 'teammember_dashboard.html', {
+#         'announcements': announcements,
+#         'morning_allowed': is_within_time_range(morning_start, morning_end),
+#         'evening_allowed': is_within_time_range(evening_start, evening_end),
+#         'login_time': login_time,
+#         'all_reports': all_reports,
+#         'morning_start': morning_start,
+#         'morning_end': morning_end,
+#         'evening_start': evening_start,
+#         'evening_end': evening_end,
+#     })
 
 @never_cache
 def teamlead_reports(request):
@@ -1334,11 +1731,25 @@ def teammember_project(request):
         project_id = request.POST.get("project_id")
         status = request.POST.get("status")
         project = get_object_or_404(ProjectAssign, id=project_id, assign_to=user)
-        project.status = status
-        project.save()
+        # project.status = status
+        # project.save()
+        if status in dict(ProjectAssign.STATUS_CHOICES):
+            project.status = status
+            project.save()
+
+            messages.success(
+                request,
+                f'Project "{project.work_name}" updated to {project.get_status_display()}.'
+            )
+        else:
+            messages.error(
+                request,
+                "Invalid status selected."
+            )
         return redirect("teammember_project")
 
     return render(request, "teammember_project.html", {"projects": projects})
+
 def update_project_status(request, pk):
     user_id = request.session.get("user_id")  
     if not user_id:
@@ -1353,11 +1764,16 @@ def update_project_status(request, pk):
         if new_status in dict(ProjectAssign.STATUS_CHOICES):
             project.status = new_status
             project.save()
-            messages.success(request, f"Project status updated to {new_status}")
+            # messages.success(request, f"Project status updated to {new_status}")
+            messages.success(
+                request,
+                f'Project "{project.work_name}" updated to {project.get_status_display()}.'
+            )
         else:
             messages.error(request, "Invalid status selected.")
 
     return redirect("teammember_project")
+
 @never_cache
 def teamlead_notepad(request):
     # 🔒 Prevent access if logged out
@@ -1443,9 +1859,17 @@ def teammember_notepad(request):
             note.title = title
             note.content = content
             note.save()
+            messages.success(
+                request,
+                f'Note "{note.title}" updated successfully.'
+            )
         else:
             # Create new note
             note = Notepad.objects.create(user=user, title=title, content=content)
+            messages.success(
+                request,
+                f'Note "{note.title}" created successfully.'
+            )
 
         return redirect(f"{request.path}?note_id={note.id}")
 
@@ -1524,6 +1948,13 @@ def teammember_repository(request):
                 "error": "No department found for this user or in database."
             })
 
+        if not title:
+
+            messages.error(
+                request,
+                "Resource title is required."
+            )
+
         Knowledge.objects.create(
             department=department,
             user=user,
@@ -1531,6 +1962,10 @@ def teammember_repository(request):
             description=description,
             link=link,
             file=file
+        )
+        messages.success(
+            request,
+            f'Resource "{title}" added successfully.'
         )
 
         return redirect("teammember_repository")
@@ -1554,8 +1989,19 @@ def teammember_repository_delete(request, pk):
     resource = get_object_or_404(Knowledge, id=pk, department=department)
 
     # Allow both GET and POST delete
-    resource.delete()
+    if request.method == "POST":
+
+        resource_title = resource.title
+
+        resource.delete()
+
+        messages.success(
+            request,
+            f'Resource "{resource_title}" deleted successfully.'
+        )
     return redirect("teammember_repository")
+
+
 @never_cache
 def teamlead_profile(request):
     user_id = request.session.get("user_id")
@@ -1593,9 +2039,54 @@ def teamlead_profile(request):
     response["Expires"] = "0"
     return response
 
+# @never_cache
+# def teammember_profile(request):
+#     user_id = request.session.get("user_id")
+#     if not user_id:
+#         return redirect("index")
+
+#     user = get_object_or_404(User, id=user_id)
+
+#     if request.method == "POST":
+#         action = request.POST.get("action")
+
+#         # Profile image AJAX upload
+#         if action == "edit_profile" and request.FILES.get("profile_image"):
+#             user.profile_image = request.FILES["profile_image"]
+#             user.save()
+
+#             # Check if AJAX
+#             if request.headers.get("x-requested-with") == "XMLHttpRequest":
+#                 return JsonResponse({
+#                     "success": True,
+#                     "image_url": user.profile_image.url
+#                 })
+
+#             # fallback redirect for normal form submit
+#             messages.success(request, "Profile image updated successfully!")
+#             return redirect("teammember_profile")
+
+#         # Normal form update (other details)
+#         elif action == "edit_profile":
+#             user.name = request.POST.get("name")
+#             user.email = request.POST.get("email")
+#             user.phone = request.POST.get("phone")
+#             user.work_location = request.POST.get("work_location")
+
+#             if "profile_image" in request.FILES:
+#                 user.profile_image = request.FILES["profile_image"]
+
+#             user.save()
+#             messages.success(request, "Profile updated successfully!")
+#             return redirect("teammember_profile")
+
+#     return render(request, "teammember_profile.html", {"user": user})
+
+
 @never_cache
 def teammember_profile(request):
     user_id = request.session.get("user_id")
+
     if not user_id:
         return redirect("index")
 
@@ -1604,24 +2095,34 @@ def teammember_profile(request):
     if request.method == "POST":
         action = request.POST.get("action")
 
+        # ==========================================
         # Profile image AJAX upload
+        # ==========================================
         if action == "edit_profile" and request.FILES.get("profile_image"):
+
             user.profile_image = request.FILES["profile_image"]
             user.save()
 
-            # Check if AJAX
+            # AJAX request
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({
                     "success": True,
                     "image_url": user.profile_image.url
                 })
 
-            # fallback redirect for normal form submit
-            messages.success(request, "Profile image updated successfully!")
+            # Normal form submission
+            messages.success(
+                request,
+                "Profile image updated successfully!"
+            )
+
             return redirect("teammember_profile")
 
-        # Normal form update (other details)
+        # ==========================================
+        # Normal profile update
+        # ==========================================
         elif action == "edit_profile":
+
             user.name = request.POST.get("name")
             user.email = request.POST.get("email")
             user.phone = request.POST.get("phone")
@@ -1631,10 +2132,23 @@ def teammember_profile(request):
                 user.profile_image = request.FILES["profile_image"]
 
             user.save()
-            messages.success(request, "Profile updated successfully!")
+
+            messages.success(
+                request,
+                "Profile updated successfully!"
+            )
+
             return redirect("teammember_profile")
 
-    return render(request, "teammember_profile.html", {"user": user})
+    return render(
+        request,
+        "teammember_profile.html",
+        {
+            "user": user
+        }
+    )
+
+
 @never_cache
 def teammember_task(request):
     user_id = request.session.get("user_id")
@@ -1656,6 +2170,16 @@ def teammember_task(request):
                 assigned_to=user,   # optional: assign to self
                 created_by=user     # track who created it
             )
+            messages.success(
+                request,
+                f'Task "{title}" added successfully.'
+            )
+        else:
+            messages.error(
+                request,
+                "Task title is required."
+            )
+
         return redirect("teammember_task")
 
     return render(request, "teammember_task.html", {"tasks": tasks})
@@ -1674,10 +2198,28 @@ def update_task(request, task_id):
 
     if request.method == "POST":
         status = request.POST.get("status")
-        task.status = status
-        # Update progress based on status
-        task.progress = {"pending": 0, "in_progress": 50, "completed": 100}.get(status, 0)
-        task.save()
+        valid_statuses = [
+            "pending",
+            "in_progress",
+            "completed"
+        ]
+        if status in valid_statuses:
+            task.status = status
+            # Update progress based on status
+            task.progress = {"pending": 0, "in_progress": 50, "completed": 100}.get(status, 0)
+            task.save()
+            status_text = task.get_status_display()
+
+            messages.success(
+                request,
+                f'Task "{task.title}" updated to {status_text}.'
+            )
+        else:
+
+            messages.error(
+                request,
+                "Invalid task status."
+            )
 
     return redirect("teammember_task")
 
@@ -1688,13 +2230,20 @@ def delete_task(request, task_id):
     if not user_id:
         return redirect("login_view")
 
-    user = User.objects.get(id=user_id)
+    user = get_object_or_404(User, id=user_id)
 
     # ✅ Only allow deletion of tasks created by this user
     task = get_object_or_404(Task, id=task_id, created_by=user)
 
     if request.method == "POST":
+        task_title = task.title
+
         task.delete()
+
+        messages.success(
+            request,
+            f'Task "{task_title}" deleted successfully.'
+        )
 
     return redirect("teammember_task")
 

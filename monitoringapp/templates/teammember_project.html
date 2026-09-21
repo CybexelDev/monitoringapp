@@ -9,7 +9,39 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+<style>
+    .toast-message {
+        animation: toastSlideIn 0.35s ease-out;
+    }
 
+    .toast-message.toast-hide {
+        animation: toastSlideOut 0.35s ease-in forwards;
+    }
+
+    @keyframes toastSlideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes toastSlideOut {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+</style>
 </head>
 <body class="bg-black text-white font-sans select-none">
 
@@ -85,7 +117,7 @@
           <td class="py-4">{{ project.priority }}</td>
 
           <!-- Status Column -->
-          <td class="py-4">
+          <!-- <td class="py-4">
             <form method="POST" action="{% url 'update_project_status' project.id %}" class="flex items-center space-x-2">
               {% csrf_token %}
               <select name="status" class="p-1 rounded border text-black">
@@ -95,7 +127,37 @@
               </select>
               <button type="submit" class="bg-green-600 text-white px-2 py-1 rounded">Update</button>
             </form>
-          </td>
+          </td> -->
+          <td class="py-4">
+
+    <form method="POST"
+          action="{% url 'update_project_status' project.id %}"
+          class="flex items-center space-x-2">
+
+        {% csrf_token %}
+
+        <select name="status"
+                class="p-1 rounded border text-black">
+
+            {% for value, label in project.STATUS_CHOICES %}
+
+                <option value="{{ value }}"
+                    {% if project.status == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+        <button type="submit"
+                class="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700">
+            Update
+        </button>
+
+    </form>
+
+</td>
 
  <!-- Actions Column -->
 <td class="py-4">
@@ -244,6 +306,151 @@
 </div>
 
 
+
+<!-- =========================================================
+     TOAST CONTAINER
+========================================================= -->
+
+<div id="toast-container"
+     class="fixed bottom-5 right-5 z-[9999]
+            space-y-3
+            w-[350px]
+            max-w-[calc(100%-2rem)]">
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div class="toast-message
+                        flex items-center gap-3
+                        bg-[#250f1e]
+                        text-white
+                        border border-purple-600
+                        px-5 py-4
+                        rounded-lg
+                        shadow-2xl">
+
+                <!-- ICON -->
+
+                {% if message.tags == "error" %}
+
+                    <!-- Error Icon -->
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="w-6 h-6 flex-shrink-0 text-red-400"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"/>
+
+                    </svg>
+
+                {% else %}
+
+                    <!-- Success Icon -->
+
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="w-6 h-6 flex-shrink-0 text-green-400"
+                         fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M5 13l4 4L19 7"/>
+
+                    </svg>
+
+                {% endif %}
+
+
+                <!-- MESSAGE -->
+
+                <span class="flex-1 text-sm font-medium">
+                    {{ message }}
+                </span>
+
+
+                <!-- CLOSE BUTTON -->
+
+                <button type="button"
+                        onclick="removeToast(this.parentElement)"
+                        class="text-gray-300
+                               hover:text-white
+                               text-xl
+                               leading-none">
+
+                    &times;
+
+                </button>
+
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+</div>
+
+
+<!-- =========================================================
+     TOAST JAVASCRIPT
+========================================================= -->
+
+<script>
+
+function removeToast(toast) {
+
+    if (!toast) {
+        return;
+    }
+
+    toast.classList.add("toast-hide");
+
+    setTimeout(function () {
+
+        if (toast.parentElement) {
+            toast.remove();
+        }
+
+    }, 350);
+}
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const toasts = document.querySelectorAll(".toast-message");
+
+    toasts.forEach(function (toast) {
+
+        setTimeout(function () {
+
+            if (toast.parentElement) {
+
+                toast.classList.add("toast-hide");
+
+                setTimeout(function () {
+
+                    if (toast.parentElement) {
+                        toast.remove();
+                    }
+
+                }, 350);
+
+            }
+
+        }, 4000);
+
+    });
+
+});
+
+</script>
 
 
 
