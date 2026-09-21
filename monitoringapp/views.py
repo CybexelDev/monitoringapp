@@ -584,6 +584,7 @@ def login_view(request):
         now = timezone.now()
         user.status = "active"                # canonical value (no spaces, lowercase)
         user.last_login_time = now
+        user.last_activity = now
 
         # if model happens to have is_active (boolean), keep it in sync
         if hasattr(user, "is_active"):
@@ -2357,3 +2358,61 @@ def teammember_logout(request):
     response["Pragma"] = "no-cache"
     response["Expires"] = "0"
     return response
+
+def update_inactive_users():
+    cutoff_time = timezone.now() - timedelta(minutes=10)
+
+    User.objects.filter(
+        status="active",
+        last_activity__lt=cutoff_time
+    ).update(status="inactive")
+
+@csrf_exempt
+def update_activity(request):
+    if request.method != "POST":
+        return JsonResponse({"success": False, "message": "Invalid request"}, status=400)
+
+    user_id = request.session.get("user_id")
+    update_inactive_users()
+
+    if not user_id:
+        return JsonResponse({"success": False, "message": "Not logged in"}, status=401)
+
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({"success": False, "message": "User not found"}, status=404)
+
+    now = timezone.now()
+
+    user.last_activity = now
+    user.status = "active"
+    user.save(update_fields=["last_activity", "status"])
+
+    return JsonResponse({
+        "success": True,
+        "status": "active"
+    })
+
+
+def get_user_status(request, user_id):
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return JsonResponse({
+            "success": False,
+            "message": "User not found"
+        }, status=404)
+
+    # Check if last activity is older than 10 minutes
+    if user.last_activity:
+        cutoff_time = timezone.now() - timedelta(minutes=10)
+
+        if user.last_activity < cutoff_time:
+            user.status = "inactive"
+            user.save(update_fields=["status"])
+
+    return JsonResponse({
+        "success": True,
+        "status": user.status
+    })

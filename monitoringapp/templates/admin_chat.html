@@ -99,13 +99,29 @@
         {% for user in users %}
         <div class="p-3 flex items-center hover:bg-[#202c33] cursor-pointer">
           <a href="{% url 'chat_room' user.id %}" class="flex items-center w-full">
-            {% if user.profile_image %}
+            <!-- {% if user.profile_image %}
             <img src="{{ user.profile_image.url }}" class="w-10 h-10 rounded-full mr-3" />
             {% else %}
             <div class="w-10 h-10 rounded-full flex items-center justify-center text-white border border-white font-bold mr-3">
               {% if user.id == current_user.id %}M{% else %}{{ user.name|first|upper }}{% endif %}
             </div>
-            {% endif %}
+            {% endif %} -->
+            <div class="relative mr-3">
+  {% if user.profile_image %}
+    <img src="{{ user.profile_image.url }}" class="w-10 h-10 rounded-full" />
+  {% else %}
+    <div class="w-10 h-10 rounded-full flex items-center justify-center text-white border border-white font-bold">
+      {% if user.id == current_user.id %}M{% else %}{{ user.name|first|upper }}{% endif %}
+    </div>
+  {% endif %}
+
+  <!-- Status Dot -->
+ <span
+  class="user-status-dot absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white bg-green-500"
+  data-user-id="{{ user.id }}"
+  title="Active">
+</span>
+</div>
             <div>
               <p class="font-medium">{% if user.id == current_user.id %}Me{% else %}{{ user.name }}{% endif %}</p>
               <p class="text-gray-400 text-sm">{{ user.phone }}</p>
@@ -200,6 +216,7 @@
 </script>
 
 {% comment %} <script src="{% static 'js/admin.js' %}"></script> {% endcomment %}
+<script src="{% static 'js/activity.js' %}"></script>
 </body>
 
 </html>

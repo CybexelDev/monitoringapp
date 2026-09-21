@@ -50,6 +50,7 @@ class User(models.Model):
     # ✅ Add these fields
     last_login_time = models.DateTimeField(null=True, blank=True)
     last_logout_time = models.DateTimeField(null=True, blank=True)
+    last_activity = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.designation})"

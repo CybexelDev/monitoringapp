@@ -25,7 +25,8 @@ urlpatterns = [
     path('teammember_project/', views.teammember_project, name='teammember_project'),
     path('project/<int:pk>/update-status/', views.update_project_status, name='update_project_status'),
     path('api/logged-in-user/', views.get_logged_in_user_api, name='get_logged_in_user_api'),
-
+    path('api/update-activity/', views.update_activity, name='update_activity'),
+    path('api/user-status/<int:user_id>/', views.get_user_status, name='get_user_status'),
 
     path('teammember_task/update/<int:task_id>/', views.update_task, name='update_task'),
     path('teammember_task/delete/<int:task_id>/', views.delete_task, name='delete_task'),

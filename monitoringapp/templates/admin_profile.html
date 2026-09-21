@@ -76,6 +76,13 @@
   {% endif %}
   
   <input type="file" id="profile-input" class="hidden" name="profile_image">
+  <!-- Active / Inactive Status Dot -->
+<span
+  id="profile-status-dot"
+  class="user-status-dot absolute bottom-2 right-2 w-4 h-4 rounded-full border-2 border-white bg-green-500"
+  data-user-id="{{ user.id }}"
+  title="Active">
+</span>
   
   <!-- SVG icon instead of "Edit" -->
   <span class="absolute bottom-0 right-0 bg-purple-600 text-white p-2 rounded-full pointer-events-none">
@@ -168,5 +175,6 @@ profileInput.addEventListener("change", () => {
 
 
 <script src="{% static 'js/admin.js' %}"></script>
+<script src="{% static 'js/activity.js' %}"></script>
 </body>
 </html>
