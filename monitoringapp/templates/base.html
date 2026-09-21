@@ -36,7 +36,64 @@
       }, 4000); // disappear after 4s
     }
   </script>
+  <script>
+  let lastActivitySent = 0;
+
+  function updateActivity() {
+    const now = Date.now();
+
+    // Send activity update at most once every 30 seconds
+    if (now - lastActivitySent < 30000) {
+      return;
+    }
+
+    lastActivitySent = now;
+
+    fetch("{% url 'update_activity' %}", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": getCookie("csrftoken"),
+        "Content-Type": "application/json"
+      }
+    })
+    .catch(error => {
+      console.error("Activity update failed:", error);
+    });
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+
+    if (document.cookie && document.cookie !== "") {
+      const cookies = document.cookie.split(";");
+
+      for (let cookie of cookies) {
+        cookie = cookie.trim();
+
+        if (cookie.startsWith(name + "=")) {
+          cookieValue = decodeURIComponent(
+            cookie.substring(name.length + 1)
+          );
+          break;
+        }
+      }
+    }
+
+    return cookieValue;
+  }
+
+  // User activity detection
+  document.addEventListener("mousemove", updateActivity);
+  document.addEventListener("mousedown", updateActivity);
+  document.addEventListener("keydown", updateActivity);
+  document.addEventListener("click", updateActivity);
+  document.addEventListener("scroll", updateActivity);
+</script>
+
+{% block extra_js %}{% endblock %}
   
   {% block extra_js %}{% endblock %}
+
+  <script src="{% static 'js/activity.js' %}"></script>
 </body>
 </html>
