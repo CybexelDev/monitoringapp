@@ -2,233 +2,3405 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard - Cybexel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
 
-  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
-  <style>
-    /* =========================
-      TOAST
-      ========================= */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    .toast-message {
-        animation: toastSlideIn 0.35s ease-out;
-    }
+    <title>Knowledge Repository | Cybexel</title>
 
-    .toast-message.toast-hide {
-        animation: toastSlideOut 0.35s ease-in forwards;
-    }
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    @keyframes toastSlideIn {
-        from {
-            opacity: 0;
-            transform: translateX(100%);
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+
+    <style>
+
+        /* =========================================================
+           GLOBAL
+           ========================================================= */
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
         }
 
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-
-    @keyframes toastSlideOut {
-        from {
-            opacity: 1;
-            transform: translateX(0);
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
         }
 
-        to {
-            opacity: 0;
-            transform: translateX(100%);
+        body {
+
+            overflow: hidden;
+
+            background:
+                radial-gradient(
+                    circle at top left,
+                    rgba(139, 200, 63, 0.10),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at bottom right,
+                    rgba(99, 102, 241, 0.08),
+                    transparent 30%
+                ),
+                #050505;
+
+            color: #fff;
+
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
         }
-    }
-  </style>
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+
+        /* =========================================================
+           SIDEBAR
+           ========================================================= */
+
+        .glass-sidebar {
+
+            position: fixed;
+
+            top: 20px;
+            left: 20px;
+
+            width: 250px;
+            height: calc(100vh - 40px);
+
+            padding: 22px;
+
+            border-radius: 28px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.96),
+                    rgba(24, 10, 20, 0.96)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 24px 60px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.03);
+
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            z-index: 100;
+
+            display: flex;
+            flex-direction: column;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            scrollbar-width: thin;
+            scrollbar-color:
+                rgba(139, 200, 63, 0.35)
+                transparent;
+        }
+
+
+        .glass-sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .glass-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .glass-sidebar::-webkit-scrollbar-thumb {
+
+            background:
+                rgba(139, 200, 63, 0.35);
+
+            border-radius: 20px;
+        }
+
+
+        /* =========================================================
+           SIDEBAR PROFILE
+           ========================================================= */
+
+        .sidebar-profile {
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            text-align: center;
+
+            padding-bottom: 22px;
+            margin-bottom: 14px;
+
+            border-bottom:
+                1px solid
+                rgba(255, 255, 255, 0.07);
+        }
+
+
+        .sidebar-logo-box {
+
+            width: 92px;
+            height: 92px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 24px;
+
+            background:
+                rgba(255, 255, 255, 0.04);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 15px 35px rgba(0, 0, 0, 0.28);
+
+            margin-bottom: 14px;
+        }
+
+
+        .sidebar-logo {
+
+            width: 78px;
+            height: 78px;
+
+            object-fit: contain;
+        }
+
+
+        .sidebar-profile h3 {
+
+            margin: 0;
+
+            color: #fff;
+
+            font-size: 14px;
+            font-weight: 800;
+
+            letter-spacing: 0.16em;
+        }
+
+
+        .sidebar-profile span {
+
+            display: block;
+
+            margin-top: 6px;
+
+            color: #a1a1aa;
+
+            font-size: 10px;
+            font-weight: 600;
+
+            letter-spacing: 0.13em;
+
+            text-transform: uppercase;
+        }
+
+
+        /* =========================================================
+           SIDEBAR NAVIGATION
+           ========================================================= */
+
+        .sidebar-nav {
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 7px;
+
+            flex: 1;
+        }
+
+
+        .sidebar-nav a {
+
+            position: relative;
+
+            display: flex;
+            align-items: center;
+
+            gap: 11px;
+
+            min-height: 45px;
+
+            padding: 12px 13px;
+
+            border-radius: 14px;
+
+            color: #d4d4d8;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease,
+                transform 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+
+        .sidebar-nav a:hover {
+
+            color: #fff;
+
+            background:
+                rgba(255, 255, 255, 0.06);
+
+            transform:
+                translateX(2px);
+        }
+
+
+        .sidebar-nav a.active {
+
+            color: #fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(139, 200, 63, 0.24),
+                    rgba(139, 200, 63, 0.08)
+                );
+
+            border:
+                1px solid
+                rgba(139, 200, 63, 0.38);
+
+            box-shadow:
+                0 8px 24px
+                rgba(139, 200, 63, 0.08);
+        }
+
+
+        .sidebar-nav a.active::before {
+
+            content: "";
+
+            position: absolute;
+
+            left: 0;
+
+            width: 3px;
+            height: 20px;
+
+            border-radius:
+                0 5px 5px 0;
+
+            background: #8bc83f;
+        }
+
+
+        .sidebar-icon {
+
+            width: 20px;
+            height: 20px;
+
+            flex-shrink: 0;
+
+            color: #a1a1aa;
+        }
+
+
+        .sidebar-nav a:hover .sidebar-icon,
+        .sidebar-nav a.active .sidebar-icon {
+
+            color: #8bc83f;
+        }
+
+
+        .sidebar-external {
+
+            margin-left: auto;
+
+            width: 15px;
+            height: 15px;
+
+            opacity: 0.5;
+        }
+
+
+        /* =========================================================
+           LOGOUT
+           ========================================================= */
+
+        .sidebar-nav a.logout-link {
+
+            margin-top: 8px;
+
+            color: #fca5a5;
+
+            background:
+                rgba(127, 29, 29, 0.18);
+
+            border:
+                1px solid
+                rgba(248, 113, 113, 0.16);
+        }
+
+
+        .sidebar-nav a.logout-link:hover {
+
+            color: #fff;
+
+            background:
+                rgba(127, 29, 29, 0.35);
+
+            border-color:
+                rgba(248, 113, 113, 0.32);
+        }
+
+
+        .sidebar-nav a.logout-link .sidebar-icon {
+
+            color: #f87171;
+        }
+
+
+        /* =========================================================
+           MOBILE MENU
+           ========================================================= */
+
+        .mobile-menu-button {
+
+            display: none;
+
+            position: fixed;
+
+            top: 16px;
+            left: 16px;
+
+            width: 44px;
+            height: 44px;
+
+            align-items: center;
+            justify-content: center;
+
+            color: #fff;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.96),
+                    rgba(24, 10, 20, 0.96)
+                );
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.10);
+
+            border-radius: 14px;
+
+            box-shadow:
+                0 12px 30px
+                rgba(0, 0, 0, 0.35);
+
+            z-index: 200;
+
+            cursor: pointer;
+        }
+
+
+        .mobile-menu-button svg {
+
+            width: 20px;
+            height: 20px;
+        }
+
+
+        .sidebar-close-button {
+
+            display: none;
+
+            position: absolute;
+
+            top: 17px;
+            right: 17px;
+
+            width: 34px;
+            height: 34px;
+
+            align-items: center;
+            justify-content: center;
+
+            color: #a1a1aa;
+
+            background:
+                rgba(255, 255, 255, 0.05);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.08);
+
+            border-radius: 10px;
+
+            cursor: pointer;
+        }
+
+
+        .sidebar-close-button:hover {
+
+            color: #fff;
+
+            background:
+                rgba(255, 255, 255, 0.10);
+        }
+
+
+        /* =========================================================
+           MAIN AREA
+           ========================================================= */
+
+        .main-area {
+
+            position: fixed;
+
+            top: 0;
+            left: 334px;
+            right: 20px;
+            bottom: 0;
+
+            width: auto;
+            height: 100vh;
+
+            padding: 20px 0;
+
+            min-width: 0;
+
+            overflow: hidden;
+        }
+
+
+        .dashboard-box {
+
+            width: 100%;
+            height: calc(100vh - 40px);
+
+            max-height:
+                calc(100vh - 40px);
+
+            min-width: 0;
+
+            overflow: hidden;
+
+            border-radius: 30px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(19, 19, 19, 0.96),
+                    rgba(8, 8, 8, 0.98)
+                );
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 30px 80px
+                rgba(0, 0, 0, 0.42),
+                inset 0 1px 0
+                rgba(255, 255, 255, 0.025);
+
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        /* =========================================================
+           HEADER
+           ========================================================= */
+
+        .dashboard-header {
+
+            flex-shrink: 0;
+
+            padding: 34px 34px 28px;
+
+            border-bottom:
+                1px solid
+                rgba(255, 255, 255, 0.07);
+        }
+
+
+        .dashboard-header-content {
+
+            display: flex;
+
+            align-items: flex-start;
+            justify-content: space-between;
+
+            gap: 30px;
+        }
+
+
+        .dashboard-eyebrow {
+
+            margin: 0 0 9px;
+
+            color: #8bc83f;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            letter-spacing: 0.18em;
+
+            text-transform: uppercase;
+        }
+
+
+        .dashboard-title-row {
+
+            display: flex;
+            align-items: center;
+
+            gap: 13px;
+        }
+
+
+        .dashboard-title-icon {
+
+            width: 48px;
+            height: 48px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            color: #8bc83f;
+
+            background:
+                rgba(139, 200, 63, 0.10);
+
+            border:
+                1px solid
+                rgba(139, 200, 63, 0.18);
+
+            border-radius: 15px;
+        }
+
+
+        .dashboard-title-icon svg {
+
+            width: 24px;
+            height: 24px;
+        }
+
+
+        .dashboard-header h1 {
+
+            margin: 0;
+
+            color: #fff;
+
+            font-size:
+                clamp(1.8rem, 4vw, 2.7rem);
+
+            line-height: 1.1;
+
+            font-weight: 900;
+
+            letter-spacing: -0.035em;
+        }
+
+
+        .dashboard-header p {
+
+            margin: 13px 0 0;
+
+            max-width: 760px;
+
+            color: #a1a1aa;
+
+            font-size: 14px;
+
+            line-height: 1.7;
+        }
+
+
+        .system-status {
+
+            flex-shrink: 0;
+
+            display: inline-flex;
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 9px 13px;
+
+            color: #bef264;
+
+            background:
+                rgba(139, 200, 63, 0.08);
+
+            border:
+                1px solid
+                rgba(139, 200, 63, 0.18);
+
+            border-radius: 999px;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            letter-spacing: 0.10em;
+
+            text-transform: uppercase;
+        }
+
+
+        .system-status-dot {
+
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #8bc83f;
+
+            box-shadow:
+                0 0 12px
+                rgba(139, 200, 63, 0.75);
+        }
+
+
+        /* =========================================================
+           CONTENT
+           ========================================================= */
+
+        .dashboard-content {
+
+            flex: 1;
+
+            min-height: 0;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            padding: 30px 34px 40px;
+
+            scrollbar-width: thin;
+
+            scrollbar-color:
+                rgba(139, 200, 63, 0.35)
+                transparent;
+        }
+
+
+        .dashboard-content::-webkit-scrollbar {
+
+            width: 6px;
+        }
+
+
+        .dashboard-content::-webkit-scrollbar-track {
+
+            background: transparent;
+        }
+
+
+        .dashboard-content::-webkit-scrollbar-thumb {
+
+            background:
+                rgba(139, 200, 63, 0.30);
+
+            border-radius: 20px;
+        }
+
+
+        /* =========================================================
+           SECTION HEADING
+           ========================================================= */
+
+        .section-heading {
+
+            display: flex;
+            align-items: flex-end;
+
+            gap: 18px;
+
+            margin-bottom: 20px;
+        }
+
+
+        .section-heading-text {
+
+            flex-shrink: 0;
+        }
+
+
+        .section-eyebrow {
+
+            margin: 0 0 6px;
+
+            color: #8bc83f;
+
+            font-size: 9px;
+            font-weight: 800;
+
+            letter-spacing: 0.17em;
+
+            text-transform: uppercase;
+        }
+
+
+        .section-heading h2 {
+
+            margin: 0;
+
+            color: #fff;
+
+            font-size: 22px;
+            font-weight: 800;
+
+            letter-spacing: -0.02em;
+        }
+
+
+        .section-line {
+
+            flex: 1;
+
+            height: 1px;
+
+            margin-bottom: 7px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(139, 200, 63, 0.28),
+                    rgba(255, 255, 255, 0.03)
+                );
+        }
+
+
+        /* =========================================================
+           TOP REPOSITORY CARD
+           ========================================================= */
+
+        .repository-create-card {
+
+            margin-bottom: 22px;
+        }
+
+
+        .repository-create-header {
+
+            display: flex;
+            align-items: center;
+
+            gap: 13px;
+
+            margin-bottom: 20px;
+        }
+
+
+        .card-icon {
+
+            width: 48px;
+            height: 48px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #c084fc;
+
+            background:
+                rgba(192, 132, 252, 0.10);
+
+            border:
+                1px solid
+                rgba(192, 132, 252, 0.15);
+
+            border-radius: 15px;
+        }
+
+
+        .card-icon svg {
+
+            width: 23px;
+            height: 23px;
+        }
+
+
+        .card-heading-text h3 {
+
+            margin: 0;
+
+            color: #fff;
+
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+
+        .card-heading-text p {
+
+            margin: 4px 0 0;
+
+            color: #71717a;
+
+            font-size: 11px;
+
+            line-height: 1.5;
+        }
+
+
+        /* =========================================================
+           FORM
+           ========================================================= */
+
+        .repository-form {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 14px;
+        }
+
+
+        .repository-field.full-width {
+
+            grid-column:
+                1 / -1;
+        }
+
+
+        .field-label {
+
+            display: flex;
+            align-items: center;
+
+            gap: 7px;
+
+            margin-bottom: 7px;
+
+            color: #d4d4d8;
+
+            font-size: 11px;
+            font-weight: 700;
+
+            letter-spacing: 0.03em;
+        }
+
+
+        .field-label svg {
+
+            width: 14px;
+            height: 14px;
+
+            color: #8bc83f;
+        }
+
+
+        .repository-input,
+        .repository-textarea,
+        .repository-file {
+
+            width: 100%;
+
+            color: #fff;
+
+            background:
+                rgba(0, 0, 0, 0.35);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.09);
+
+            border-radius: 14px;
+
+            outline: none;
+
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease;
+        }
+
+
+        .repository-input {
+
+            height: 50px;
+
+            padding: 0 15px;
+
+            font-size: 13px;
+        }
+
+
+        .repository-textarea {
+
+            min-height: 100px;
+
+            padding: 14px 15px;
+
+            resize: vertical;
+
+            font-size: 13px;
+
+            line-height: 1.65;
+        }
+
+
+        .repository-file {
+
+            min-height: 50px;
+
+            padding: 12px 14px;
+
+            font-size: 12px;
+
+            cursor: pointer;
+        }
+
+
+        .repository-input::placeholder,
+        .repository-textarea::placeholder {
+
+            color: #52525b;
+        }
+
+
+        .repository-input:focus,
+        .repository-textarea:focus,
+        .repository-file:focus {
+
+            background:
+                rgba(0, 0, 0, 0.48);
+
+            border-color:
+                rgba(139, 200, 63, 0.55);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(139, 200, 63, 0.08);
+        }
+
+
+        .repository-file::file-selector-button {
+
+            margin-right: 12px;
+
+            padding: 8px 12px;
+
+            color: #071000;
+
+            background:
+                #8bc83f;
+
+            border: 0;
+
+            border-radius: 9px;
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+        }
+
+
+        .repository-submit-row {
+
+            grid-column:
+                1 / -1;
+
+            display: flex;
+
+            justify-content: flex-end;
+
+            margin-top: 2px;
+        }
+
+
+        .add-resource-button {
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            min-height: 44px;
+
+            padding: 0 18px;
+
+            color: #071000;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #8bc83f,
+                    #6da52e
+                );
+
+            border:
+                1px solid
+                rgba(139, 200, 63, 0.45);
+
+            border-radius: 13px;
+
+            font-size: 12px;
+            font-weight: 800;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 10px 25px
+                rgba(139, 200, 63, 0.10);
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+
+        .add-resource-button:hover {
+
+            transform:
+                translateY(-1px);
+
+            box-shadow:
+                0 14px 30px
+                rgba(139, 200, 63, 0.18);
+        }
+
+
+        .add-resource-button svg {
+
+            width: 16px;
+            height: 16px;
+        }
+
+
+        /* =========================================================
+           REPOSITORY SECTION
+           ========================================================= */
+
+        .repository-section {
+
+            margin-top: 28px;
+        }
+
+
+        .repository-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+
+            gap: 18px;
+        }
+
+
+        /* =========================================================
+           RESOURCE CARD
+           ========================================================= */
+
+        .resource-card {
+
+            position: relative;
+
+            min-width: 0;
+
+            min-height: 230px;
+
+            padding: 21px;
+
+            border-radius: 21px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.78),
+                    rgba(20, 10, 17, 0.78)
+                );
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.075);
+
+            box-shadow:
+                0 16px 40px
+                rgba(0, 0, 0, 0.20);
+
+            transition:
+                transform 0.25s ease,
+                border-color 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+
+        .resource-card:hover {
+
+            transform:
+                translateY(-3px);
+
+            border-color:
+                rgba(139, 200, 63, 0.25);
+
+            box-shadow:
+                0 22px 48px
+                rgba(0, 0, 0, 0.30);
+        }
+
+
+        /* =========================================================
+           RESOURCE CARD TOP
+           ========================================================= */
+
+        .resource-card-top {
+
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+
+            gap: 12px;
+
+            margin-bottom: 17px;
+        }
+
+
+        .resource-type-icon {
+
+            width: 45px;
+            height: 45px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            color: #8bc83f;
+
+            background:
+                rgba(139, 200, 63, 0.09);
+
+            border:
+                1px solid
+                rgba(139, 200, 63, 0.14);
+
+            border-radius: 14px;
+        }
+
+
+        .resource-type-icon svg {
+
+            width: 21px;
+            height: 21px;
+        }
+
+
+        /* =========================================================
+           DELETE
+           ========================================================= */
+
+        .delete-form {
+
+            position: absolute;
+
+            top: 16px;
+            right: 16px;
+        }
+
+
+        .delete-button {
+
+            width: 34px;
+            height: 34px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #f87171;
+
+            background:
+                rgba(127, 29, 29, 0.12);
+
+            border:
+                1px solid
+                rgba(248, 113, 113, 0.12);
+
+            border-radius: 10px;
+
+            cursor: pointer;
+
+            transition:
+                background 0.2s ease,
+                border-color 0.2s ease,
+                color 0.2s ease;
+        }
+
+
+        .delete-button:hover {
+
+            color: #fff;
+
+            background:
+                rgba(127, 29, 29, 0.35);
+
+            border-color:
+                rgba(248, 113, 113, 0.30);
+        }
+
+
+        .delete-button svg {
+
+            width: 16px;
+            height: 16px;
+        }
+
+
+        /* =========================================================
+           RESOURCE CONTENT
+           ========================================================= */
+
+        .resource-title {
+
+            margin: 0 42px 8px 0;
+
+            color: #fff;
+
+            font-size: 16px;
+            font-weight: 800;
+
+            line-height: 1.35;
+
+            word-break: break-word;
+        }
+
+
+        .resource-description {
+
+            min-height: 61px;
+
+            margin: 0 0 14px;
+
+            color: #a1a1aa;
+
+            font-size: 12px;
+
+            line-height: 1.65;
+
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+
+            overflow: hidden;
+
+            word-break: break-word;
+        }
+
+
+        .resource-meta {
+
+            display: flex;
+            align-items: center;
+
+            gap: 7px;
+
+            padding-top: 12px;
+
+            color: #71717a;
+
+            border-top:
+                1px solid
+                rgba(255, 255, 255, 0.06);
+
+            font-size: 10px;
+
+            line-height: 1.5;
+        }
+
+
+        .resource-meta svg {
+
+            width: 13px;
+            height: 13px;
+
+            flex-shrink: 0;
+
+            color: #8bc83f;
+        }
+
+
+        .resource-actions {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 10px;
+
+            margin-top: 15px;
+        }
+
+
+        .view-resource-button {
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 7px;
+
+            min-height: 36px;
+
+            padding: 0 12px;
+
+            color: #d4d4d8;
+
+            background:
+                rgba(255, 255, 255, 0.04);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.09);
+
+            border-radius: 10px;
+
+            font-size: 11px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+
+        .view-resource-button:hover {
+
+            color: #fff;
+
+            background:
+                rgba(139, 200, 63, 0.08);
+
+            border-color:
+                rgba(139, 200, 63, 0.25);
+        }
+
+
+        .view-resource-button svg {
+
+            width: 15px;
+            height: 15px;
+
+            color: #8bc83f;
+        }
+
+
+        /* =========================================================
+           EMPTY STATE
+           ========================================================= */
+
+        .empty-repository {
+
+            grid-column:
+                1 / -1;
+
+            min-height: 260px;
+
+            display: flex;
+            flex-direction: column;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 30px;
+
+            text-align: center;
+
+            border-radius: 22px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.65),
+                    rgba(20, 10, 17, 0.65)
+                );
+
+            border:
+                1px dashed
+                rgba(255, 255, 255, 0.10);
+        }
+
+
+        .empty-repository-icon {
+
+            width: 58px;
+            height: 58px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 15px;
+
+            color: #8bc83f;
+
+            background:
+                rgba(139, 200, 63, 0.08);
+
+            border:
+                1px solid
+                rgba(139, 200, 63, 0.14);
+
+            border-radius: 17px;
+        }
+
+
+        .empty-repository-icon svg {
+
+            width: 27px;
+            height: 27px;
+        }
+
+
+        .empty-repository strong {
+
+            color: #e4e4e7;
+
+            font-size: 14px;
+        }
+
+
+        .empty-repository span {
+
+            max-width: 420px;
+
+            margin-top: 7px;
+
+            color: #71717a;
+
+            font-size: 11px;
+
+            line-height: 1.6;
+        }
+
+
+        /* =========================================================
+           MODAL
+           ========================================================= */
+
+        .repository-modal {
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 500;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            background:
+                rgba(0, 0, 0, 0.76);
+
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+
+        .repository-modal.hidden {
+
+            display: none;
+        }
+
+
+        .repository-modal-panel {
+
+            position: relative;
+
+            width: 100%;
+            max-width: 650px;
+
+            max-height: 88vh;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            padding: 25px;
+
+            border-radius: 24px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.98),
+                    rgba(15, 8, 13, 0.99)
+                );
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.10);
+
+            box-shadow:
+                0 35px 100px
+                rgba(0, 0, 0, 0.60);
+
+            scrollbar-width: thin;
+
+            scrollbar-color:
+                rgba(139, 200, 63, 0.35)
+                transparent;
+        }
+
+
+        .repository-modal-panel::-webkit-scrollbar {
+
+            width: 5px;
+        }
+
+
+        .repository-modal-panel::-webkit-scrollbar-thumb {
+
+            background:
+                rgba(139, 200, 63, 0.30);
+
+            border-radius: 20px;
+        }
+
+
+        .modal-header {
+
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+
+            gap: 15px;
+
+            padding-bottom: 17px;
+
+            margin-bottom: 19px;
+
+            border-bottom:
+                1px solid
+                rgba(255, 255, 255, 0.07);
+        }
+
+
+        .modal-title-group {
+
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            min-width: 0;
+        }
+
+
+        .modal-title-icon {
+
+            width: 44px;
+            height: 44px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            color: #8bc83f;
+
+            background:
+                rgba(139, 200, 63, 0.09);
+
+            border:
+                1px solid
+                rgba(139, 200, 63, 0.15);
+
+            border-radius: 13px;
+        }
+
+
+        .modal-title-icon svg {
+
+            width: 21px;
+            height: 21px;
+        }
+
+
+        .modal-title-text {
+
+            min-width: 0;
+        }
+
+
+        .modal-title-text h2 {
+
+            margin: 0;
+
+            color: #fff;
+
+            font-size: 19px;
+            font-weight: 800;
+
+            word-break: break-word;
+        }
+
+
+        .modal-title-text p {
+
+            margin: 4px 0 0;
+
+            color: #71717a;
+
+            font-size: 10px;
+        }
+
+
+        .modal-close {
+
+            width: 36px;
+            height: 36px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            color: #a1a1aa;
+
+            background:
+                rgba(255, 255, 255, 0.04);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.08);
+
+            border-radius: 10px;
+
+            cursor: pointer;
+
+            transition:
+                color 0.2s ease,
+                background 0.2s ease;
+        }
+
+
+        .modal-close:hover {
+
+            color: #fff;
+
+            background:
+                rgba(255, 255, 255, 0.09);
+        }
+
+
+        .modal-close svg {
+
+            width: 17px;
+            height: 17px;
+        }
+
+
+        .modal-description {
+
+            padding: 16px;
+
+            color: #c4c4c8;
+
+            background:
+                rgba(0, 0, 0, 0.25);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.06);
+
+            border-radius: 14px;
+
+            font-size: 13px;
+
+            line-height: 1.75;
+
+            white-space: pre-wrap;
+
+            word-break: break-word;
+        }
+
+
+        .modal-links {
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 9px;
+
+            margin-top: 15px;
+        }
+
+
+        .modal-resource-link {
+
+            display: flex;
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 12px 14px;
+
+            color: #d4d4d8;
+
+            background:
+                rgba(255, 255, 255, 0.035);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.07);
+
+            border-radius: 12px;
+
+            font-size: 11px;
+            font-weight: 700;
+
+            word-break: break-all;
+
+            transition:
+                background 0.2s ease,
+                border-color 0.2s ease,
+                color 0.2s ease;
+        }
+
+
+        .modal-resource-link:hover {
+
+            color: #fff;
+
+            background:
+                rgba(139, 200, 63, 0.07);
+
+            border-color:
+                rgba(139, 200, 63, 0.22);
+        }
+
+
+        .modal-resource-link svg {
+
+            width: 17px;
+            height: 17px;
+
+            flex-shrink: 0;
+
+            color: #8bc83f;
+        }
+
+
+        .modal-meta {
+
+            display: flex;
+            align-items: center;
+
+            gap: 7px;
+
+            margin-top: 17px;
+
+            color: #71717a;
+
+            font-size: 10px;
+        }
+
+
+        .modal-meta svg {
+
+            width: 14px;
+            height: 14px;
+
+            color: #8bc83f;
+        }
+
+
+        .modal-footer {
+
+            display: flex;
+
+            justify-content: flex-end;
+
+            margin-top: 20px;
+
+            padding-top: 17px;
+
+            border-top:
+                1px solid
+                rgba(255, 255, 255, 0.07);
+        }
+
+
+        .modal-close-button {
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 7px;
+
+            min-height: 40px;
+
+            padding: 0 15px;
+
+            color: #d4d4d8;
+
+            background:
+                rgba(255, 255, 255, 0.05);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.10);
+
+            border-radius: 11px;
+
+            font-size: 11px;
+            font-weight: 700;
+
+            cursor: pointer;
+        }
+
+
+        .modal-close-button:hover {
+
+            color: #fff;
+
+            background:
+                rgba(255, 255, 255, 0.09);
+        }
+
+
+        .modal-close-button svg {
+
+            width: 15px;
+            height: 15px;
+        }
+
+
+        /* =========================================================
+           TOAST
+           ========================================================= */
+
+        #toast-container {
+
+            position: fixed;
+
+            right: 20px;
+            bottom: 20px;
+
+            z-index: 9999;
+
+            width: 350px;
+
+            max-width:
+                calc(100% - 40px);
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 10px;
+        }
+
+
+        .toast-message {
+
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            padding: 15px 17px;
+
+            color: #fff;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.98),
+                    rgba(20, 10, 17, 0.98)
+                );
+
+            border:
+                1px solid
+                rgba(139, 200, 63, 0.28);
+
+            border-radius: 15px;
+
+            box-shadow:
+                0 20px 45px
+                rgba(0, 0, 0, 0.42);
+
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+
+            animation:
+                toastSlideIn 0.35s ease-out;
+        }
+
+
+        .toast-message.toast-hide {
+
+            animation:
+                toastSlideOut
+                0.35s ease-in
+                forwards;
+        }
+
+
+        .toast-icon {
+
+            width: 20px;
+            height: 20px;
+
+            flex-shrink: 0;
+        }
+
+
+        .toast-message.success .toast-icon {
+
+            color: #4ade80;
+        }
+
+
+        .toast-message.error .toast-icon {
+
+            color: #f87171;
+        }
+
+
+        .toast-text {
+
+            flex: 1;
+
+            color: #e4e4e7;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            line-height: 1.5;
+        }
+
+
+        .toast-close {
+
+            width: 26px;
+            height: 26px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            color: #71717a;
+
+            background: transparent;
+
+            border: 0;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+        }
+
+
+        .toast-close:hover {
+
+            color: #fff;
+
+            background:
+                rgba(255, 255, 255, 0.06);
+        }
+
+
+        .toast-close svg {
+
+            width: 16px;
+            height: 16px;
+        }
+
+
+        @keyframes toastSlideIn {
+
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+        }
+
+
+        @keyframes toastSlideOut {
+
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+        }
+
+
+        /* =========================================================
+           LARGE TABLET
+           ========================================================= */
+
+        @media (max-width: 1200px) {
+
+            .repository-grid {
+
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+        }
+
+
+        /* =========================================================
+           MOBILE SIDEBAR
+           ========================================================= */
+
+        @media (max-width: 900px) {
+
+            .glass-sidebar {
+
+                top: 12px;
+                left: 12px;
+
+                width: 280px;
+                height:
+                    calc(100vh - 24px);
+
+                padding: 20px;
+
+                border-radius: 24px;
+
+                transform:
+                    translateX(-115%);
+
+                transition:
+                    transform 0.3s ease;
+            }
+
+
+            .glass-sidebar.mobile-open {
+
+                transform:
+                    translateX(0);
+            }
+
+
+            .sidebar-close-button {
+
+                display: flex;
+            }
+
+
+            .mobile-menu-button {
+
+                display: flex;
+            }
+
+
+            .main-area {
+
+                left: 12px;
+                right: 12px;
+
+                padding: 12px;
+            }
+
+
+            .dashboard-box {
+
+                height:
+                    calc(100vh - 24px);
+
+                max-height:
+                    calc(100vh - 24px);
+
+                border-radius: 24px;
+            }
+
+
+            .dashboard-header {
+
+                padding:
+                    28px 24px 23px;
+            }
+
+
+            .dashboard-header-content {
+
+                flex-direction: column;
+
+                gap: 18px;
+            }
+
+
+            .dashboard-content {
+
+                padding: 24px;
+            }
+
+
+            .repository-form {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .repository-field.full-width {
+
+                grid-column:
+                    auto;
+            }
+
+
+            .repository-submit-row {
+
+                grid-column:
+                    auto;
+
+                justify-content: stretch;
+            }
+
+
+            .add-resource-button {
+
+                width: 100%;
+            }
+
+        }
+
+
+        /* =========================================================
+           MOBILE
+           ========================================================= */
+
+        @media (max-width: 600px) {
+
+            .main-area {
+
+                left: 8px;
+                right: 8px;
+
+                padding: 8px;
+            }
+
+
+            .dashboard-box {
+
+                height:
+                    calc(100vh - 16px);
+
+                max-height:
+                    calc(100vh - 16px);
+
+                border-radius: 20px;
+            }
+
+
+            .dashboard-header {
+
+                padding:
+                    24px 18px 20px;
+            }
+
+
+            .dashboard-title-row {
+
+                align-items:
+                    flex-start;
+            }
+
+
+            .dashboard-title-icon {
+
+                width: 42px;
+                height: 42px;
+
+                border-radius: 13px;
+            }
+
+
+            .dashboard-title-icon svg {
+
+                width: 20px;
+                height: 20px;
+            }
+
+
+            .dashboard-header h1 {
+
+                font-size:
+                    1.55rem;
+            }
+
+
+            .dashboard-header p {
+
+                font-size:
+                    12px;
+            }
+
+
+            .dashboard-content {
+
+                padding:
+                    20px 15px 30px;
+            }
+
+
+            .section-heading {
+
+                gap: 10px;
+            }
+
+
+            .section-heading h2 {
+
+                font-size: 18px;
+            }
+
+
+            .section-line {
+
+                display: none;
+            }
+
+
+            .repository-grid {
+
+                grid-template-columns:
+                    1fr;
+            }
+
+
+            .resource-card {
+
+                min-height:
+                    220px;
+            }
+
+
+            .repository-create-card {
+
+                padding: 18px;
+            }
+
+
+            .card-icon {
+
+                width: 42px;
+                height: 42px;
+
+                border-radius: 13px;
+            }
+
+
+            .repository-modal {
+
+                padding:
+                    10px;
+            }
+
+
+            .repository-modal-panel {
+
+                max-height:
+                    92vh;
+
+                padding:
+                    19px;
+
+                border-radius:
+                    20px;
+            }
+
+
+            .modal-title-text h2 {
+
+                font-size:
+                    16px;
+            }
+
+
+            #toast-container {
+
+                right: 10px;
+                bottom: 10px;
+
+                width:
+                    calc(100% - 20px);
+
+                max-width: none;
+            }
+
+        }
+
+
+        /* =========================================================
+           VERY SMALL DEVICES
+           ========================================================= */
+
+        @media (max-width: 400px) {
+
+            .sidebar-logo-box {
+
+                width: 80px;
+                height: 80px;
+            }
+
+
+            .sidebar-logo {
+
+                width: 68px;
+                height: 68px;
+            }
+
+
+            .dashboard-header h1 {
+
+                font-size:
+                    1.4rem;
+            }
+
+
+            .dashboard-title-icon {
+
+                display: none;
+            }
+
+
+            .dashboard-content {
+
+                padding-left:
+                    12px;
+
+                padding-right:
+                    12px;
+            }
+
+
+            .resource-card {
+
+                padding:
+                    17px;
+            }
+
+        }
+
+    </style>
+
 </head>
-<body class="bg-black text-white font-sans select-none">
 
-<div id="sidebar" 
-     class="fixed top-0 left-0 h-full w-64 bg-[#250f1e] overflow-y-auto text-white p-6 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">  <div class="flex items-center justify-between mb-6">
-    <div class="w-full flex justify-center select-none">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 object-contain">
+
+<body>
+
+
+<!-- =========================================================
+     SIDEBAR
+     ========================================================= -->
+
+<aside id="sidebar" class="glass-sidebar">
+
+
+    <!-- Mobile close button -->
+
+    <button
+        type="button"
+        class="menu-toggle sidebar-close-button"
+        aria-label="Close menu">
+
+        <i data-lucide="x"></i>
+
+    </button>
+
+
+    <!-- Sidebar profile -->
+
+    <div class="sidebar-profile">
+
+        <div class="sidebar-logo-box">
+
+            <img
+                src="{% static 'images/logo.png' %}"
+                alt="Cybexel Logo"
+                class="sidebar-logo">
+
+        </div>
+
+
+        <h3>
+            CYBEXEL
+        </h3>
+
+
+        <span>
+            TEAM MEMBER
+        </span>
+
     </div>
-    <button class="menu-toggle md:hidden text-white text-2xl max-md:mt-[-9rem]">&times;</button>
-  </div>
-  <nav class="select-none">
-    <ul class="space-y-8 text-sm">
-      <li>
-        <a href="{% url 'teammember_dashboard' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Team member Dashboard</a>
-      </li>
-      <li>
-        <a href="{% url 'teammember_project' %}" class="block py-2 px-4 rounded hoverbg-white hover:text-black">Team member Project</a>
-      </li>
-      <li>
-        <a href="{% url 'teammember_notepad' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Notepad</a>
-      </li>
-      <li>
-        <a href="{% url 'teammember_repository' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Knowledge Repository</a>
-      </li>
-      <li>
-        <a href="{% url 'teammember_profile' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Profile</a>
-      </li>
-      <li>
-        <a href="{% url 'teammember_task' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">My task</a>
-      </li>
-      <li>
-        <a href="{% url 'teammember_chat' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Chat</a>
-      </li>
-         <li>
-      <a href="https://meet.google.com/" target="_blank" class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-    </li>
-    <li>
-      <a href="{% url 'teammember_logout' %}" class="block py-2 px-4 rounded bg-red-600 text-white">Logout</a>
-    </li>
-    </ul>
-  </nav>
-</div>
 
-<button class="menu-toggle md:hidden fixed top-8 left-4 z-50 text-white p-2 rounded shadow-lg">
-  &#9776;
+
+    <!-- Navigation -->
+
+    <nav class="sidebar-nav">
+
+
+        <a href="{% url 'teammember_dashboard' %}">
+
+            <i
+                data-lucide="layout-dashboard"
+                class="sidebar-icon">
+            </i>
+
+            <span>
+                Dashboard
+            </span>
+
+        </a>
+
+
+        <a href="{% url 'teammember_project' %}">
+
+            <i
+                data-lucide="folder-kanban"
+                class="sidebar-icon">
+            </i>
+
+            <span>
+                My Projects
+            </span>
+
+        </a>
+
+
+        <a href="{% url 'teammember_notepad' %}">
+
+            <i
+                data-lucide="notebook-pen"
+                class="sidebar-icon">
+            </i>
+
+            <span>
+                Notepad
+            </span>
+
+        </a>
+
+
+        <a
+            href="{% url 'teammember_repository' %}"
+            class="active">
+
+            <i
+                data-lucide="library"
+                class="sidebar-icon">
+            </i>
+
+            <span>
+                Knowledge Repository
+            </span>
+
+        </a>
+
+
+        <a href="{% url 'teammember_profile' %}">
+
+            <i
+                data-lucide="user-round"
+                class="sidebar-icon">
+            </i>
+
+            <span>
+                Profile
+            </span>
+
+        </a>
+
+
+        <a href="{% url 'teammember_task' %}">
+
+            <i
+                data-lucide="list-checks"
+                class="sidebar-icon">
+            </i>
+
+            <span>
+                My Tasks
+            </span>
+
+        </a>
+
+
+        <a href="{% url 'teammember_chat' %}">
+
+            <i
+                data-lucide="message-circle"
+                class="sidebar-icon">
+            </i>
+
+            <span>
+                Chat
+            </span>
+
+        </a>
+
+
+        <a
+            href="https://meet.google.com/"
+            target="_blank"
+            rel="noopener noreferrer">
+
+            <i
+                data-lucide="video"
+                class="sidebar-icon">
+            </i>
+
+            <span>
+                Google Meet
+            </span>
+
+            <i
+                data-lucide="external-link"
+                class="sidebar-external">
+            </i>
+
+        </a>
+
+
+        <a
+            href="{% url 'teammember_logout' %}"
+            class="logout-link">
+
+            <i
+                data-lucide="log-out"
+                class="sidebar-icon">
+            </i>
+
+            <span>
+                Logout
+            </span>
+
+        </a>
+
+    </nav>
+
+</aside>
+
+
+<!-- =========================================================
+     MOBILE MENU BUTTON
+     ========================================================= -->
+
+<button
+    type="button"
+    class="menu-toggle mobile-menu-button"
+    aria-label="Open menu">
+
+    <i data-lucide="menu"></i>
+
 </button>
 
 
+<!-- =========================================================
+     MAIN AREA
+     ========================================================= -->
+
+<main class="main-area">
 
 
+    <section class="dashboard-box">
 
-<div class="ml-0 md:ml-64 p-4 md:p-6 max-md:mt-[5rem]">
-  <h1 class="text-2xl font-bold mb-4">
-    Team Member Knowledge Repository - {{ request.user.department.name }}
-  </h1>
 
-  <form method="POST" enctype="multipart/form-data" class="space-y-3 mb-6">
-    {% csrf_token %}
-    <input type="text" name="title" placeholder="Title" class="w-full border p-2 rounded" required>
-    <textarea name="description" rows="3" placeholder="Description" class="w-full border p-2 rounded"></textarea>
-    <input type="url" name="link" placeholder="Reference Link (optional)" class="w-full border p-2 rounded">
-    <input type="file" name="file" class="w-full border p-2 rounded">
-    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">Add Resource</button>
-  </form>
+        <!-- =====================================================
+             HEADER
+             ===================================================== -->
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    {% for item in knowledge_items %}
-      <div class="relative p-4 rounded-lg shadow border-2 border-[#250f1e] bg-transparent">
-        
-        <form method="POST" action="{% url 'teammember_repository_delete' item.id %}" class="absolute top-2 right-2">
-          {% csrf_token %}
-          <button type="submit" class="text-red-500 hover:text-red-700" title="Delete">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M7.616 20q-.672 0-1.144-.472T6 18.385V6H5V5h4v-.77h6V5h4v1h-1v12.385q0 .69-.462 1.153T16.384 20zM17 6H7v12.385q0 .269.173.442t.443.173h8.769q.23 0 .423-.192t.192-.424zM9.808 17h1V8h-1zm3.384 0h1V8h-1zM7 6v13z"/></svg>
-          </button>
-        </form>
+        <header class="dashboard-header">
 
-        <h2 class="font-semibold text-lg">{{ item.title }}</h2>
-        <p class="text-gray-600 text-sm mb-2 line-clamp-3">{{ item.description }}</p>
+            <div class="dashboard-header-content">
 
-        <button type="button" onclick="openTeamMemberRepositoryModal('{{ item.id }}')" 
-                class="mt-2 text-blue-400 hover:underline text-sm">
-          View More
-        </button>
 
-        <p class="text-xs text-gray-500 mt-2">
-          Added by {{ item.user.username }} on {{ item.created_at|date:"d M Y" }}
-        </p>
-      </div>
+                <div>
 
-      <!-- Modal -->
-      <div id="modal-{{ item.id }}" 
-           class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-lg max-h-[80vh] overflow-y-auto overflow-x-hidden break-words">
-          <h2 class="text-xl font-bold mb-2">{{ item.title }}</h2>
-          <p class="text-gray-700 mb-4">{{ item.description }}</p>
+                    <div class="dashboard-eyebrow">
 
-          {% if item.file %}
-            <a href="{{ item.file.url }}" target="_blank" class="text-blue-600 underline mb-2 block">Download File</a>
-          {% endif %}
-          {% if item.link %}
-            <a href="{{ item.link }}" target="_blank" class="text-blue-600 underline mb-2 block">Open Link</a>
-          {% endif %}
+                        TEAM MEMBER / KNOWLEDGE CENTER
 
-          <p class="text-xs text-gray-500 mt-2">
-            Added by {{ item.user.username }} on {{ item.created_at|date:"d M Y" }}
-          </p>
+                    </div>
 
-          <button type="button" onclick="closeTeamMemberRepositoryModal('{{ item.id }}')" 
-                  class="mt-4 bg-red-500 text-white px-4 py-2 rounded">
-            Close
-          </button>
+
+                    <div class="dashboard-title-row">
+
+
+                        <div class="dashboard-title-icon">
+
+                            <i data-lucide="library"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <h1>
+                                Knowledge Repository
+                            </h1>
+
+
+                            <p>
+
+                                Discover, organize, and share useful
+                                resources with your
+                                {{ request.user.department.name }}
+                                department.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="system-status">
+
+                    <span class="system-status-dot"></span>
+
+                    <i
+                        data-lucide="log-in"
+                        style="width:14px;height:14px;">
+                    </i>
+
+                    Workspace Active
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =====================================================
+             CONTENT
+             ===================================================== -->
+
+        <div class="dashboard-content">
+
+
+            <!-- =================================================
+                 SECTION HEADING
+                 ================================================= -->
+
+            <div class="section-heading">
+
+                <div class="section-heading-text">
+
+                    <div class="section-eyebrow">
+                        RESOURCE MANAGEMENT
+                    </div>
+
+                    <h2>
+                        Add Knowledge Resource
+                    </h2>
+
+                </div>
+
+
+                <div class="section-line"></div>
+
+            </div>
+
+
+            <!-- =================================================
+                 CREATE RESOURCE CARD
+                 ================================================= -->
+
+            <div class="dashboard-card repository-create-card">
+
+
+                <div class="repository-create-header">
+
+
+                    <div class="card-icon">
+
+                        <i data-lucide="file-plus-2"></i>
+
+                    </div>
+
+
+                    <div class="card-heading-text">
+
+                        <h3>
+                            Add New Resource
+                        </h3>
+
+                        <p>
+                            Add a useful document, link, or reference
+                            for your department.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Resource form -->
+
+                <form
+                    method="POST"
+                    enctype="multipart/form-data"
+                    class="repository-form">
+
+                    {% csrf_token %}
+
+
+                    <!-- Title -->
+
+                    <div class="repository-field full-width">
+
+                        <label
+                            for="resource-title"
+                            class="field-label">
+
+                            <i data-lucide="heading"></i>
+
+                            Resource Title
+
+                        </label>
+
+
+                        <input
+                            id="resource-title"
+                            type="text"
+                            name="title"
+                            placeholder="Enter resource title..."
+                            class="repository-input"
+                            required>
+
+                    </div>
+
+
+                    <!-- Description -->
+
+                    <div class="repository-field full-width">
+
+                        <label
+                            for="resource-description"
+                            class="field-label">
+
+                            <i data-lucide="align-left"></i>
+
+                            Description
+
+                        </label>
+
+
+                        <textarea
+                            id="resource-description"
+                            name="description"
+                            rows="3"
+                            placeholder="Describe this resource..."
+                            class="repository-textarea"></textarea>
+
+                    </div>
+
+
+                    <!-- Reference link -->
+
+                    <div class="repository-field">
+
+                        <label
+                            for="resource-link"
+                            class="field-label">
+
+                            <i data-lucide="link"></i>
+
+                            Reference Link
+
+                        </label>
+
+
+                        <input
+                            id="resource-link"
+                            type="url"
+                            name="link"
+                            placeholder="https://example.com"
+                            class="repository-input">
+
+                    </div>
+
+
+                    <!-- File -->
+
+                    <div class="repository-field">
+
+                        <label
+                            for="resource-file"
+                            class="field-label">
+
+                            <i data-lucide="paperclip"></i>
+
+                            Upload File
+
+                        </label>
+
+
+                        <input
+                            id="resource-file"
+                            type="file"
+                            name="file"
+                            class="repository-file">
+
+                    </div>
+
+
+                    <!-- Submit -->
+
+                    <div class="repository-submit-row">
+
+                        <button
+                            type="submit"
+                            class="add-resource-button">
+
+                            <i data-lucide="plus"></i>
+
+                            Add Resource
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+
+            <!-- =================================================
+                 RESOURCE LIST
+                 ================================================= -->
+
+            <div class="repository-section">
+
+
+                <div class="section-heading">
+
+                    <div class="section-heading-text">
+
+                        <div class="section-eyebrow">
+                            DEPARTMENT RESOURCES
+                        </div>
+
+                        <h2>
+                            Knowledge Resources
+                        </h2>
+
+                    </div>
+
+
+                    <div class="section-line"></div>
+
+                </div>
+
+
+                <div class="repository-grid">
+
+
+                    {% for item in knowledge_items %}
+
+
+                        <!-- =====================================
+                             RESOURCE CARD
+                             ===================================== -->
+
+                        <article class="resource-card">
+
+
+                            <!-- Delete -->
+
+                            <form
+                                method="POST"
+                                action="{% url 'teammember_repository_delete' item.id %}"
+                                class="delete-form">
+
+                                {% csrf_token %}
+
+
+                                <button
+                                    type="submit"
+                                    class="delete-button"
+                                    title="Delete Resource"
+                                    aria-label="Delete Resource">
+
+                                    <i data-lucide="trash-2"></i>
+
+                                </button>
+
+                            </form>
+
+
+                            <!-- Card top -->
+
+                            <div class="resource-card-top">
+
+                                <div class="resource-type-icon">
+
+                                    {% if item.file %}
+
+                                        <i data-lucide="file-text"></i>
+
+                                    {% elif item.link %}
+
+                                        <i data-lucide="link"></i>
+
+                                    {% else %}
+
+                                        <i data-lucide="book-open"></i>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Title -->
+
+                            <h3 class="resource-title">
+
+                                {{ item.title }}
+
+                            </h3>
+
+
+                            <!-- Description -->
+
+                            <p class="resource-description">
+
+                                {{ item.description }}
+
+                            </p>
+
+
+                            <!-- Meta -->
+
+                            <div class="resource-meta">
+
+                                <i data-lucide="user-round"></i>
+
+                                <span>
+                                    Added by
+                                    {{ item.user.username }}
+                                </span>
+
+                                <span>
+                                    •
+                                </span>
+
+                                <span>
+                                    {{ item.created_at|date:"d M Y" }}
+                                </span>
+
+                            </div>
+
+
+                            <!-- Action -->
+
+                            <div class="resource-actions">
+
+                                <button
+                                    type="button"
+                                    onclick="openTeamMemberRepositoryModal('{{ item.id }}')"
+                                    class="view-resource-button">
+
+                                    <i data-lucide="eye"></i>
+
+                                    View More
+
+                                </button>
+
+
+                                {% if item.file %}
+
+                                    <span
+                                        style="
+                                            display:flex;
+                                            align-items:center;
+                                            gap:5px;
+                                            color:#71717a;
+                                            font-size:10px;
+                                        ">
+
+                                        <i
+                                            data-lucide="paperclip"
+                                            style="
+                                                width:13px;
+                                                height:13px;
+                                                color:#8bc83f;
+                                            ">
+                                        </i>
+
+                                        File
+
+                                    </span>
+
+                                {% elif item.link %}
+
+                                    <span
+                                        style="
+                                            display:flex;
+                                            align-items:center;
+                                            gap:5px;
+                                            color:#71717a;
+                                            font-size:10px;
+                                        ">
+
+                                        <i
+                                            data-lucide="globe"
+                                            style="
+                                                width:13px;
+                                                height:13px;
+                                                color:#8bc83f;
+                                            ">
+                                        </i>
+
+                                        Link
+
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+                        </article>
+
+
+                        <!-- =====================================
+                             MODAL
+                             ===================================== -->
+
+                        <div
+                            id="modal-{{ item.id }}"
+                            class="repository-modal hidden">
+
+
+                            <div
+                                class="repository-modal-panel"
+                                role="dialog"
+                                aria-modal="true"
+                                aria-labelledby="modal-title-{{ item.id }}">
+
+
+                                <!-- Modal Header -->
+
+                                <div class="modal-header">
+
+
+                                    <div class="modal-title-group">
+
+
+                                        <div class="modal-title-icon">
+
+                                            {% if item.file %}
+
+                                                <i data-lucide="file-text"></i>
+
+                                            {% elif item.link %}
+
+                                                <i data-lucide="link"></i>
+
+                                            {% else %}
+
+                                                <i data-lucide="book-open"></i>
+
+                                            {% endif %}
+
+                                        </div>
+
+
+                                        <div class="modal-title-text">
+
+                                            <h2 id="modal-title-{{ item.id }}">
+
+                                                {{ item.title }}
+
+                                            </h2>
+
+                                            <p>
+                                                Knowledge Repository Resource
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <button
+                                        type="button"
+                                        onclick="closeTeamMemberRepositoryModal('{{ item.id }}')"
+                                        class="modal-close"
+                                        aria-label="Close">
+
+                                        <i data-lucide="x"></i>
+
+                                    </button>
+
+                                </div>
+
+
+                                <!-- Description -->
+
+                                <div class="modal-description">
+
+                                    {{ item.description }}
+
+                                </div>
+
+
+                                <!-- Links -->
+
+                                <div class="modal-links">
+
+
+                                    {% if item.file %}
+
+                                        <a
+                                            href="{{ item.file.url }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="modal-resource-link">
+
+                                            <i data-lucide="download"></i>
+
+                                            <span>
+                                                Download File
+                                            </span>
+
+                                        </a>
+
+                                    {% endif %}
+
+
+                                    {% if item.link %}
+
+                                        <a
+                                            href="{{ item.link }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="modal-resource-link">
+
+                                            <i data-lucide="external-link"></i>
+
+                                            <span>
+                                                Open Reference Link
+                                            </span>
+
+                                        </a>
+
+                                    {% endif %}
+
+
+                                </div>
+
+
+                                <!-- Meta -->
+
+                                <div class="modal-meta">
+
+                                    <i data-lucide="user-round"></i>
+
+                                    <span>
+                                        Added by
+                                        {{ item.user.username }}
+                                        on
+                                        {{ item.created_at|date:"d M Y" }}
+                                    </span>
+
+                                </div>
+
+
+                                <!-- Footer -->
+
+                                <div class="modal-footer">
+
+                                    <button
+                                        type="button"
+                                        onclick="closeTeamMemberRepositoryModal('{{ item.id }}')"
+                                        class="modal-close-button">
+
+                                        <i data-lucide="x"></i>
+
+                                        Close
+
+                                    </button>
+
+                                </div>
+
+
+                            </div>
+
+                        </div>
+
+
+                    {% empty %}
+
+
+                        <!-- Empty state -->
+
+                        <div class="empty-repository">
+
+
+                            <div class="empty-repository-icon">
+
+                                <i data-lucide="library"></i>
+
+                            </div>
+
+
+                            <strong>
+                                No Resources Available
+                            </strong>
+
+
+                            <span>
+
+                                There are no knowledge resources available
+                                for your department yet. Add the first
+                                resource using the form above.
+
+                            </span>
+
+                        </div>
+
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
         </div>
-      </div>
-    {% empty %}
-      <p class="col-span-3 text-gray-500">No resources available yet.</p>
-    {% endfor %}
-  </div>
-</div>
-<!-- Toast Container -->
-<div id="toast-container"
-     class="fixed bottom-5 right-5 z-[9999] space-y-3
-            w-[350px] max-w-[calc(100%-2rem)]">
+
+    </section>
+
+</main>
+
+
+<!-- =========================================================
+     TOAST CONTAINER
+     ========================================================= -->
+
+<div id="toast-container">
+
 
     {% if messages %}
 
         {% for message in messages %}
 
-            <div class="toast-message
-                        flex items-center gap-3
-                        bg-[#250f1e]
-                        text-white
-                        border border-purple-600
-                        px-5 py-4
-                        rounded-lg
-                        shadow-2xl">
+
+            <div
+                class="toast-message {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+
 
                 {% if message.tags == "error" %}
 
-                    <!-- Error Icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-6 h-6 flex-shrink-0 text-red-400"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M6 18L18 6M6 6l12 12"/>
-
-                    </svg>
+                    <i
+                        data-lucide="circle-x"
+                        class="toast-icon">
+                    </i>
 
                 {% else %}
 
-                    <!-- Success Icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-6 h-6 flex-shrink-0 text-green-400"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M5 13l4 4L19 7"/>
-
-                    </svg>
+                    <i
+                        data-lucide="circle-check"
+                        class="toast-icon">
+                    </i>
 
                 {% endif %}
 
-                <span class="flex-1 text-sm font-medium">
+
+                <span class="toast-text">
+
                     {{ message }}
+
                 </span>
 
-                <button type="button"
-                        onclick="removeToast(this.parentElement)"
-                        class="text-gray-300 hover:text-white text-xl leading-none">
 
-                    &times;
+                <button
+                    type="button"
+                    onclick="removeToast(this.parentElement)"
+                    class="toast-close"
+                    aria-label="Close notification">
+
+                    <i data-lucide="x"></i>
 
                 </button>
 
             </div>
+
 
         {% endfor %}
 
@@ -236,63 +3408,350 @@
 
 </div>
 
+
+<!-- =========================================================
+     JAVASCRIPT
+     ========================================================= -->
+
 <script>
-function openTeamMemberRepositoryModal(id) {
-  document.getElementById('modal-' + id).classList.remove('hidden');
-}
-function closeTeamMemberRepositoryModal(id) {
-  document.getElementById('modal-' + id).classList.add('hidden');
-}
 
 
+    /* =========================================================
+       LUCIDE ICONS
+       ========================================================= */
 
-function removeToast(toast) {
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
 
-    toast.classList.add("toast-hide");
+            if (window.lucide) {
 
-    setTimeout(() => {
-        toast.remove();
-    }, 350);
-}
-
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    const toasts = document.querySelectorAll(".toast-message");
-
-    toasts.forEach(function (toast) {
-
-        setTimeout(function () {
-
-            if (toast.parentElement) {
-
-                toast.classList.add("toast-hide");
-
-                setTimeout(function () {
-                    toast.remove();
-                }, 350);
+                lucide.createIcons();
 
             }
 
-        }, 4000);
+        }
+    );
 
-    });
 
-});
+    /* =========================================================
+       OPEN MODAL
+       ========================================================= */
 
+    function openTeamMemberRepositoryModal(id) {
+
+        const modal =
+            document.getElementById(
+                "modal-" + id
+            );
+
+
+        if (!modal) {
+            return;
+        }
+
+
+        modal.classList.remove("hidden");
+
+
+        document.body.style.overflow =
+            "hidden";
+
+    }
+
+
+    /* =========================================================
+       CLOSE MODAL
+       ========================================================= */
+
+    function closeTeamMemberRepositoryModal(id) {
+
+        const modal =
+            document.getElementById(
+                "modal-" + id
+            );
+
+
+        if (!modal) {
+            return;
+        }
+
+
+        modal.classList.add("hidden");
+
+
+        document.body.style.overflow =
+            "";
+
+    }
+
+
+    /* =========================================================
+       CLOSE MODAL BY CLICKING BACKDROP
+       ========================================================= */
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                event.target.classList.contains(
+                    "repository-modal"
+                )
+            ) {
+
+                event.target.classList.add(
+                    "hidden"
+                );
+
+                document.body.style.overflow =
+                    "";
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       ESCAPE TO CLOSE MODAL
+       ========================================================= */
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key !== "Escape") {
+                return;
+            }
+
+
+            const openModal =
+                document.querySelector(
+                    ".repository-modal:not(.hidden)"
+                );
+
+
+            if (openModal) {
+
+                openModal.classList.add(
+                    "hidden"
+                );
+
+                document.body.style.overflow =
+                    "";
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       TOAST
+       ========================================================= */
+
+    function removeToast(toast) {
+
+        if (!toast) {
+            return;
+        }
+
+
+        toast.classList.add(
+            "toast-hide"
+        );
+
+
+        setTimeout(
+            function () {
+
+                if (
+                    toast &&
+                    toast.parentElement
+                ) {
+
+                    toast.remove();
+
+                }
+
+            },
+            350
+        );
+
+    }
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const toasts =
+                document.querySelectorAll(
+                    ".toast-message"
+                );
+
+
+            toasts.forEach(
+                function (toast) {
+
+                    setTimeout(
+                        function () {
+
+                            if (
+                                toast.parentElement
+                            ) {
+
+                                toast.classList.add(
+                                    "toast-hide"
+                                );
+
+
+                                setTimeout(
+                                    function () {
+
+                                        if (
+                                            toast.parentElement
+                                        ) {
+
+                                            toast.remove();
+
+                                        }
+
+                                    },
+                                    350
+                                );
+
+                            }
+
+                        },
+                        4000
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+    /* =========================================================
+       MOBILE SIDEBAR
+       ========================================================= */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const sidebar =
+                document.getElementById(
+                    "sidebar"
+                );
+
+
+            const menuButtons =
+                document.querySelectorAll(
+                    ".menu-toggle"
+                );
+
+
+            if (!sidebar) {
+                return;
+            }
+
+
+            menuButtons.forEach(
+                function (button) {
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+
+                            if (
+                                window.innerWidth <= 900
+                            ) {
+
+                                sidebar.classList.toggle(
+                                    "mobile-open"
+                                );
+
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+
+            /* Close after navigation */
+
+            sidebar
+                .querySelectorAll("a")
+                .forEach(
+                    function (link) {
+
+                        link.addEventListener(
+                            "click",
+                            function () {
+
+                                if (
+                                    window.innerWidth <= 900
+                                ) {
+
+                                    sidebar.classList.remove(
+                                        "mobile-open"
+                                    );
+
+                                }
+
+                            }
+                        );
+
+                    }
+                );
+
+        }
+    );
+
+
+    /* =========================================================
+       DESKTOP RESIZE
+       ========================================================= */
+
+    window.addEventListener(
+        "resize",
+        function () {
+
+            const sidebar =
+                document.getElementById(
+                    "sidebar"
+                );
+
+
+            if (
+                sidebar &&
+                window.innerWidth > 900
+            ) {
+
+                sidebar.classList.remove(
+                    "mobile-open"
+                );
+
+            }
+
+        }
+    );
 
 </script>
 
 
-
-
-
-
-
-
-
+<!-- Existing functionality -->
 <script src="{% static 'js/team_member.js' %}"></script>
+
 <script src="{% static 'js/activity.js' %}"></script>
+
+
 </body>
 
 </html>

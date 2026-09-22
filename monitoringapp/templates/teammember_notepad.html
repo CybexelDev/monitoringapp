@@ -3,218 +3,2138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard - Cybexel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
-  <style>
+    <title>Notepad | Cybexel</title>
 
-/* =========================
-   TOAST ANIMATION
-   ========================= */
+    <script src="https://cdn.tailwindcss.com"></script>
 
-.toast-message {
-    animation: toastSlideIn 0.35s ease-out;
-}
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 
-.toast-message.toast-hide {
-    animation: toastSlideOut 0.35s ease-in forwards;
-}
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-@keyframes toastSlideIn {
+    <style>
 
-    from {
-        opacity: 0;
-        transform: translateX(100%);
-    }
+        /* =========================================================
+           GLOBAL
+           ========================================================= */
 
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
 
-@keyframes toastSlideOut {
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
 
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
+        body {
+            overflow: hidden;
+            background:
+                radial-gradient(
+                    circle at top left,
+                    rgba(139, 200, 63, 0.10),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at bottom right,
+                    rgba(99, 102, 241, 0.08),
+                    transparent 30%
+                ),
+                #050505;
 
-    to {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-}
+            color: #fff;
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
 
-</style>
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
 
+        a {
+            text-decoration: none;
+        }
+
+        /* =========================================================
+           SIDEBAR
+           ========================================================= */
+
+        .glass-sidebar {
+            position: fixed;
+
+            top: 20px;
+            left: 20px;
+
+            width: 250px;
+            height: calc(100vh - 40px);
+
+            padding: 22px;
+
+            border-radius: 28px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.96),
+                    rgba(24, 10, 20, 0.96)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 24px 60px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.03);
+
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            z-index: 100;
+
+            display: flex;
+            flex-direction: column;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            scrollbar-width: thin;
+            scrollbar-color: rgba(139, 200, 63, 0.35) transparent;
+        }
+
+        .glass-sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .glass-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .glass-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(139, 200, 63, 0.35);
+            border-radius: 20px;
+        }
+
+        /* Sidebar profile */
+
+        .sidebar-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            text-align: center;
+
+            padding-bottom: 22px;
+            margin-bottom: 14px;
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .sidebar-logo-box {
+            width: 92px;
+            height: 92px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 24px;
+
+            background: rgba(255, 255, 255, 0.04);
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 15px 35px rgba(0, 0, 0, 0.28);
+
+            margin-bottom: 14px;
+        }
+
+        .sidebar-logo {
+            width: 78px;
+            height: 78px;
+            object-fit: contain;
+        }
+
+        .sidebar-profile h3 {
+            margin: 0;
+
+            color: #fff;
+
+            font-size: 14px;
+            font-weight: 800;
+
+            letter-spacing: 0.16em;
+        }
+
+        .sidebar-profile span {
+            display: block;
+
+            margin-top: 6px;
+
+            color: #a1a1aa;
+
+            font-size: 10px;
+            font-weight: 600;
+
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        /* Sidebar navigation */
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+
+            gap: 7px;
+
+            flex: 1;
+        }
+
+        .sidebar-nav a {
+            position: relative;
+
+            display: flex;
+            align-items: center;
+
+            gap: 11px;
+
+            min-height: 45px;
+
+            padding: 12px 13px;
+
+            border-radius: 14px;
+
+            color: #d4d4d8;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease,
+                transform 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+        .sidebar-nav a:hover {
+            color: #fff;
+
+            background: rgba(255, 255, 255, 0.06);
+
+            transform: translateX(2px);
+        }
+
+        .sidebar-nav a.active {
+            color: #fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(139, 200, 63, 0.24),
+                    rgba(139, 200, 63, 0.08)
+                );
+
+            border: 1px solid rgba(139, 200, 63, 0.38);
+
+            box-shadow:
+                0 8px 24px rgba(139, 200, 63, 0.08);
+        }
+
+        .sidebar-nav a.active::before {
+            content: "";
+
+            position: absolute;
+
+            left: 0;
+
+            width: 3px;
+            height: 20px;
+
+            border-radius: 0 5px 5px 0;
+
+            background: #8bc83f;
+        }
+
+        .sidebar-icon {
+            width: 20px;
+            height: 20px;
+
+            flex-shrink: 0;
+
+            color: #a1a1aa;
+        }
+
+        .sidebar-nav a:hover .sidebar-icon,
+        .sidebar-nav a.active .sidebar-icon {
+            color: #8bc83f;
+        }
+
+        .sidebar-external {
+            margin-left: auto;
+
+            width: 15px;
+            height: 15px;
+
+            opacity: 0.5;
+        }
+
+        /* Logout */
+
+        .sidebar-nav a.logout-link {
+            margin-top: 8px;
+
+            color: #fca5a5;
+
+            background: rgba(127, 29, 29, 0.18);
+
+            border: 1px solid rgba(248, 113, 113, 0.16);
+        }
+
+        .sidebar-nav a.logout-link:hover {
+            color: #fff;
+
+            background: rgba(127, 29, 29, 0.35);
+
+            border-color: rgba(248, 113, 113, 0.32);
+        }
+
+        .sidebar-nav a.logout-link .sidebar-icon {
+            color: #f87171;
+        }
+
+        /* =========================================================
+           MOBILE MENU
+           ========================================================= */
+
+        .mobile-menu-button {
+            display: none;
+
+            position: fixed;
+
+            top: 16px;
+            left: 16px;
+
+            width: 44px;
+            height: 44px;
+
+            align-items: center;
+            justify-content: center;
+
+            color: #fff;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.96),
+                    rgba(24, 10, 20, 0.96)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.10);
+
+            border-radius: 14px;
+
+            box-shadow:
+                0 12px 30px rgba(0, 0, 0, 0.35);
+
+            z-index: 200;
+
+            cursor: pointer;
+        }
+
+        .mobile-menu-button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-close-button {
+            display: none;
+
+            position: absolute;
+
+            top: 17px;
+            right: 17px;
+
+            width: 34px;
+            height: 34px;
+
+            align-items: center;
+            justify-content: center;
+
+            color: #a1a1aa;
+
+            background: rgba(255, 255, 255, 0.05);
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            border-radius: 10px;
+
+            cursor: pointer;
+        }
+
+        .sidebar-close-button:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.10);
+        }
+
+        /* =========================================================
+           MAIN AREA
+           ========================================================= */
+
+        .main-area {
+            position: fixed;
+
+            top: 0;
+            left: 334px;
+            right: 20px;
+            bottom: 0;
+
+            width: auto;
+            height: 100vh;
+
+            padding: 20px 0;
+
+            min-width: 0;
+
+            overflow: hidden;
+        }
+
+        .dashboard-box {
+            width: 100%;
+            height: calc(100vh - 40px);
+
+            max-height: calc(100vh - 40px);
+
+            min-width: 0;
+
+            overflow: hidden;
+
+            border-radius: 30px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(19, 19, 19, 0.96),
+                    rgba(8, 8, 8, 0.98)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.025);
+
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* =========================================================
+           DASHBOARD HEADER
+           ========================================================= */
+
+        .dashboard-header {
+            flex-shrink: 0;
+
+            padding: 34px 34px 28px;
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .dashboard-header-content {
+            display: flex;
+
+            align-items: flex-start;
+            justify-content: space-between;
+
+            gap: 30px;
+        }
+
+        .dashboard-eyebrow {
+            margin: 0 0 9px;
+
+            color: #8bc83f;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            letter-spacing: 0.18em;
+
+            text-transform: uppercase;
+        }
+
+        .dashboard-title-row {
+            display: flex;
+            align-items: center;
+
+            gap: 13px;
+        }
+
+        .dashboard-title-icon {
+            width: 48px;
+            height: 48px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            color: #8bc83f;
+
+            background: rgba(139, 200, 63, 0.10);
+
+            border: 1px solid rgba(139, 200, 63, 0.18);
+
+            border-radius: 15px;
+        }
+
+        .dashboard-title-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+
+            color: #fff;
+
+            font-size: clamp(1.8rem, 4vw, 2.7rem);
+            line-height: 1.1;
+
+            font-weight: 900;
+
+            letter-spacing: -0.035em;
+        }
+
+        .dashboard-header p {
+            margin: 13px 0 0;
+
+            max-width: 700px;
+
+            color: #a1a1aa;
+
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .system-status {
+            flex-shrink: 0;
+
+            display: inline-flex;
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 9px 13px;
+
+            color: #bef264;
+
+            background: rgba(139, 200, 63, 0.08);
+
+            border: 1px solid rgba(139, 200, 63, 0.18);
+
+            border-radius: 999px;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            letter-spacing: 0.10em;
+
+            text-transform: uppercase;
+        }
+
+        .system-status-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #8bc83f;
+
+            box-shadow: 0 0 12px rgba(139, 200, 63, 0.75);
+        }
+
+        /* =========================================================
+           DASHBOARD CONTENT
+           ========================================================= */
+
+        .dashboard-content {
+            flex: 1;
+
+            min-height: 0;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            padding: 30px 34px 40px;
+
+            scrollbar-width: thin;
+            scrollbar-color: rgba(139, 200, 63, 0.35) transparent;
+        }
+
+        .dashboard-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .dashboard-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .dashboard-content::-webkit-scrollbar-thumb {
+            background: rgba(139, 200, 63, 0.30);
+            border-radius: 20px;
+        }
+
+        /* =========================================================
+           SECTION HEADING
+           ========================================================= */
+
+        .section-heading {
+            display: flex;
+            align-items: flex-end;
+
+            gap: 18px;
+
+            margin-bottom: 20px;
+        }
+
+        .section-heading-text {
+            flex-shrink: 0;
+        }
+
+        .section-eyebrow {
+            margin: 0 0 6px;
+
+            color: #8bc83f;
+
+            font-size: 9px;
+            font-weight: 800;
+
+            letter-spacing: 0.17em;
+
+            text-transform: uppercase;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+
+            color: #fff;
+
+            font-size: 22px;
+            font-weight: 800;
+
+            letter-spacing: -0.02em;
+        }
+
+        .section-line {
+            flex: 1;
+
+            height: 1px;
+
+            margin-bottom: 7px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(139, 200, 63, 0.28),
+                    rgba(255, 255, 255, 0.03)
+                );
+        }
+
+        /* =========================================================
+           NOTEPAD LAYOUT
+           ========================================================= */
+
+        .notepad-grid {
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1.45fr)
+                minmax(300px, 0.75fr);
+
+            gap: 20px;
+
+            align-items: start;
+        }
+
+        .dashboard-card {
+            min-width: 0;
+
+            padding: 22px;
+
+            border-radius: 22px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.78),
+                    rgba(20, 10, 17, 0.78)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.075);
+
+            box-shadow:
+                0 16px 40px rgba(0, 0, 0, 0.20);
+
+            transition:
+                transform 0.25s ease,
+                border-color 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+
+            border-color: rgba(139, 200, 63, 0.20);
+
+            box-shadow:
+                0 20px 45px rgba(0, 0, 0, 0.28);
+        }
+
+        .card-heading {
+            display: flex;
+            align-items: center;
+
+            gap: 13px;
+
+            margin-bottom: 20px;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 15px;
+
+            color: #c084fc;
+
+            background: rgba(192, 132, 252, 0.10);
+
+            border: 1px solid rgba(192, 132, 252, 0.15);
+        }
+
+        .card-icon svg {
+            width: 23px;
+            height: 23px;
+        }
+
+        .card-heading-text {
+            min-width: 0;
+        }
+
+        .card-heading-text h3 {
+            margin: 0;
+
+            color: #fff;
+
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .card-heading-text p {
+            margin: 4px 0 0;
+
+            color: #71717a;
+
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        /* =========================================================
+           FORM
+           ========================================================= */
+
+        .note-form {
+            display: flex;
+            flex-direction: column;
+
+            gap: 14px;
+        }
+
+        .field-label {
+            display: flex;
+            align-items: center;
+
+            gap: 7px;
+
+            margin-bottom: 7px;
+
+            color: #d4d4d8;
+
+            font-size: 11px;
+            font-weight: 700;
+
+            letter-spacing: 0.03em;
+        }
+
+        .field-label svg {
+            width: 14px;
+            height: 14px;
+
+            color: #8bc83f;
+        }
+
+        .note-input,
+        .note-textarea {
+            width: 100%;
+
+            color: #fff;
+
+            background: rgba(0, 0, 0, 0.35);
+
+            border: 1px solid rgba(255, 255, 255, 0.09);
+
+            border-radius: 14px;
+
+            outline: none;
+
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease;
+        }
+
+        .note-input {
+            height: 50px;
+
+            padding: 0 15px;
+
+            font-size: 14px;
+        }
+
+        .note-textarea {
+            min-height: 280px;
+
+            padding: 15px;
+
+            resize: vertical;
+
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .note-input::placeholder,
+        .note-textarea::placeholder {
+            color: #52525b;
+        }
+
+        .note-input:focus,
+        .note-textarea:focus {
+            background: rgba(0, 0, 0, 0.48);
+
+            border-color: rgba(139, 200, 63, 0.55);
+
+            box-shadow:
+                0 0 0 3px rgba(139, 200, 63, 0.08);
+        }
+
+        .editor-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 12px;
+
+            margin-top: 3px;
+        }
+
+        .save-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            min-height: 44px;
+
+            padding: 0 18px;
+
+            color: #071000;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #8bc83f,
+                    #6da52e
+                );
+
+            border: 1px solid rgba(139, 200, 63, 0.45);
+
+            border-radius: 13px;
+
+            font-size: 12px;
+            font-weight: 800;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 10px 25px rgba(139, 200, 63, 0.10);
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+        .save-button:hover {
+            transform: translateY(-1px);
+
+            box-shadow:
+                0 14px 30px rgba(139, 200, 63, 0.18);
+        }
+
+        .save-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .new-note-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 7px;
+
+            min-height: 44px;
+
+            padding: 0 16px;
+
+            color: #d4d4d8;
+
+            background: rgba(255, 255, 255, 0.04);
+
+            border: 1px solid rgba(255, 255, 255, 0.10);
+
+            border-radius: 13px;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+        .new-note-button:hover {
+            color: #fff;
+
+            background: rgba(255, 255, 255, 0.08);
+
+            border-color: rgba(139, 200, 63, 0.24);
+        }
+
+        .new-note-button svg {
+            width: 16px;
+            height: 16px;
+
+            color: #8bc83f;
+        }
+
+        /* =========================================================
+           SAVED NOTES
+           ========================================================= */
+
+        .saved-notes-card {
+            min-height: 100%;
+        }
+
+        .saved-notes-list {
+            display: flex;
+            flex-direction: column;
+
+            gap: 9px;
+
+            max-height: 455px;
+
+            overflow-y: auto;
+
+            padding-right: 3px;
+
+            scrollbar-width: thin;
+            scrollbar-color: rgba(139, 200, 63, 0.30) transparent;
+        }
+
+        .saved-notes-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .saved-notes-list::-webkit-scrollbar-thumb {
+            background: rgba(139, 200, 63, 0.25);
+            border-radius: 20px;
+        }
+
+        .note-item {
+            position: relative;
+
+            display: flex;
+            align-items: center;
+
+            gap: 11px;
+
+            width: 100%;
+
+            padding: 13px 14px;
+
+            color: #d4d4d8;
+
+            background: rgba(0, 0, 0, 0.24);
+
+            border: 1px solid rgba(255, 255, 255, 0.065);
+
+            border-radius: 14px;
+
+            transition:
+                background 0.2s ease,
+                border-color 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        .note-item:hover {
+            color: #fff;
+
+            background: rgba(255, 255, 255, 0.045);
+
+            border-color: rgba(139, 200, 63, 0.24);
+
+            transform: translateX(2px);
+        }
+
+        .note-item.active {
+            color: #fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(139, 200, 63, 0.16),
+                    rgba(139, 200, 63, 0.05)
+                );
+
+            border-color: rgba(139, 200, 63, 0.30);
+        }
+
+        .note-item-icon {
+            width: 34px;
+            height: 34px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #c084fc;
+
+            background: rgba(192, 132, 252, 0.09);
+
+            border-radius: 10px;
+        }
+
+        .note-item.active .note-item-icon {
+            color: #8bc83f;
+
+            background: rgba(139, 200, 63, 0.10);
+        }
+
+        .note-item-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .note-item-title {
+            min-width: 0;
+
+            overflow: hidden;
+
+            color: inherit;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .empty-notes {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            min-height: 220px;
+
+            padding: 20px;
+
+            color: #71717a;
+
+            text-align: center;
+        }
+
+        .empty-notes-icon {
+            width: 48px;
+            height: 48px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 12px;
+
+            color: #8bc83f;
+
+            background: rgba(139, 200, 63, 0.08);
+
+            border: 1px solid rgba(139, 200, 63, 0.14);
+
+            border-radius: 15px;
+        }
+
+        .empty-notes-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .empty-notes strong {
+            color: #d4d4d8;
+
+            font-size: 13px;
+        }
+
+        .empty-notes span {
+            margin-top: 5px;
+
+            max-width: 230px;
+
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        /* =========================================================
+           PAGINATION
+           ========================================================= */
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            margin-top: 18px;
+        }
+
+        .pagination-button,
+        .pagination-current {
+            min-width: 38px;
+            height: 38px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 0 11px;
+
+            border-radius: 11px;
+
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .pagination-button {
+            color: #d4d4d8;
+
+            background: rgba(255, 255, 255, 0.04);
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            transition:
+                background 0.2s ease,
+                border-color 0.2s ease,
+                color 0.2s ease;
+        }
+
+        .pagination-button:hover {
+            color: #fff;
+
+            background: rgba(255, 255, 255, 0.08);
+
+            border-color: rgba(139, 200, 63, 0.25);
+        }
+
+        .pagination-current {
+            color: #071000;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #8bc83f,
+                    #6da52e
+                );
+        }
+
+        /* =========================================================
+           TOAST
+           ========================================================= */
+
+        #toast-container {
+            position: fixed;
+
+            right: 20px;
+            bottom: 20px;
+
+            z-index: 9999;
+
+            width: 350px;
+            max-width: calc(100% - 40px);
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 10px;
+        }
+
+        .toast-message {
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            padding: 15px 17px;
+
+            color: #fff;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.98),
+                    rgba(20, 10, 17, 0.98)
+                );
+
+            border: 1px solid rgba(139, 200, 63, 0.28);
+
+            border-radius: 15px;
+
+            box-shadow:
+                0 20px 45px rgba(0, 0, 0, 0.42);
+
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+
+            animation: toastSlideIn 0.35s ease-out;
+        }
+
+        .toast-message.toast-hide {
+            animation: toastSlideOut 0.35s ease-in forwards;
+        }
+
+        .toast-icon {
+            width: 20px;
+            height: 20px;
+
+            flex-shrink: 0;
+        }
+
+        .toast-message.success .toast-icon {
+            color: #4ade80;
+        }
+
+        .toast-message.error .toast-icon {
+            color: #f87171;
+        }
+
+        .toast-text {
+            flex: 1;
+
+            color: #e4e4e7;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            line-height: 1.5;
+        }
+
+        .toast-close {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            width: 26px;
+            height: 26px;
+
+            flex-shrink: 0;
+
+            color: #71717a;
+
+            background: transparent;
+
+            border: 0;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+        }
+
+        .toast-close:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .toast-close svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        @keyframes toastSlideIn {
+
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+        }
+
+        @keyframes toastSlideOut {
+
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+        }
+
+        /* =========================================================
+           TABLET
+           ========================================================= */
+
+        @media (max-width: 1200px) {
+
+            .notepad-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .saved-notes-list {
+                display: grid;
+
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+
+                max-height: none;
+            }
+
+        }
+
+        /* =========================================================
+           MOBILE SIDEBAR
+           ========================================================= */
+
+        @media (max-width: 900px) {
+
+            .glass-sidebar {
+                top: 12px;
+                left: 12px;
+
+                width: 280px;
+                height: calc(100vh - 24px);
+
+                padding: 20px;
+
+                border-radius: 24px;
+
+                transform: translateX(-115%);
+
+                transition:
+                    transform 0.3s ease;
+            }
+
+            .glass-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .sidebar-close-button {
+                display: flex;
+            }
+
+            .mobile-menu-button {
+                display: flex;
+            }
+
+            .main-area {
+                left: 12px;
+                right: 12px;
+
+                padding: 12px;
+            }
+
+            .dashboard-box {
+                height: calc(100vh - 24px);
+                max-height: calc(100vh - 24px);
+
+                border-radius: 24px;
+            }
+
+            .dashboard-header {
+                padding: 28px 24px 23px;
+            }
+
+            .dashboard-header-content {
+                flex-direction: column;
+
+                gap: 18px;
+            }
+
+            .dashboard-content {
+                padding: 24px;
+            }
+
+        }
+
+        /* =========================================================
+           SMALL MOBILE
+           ========================================================= */
+
+        @media (max-width: 600px) {
+
+            .main-area {
+                left: 8px;
+                right: 8px;
+
+                padding: 8px;
+            }
+
+            .dashboard-box {
+                height: calc(100vh - 16px);
+                max-height: calc(100vh - 16px);
+
+                border-radius: 20px;
+            }
+
+            .dashboard-header {
+                padding: 24px 18px 20px;
+            }
+
+            .dashboard-title-row {
+                align-items: flex-start;
+            }
+
+            .dashboard-title-icon {
+                width: 42px;
+                height: 42px;
+
+                border-radius: 13px;
+            }
+
+            .dashboard-title-icon svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 1.65rem;
+            }
+
+            .dashboard-header p {
+                font-size: 12px;
+            }
+
+            .dashboard-content {
+                padding: 20px 15px 30px;
+            }
+
+            .section-heading {
+                gap: 10px;
+            }
+
+            .section-heading h2 {
+                font-size: 18px;
+            }
+
+            .section-line {
+                display: none;
+            }
+
+            .dashboard-card {
+                padding: 17px;
+
+                border-radius: 18px;
+            }
+
+            .card-heading {
+                margin-bottom: 16px;
+            }
+
+            .card-icon {
+                width: 42px;
+                height: 42px;
+
+                border-radius: 13px;
+            }
+
+            .note-textarea {
+                min-height: 220px;
+            }
+
+            .editor-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .save-button,
+            .new-note-button {
+                width: 100%;
+            }
+
+            .saved-notes-list {
+                grid-template-columns: 1fr;
+            }
+
+            #toast-container {
+                right: 10px;
+                bottom: 10px;
+
+                width: calc(100% - 20px);
+                max-width: none;
+            }
+
+        }
+
+        /* =========================================================
+           VERY SMALL DEVICES
+           ========================================================= */
+
+        @media (max-width: 400px) {
+
+            .sidebar-logo-box {
+                width: 80px;
+                height: 80px;
+            }
+
+            .sidebar-logo {
+                width: 68px;
+                height: 68px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 1.45rem;
+            }
+
+            .dashboard-title-icon {
+                display: none;
+            }
+
+            .dashboard-content {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+        }
+
+    </style>
 </head>
-<body class="bg-black text-white font-sans select-none">
 
-<div id="sidebar" 
-     class="fixed top-0 left-0 h-full w-64 bg-[#250f1e] overflow-y-auto text-white p-6 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">  <div class="flex items-center justify-between mb-6">
-    <div class="w-full flex justify-center select-none">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 object-contain">
+<body>
+
+<!-- =========================================================
+     SIDEBAR
+     ========================================================= -->
+
+<aside id="sidebar" class="glass-sidebar">
+
+    <!-- Mobile close -->
+    <button
+        type="button"
+        class="menu-toggle sidebar-close-button"
+        aria-label="Close menu">
+        <i data-lucide="x"></i>
+    </button>
+
+    <!-- Sidebar Profile -->
+    <div class="sidebar-profile">
+
+        <div class="sidebar-logo-box">
+            <img
+                src="{% static 'images/logo.png' %}"
+                alt="Cybexel Logo"
+                class="sidebar-logo">
+        </div>
+
+        <h3>CYBEXEL</h3>
+
+        <span>TEAM MEMBER</span>
+
     </div>
-    <button class="menu-toggle md:hidden text-white text-2xl max-md:mt-[-9rem]">&times;</button>
-  </div>
-  <nav class="select-none">
-    <ul class="space-y-8 text-sm">
-      <li>
-        <a href="{% url 'teammember_dashboard' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Team member Dashboard</a>
-      </li>
-      <li>
-        <a href="{% url 'teammember_project' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Team member Project</a>
-      </li>
-      <li>
-        <a href="{% url 'teammember_notepad' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Notepad</a>
-      </li>
-      <li>
-        <a href="{% url 'teammember_repository' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Knowledge Repository</a>
-      </li>
-      <li>
-        <a href="{% url 'teammember_profile' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Profile</a>
-      </li>
-      <li>
-        <a href="{% url 'teammember_task' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">My task</a>
-      </li>
-      <li>
-        <a href="{% url 'teammember_chat' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Chat</a>
-      </li>
-          <li>
-      <a href="https://meet.google.com/" target="_blank" class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-    </li>
-    <li>
-      <a href="{% url 'teammember_logout' %}" class="block py-2 px-4 rounded bg-red-600 text-white">Logout</a>
-    </li>
-    </ul>
-  </nav>
-</div>
 
-<button class="menu-toggle md:hidden fixed top-8 left-4 z-50 text-white p-2 rounded shadow-lg">
-  &#9776;
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+
+        <a href="{% url 'teammember_dashboard' %}">
+            <i data-lucide="layout-dashboard" class="sidebar-icon"></i>
+            <span>Dashboard</span>
+        </a>
+
+
+        <a href="{% url 'teammember_project' %}">
+            <i data-lucide="folder-kanban" class="sidebar-icon"></i>
+            <span>My Projects</span>
+        </a>
+
+
+        <a
+            href="{% url 'teammember_notepad' %}"
+            class="active">
+
+            <i data-lucide="notebook-pen" class="sidebar-icon"></i>
+
+            <span>Notepad</span>
+
+        </a>
+
+
+        <a href="{% url 'teammember_repository' %}">
+
+            <i data-lucide="library" class="sidebar-icon"></i>
+
+            <span>Knowledge Repository</span>
+
+        </a>
+
+
+        <a href="{% url 'teammember_profile' %}">
+
+            <i data-lucide="user-round" class="sidebar-icon"></i>
+
+            <span>Profile</span>
+
+        </a>
+
+
+        <a href="{% url 'teammember_task' %}">
+
+            <i data-lucide="list-checks" class="sidebar-icon"></i>
+
+            <span>My Tasks</span>
+
+        </a>
+
+
+        <a href="{% url 'teammember_chat' %}">
+
+            <i data-lucide="message-circle" class="sidebar-icon"></i>
+
+            <span>Chat</span>
+
+        </a>
+
+
+        <a
+            href="https://meet.google.com/"
+            target="_blank"
+            rel="noopener noreferrer">
+
+            <i data-lucide="video" class="sidebar-icon"></i>
+
+            <span>Google Meet</span>
+
+            <i
+                data-lucide="external-link"
+                class="sidebar-external"></i>
+
+        </a>
+
+
+        <a
+            href="{% url 'teammember_logout' %}"
+            class="logout-link">
+
+            <i data-lucide="log-out" class="sidebar-icon"></i>
+
+            <span>Logout</span>
+
+        </a>
+
+    </nav>
+
+</aside>
+
+
+<!-- =========================================================
+     MOBILE MENU BUTTON
+     ========================================================= -->
+
+<button
+    type="button"
+    class="menu-toggle mobile-menu-button"
+    aria-label="Open menu">
+
+    <i data-lucide="menu"></i>
+
 </button>
 
 
+<!-- =========================================================
+     MAIN AREA
+     ========================================================= -->
 
-<div class="ml-0 md:ml-64 p-4 md:p-6 max-md:mt-[5rem]">
-  <h1 class="text-2xl font-bold mb-4">My Notepad</h1>
+<main class="main-area">
 
-  <!-- Editor -->
-  <form method="POST">
-    {% csrf_token %}
-    {% if note %}
-      <input type="hidden" name="note_id" value="{{ note.id }}">
-    {% endif %}
-    <input type="text" name="title" 
-           value="{% if note %}{{ note.title }}{% endif %}" 
-           placeholder="Title"
-           class="w-full border p-2 rounded mb-2">
-    <textarea name="content" rows="10" class="w-full border p-3 rounded mb-3">{% if note %}{{ note.content }}{% endif %}</textarea>
-    <button type="submit" class="mt-3 bg-[#250f1e] text-white px-4 py-2 rounded">Save</button>
-  </form>
-
-  <!-- New Note button -->
-  <div class="mt-4">
-    <a href="{% url 'teammember_notepad' %}" class="px-3 py-1 border rounded bg-gray-700 text-white">+ New Note</a>
-  </div>
-
-  <!-- Saved Notes Tabs -->
-  <h2 class="text-xl font-semibold mt-6 mb-2">Your Saved Notes</h2>
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-    {% for n in page_obj %}
-      <a href="?note_id={{ n.id }}" 
-         class="px-3 py-2 border rounded hover:bg-purple-300 hover:text-black 
-         {% if note and note.id == n.id %}bg-[#250f1e]/60 text-white{% else %}bg-gray-300 text-black{% endif %}">
-        {{ n.title }}
-      </a>
-    {% empty %}
-      <p class="col-span-4 text-gray-400">No saved notes yet.</p>
-    {% endfor %}
-  </div>
-
-  <!-- Pagination -->
-  <div class="flex justify-center gap-2 mt-4">
-    {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-gray-300 text-black rounded">Previous</a>
-    {% endif %}
-
-    <span class="px-3 py-1 rounded bg-gray-200 text-black">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-
-    {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-gray-300 rounded text-black">Next</a>
-    {% endif %}
-  </div>
-</div>
+    <section class="dashboard-box">
 
 
+        <!-- =====================================================
+             HEADER
+             ===================================================== -->
 
-<!-- Toast Container -->
-<div id="toast-container"
-     class="fixed bottom-5 right-5 z-[9999]
-            space-y-3
-            w-[350px]
-            max-w-[calc(100%-2rem)]">
+        <header class="dashboard-header">
+
+            <div class="dashboard-header-content">
+
+                <div>
+
+                    <div class="dashboard-eyebrow">
+                        TEAM MEMBER / PERSONAL WORKSPACE
+                    </div>
+
+
+                    <div class="dashboard-title-row">
+
+                        <div class="dashboard-title-icon">
+
+                            <i data-lucide="notebook-pen"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <h1>My Notepad</h1>
+
+                            <p>
+                                Create, edit, and manage your personal notes
+                                from your Cybexel workspace.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="system-status">
+
+                    <span class="system-status-dot"></span>
+
+                    <i
+                        data-lucide="log-in"
+                        style="width:14px;height:14px;">
+                    </i>
+
+                    Workspace Active
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =====================================================
+             CONTENT
+             ===================================================== -->
+
+        <div class="dashboard-content">
+
+
+            <!-- Section Heading -->
+
+            <div class="section-heading">
+
+                <div class="section-heading-text">
+
+                    <div class="section-eyebrow">
+                        NOTES
+                    </div>
+
+                    <h2>
+                        Personal Notepad
+                    </h2>
+
+                </div>
+
+                <div class="section-line"></div>
+
+            </div>
+
+
+            <!-- =================================================
+                 NOTEPAD GRID
+                 ================================================= -->
+
+            <div class="notepad-grid">
+
+
+                <!-- =============================================
+                     EDITOR CARD
+                     ============================================= -->
+
+                <div class="dashboard-card">
+
+                    <div class="card-heading">
+
+                        <div class="card-icon">
+
+                            <i data-lucide="file-pen-line"></i>
+
+                        </div>
+
+                        <div class="card-heading-text">
+
+                            <h3>
+                                {% if note %}
+                                    Edit Note
+                                {% else %}
+                                    Create New Note
+                                {% endif %}
+                            </h3>
+
+                            <p>
+                                {% if note %}
+                                    Update your selected note and save your changes.
+                                {% else %}
+                                    Write down your ideas, reminders, or important information.
+                                {% endif %}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Editor -->
+
+                    <form method="POST" class="note-form">
+
+                        {% csrf_token %}
+
+
+                        {% if note %}
+
+                            <input
+                                type="hidden"
+                                name="note_id"
+                                value="{{ note.id }}">
+
+                        {% endif %}
+
+
+                        <!-- Title -->
+
+                        <div>
+
+                            <label
+                                for="note-title"
+                                class="field-label">
+
+                                <i data-lucide="heading"></i>
+
+                                Note Title
+
+                            </label>
+
+
+                            <input
+                                id="note-title"
+                                type="text"
+                                name="title"
+                                value="{% if note %}{{ note.title }}{% endif %}"
+                                placeholder="Enter note title..."
+                                class="note-input"
+                                autocomplete="off">
+
+                        </div>
+
+
+                        <!-- Content -->
+
+                        <div>
+
+                            <label
+                                for="note-content"
+                                class="field-label">
+
+                                <i data-lucide="align-left"></i>
+
+                                Note Content
+
+                            </label>
+
+
+                            <textarea
+                                id="note-content"
+                                name="content"
+                                rows="10"
+                                class="note-textarea"
+                                placeholder="Write your note here...">{% if note %}{{ note.content }}{% endif %}</textarea>
+
+                        </div>
+
+
+                        <!-- Actions -->
+
+                        <div class="editor-actions">
+
+                            <button
+                                type="submit"
+                                class="save-button">
+
+                                <i data-lucide="save"></i>
+
+                                {% if note %}
+                                    Save Changes
+                                {% else %}
+                                    Save Note
+                                {% endif %}
+
+                            </button>
+
+
+                            <a
+                                href="{% url 'teammember_notepad' %}"
+                                class="new-note-button">
+
+                                <i data-lucide="plus"></i>
+
+                                New Note
+
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+
+                <!-- =============================================
+                     SAVED NOTES CARD
+                     ============================================= -->
+
+                <div class="dashboard-card saved-notes-card">
+
+                    <div class="card-heading">
+
+                        <div class="card-icon">
+
+                            <i data-lucide="notebook-tabs"></i>
+
+                        </div>
+
+                        <div class="card-heading-text">
+
+                            <h3>
+                                Your Saved Notes
+                            </h3>
+
+                            <p>
+                                Select a note to continue editing.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="saved-notes-list">
+
+                        {% for n in page_obj %}
+
+                            <a
+                                href="?note_id={{ n.id }}"
+                                class="note-item {% if note and note.id == n.id %}active{% endif %}">
+
+                                <div class="note-item-icon">
+
+                                    <i data-lucide="file-text"></i>
+
+                                </div>
+
+
+                                <span class="note-item-title">
+
+                                    {{ n.title }}
+
+                                </span>
+
+                            </a>
+
+                        {% empty %}
+
+                            <div class="empty-notes">
+
+                                <div class="empty-notes-icon">
+
+                                    <i data-lucide="notebook-pen"></i>
+
+                                </div>
+
+                                <strong>
+                                    No saved notes yet
+                                </strong>
+
+                                <span>
+                                    Create your first note using the editor.
+                                </span>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <!-- Pagination -->
+
+                    {% if page_obj.paginator.num_pages > 1 %}
+
+                        <div class="pagination">
+
+                            {% if page_obj.has_previous %}
+
+                                <a
+                                    href="?page={{ page_obj.previous_page_number }}"
+                                    class="pagination-button">
+
+                                    <i
+                                        data-lucide="chevron-left"
+                                        style="width:15px;height:15px;">
+                                    </i>
+
+                                    Previous
+
+                                </a>
+
+                            {% endif %}
+
+
+                            <span class="pagination-current">
+
+                                {{ page_obj.number }}
+                                /
+                                {{ page_obj.paginator.num_pages }}
+
+                            </span>
+
+
+                            {% if page_obj.has_next %}
+
+                                <a
+                                    href="?page={{ page_obj.next_page_number }}"
+                                    class="pagination-button">
+
+                                    Next
+
+                                    <i
+                                        data-lucide="chevron-right"
+                                        style="width:15px;height:15px;">
+                                    </i>
+
+                                </a>
+
+                            {% endif %}
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =========================================================
+     TOAST CONTAINER
+     ========================================================= -->
+
+<div id="toast-container">
 
     {% if messages %}
 
         {% for message in messages %}
 
-            <div class="toast-message
-                        flex items-center gap-3
-                        bg-[#250f1e]
-                        text-white
-                        border border-purple-600
-                        px-5 py-4
-                        rounded-lg
-                        shadow-2xl">
+            <div
+                class="toast-message {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+
 
                 {% if message.tags == "error" %}
 
-                    <!-- Error Icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-6 h-6 flex-shrink-0 text-red-400"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M6 18L18 6M6 6l12 12"/>
-
-                    </svg>
+                    <i
+                        data-lucide="circle-x"
+                        class="toast-icon">
+                    </i>
 
                 {% else %}
 
-                    <!-- Success Icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-6 h-6 flex-shrink-0 text-green-400"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M5 13l4 4L19 7"/>
-
-                    </svg>
+                    <i
+                        data-lucide="circle-check"
+                        class="toast-icon">
+                    </i>
 
                 {% endif %}
 
-                <span class="flex-1 text-sm font-medium">
+
+                <span class="toast-text">
+
                     {{ message }}
+
                 </span>
 
-                <button type="button"
-                        onclick="removeToast(this.parentElement)"
-                        class="text-gray-300 hover:text-white text-xl leading-none">
 
-                    &times;
+                <button
+                    type="button"
+                    onclick="removeToast(this.parentElement)"
+                    class="toast-close"
+                    aria-label="Close notification">
+
+                    <i data-lucide="x"></i>
 
                 </button>
 
@@ -226,46 +2146,190 @@
 
 </div>
 
+
+<!-- =========================================================
+     SCRIPTS
+     ========================================================= -->
+
 <script>
 
-function removeToast(toast) {
+    /* =========================================================
+       LUCIDE ICONS
+       ========================================================= */
 
-    toast.classList.add("toast-hide");
+    document.addEventListener("DOMContentLoaded", function () {
 
-    setTimeout(() => {
-        toast.remove();
-    }, 350);
-}
-
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    const toasts = document.querySelectorAll(".toast-message");
-
-    toasts.forEach(function (toast) {
-
-        setTimeout(function () {
-
-            if (toast.parentElement) {
-
-                toast.classList.add("toast-hide");
-
-                setTimeout(function () {
-                    toast.remove();
-                }, 350);
-
-            }
-
-        }, 4000);
+        if (window.lucide) {
+            lucide.createIcons();
+        }
 
     });
 
-});
+
+    /* =========================================================
+       TOAST
+       ========================================================= */
+
+    function removeToast(toast) {
+
+        if (!toast) {
+            return;
+        }
+
+        toast.classList.add("toast-hide");
+
+        setTimeout(function () {
+
+            if (toast && toast.parentElement) {
+                toast.remove();
+            }
+
+        }, 350);
+
+    }
+
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const toasts =
+                document.querySelectorAll(".toast-message");
+
+
+            toasts.forEach(function (toast) {
+
+                setTimeout(function () {
+
+                    if (toast.parentElement) {
+
+                        toast.classList.add("toast-hide");
+
+                        setTimeout(function () {
+
+                            if (toast.parentElement) {
+                                toast.remove();
+                            }
+
+                        }, 350);
+
+                    }
+
+                }, 4000);
+
+            });
+
+        }
+    );
+
+
+    /* =========================================================
+       MOBILE SIDEBAR
+       Keeps .menu-toggle class so existing team_member.js
+       functionality is not removed.
+       ========================================================= */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const sidebar =
+                document.getElementById("sidebar");
+
+            const menuButtons =
+                document.querySelectorAll(".menu-toggle");
+
+
+            if (!sidebar) {
+                return;
+            }
+
+
+            menuButtons.forEach(function (button) {
+
+                button.addEventListener(
+                    "click",
+                    function (event) {
+
+                        /*
+                         * If team_member.js already handles the
+                         * sidebar, this only provides the fallback
+                         * mobile behavior.
+                         */
+
+                        if (window.innerWidth <= 900) {
+
+                            sidebar.classList.toggle(
+                                "mobile-open"
+                            );
+
+                        }
+
+                    }
+                );
+
+            });
+
+
+            /* Close sidebar when clicking a navigation item */
+
+            sidebar
+                .querySelectorAll("a")
+                .forEach(function (link) {
+
+                    link.addEventListener(
+                        "click",
+                        function () {
+
+                            if (window.innerWidth <= 900) {
+
+                                sidebar.classList.remove(
+                                    "mobile-open"
+                                );
+
+                            }
+
+                        }
+                    );
+
+                });
+
+        }
+    );
+
+
+    /* =========================================================
+       CLOSE SIDEBAR WHEN RESIZING TO DESKTOP
+       ========================================================= */
+
+    window.addEventListener(
+        "resize",
+        function () {
+
+            const sidebar =
+                document.getElementById("sidebar");
+
+            if (
+                sidebar &&
+                window.innerWidth > 900
+            ) {
+
+                sidebar.classList.remove(
+                    "mobile-open"
+                );
+
+            }
+
+        }
+    );
 
 </script>
 
-<script src="{% static 'js/team_member.js' %}"></script>
-<script src="{% static 'js/activity.js' %}"></script>
-</body>
 
+<!-- Existing project functionality -->
+<script src="{% static 'js/team_member.js' %}"></script>
+
+<script src="{% static 'js/activity.js' %}"></script>
+
+</body>
 </html>
