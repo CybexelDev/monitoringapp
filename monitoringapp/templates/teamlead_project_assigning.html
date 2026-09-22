@@ -2,408 +2,3420 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Team Lead Reports - Cybexel</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Lead Project Assigning - Cybexel</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
 <style>
-/* Dropdown box (collapsed state) */
-select {
-    color: white;                 /* selected text */
-    background-color: #000;       /* black background */
-    border: 1px solid #444;
-    border-radius: 0.5rem;
-    padding: 0.5rem;
-    appearance: none;             /* remove default arrow in some browsers */
+        /* =========================================================
+           TEAM LEAD REPORT PAGE — SAME GLASS UI AS ADMIN REPORTS
+        ========================================================= */
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden !important;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    circle at 15% 10%,
+                    rgba(92, 47, 145, 0.16),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 85% 15%,
+                    rgba(40, 88, 160, 0.12),
+                    transparent 30%
+                ),
+                #08080d;
+
+            color: #ffffff;
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
+
+        .glass-sidebar {
+            position: fixed;
+            top: 18px;
+            left: 16px;
+            bottom: 18px;
+
+            width: 242px;
+
+            z-index: 100;
+
+            display: flex;
+            flex-direction: column;
+
+            padding: 18px 14px;
+
+            border-radius: 27px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(38, 24, 49, 0.96),
+                    rgba(14, 14, 21, 0.96)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.12);
+
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+
+            box-shadow:
+                0 25px 70px rgba(0, 0, 0, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+            overflow: hidden;
+        }
+
+        .glass-sidebar::before {
+            content: "";
+
+            position: absolute;
+
+            width: 190px;
+            height: 190px;
+
+            top: -85px;
+            left: -65px;
+
+            background: rgba(139, 92, 246, 0.20);
+
+            filter: blur(70px);
+
+            pointer-events: none;
+        }
+
+        /* =========================================================
+           SIDEBAR PROFILE
+        ========================================================= */
+
+        .sidebar-profile {
+            position: relative;
+            z-index: 2;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            padding: 2px 5px 20px;
+
+            margin-bottom: 8px;
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .sidebar-logo {
+            width: 86px;
+            height: 86px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 8px;
+
+            border-radius: 23px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255, 255, 255, 0.08),
+                    rgba(255, 255, 255, 0.025)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .sidebar-logo img {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+        }
+
+        .sidebar-profile-text {
+            text-align: center;
+        }
+
+        .sidebar-profile-text h3 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-profile-text span {
+            display: block;
+            margin-top: 3px;
+            color: #898592;
+            font-size: 7px;
+            letter-spacing: 1.7px;
+            font-weight: 600;
+        }
+
+        /* =========================================================
+           NAVIGATION
+        ========================================================= */
+
+        .sidebar-nav {
+            position: relative;
+            z-index: 2;
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .sidebar-item {
+            position: relative;
+
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            min-height: 44px;
+
+            padding: 0 14px;
+
+            border-radius: 13px;
+
+            color: #aaa6b2;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            border: 1px solid transparent;
+
+            transition:
+                background 0.25s ease,
+                color 0.25s ease,
+                transform 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+        .sidebar-item:hover {
+            color: #ffffff;
+
+            background: rgba(255, 255, 255, 0.055);
+
+            border-color: rgba(255, 255, 255, 0.06);
+
+            transform: translateX(3px);
+        }
+
+        .sidebar-item.active {
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(111, 76, 190, 0.82),
+                    rgba(63, 79, 153, 0.72)
+                );
+
+            border: 1px solid rgba(154, 122, 255, 0.38);
+
+            box-shadow:
+                0 10px 28px rgba(99, 102, 241, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+            transform: translateX(2px);
+        }
+
+        .sidebar-item.active::before {
+            content: "";
+
+            position: absolute;
+
+            left: -14px;
+            top: 9px;
+
+            width: 3px;
+            height: 26px;
+
+            border-radius: 0 5px 5px 0;
+
+            background: #b99cff;
+
+            box-shadow:
+                0 0 12px rgba(185, 156, 255, 0.8);
+        }
+
+        .sidebar-icon {
+            width: 20px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #8d8995;
+        }
+
+        .sidebar-icon svg {
+            width: 19px;
+            height: 19px;
+            stroke-width: 1.8;
+        }
+
+        .sidebar-item.active .sidebar-icon {
+            color: #ffffff;
+        }
+
+        .sidebar-external {
+            margin-left: auto;
+            color: #77727f;
+        }
+
+        .sidebar-external svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* =========================================================
+           LOGOUT
+        ========================================================= */
+
+        .sidebar-bottom {
+            position: relative;
+            z-index: 2;
+
+            margin-top: auto;
+            padding-top: 14px;
+        }
+
+        .sidebar-logout {
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            min-height: 43px;
+
+            padding: 0 14px;
+
+            border-radius: 13px;
+
+            color: #ff9ba4;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            background: rgba(255, 70, 85, 0.055);
+
+            border: 1px solid rgba(255, 70, 85, 0.13);
+
+            transition: all 0.25s ease;
+        }
+
+        .sidebar-logout:hover {
+            color: #ffffff;
+            background: rgba(255, 70, 85, 0.13);
+            transform: translateY(-2px);
+        }
+
+        /* =========================================================
+           MAIN AREA
+        ========================================================= */
+
+        .main-area {
+            position: fixed;
+
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 275px;
+
+            padding: 18px 20px;
+
+            overflow: hidden;
+        }
+
+        /* =========================================================
+           BIG GLASS BOX
+        ========================================================= */
+
+        .dashboard-box {
+            position: relative;
+
+            width: 100%;
+            height: 100%;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            padding: 16px;
+
+            border-radius: 28px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(17, 16, 24, 0.94),
+                    rgba(8, 9, 14, 0.96)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.10);
+
+            box-shadow:
+                0 25px 80px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+
+            scrollbar-width: thin;
+            scrollbar-color:
+                rgba(151, 112, 235, 0.65)
+                transparent;
+        }
+
+        .dashboard-box::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        .dashboard-box::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .dashboard-box::-webkit-scrollbar-thumb {
+            background:
+                linear-gradient(
+                    180deg,
+                    #8b5cf6,
+                    #4f46e5
+                );
+
+            border-radius: 20px;
+        }
+
+        /* =========================================================
+           HEADER
+        ========================================================= */
+
+        .dashboard-header {
+            position: relative;
+
+            min-height: 168px;
+
+            display: flex;
+            align-items: center;
+
+            padding: 30px 32px;
+
+            border-radius: 25px;
+
+            overflow: hidden;
+
+            background:
+                linear-gradient(
+                    110deg,
+                    rgba(44, 32, 55, 0.62),
+                    rgba(18, 23, 31, 0.72),
+                    rgba(30, 31, 59, 0.62)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.10);
+
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .dashboard-header::before {
+            content: "";
+
+            position: absolute;
+
+            width: 260px;
+            height: 260px;
+
+            right: -100px;
+            top: -130px;
+
+            background: rgba(99, 102, 241, 0.13);
+
+            filter: blur(80px);
+
+            pointer-events: none;
+        }
+
+        .dashboard-header-content {
+            position: relative;
+            z-index: 2;
+
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 25px;
+        }
+
+        .dashboard-eyebrow {
+            margin-bottom: 15px;
+
+            color: #a78bfa;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            letter-spacing: 3px;
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+
+            font-size: clamp(34px, 4vw, 52px);
+
+            line-height: 1;
+            font-weight: 900;
+
+            letter-spacing: -2px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #ffffff 0%,
+                    #c4b5fd 45%,
+                    #67c8ff 100%
+                );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard-header p {
+            margin: 18px 0 0;
+
+            color: #96939e;
+
+            font-size: 14px;
+        }
+
+        /* =========================================================
+           SYSTEM STATUS
+        ========================================================= */
+
+        .system-status {
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+
+            gap: 9px;
+
+            padding: 10px 18px;
+
+            border-radius: 30px;
+
+            color: #9ee7ba;
+
+            font-size: 12px;
+
+            background: rgba(52, 211, 153, 0.055);
+
+            border: 1px solid rgba(52, 211, 153, 0.17);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: #4ade80;
+
+            box-shadow:
+                0 0 12px rgba(74, 222, 128, 0.75);
+        }
+
+        /* =========================================================
+           CONTENT
+        ========================================================= */
+
+        .dashboard-content {
+            padding: 32px 0 35px;
+        }
+
+        /* =========================================================
+           REPORT TOOLBAR
+        ========================================================= */
+
+        .report-toolbar {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-bottom: 25px;
+
+            padding: 18px;
+
+            border-radius: 20px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.09);
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+
+        .report-actions {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+        }
+
+        .glass-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            min-height: 42px;
+
+            padding: 0 15px;
+
+            border-radius: 12px;
+
+            color: #ffffff;
+
+            text-decoration: none;
+
+            font-size: 11px;
+            font-weight: 700;
+
+            border: 1px solid rgba(255, 255, 255, 0.09);
+
+            background:
+                rgba(255, 255, 255, 0.045);
+
+            transition: all 0.22s ease;
+        }
+
+        .glass-button:hover {
+            transform: translateY(-2px);
+
+            background:
+                rgba(139, 92, 246, 0.15);
+
+            border-color:
+                rgba(139, 92, 246, 0.35);
+        }
+
+        .glass-button.primary {
+            background:
+                linear-gradient(
+                    135deg,
+                    #7c4bd4,
+                    #5b32a7
+                );
+
+            border-color:
+                rgba(167, 139, 250, 0.35);
+
+            box-shadow:
+                0 10px 25px rgba(124, 75, 212, 0.18);
+        }
+
+        .glass-button.export {
+            background:
+                rgba(52, 211, 153, 0.07);
+
+            border-color:
+                rgba(52, 211, 153, 0.20);
+
+            color: #9ee7ba;
+        }
+
+        .glass-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* =========================================================
+           FILTER
+        ========================================================= */
+
+        .filter-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .date-input {
+            height: 42px;
+
+            padding: 0 13px;
+
+            border-radius: 12px;
+
+            outline: none;
+
+            color: #ffffff;
+
+            background:
+                rgba(7, 7, 11, 0.60);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.10);
+
+            font-size: 11px;
+        }
+
+        .date-input:focus {
+            border-color:
+                rgba(139, 92, 246, 0.55);
+
+            box-shadow:
+                0 0 0 3px rgba(139, 92, 246, 0.08);
+        }
+
+        /* =========================================================
+           REPORT SECTIONS
+        ========================================================= */
+
+        .report-section {
+            margin-bottom: 25px;
+        }
+
+        .section-heading {
+            display: flex;
+
+            align-items: center;
+
+            gap: 18px;
+
+            margin-bottom: 15px;
+        }
+
+        .section-title-block {
+            flex-shrink: 0;
+        }
+
+        .section-eyebrow {
+            display: block;
+
+            margin-bottom: 6px;
+
+            color: #a78bfa;
+
+            font-size: 9px;
+
+            font-weight: 800;
+
+            letter-spacing: 2.5px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 20px;
+
+            font-weight: 800;
+        }
+
+        .heading-line {
+            flex: 1;
+
+            height: 1px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0.12),
+                    transparent
+                );
+        }
+
+        /* =========================================================
+           REPORT CARD
+        ========================================================= */
+
+        .report-card {
+            width: 100%;
+
+            padding: 0;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.20),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+
+        .table-wrapper {
+            width: 100%;
+
+            overflow-x: auto;
+
+            scrollbar-width: thin;
+
+            scrollbar-color:
+                rgba(139, 92, 246, 0.45)
+                transparent;
+        }
+
+        .table-wrapper::-webkit-scrollbar {
+            height: 5px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background:
+                rgba(139, 92, 246, 0.45);
+
+            border-radius: 20px;
+        }
+
+        .report-table {
+            width: 100%;
+
+            min-width: 900px;
+
+            border-collapse: collapse;
+        }
+
+        .report-table thead {
+            background:
+                rgba(255, 255, 255, 0.035);
+        }
+
+        .report-table th {
+            height: 47px;
+
+            padding: 0 16px;
+
+            color: #85818d;
+
+            text-align: left;
+
+            font-size: 9px;
+
+            font-weight: 800;
+
+            letter-spacing: 1px;
+
+            text-transform: uppercase;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .report-table td {
+            min-height: 58px;
+
+            padding: 14px 16px;
+
+            color: #dedbe2;
+
+            font-size: 12px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.055);
+
+            vertical-align: middle;
+        }
+
+        .report-table tbody tr {
+            transition:
+                background 0.2s ease;
+        }
+
+        .report-table tbody tr:hover {
+            background:
+                rgba(255, 255, 255, 0.025);
+        }
+
+        .report-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* =========================================================
+           NAME
+        ========================================================= */
+
+        .user-name {
+            display: flex;
+
+            align-items: center;
+
+            gap: 9px;
+
+            white-space: nowrap;
+
+            font-weight: 700;
+
+            color: #ffffff;
+        }
+
+        .user-dot {
+            width: 7px;
+            height: 7px;
+
+            flex-shrink: 0;
+
+            border-radius: 50%;
+
+            background: #a78bfa;
+
+            box-shadow:
+                0 0 9px rgba(167, 139, 250, 0.65);
+        }
+
+        /* =========================================================
+           STATUS
+        ========================================================= */
+
+        .status-badge {
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-width: 70px;
+
+            padding: 6px 10px;
+
+            border-radius: 9px;
+
+            color: #9ee7ba;
+
+            font-size: 10px;
+
+            font-weight: 700;
+
+            background:
+                rgba(52, 211, 153, 0.07);
+
+            border:
+                1px solid rgba(52, 211, 153, 0.18);
+        }
+
+        /* =========================================================
+           REPORT TEXT
+        ========================================================= */
+
+        .report-text {
+            max-width: 420px;
+
+            line-height: 1.6;
+
+            color: #b8b4be;
+        }
+
+        /* =========================================================
+           EMPTY
+        ========================================================= */
+
+        .empty-row {
+            height: 100px;
+
+            text-align: center;
+
+            color: #77727e !important;
+
+            font-size: 11px !important;
+        }
+
+        /* =========================================================
+           MOBILE MENU
+        ========================================================= */
+
+        .mobile-menu-button {
+            display: none;
+
+            position: fixed;
+
+            top: 18px;
+            left: 18px;
+
+            z-index: 200;
+
+            width: 42px;
+            height: 42px;
+
+            border:
+                1px solid rgba(255,255,255,0.10);
+
+            border-radius: 13px;
+
+            color: #ffffff;
+
+            background:
+                rgba(25, 20, 32, 0.88);
+
+            backdrop-filter: blur(15px);
+
+            cursor: pointer;
+        }
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1100px) {
+
+            .glass-sidebar {
+                width: 220px;
+            }
+
+            .main-area {
+                left: 250px;
+                padding: 14px;
+            }
+
+            .dashboard-header {
+                padding: 26px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 42px;
+            }
+
+            .report-toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            body {
+                overflow: hidden;
+            }
+
+            .glass-sidebar {
+                top: 10px;
+                left: 10px;
+                bottom: 10px;
+
+                width: 250px;
+
+                transform:
+                    translateX(-120%);
+
+                transition:
+                    transform 0.3s ease;
+            }
+
+            .glass-sidebar.open {
+                transform:
+                    translateX(0);
+            }
+
+            .mobile-menu-button {
+                display: flex;
+
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-area {
+                left: 0;
+
+                top: 0;
+                right: 0;
+                bottom: 0;
+
+                padding: 10px;
+            }
+
+            .dashboard-box {
+                padding: 12px;
+                border-radius: 22px;
+            }
+
+            .dashboard-header {
+                min-height: auto;
+
+                padding: 25px 20px;
+
+                border-radius: 20px;
+            }
+
+            .dashboard-header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .dashboard-header h1 {
+                font-size: 34px;
+                letter-spacing: -1px;
+            }
+
+            .dashboard-header p {
+                font-size: 12px;
+                line-height: 1.6;
+            }
+
+            .system-status {
+                align-self: flex-start;
+            }
+
+            .dashboard-content {
+                padding: 25px 2px;
+            }
+
+            .report-toolbar {
+                padding: 15px;
+            }
+
+            .report-actions {
+                width: 100%;
+            }
+
+            .glass-button {
+                flex: 1;
+            }
+
+            .filter-area {
+                width: 100%;
+            }
+
+            .date-input {
+                flex: 1;
+            }
+
+            .section-heading {
+                gap: 10px;
+            }
+
+            .section-heading h2 {
+                font-size: 18px;
+            }
+
+            .heading-line {
+                display: none;
+            }
+
+            .report-card {
+                border-radius: 17px;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .dashboard-header h1 {
+                font-size: 28px;
+            }
+
+            .dashboard-header {
+                padding: 22px 17px;
+            }
+
+            .report-toolbar {
+                padding: 13px;
+            }
+
+            .report-actions {
+                flex-direction: column;
+            }
+
+            .glass-button {
+                width: 100%;
+            }
+
+            .filter-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .date-input {
+                width: 100%;
+            }
+
+            .section-heading h2 {
+                font-size: 17px;
+            }
+        }
+    </style>
+
+<style>
+/* =========================================================
+   TEAM LEAD PROJECT ASSIGNING
+   Same UI language as Team Lead Reports
+========================================================= */
+
+.project-page {
+    width: 100%;
 }
 
-/* Dropdown options */
-select option {
-    color: white;                 /* text color in list */
-    background-color: #000;       /* black background */
+.project-hero {
+    margin-bottom: 28px;
 }
 
-/* Prevent any hover/focus/selected color changes */
-select:hover,
-select:focus,
-select option:hover,
-select option:focus,
-select option:checked {
-    color: white !important;
-    background-color: #000 !important;
+.project-hero p {
+    max-width: 720px;
+}
+
+.project-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.project-toolbar-copy {
+    min-width: 0;
+}
+
+.project-toolbar-copy .section-eyebrow {
+    display: block;
+    margin-bottom: 7px;
+}
+
+.project-toolbar-copy h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #fff;
+}
+
+.project-toolbar-copy p {
+    margin: 6px 0 0;
+    color: rgba(226, 232, 240, 0.56);
+    font-size: 13px;
+}
+
+.project-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 92% 0%, rgba(113, 72, 190, 0.13), transparent 34%),
+        linear-gradient(145deg, rgba(24, 22, 35, 0.92), rgba(11, 11, 17, 0.96));
+    box-shadow:
+        0 20px 55px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.project-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+        120deg,
+        rgba(124, 58, 237, 0.05),
+        transparent 35%,
+        rgba(59, 130, 246, 0.035)
+    );
+}
+
+.project-form-card {
+    padding: 28px;
+    margin-bottom: 28px;
+}
+
+.project-form-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.project-form-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.project-form-icon {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    color: #fff;
+    background: linear-gradient(135deg, #6d35d9, #8b5cf6);
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    box-shadow: 0 10px 28px rgba(109, 53, 217, 0.22);
+}
+
+.project-form-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.project-form-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.project-form-header p {
+    margin: 4px 0 0;
+    color: rgba(226, 232, 240, 0.52);
+    font-size: 12px;
+}
+
+.project-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 19px;
+}
+
+.project-field {
+    min-width: 0;
+}
+
+.project-field.full {
+    grid-column: 1 / -1;
+}
+
+.project-field label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    color: rgba(244, 244, 245, 0.82);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.project-field label .optional {
+    color: rgba(196, 181, 253, 0.55);
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.project-input,
+.project-select,
+.project-textarea,
+.project-file {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 12px;
+    outline: none;
+    color: #f8fafc;
+    background: rgba(7, 7, 12, 0.72);
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        background 0.18s ease;
+}
+
+.project-input,
+.project-select {
+    min-height: 44px;
+    padding: 0 13px;
+}
+
+.project-textarea {
+    min-height: 98px;
+    padding: 12px 13px;
+    resize: vertical;
+    line-height: 1.55;
+}
+
+.project-file {
+    min-height: 44px;
+    padding: 8px 10px;
+}
+
+.project-input::placeholder,
+.project-textarea::placeholder {
+    color: rgba(203, 213, 225, 0.32);
+}
+
+.project-input:focus,
+.project-select:focus,
+.project-textarea:focus,
+.project-file:focus {
+    border-color: rgba(139, 92, 246, 0.72);
+    background: rgba(10, 9, 17, 0.9);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.project-input[readonly] {
+    color: rgba(255, 255, 255, 0.74);
+    background: rgba(255, 255, 255, 0.035);
+    cursor: not-allowed;
+}
+
+.project-select {
+    appearance: auto;
+}
+
+.project-select option {
+    color: #fff;
+    background: #0b0b12;
+}
+
+.project-file {
+    color: rgba(226, 232, 240, 0.68);
+}
+
+.project-file::file-selector-button {
+    margin-right: 10px;
+    padding: 8px 11px;
+    border: 0;
+    border-radius: 8px;
+    color: #fff;
+    background: rgba(124, 58, 237, 0.78);
     cursor: pointer;
 }
 
-/* Optional: remove outline for a cleaner look */
-select:focus {
-    outline: none;
-    box-shadow: none;
+.project-submit-row {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 7px;
 }
+
+.project-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 18px;
+    border: 1px solid rgba(167, 139, 250, 0.28);
+    border-radius: 12px;
+    color: #fff;
+    background: linear-gradient(135deg, #7138db, #5b36b6);
+    box-shadow: 0 12px 25px rgba(91, 54, 182, 0.22);
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.project-submit:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.project-table-card {
+    overflow: hidden;
+}
+
+.project-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.project-table {
+    width: 100%;
+    min-width: 980px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.project-table th {
+    padding: 14px 15px;
+    text-align: left;
+    white-space: nowrap;
+    color: rgba(196, 181, 253, 0.62);
+    background: rgba(255, 255, 255, 0.035);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.project-table td {
+    padding: 15px;
+    vertical-align: middle;
+    color: rgba(241, 245, 249, 0.78);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+    font-size: 12px;
+}
+
+.project-table tbody tr {
+    background: rgba(255, 255, 255, 0.008);
+    transition: background 0.18s ease;
+}
+
+.project-table tbody tr:hover {
+    background: rgba(124, 58, 237, 0.055);
+}
+
+.project-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.project-name {
+    color: #fff;
+    font-weight: 750;
+}
+
+.project-team {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.project-team-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: #a78bfa;
+    box-shadow: 0 0 10px rgba(167, 139, 250, 0.55);
+}
+
+.project-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 25px;
+    padding: 0 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(226, 232, 240, 0.76);
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.project-status.completed {
+    color: #86efac;
+    border-color: rgba(34, 197, 94, 0.23);
+    background: rgba(34, 197, 94, 0.08);
+}
+
+.project-status.progress {
+    color: #fde68a;
+    border-color: rgba(234, 179, 8, 0.23);
+    background: rgba(234, 179, 8, 0.08);
+}
+
+.project-status.hold {
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.23);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.project-status.default {
+    color: #c4b5fd;
+    border-color: rgba(139, 92, 246, 0.2);
+    background: rgba(139, 92, 246, 0.08);
+}
+
+.project-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+}
+
+.project-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 31px;
+    padding: 0 10px;
+    border-radius: 9px;
+    font-size: 10px;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+    transition: filter 0.18s ease, transform 0.18s ease;
+}
+
+.project-action:hover {
+    filter: brightness(1.12);
+    transform: translateY(-1px);
+}
+
+.project-action.edit {
+    color: #ddd6fe;
+    border: 1px solid rgba(139, 92, 246, 0.28);
+    background: rgba(124, 58, 237, 0.13);
+}
+
+.project-action.delete {
+    color: #fecaca;
+    border: 1px solid rgba(239, 68, 68, 0.22);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.project-empty {
+    padding: 50px 20px !important;
+    text-align: center;
+    color: rgba(226, 232, 240, 0.36) !important;
+}
+
+.project-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.76);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.project-modal.open {
+    display: flex;
+}
+
+.project-modal-panel {
+    position: relative;
+    width: min(900px, 100%);
+    max-height: 92vh;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(113, 72, 190, 0.16), transparent 32%),
+        linear-gradient(145deg, #181623, #0b0b11);
+    box-shadow:
+        0 30px 90px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.project-modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(14, 13, 21, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.project-modal-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.project-modal-close {
+    width: 35px;
+    height: 35px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.045);
+    cursor: pointer;
+}
+
+.project-modal-close:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.09);
+}
+
+.project-modal-body {
+    padding: 24px;
+}
+
+.project-existing {
+    margin-top: 9px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.project-existing-title {
+    margin: 0 0 7px;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.project-existing a {
+    color: #a78bfa;
+    font-size: 11px;
+    text-decoration: none;
+}
+
+.project-existing a:hover {
+    text-decoration: underline;
+}
+
+.project-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 9px;
+}
+
+.project-images img {
+    width: 76px;
+    height: 76px;
+    object-fit: cover;
+    border-radius: 9px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+@media (max-width: 900px) {
+    .project-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .project-field.full {
+        grid-column: auto;
+    }
+
+    .project-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 640px) {
+    .project-form-card {
+        padding: 18px;
+        border-radius: 18px;
+    }
+
+    .project-form-header {
+        align-items: flex-start;
+    }
+
+    .project-form-header-left {
+        align-items: flex-start;
+    }
+
+    .project-submit-row {
+        justify-content: stretch;
+    }
+
+    .project-submit {
+        width: 100%;
+    }
+
+    .project-modal {
+        padding: 10px;
+    }
+
+    .project-modal-panel {
+        max-height: 95vh;
+        border-radius: 18px;
+    }
+
+    .project-modal-header,
+    .project-modal-body {
+        padding: 17px;
+    }
+}
+
+/* =========================================================
+   CUSTOM TEAM LEAD DATE PICKER
+   Dark glass + purple theme — no browser white calendar
+========================================================= */
+
+.custom-date-picker {
+    position: relative;
+    width: 100%;
+}
+
+.custom-date-input {
+    width: 100%;
+    min-height: 41px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 13px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 12px;
+    background: rgba(5, 5, 11, 0.78);
+    color: #f7f3ff;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.custom-date-input:hover,
+.custom-date-input:focus {
+    outline: none;
+    border-color: rgba(139, 92, 246, .70);
+    background: rgba(11, 9, 19, .95);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, .10);
+}
+
+.custom-date-input span {
+    color: #f2effa;
+    white-space: nowrap;
+}
+
+.custom-date-input span.is-placeholder {
+    color: rgba(255,255,255,.36);
+}
+
+.custom-date-input svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+    color: #c4b5fd;
+}
+
+.custom-calendar {
+    position: absolute;
+    z-index: 9999;
+    top: calc(100% + 9px);
+    left: 0;
+    width: min(310px, calc(100vw - 32px));
+    padding: 13px;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 17px;
+    background:
+        radial-gradient(circle at 90% 0%, rgba(96,165,250,.13), transparent 32%),
+        radial-gradient(circle at 0% 0%, rgba(139,92,246,.20), transparent 38%),
+        rgba(12, 11, 20, .97);
+    box-shadow:
+        0 28px 65px rgba(0,0,0,.58),
+        inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    display: none;
+}
+
+.custom-date-picker.open .custom-calendar {
+    display: block;
+    animation: calendarIn .16s ease-out;
+}
+
+@keyframes calendarIn {
+    from { opacity: 0; transform: translateY(-5px) scale(.985); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: 34px 1fr 34px;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 11px;
+}
+
+.calendar-month-title {
+    border: 0;
+    background: transparent;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+    cursor: default;
+}
+
+.calendar-nav {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 9px;
+    background: rgba(255,255,255,.045);
+    color: #ddd6fe;
+    cursor: pointer;
+}
+
+.calendar-nav:hover {
+    background: rgba(139,92,246,.18);
+    border-color: rgba(139,92,246,.45);
+}
+
+.calendar-nav svg {
+    width: 16px;
+    height: 16px;
+}
+
+.calendar-weekdays,
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.calendar-weekdays {
+    margin-bottom: 5px;
+}
+
+.calendar-weekdays span {
+    height: 28px;
+    display: grid;
+    place-items: center;
+    color: rgba(255,255,255,.45);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.calendar-day {
+    width: 100%;
+    aspect-ratio: 1;
+    min-height: 32px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: transparent;
+    color: rgba(255,255,255,.86);
+    font-size: 12px;
+    cursor: pointer;
+    transition: .15s ease;
+}
+
+.calendar-day:hover {
+    background: rgba(139,92,246,.18);
+    border-color: rgba(139,92,246,.36);
+}
+
+.calendar-day.is-muted {
+    color: rgba(255,255,255,.22);
+}
+
+.calendar-day.is-today {
+    border-color: rgba(96,165,250,.55);
+    color: #bfdbfe;
+}
+
+.calendar-day.is-selected {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    border-color: rgba(196,181,253,.80);
+    color: #fff;
+    font-weight: 800;
+    box-shadow: 0 7px 18px rgba(124,58,237,.28);
+}
+
+.calendar-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.calendar-footer-btn {
+    border: 0;
+    background: transparent;
+    color: #c4b5fd;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    padding: 5px 7px;
+    border-radius: 7px;
+}
+
+.calendar-footer-btn:hover {
+    color: #fff;
+    background: rgba(139,92,246,.14);
+}
+
+@media (max-width: 640px) {
+    .custom-calendar {
+        width: min(300px, calc(100vw - 28px));
+    }
+}
+
+@media (max-width: 430px) {
+    .custom-calendar {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .custom-date-picker.open .custom-calendar {
+        animation: calendarInMobile .16s ease-out;
+    }
+}
+
+@keyframes calendarInMobile {
+    from { opacity: 0; transform: translateX(-50%) translateY(-5px) scale(.985); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+
 </style>
 
 
-
 </head>
-<body class="bg-black text-white font-sans select-none">
 
-<div id="sidebar" 
-     class="fixed top-0 left-0 h-full w-64 bg-[#250f1e] overflow-y-auto text-white p-6 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">  <div class="flex items-center justify-between mb-6">
-    <div class="w-full flex justify-center select-none">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 object-contain">
-    </div>
-    <button class="menu-toggle md:hidden text-white text-2xl max-md:mt-[-9rem]">&times;</button>
-  </div>
-  <nav class="select-none">
-    <ul class="space-y-8 text-sm">
-      <li>
-        <a href="{% url 'teamlead_dashboard' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">
-          Team Lead Dashboard
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_reports' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">
-          Reports
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_project_assigning' %}" class="block py-2 px-4 rounded bg-white text-[#151a37]">
-          Project Assigning
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_notepad' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Notepad</a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_repository' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Knowledge Repository</a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_profile' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Profile</a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_task' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">My task</a>
-      </li>
-      
-      <li><a href="{% url 'teamlead_chat' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Chat</a></li>
-      <li>
-      <a href="https://meet.google.com/" target="_blank" class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-    </li>
-<li>
-        <a href="{% url 'teamlead_logout' %}" class="block py-2 px-4 rounded bg-[red] text-white">Logout</a>
-      </li>
-    </ul>
-  </nav>
-</div>
+<body>
 
-<button class="menu-toggle md:hidden fixed top-8 left-4 z-50 text-white p-2 rounded shadow-lg">
-  &#9776;
-</button>
+<button class="menu-toggle mobile-menu-button" type="button" aria-label="Open menu">☰</button>
+
+<!-- =========================================================
+     SIDEBAR — SAME TEAM LEAD THEME AS REPORTS
+========================================================= -->
+
+{% include "components/teamlead_sidebar.html" %}
 
 
+<!-- =========================================================
+     MAIN
+========================================================= -->
 
-<div class="ml-0 md:ml-64 p-4 md:p-6 max-md:mt-20">
-  <h1 class="text-2xl font-bold mb-6">Assign Project</h1>
+<main class="main-area">
 
-  <form method="POST" enctype="multipart/form-data" class="space-y-4 bg-transparent border-2 border-[#250f1e] text-white p-6 rounded-lg shadow">
-    {% csrf_token %}
+    <div class="dashboard-box">
 
-    <!-- Auto-filled team name (readonly) -->
-    <div>
-      <label class="block font-medium">Team</label>
-      <input type="text" value="{{ team_lead.team.name }}" readonly class="w-full border rounded p-2 bg-gray-100">
-    </div>
+        <!-- =================================================
+             HERO
+        ================================================== -->
 
-    <!-- Department dropdown -->
-    <div>
-  <label class="block font-medium">Department</label>
-  <select name="department" required class="w-full border rounded p-2 text-black">
-    {% for dept in departments %}
-      <option value="{{ dept.id }}" class="text-black">{{ dept.name }}</option>
-    {% endfor %}
-  </select>
-</div>
+        <section class="dashboard-header project-hero">
 
+            <div class="dashboard-header-content">
 
-  <div>
-  <label class="block font-medium">Assign To</label>
-  <select name="assign_to" required class="w-full border rounded p-2 ">
-    {% if team_members %}
-      {% for member in team_members %}
-        <option value="{{ member.id }}">{{ member.name }}</option>
-      {% endfor %}
-    {% else %}
-      <option disabled>No team members found</option>
-    {% endif %}
-  </select>
-</div>
+                <div>
 
+                    <div class="dashboard-eyebrow">
+                        CYBEXEL TEAM LEAD PANEL
+                    </div>
 
-    <div>
-      <label class="block font-medium">Work Name</label>
-      <input type="text" name="work_name" required class="w-full border rounded p-2">
-    </div>
+                    <h1>PROJECT ASSIGNING</h1>
 
-    <div>
-      <label class="block font-medium">Work Type</label>
-      <select name="work_type" required class="w-full border rounded p-2">
-        <option value="Client">Client</option>
-        <option value="Company">Company</option>
-        <option value="Other">Other</option>
-      </select>
-    </div>
+                    <p>
+                        Assign work to your team members and manage assigned projects from one place.
+                    </p>
 
-    <div>
-      <label class="block font-medium">Category (Optional)</label>
-      <input type="text" name="category" class="w-full border rounded p-2">
-    </div>
+                </div>
 
-    <div>
-      <label class="block font-medium">Description</label>
-      <textarea name="description" rows="3" class="w-full border rounded p-2"></textarea>
-    </div>
+                <div class="system-status">
+                    <span class="status-dot"></span>
+                    <span>System Online</span>
+                </div>
 
-    <div>
-      <label class="block font-medium">Deadline</label>
-      <input type="date" name="deadline" required class="w-full border rounded p-2">
-    </div>
-
-    <div>
-      <label class="block font-medium">Additional Notes</label>
-      <textarea name="additional_notes" rows="2" class="w-full border rounded p-2"></textarea>
-    </div>
-
-    <div>
-  <label class="block font-medium">Upload File</label>
-  <input type="file" name="upload_file[]" class="w-full border rounded p-2" multiple>
-</div>
-
-<div>
-  <label class="block font-medium">Upload Image</label>
-  <input type="file" name="upload_image[]" accept="image/*" class="w-full border rounded p-2" multiple>
-</div>
-
-
-    <div>
-      <label class="block font-medium">Color Preference</label>
-      <input type="text" name="color_preference" class="w-full border rounded p-2">
-    </div>
-
-    <div>
-      <label class="block font-medium">Content Example</label>
-      <textarea name="content_example" rows="2" class="w-full border rounded p-2"></textarea>
-    </div>
-
-    <div>
-      <label class="block font-medium">Priority</label>
-      <select name="priority" class="w-full border rounded p-2">
-        <option value="Low">Low</option>
-        <option value="Medium" selected>Medium</option>
-        <option value="High">High</option>
-        <option value="Urgent">Urgent</option>
-      </select>
-    </div>
-
-    <button type="submit" class="bg-[#250f1e] text-white px-4 py-2 rounded hover:bg-green-700">
-      Assign Project
-    </button>
-  </form>
-</div>
-
-
-<div class="md:ml-64 px-10">
-
-  <h2 class="text-xl font-bold text-white mt-8 mb-4">Assigned Projects</h2>
-  <div class="overflow-x-auto">
-    <table class="min-w-full border border-gray-700 text-white">
-      <thead>
-        <tr class="bg-[#250f1e]">
-          <th class="px-4 py-2 border">Team</th>
-          <th class="px-4 py-2 border">Department</th>
-          <th class="px-4 py-2 border">Project Name</th>
-          <th class="px-4 py-2 border">Assigned To</th>
-          <th class="px-4 py-2 border">Status</th>
-          <th class="px-4 py-2 border">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for project in projects %}
-        <tr class="bg-[#250f1e]/30">
-          <td class="px-4 py-2 border">{{ project.team.name }}</td>
-          <td class="px-4 py-2 border">{{ project.department.name }}</td>
-          <td class="px-4 py-2 border">{{ project.work_name }}</td>
-          <td class="px-4 py-2 border">{{ project.assign_to.name }}</td>
-          <td class="px-4 py-2 border">
-            <span class="px-2 py-1 rounded 
-              {% if project.status == 'Completed' %} bg-green-600 
-              {% elif project.status == 'In Progress' %} bg-yellow-600 
-              {% elif project.status == 'On Hold' %} bg-red-600 
-              {% else %} bg-gray-600 {% endif %}">
-              {{ project.get_status_display }}
-            </span>
-          </td>
-          <td class="px-4 py-2 border">
-            <div class="flex flex-nowrap gap-2">
-              <button 
-                onclick="document.getElementById('editModal{{ project.id }}').classList.remove('hidden')" 
-                class="px-3 py-1 bg-blue-600 rounded hover:bg-blue-700 text-white text-sm">
-                Edit
-              </button>
-              <a 
-                href="{% url 'project_assign_delete' project.id %}" 
-                class="px-3 py-1 bg-red-600 rounded hover:bg-red-700 text-white text-sm"
-                onclick="return confirm('Are you sure?')">
-                Delete
-              </a>
             </div>
-          </td>
-        </tr>
 
-        <!-- ✅ Modal for this project -->
-        <div id="editModal{{ project.id }}" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div class="bg-[#250f1e] p-6 rounded-lg w-11/12 md:w-2/3 relative max-h-[90vh] overflow-y-auto">
-            
-            <button onclick="document.getElementById('editModal{{ project.id }}').classList.add('hidden')" class="absolute top-2 right-2 text-white font-bold text-xl">&times;</button>
+        </section>
 
-            <h2 class="text-xl font-bold text-white mb-4">Edit Project</h2>
 
-            <form method="POST" enctype="multipart/form-data" action="{% url 'project_assign_edit' project.id %}" class="space-y-4">
-              {% csrf_token %}
+        <section class="dashboard-content">
 
-              <div>
-                <label class="text-white">Team</label>
-                <input type="text" value="{{ project.team.name }}" readonly class="w-full p-2 rounded border border-gray-600 bg-gray-800 text-white">
-              </div>
+            <!-- =================================================
+                 ASSIGN PROJECT
+            ================================================== -->
 
-              <div>
-                <label class="text-white">Department</label>
-                <select name="department" class="w-full p-2 rounded border border-gray-600 bg-black text-white">
-                  {% for dept in departments %}
-                    <option value="{{ dept.id }}" {% if project.department.id == dept.id %}selected{% endif %}>{{ dept.name }}</option>
-                  {% endfor %}
-                </select>
-              </div>
+            <div class="project-card project-form-card">
 
-              <div>
-                <label class="text-white">Assign To</label>
-                <select name="assign_to" class="w-full p-2 rounded border border-gray-600 bg-black text-white">
-                  {% for member in team_members %}
-                    <option value="{{ member.id }}" {% if project.assign_to.id == member.id %}selected{% endif %}>{{ member.name }}</option>
-                  {% endfor %}
-                </select>
-              </div>
+                <div class="project-form-header">
 
-              <div>
-                <label class="text-white">Work Name</label>
-                <input type="text" name="work_name" value="{{ project.work_name }}" class="w-full p-2 rounded border border-gray-600 bg-gray-800 text-white">
-              </div>
+                    <div class="project-form-header-left">
 
-              <div>
-                <label class="text-white">Work Type</label>
-                <select name="work_type" class="w-full p-2 rounded border border-gray-600 bg-black text-white">
-                  <option value="Client" {% if project.work_type == "Client" %}selected{% endif %}>Client</option>
-                  <option value="Company" {% if project.work_type == "Company" %}selected{% endif %}>Company</option>
-                  <option value="Other" {% if project.work_type == "Other" %}selected{% endif %}>Other</option>
-                </select>
-              </div>
+                        <div class="project-form-icon">
+                            <i data-lucide="clipboard-plus"></i>
+                        </div>
 
-              <div>
-                <label class="text-white">Category</label>
-                <input type="text" name="category" value="{{ project.category }}" class="w-full p-2 rounded border border-gray-600 bg-gray-800 text-white">
-              </div>
+                        <div>
+                            <h3>Assign New Project</h3>
+                            <p>Create a new work assignment for a team member.</p>
+                        </div>
 
-              <div>
-                <label class="text-white">Description</label>
-                <textarea name="description" rows="3" class="w-full p-2 rounded border border-gray-600 bg-gray-800 text-white">{{ project.description }}</textarea>
-              </div>
+                    </div>
 
-              <div>
-                <label class="text-white">Deadline</label>
-                <input type="date" name="deadline" value="{{ project.deadline }}" class="w-full p-2 rounded border border-gray-600 bg-gray-800 text-white">
-              </div>
-
-              <div>
-                <label class="text-white">Additional Notes</label>
-                <textarea name="additional_notes" rows="2" class="w-full p-2 rounded border border-gray-600 bg-gray-800 text-white">{{ project.additional_notes }}</textarea>
-              </div>
-
-              <div>
-                <label class="text-white">Upload File(s)</label>
-                <input type="file" name="upload_file[]" multiple class="w-full p-2 rounded border border-gray-600 bg-gray-800 text-white">
-              </div>
-              {% if project.files.all %}
-                <div class="mt-2 text-white">
-                  <p class="font-semibold">Existing Files:</p>
-                  <ul class="list-disc ml-6">
-                    {% for f in project.files.all %}
-                      <li>
-                        <a href="{{ f.file.url }}" target="_blank" class="underline text-blue-400">
-                          {{ f.file.name|slice:"15:" }}
-                        </a>
-                      </li>
-                    {% endfor %}
-                  </ul>
                 </div>
-              {% endif %}
 
-              <div>
-                <label class="text-white">Upload Image(s)</label>
-                <input type="file" name="upload_image[]" multiple accept="image/*" class="w-full p-2 rounded border border-gray-600 bg-gray-800 text-white">
-              </div>
-              {% if project.images.all %}
-                <div class="mt-2 text-white">
-                  <p class="font-semibold">Existing Images:</p>
-                  <div class="flex gap-2 flex-wrap">
-                    {% for img in project.images.all %}
-                      <div class="w-24 h-24">
-                        <img src="{{ img.image.url }}" alt="Project Image" class="w-full h-full object-cover rounded border border-gray-600">
-                      </div>
-                    {% endfor %}
-                  </div>
+
+                <form method="POST" enctype="multipart/form-data">
+
+                    {% csrf_token %}
+
+                    <div class="project-grid">
+
+                        <!-- Team -->
+                        <div class="project-field">
+
+                            <label for="team">
+                                Team
+                            </label>
+
+                            <select
+                                id="team"
+                                name="team"
+                                required
+                                class="project-select"
+                            >
+                                <option value="" selected disabled>
+                                    Select Team
+                                </option>
+
+                                <option value="Team 1">
+                                    Team 1
+                                </option>
+
+                                <option value="Team 2">
+                                    Team 2
+                                </option>
+
+                                <option value="Management">
+                                    Management
+                                </option>
+                            </select>
+
+                        </div>
+
+
+                        <!-- Department -->
+                        <div class="project-field">
+
+                            <label for="department">
+                                Department
+                            </label>
+
+                            <select
+                                id="department"
+                                name="department"
+                                required
+                                class="project-select"
+                            >
+
+                                {% for dept in departments %}
+
+                                <option value="{{ dept.id }}">
+                                    {{ dept.name }}
+                                </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Assign To -->
+                        <div class="project-field">
+
+                            <label for="assign_to">
+                                Assign To
+                            </label>
+
+                            <select
+                                id="assign_to"
+                                name="assign_to"
+                                required
+                                class="project-select"
+                            >
+
+                                {% if team_members %}
+
+                                    {% for member in team_members %}
+
+                                    <option value="{{ member.id }}">
+                                        {{ member.name }}
+                                    </option>
+
+                                    {% endfor %}
+
+                                {% else %}
+
+                                    <option disabled selected>
+                                        No team members found
+                                    </option>
+
+                                {% endif %}
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- Work Name -->
+                        <div class="project-field">
+
+                            <label for="work_name">
+                                Work Name
+                            </label>
+
+                            <input
+                                id="work_name"
+                                type="text"
+                                name="work_name"
+                                required
+                                placeholder="Enter project / work name"
+                                class="project-input"
+                            >
+
+                        </div>
+
+
+                        <!-- Work Type -->
+                        <div class="project-field">
+
+                            <label for="work_type">
+                                Work Type
+                            </label>
+
+                            <select
+                                id="work_type"
+                                name="work_type"
+                                required
+                                class="project-select"
+                            >
+                                <option value="Client">Client</option>
+                                <option value="Company">Company</option>
+                                <option value="Other">Other</option>
+                            </select>
+
+                        </div>
+
+
+                        <!-- Category -->
+                        <div class="project-field">
+
+                            <label for="category">
+                                Category
+                                <span class="optional">Optional</span>
+                            </label>
+
+                            <input
+                                id="category"
+                                type="text"
+                                name="category"
+                                placeholder="Enter category"
+                                class="project-input"
+                            >
+
+                        </div>
+
+
+                        <!-- Description -->
+                        <div class="project-field full">
+
+                            <label for="description">
+                                Description
+                            </label>
+
+                            <textarea
+                                id="description"
+                                name="description"
+                                rows="3"
+                                placeholder="Describe the assigned work..."
+                                class="project-textarea"
+                            ></textarea>
+
+                        </div>
+
+
+                        <!-- Deadline -->
+                        <div class="project-field">
+
+                            <label for="deadline">
+                                Deadline
+                            </label>
+
+                            <div class="custom-date-picker" data-date-picker>
+                                <input type="hidden" id="deadline" name="deadline">
+
+                                <button
+                                    type="button"
+                                    class="custom-date-input"
+                                    data-date-toggle
+                                    aria-haspopup="dialog"
+                                    aria-expanded="false"
+                                >
+                                    <span data-date-display>dd-mm-yyyy</span>
+                                    <i data-lucide="calendar-days"></i>
+                                </button>
+
+                                <div class="custom-calendar" data-calendar role="dialog" aria-label="Choose deadline">
+                                    <div class="calendar-header">
+                                        <button type="button" class="calendar-nav" data-prev-month aria-label="Previous month">
+                                            <i data-lucide="chevron-left"></i>
+                                        </button>
+
+                                        <button type="button" class="calendar-month-title" data-month-title></button>
+
+                                        <button type="button" class="calendar-nav" data-next-month aria-label="Next month">
+                                            <i data-lucide="chevron-right"></i>
+                                        </button>
+                                    </div>
+
+                                    <div class="calendar-weekdays">
+                                        <span>Su</span><span>Mo</span><span>Tu</span>
+                                        <span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                                    </div>
+
+                                    <div class="calendar-days" data-calendar-days></div>
+
+                                    <div class="calendar-footer">
+                                        <button type="button" class="calendar-footer-btn" data-clear-date>Clear</button>
+                                        <button type="button" class="calendar-footer-btn" data-today-date>Today</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <!-- Priority -->
+                        <div class="project-field">
+
+                            <label for="priority">
+                                Priority
+                            </label>
+
+                            <select
+                                id="priority"
+                                name="priority"
+                                class="project-select"
+                            >
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                                <option value="Urgent">Urgent</option>
+                            </select>
+
+                        </div>
+
+
+                        <!-- Additional Notes -->
+                        <div class="project-field full">
+
+                            <label for="additional_notes">
+                                Additional Notes
+                            </label>
+
+                            <textarea
+                                id="additional_notes"
+                                name="additional_notes"
+                                rows="2"
+                                placeholder="Add any additional instructions..."
+                                class="project-textarea"
+                            ></textarea>
+
+                        </div>
+
+
+                        <!-- File -->
+                        <div class="project-field">
+
+                            <label for="upload_file">
+                                Upload File
+                            </label>
+
+                            <input
+                                id="upload_file"
+                                type="file"
+                                name="upload_file[]"
+                                multiple
+                                class="project-file"
+                            >
+
+                        </div>
+
+
+                        <!-- Image -->
+                        <div class="project-field">
+
+                            <label for="upload_image">
+                                Upload Image
+                            </label>
+
+                            <input
+                                id="upload_image"
+                                type="file"
+                                name="upload_image[]"
+                                accept="image/*"
+                                multiple
+                                class="project-file"
+                            >
+
+                        </div>
+
+
+                        <!-- Color Preference -->
+                        <div class="project-field">
+
+                            <label for="color_preference">
+                                Color Preference
+                            </label>
+
+                            <input
+                                id="color_preference"
+                                type="text"
+                                name="color_preference"
+                                placeholder="e.g. Purple / Blue"
+                                class="project-input"
+                            >
+
+                        </div>
+
+
+                        <!-- Content Example -->
+                        <div class="project-field">
+
+                            <label for="content_example">
+                                Content Example
+                            </label>
+
+                            <textarea
+                                id="content_example"
+                                name="content_example"
+                                rows="2"
+                                placeholder="Add a content example..."
+                                class="project-textarea"
+                            ></textarea>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <div class="project-submit-row">
+
+                        <button type="submit" class="project-submit">
+
+                            <i data-lucide="send"></i>
+
+                            Assign Project
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+
+            <!-- =================================================
+                 ASSIGNED PROJECTS
+            ================================================== -->
+
+            <div class="project-toolbar">
+
+                <div class="project-toolbar-copy">
+
+                    <span class="section-eyebrow">
+                        TEAM WORKSPACE
+                    </span>
+
+                    <h2>Assigned Projects</h2>
+
+                    <p>
+                        View, update and manage projects assigned to your team.
+                    </p>
+
                 </div>
-              {% endif %}
 
-              <div>
-                <label class="text-white">Color Preference</label>
-                <input type="text" name="color_preference" value="{{ project.color_preference }}" class="w-full p-2 rounded border border-gray-600 bg-gray-800 text-white">
-              </div>
+                <div class="glass-button">
+                    <i data-lucide="layers-3"></i>
+                    {{ projects|length }} Projects
+                </div>
 
-              <div>
-                <label class="text-white">Content Example</label>
-                <textarea name="content_example" rows="2" class="w-full p-2 rounded border border-gray-600 bg-gray-800 text-white">{{ project.content_example }}</textarea>
-              </div>
-
-              <div>
-                <label class="text-white">Priority</label>
-                <select name="priority" class="w-full p-2 rounded border border-gray-600 bg-black text-white">
-                  <option value="Low" {% if project.priority == "Low" %}selected{% endif %}>Low</option>
-                  <option value="Medium" {% if project.priority == "Medium" %}selected{% endif %}>Medium</option>
-                  <option value="High" {% if project.priority == "High" %}selected{% endif %}>High</option>
-                  <option value="Urgent" {% if project.priority == "Urgent" %}selected{% endif %}>Urgent</option>
-                </select>
-              </div>
-
-              <button type="submit" class="bg-black mt-4 px-4 py-2 rounded hover:bg-green-700">Update Project</button>
-            </form>
-          </div>
-        </div>
-        <!-- ✅ End Modal -->
-
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-</div>
+            </div>
 
 
+            <div class="project-card project-table-card">
+
+                <div class="project-table-scroll">
+
+                    <table class="project-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Team</th>
+                                <th>Department</th>
+                                <th>Project Name</th>
+                                <th>Assigned To</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
 
 
+                        <tbody>
+
+                            {% for project in projects %}
+
+                            <tr>
+
+                                <td>
+
+                                    <div class="project-team">
+
+                                        <span class="project-team-dot"></span>
+
+                                        {{ project.team.name }}
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+                                    {{ project.department.name }}
+                                </td>
+
+                                <td>
+                                    <div class="project-name">
+                                        {{ project.work_name }}
+                                    </div>
+                                </td>
+
+                                <td>
+                                    {{ project.assign_to.name }}
+                                </td>
+
+                                <td>
+
+                                    {% if project.status == 'Completed' %}
+
+                                        <span class="project-status completed">
+                                            {{ project.get_status_display }}
+                                        </span>
+
+                                    {% elif project.status == 'In Progress' %}
+
+                                        <span class="project-status progress">
+                                            {{ project.get_status_display }}
+                                        </span>
+
+                                    {% elif project.status == 'On Hold' %}
+
+                                        <span class="project-status hold">
+                                            {{ project.get_status_display }}
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="project-status default">
+                                            {{ project.get_status_display }}
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                                <td>
+
+                                    <div class="project-actions">
+
+                                        <button
+                                            type="button"
+                                            class="project-action edit"
+                                            onclick="openProjectModal('editModal{{ project.id }}')"
+                                        >
+                                            <i data-lucide="pencil"></i>
+                                            Edit
+                                        </button>
+
+                                        <a
+                                            href="{% url 'project_assign_delete' project.id %}"
+                                            class="project-action delete"
+                                            onclick="return confirm('Are you sure you want to delete this project?')"
+                                        >
+                                            <i data-lucide="trash-2"></i>
+                                            Delete
+                                        </a>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            {% empty %}
+
+                            <tr>
+
+                                <td colspan="6" class="project-empty">
+                                    No assigned projects found.
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
 
 
+            <!-- =================================================
+                 EDIT MODALS
+            ================================================== -->
 
+            {% for project in projects %}
+
+            <div
+                id="editModal{{ project.id }}"
+                class="project-modal"
+                aria-hidden="true"
+            >
+
+                <div
+                    class="project-modal-panel"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="editTitle{{ project.id }}"
+                >
+
+                    <div class="project-modal-header">
+
+                        <h3 id="editTitle{{ project.id }}">
+                            Edit Project
+                        </h3>
+
+                        <button
+                            type="button"
+                            class="project-modal-close"
+                            onclick="closeProjectModal('editModal{{ project.id }}')"
+                            aria-label="Close edit project"
+                        >
+                            <i data-lucide="x"></i>
+                        </button>
+
+                    </div>
+
+
+                    <div class="project-modal-body">
+
+                        <form
+                            method="POST"
+                            enctype="multipart/form-data"
+                            action="{% url 'project_assign_edit' project.id %}"
+                        >
+
+                            {% csrf_token %}
+
+                            <div class="project-grid">
+
+                                <!-- Team -->
+                                <div class="project-field">
+
+                                    <label>
+                                        Team
+                                    </label>
+
+                                    <select
+                                        name="team"
+                                        required
+                                        class="project-select"
+                                    >
+                                        <option value="Team 1"
+                                            {% if project.team.name == "Team 1" %}selected{% endif %}>
+                                            Team 1
+                                        </option>
+
+                                        <option value="Team 2"
+                                            {% if project.team.name == "Team 2" %}selected{% endif %}>
+                                            Team 2
+                                        </option>
+
+                                        <option value="Management"
+                                            {% if project.team.name == "Management" %}selected{% endif %}>
+                                            Management
+                                        </option>
+                                    </select>
+
+                                </div>
+
+
+                                <!-- Department -->
+                                <div class="project-field">
+
+                                    <label>
+                                        Department
+                                    </label>
+
+                                    <select
+                                        name="department"
+                                        class="project-select"
+                                    >
+
+                                        {% for dept in departments %}
+
+                                        <option
+                                            value="{{ dept.id }}"
+                                            {% if project.department.id == dept.id %}selected{% endif %}
+                                        >
+                                            {{ dept.name }}
+                                        </option>
+
+                                        {% endfor %}
+
+                                    </select>
+
+                                </div>
+
+
+                                <!-- Assign To -->
+                                <div class="project-field">
+
+                                    <label>
+                                        Assign To
+                                    </label>
+
+                                    <select
+                                        name="assign_to"
+                                        class="project-select"
+                                    >
+
+                                        {% for member in team_members %}
+
+                                        <option
+                                            value="{{ member.id }}"
+                                            {% if project.assign_to.id == member.id %}selected{% endif %}
+                                        >
+                                            {{ member.name }}
+                                        </option>
+
+                                        {% endfor %}
+
+                                    </select>
+
+                                </div>
+
+
+                                <!-- Work Name -->
+                                <div class="project-field">
+
+                                    <label>
+                                        Work Name
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="work_name"
+                                        value="{{ project.work_name }}"
+                                        class="project-input"
+                                    >
+
+                                </div>
+
+
+                                <!-- Work Type -->
+                                <div class="project-field">
+
+                                    <label>
+                                        Work Type
+                                    </label>
+
+                                    <select
+                                        name="work_type"
+                                        class="project-select"
+                                    >
+
+                                        <option value="Client" {% if project.work_type == "Client" %}selected{% endif %}>
+                                            Client
+                                        </option>
+
+                                        <option value="Company" {% if project.work_type == "Company" %}selected{% endif %}>
+                                            Company
+                                        </option>
+
+                                        <option value="Other" {% if project.work_type == "Other" %}selected{% endif %}>
+                                            Other
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+                                <!-- Category -->
+                                <div class="project-field">
+
+                                    <label>
+                                        Category
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="category"
+                                        value="{{ project.category }}"
+                                        class="project-input"
+                                    >
+
+                                </div>
+
+
+                                <!-- Description -->
+                                <div class="project-field full">
+
+                                    <label>
+                                        Description
+                                    </label>
+
+                                    <textarea
+                                        name="description"
+                                        rows="3"
+                                        class="project-textarea"
+                                    >{{ project.description }}</textarea>
+
+                                </div>
+
+
+                                <!-- Deadline -->
+                                <div class="project-field">
+
+                                    <label>
+                                        Deadline
+                                    </label>
+
+                                    <div class="custom-date-picker" data-date-picker data-initial-date="{{ project.deadline|date:'Y-m-d' }}">
+                                        <input
+                                            type="hidden"
+                                            name="deadline"
+                                            value="{{ project.deadline|date:'Y-m-d' }}"
+                                        >
+
+                                        <button
+                                            type="button"
+                                            class="custom-date-input"
+                                            data-date-toggle
+                                            aria-haspopup="dialog"
+                                            aria-expanded="false"
+                                        >
+                                            <span data-date-display>
+                                                {% if project.deadline %}
+                                                    {{ project.deadline|date:'d-m-Y' }}
+                                                {% else %}
+                                                    dd-mm-yyyy
+                                                {% endif %}
+                                            </span>
+                                            <i data-lucide="calendar-days"></i>
+                                        </button>
+
+                                        <div class="custom-calendar" data-calendar role="dialog" aria-label="Choose deadline">
+                                            <div class="calendar-header">
+                                                <button type="button" class="calendar-nav" data-prev-month aria-label="Previous month">
+                                                    <i data-lucide="chevron-left"></i>
+                                                </button>
+
+                                                <button type="button" class="calendar-month-title" data-month-title></button>
+
+                                                <button type="button" class="calendar-nav" data-next-month aria-label="Next month">
+                                                    <i data-lucide="chevron-right"></i>
+                                                </button>
+                                            </div>
+
+                                            <div class="calendar-weekdays">
+                                                <span>Su</span><span>Mo</span><span>Tu</span>
+                                                <span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                                            </div>
+
+                                            <div class="calendar-days" data-calendar-days></div>
+
+                                            <div class="calendar-footer">
+                                                <button type="button" class="calendar-footer-btn" data-clear-date>Clear</button>
+                                                <button type="button" class="calendar-footer-btn" data-today-date>Today</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+
+                                <!-- Priority -->
+                                <div class="project-field">
+
+                                    <label>
+                                        Priority
+                                    </label>
+
+                                    <select
+                                        name="priority"
+                                        class="project-select"
+                                    >
+
+                                        <option value="Low" {% if project.priority == "Low" %}selected{% endif %}>
+                                            Low
+                                        </option>
+
+                                        <option value="Medium" {% if project.priority == "Medium" %}selected{% endif %}>
+                                            Medium
+                                        </option>
+
+                                        <option value="High" {% if project.priority == "High" %}selected{% endif %}>
+                                            High
+                                        </option>
+
+                                        <option value="Urgent" {% if project.priority == "Urgent" %}selected{% endif %}>
+                                            Urgent
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+                                <!-- Additional Notes -->
+                                <div class="project-field full">
+
+                                    <label>
+                                        Additional Notes
+                                    </label>
+
+                                    <textarea
+                                        name="additional_notes"
+                                        rows="2"
+                                        class="project-textarea"
+                                    >{{ project.additional_notes }}</textarea>
+
+                                </div>
+
+
+                                <!-- Files -->
+                                <div class="project-field">
+
+                                    <label>
+                                        Upload File(s)
+                                    </label>
+
+                                    <input
+                                        type="file"
+                                        name="upload_file[]"
+                                        multiple
+                                        class="project-file"
+                                    >
+
+                                    {% if project.files.all %}
+
+                                    <div class="project-existing">
+
+                                        <p class="project-existing-title">
+                                            Existing Files
+                                        </p>
+
+                                        {% for f in project.files.all %}
+
+                                        <a
+                                            href="{{ f.file.url }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {{ f.file.name|slice:"15:" }}
+                                        </a>
+
+                                        {% if not forloop.last %}
+                                        <br>
+                                        {% endif %}
+
+                                        {% endfor %}
+
+                                    </div>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <!-- Images -->
+                                <div class="project-field">
+
+                                    <label>
+                                        Upload Image(s)
+                                    </label>
+
+                                    <input
+                                        type="file"
+                                        name="upload_image[]"
+                                        multiple
+                                        accept="image/*"
+                                        class="project-file"
+                                    >
+
+                                    {% if project.images.all %}
+
+                                    <div class="project-existing">
+
+                                        <p class="project-existing-title">
+                                            Existing Images
+                                        </p>
+
+                                        <div class="project-images">
+
+                                            {% for img in project.images.all %}
+
+                                            <div>
+                                                <img
+                                                    src="{{ img.image.url }}"
+                                                    alt="Project Image"
+                                                >
+                                            </div>
+
+                                            {% endfor %}
+
+                                        </div>
+
+                                    </div>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <!-- Color Preference -->
+                                <div class="project-field">
+
+                                    <label>
+                                        Color Preference
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="color_preference"
+                                        value="{{ project.color_preference }}"
+                                        class="project-input"
+                                    >
+
+                                </div>
+
+
+                                <!-- Content Example -->
+                                <div class="project-field">
+
+                                    <label>
+                                        Content Example
+                                    </label>
+
+                                    <textarea
+                                        name="content_example"
+                                        rows="2"
+                                        class="project-textarea"
+                                    >{{ project.content_example }}</textarea>
+
+                                </div>
+
+
+                            </div>
+
+
+                            <div class="project-submit-row">
+
+                                <button
+                                    type="submit"
+                                    class="project-submit"
+                                >
+                                    <i data-lucide="save"></i>
+                                    Update Project
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </section>
+
+    </div>
+
+</main>
 
 
 <script src="{% static 'js/admin.js' %}"></script>
 <script src="{% static 'js/activity.js' %}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const sidebar = document.getElementById("sidebar");
+    const menuButtons = document.querySelectorAll(".menu-toggle");
+
+    menuButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            sidebar.classList.toggle("open");
+        });
+    });
+
+    document.addEventListener("click", function (event) {
+
+        if (
+            window.innerWidth <= 900 &&
+            sidebar.classList.contains("open") &&
+            !sidebar.contains(event.target) &&
+            !event.target.closest(".menu-toggle")
+        ) {
+            sidebar.classList.remove("open");
+        }
+
+    });
+
+    document.addEventListener("keydown", function (event) {
+
+        if (event.key === "Escape") {
+
+            document.querySelectorAll(".project-modal.open").forEach(function (modal) {
+                closeProjectModal(modal.id);
+            });
+
+        }
+
+    });
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+
+});
+
+
+function openProjectModal(id) {
+
+    const modal = document.getElementById(id);
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+
+}
+
+
+function closeProjectModal(id) {
+
+    const modal = document.getElementById(id);
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+
+    if (!document.querySelector(".project-modal.open")) {
+        document.body.style.overflow = "";
+    }
+
+}
+
+
+document.querySelectorAll(".project-modal").forEach(function (modal) {
+
+    modal.addEventListener("click", function (event) {
+
+        if (event.target === modal) {
+            closeProjectModal(modal.id);
+        }
+
+    });
+
+});
+</script>
+
+
+<script>
+/* =========================================================
+   CUSTOM DATE PICKER
+========================================================= */
+document.addEventListener("DOMContentLoaded", function () {
+    const monthFormatter = new Intl.DateTimeFormat("en-US", {
+        month: "long",
+        year: "numeric"
+    });
+
+    const pad = n => String(n).padStart(2, "0");
+
+    function toISO(date) {
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function fromISO(value) {
+        if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+        const [y, m, d] = value.split("-").map(Number);
+        const date = new Date(y, m - 1, d);
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function sameDate(a, b) {
+        return a &&
+            b &&
+            a.getFullYear() === b.getFullYear() &&
+            a.getMonth() === b.getMonth() &&
+            a.getDate() === b.getDate();
+    }
+
+    document.querySelectorAll("[data-date-picker]").forEach(function (picker) {
+        const hiddenInput = picker.querySelector('input[type="hidden"]');
+        const toggle = picker.querySelector("[data-date-toggle]");
+        const display = picker.querySelector("[data-date-display]");
+        const calendar = picker.querySelector("[data-calendar]");
+        const daysWrap = picker.querySelector("[data-calendar-days]");
+        const monthTitle = picker.querySelector("[data-month-title]");
+        const prevBtn = picker.querySelector("[data-prev-month]");
+        const nextBtn = picker.querySelector("[data-next-month]");
+        const clearBtn = picker.querySelector("[data-clear-date]");
+        const todayBtn = picker.querySelector("[data-today-date]");
+
+        let selectedDate = fromISO(hiddenInput.value);
+        let viewDate = selectedDate ? new Date(selectedDate) : new Date();
+        viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+
+        function updateDisplay() {
+            if (selectedDate) {
+                display.textContent =
+                    `${pad(selectedDate.getDate())}-${pad(selectedDate.getMonth() + 1)}-${selectedDate.getFullYear()}`;
+                display.classList.remove("is-placeholder");
+            } else {
+                display.textContent = "dd-mm-yyyy";
+                display.classList.add("is-placeholder");
+            }
+        }
+
+        function renderCalendar() {
+            monthTitle.textContent = monthFormatter.format(viewDate);
+            daysWrap.innerHTML = "";
+
+            const year = viewDate.getFullYear();
+            const month = viewDate.getMonth();
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+            const today = new Date();
+
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const dayNumber = daysInPrevMonth - i;
+                const date = new Date(year, month - 1, dayNumber);
+                addDay(date, true);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                addDay(new Date(year, month, day), false);
+            }
+
+            const totalCells = firstDay + daysInMonth;
+            const remaining = (7 - (totalCells % 7)) % 7;
+
+            for (let day = 1; day <= remaining; day++) {
+                addDay(new Date(year, month + 1, day), true);
+            }
+        }
+
+        function addDay(date, muted) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "calendar-day";
+            button.textContent = date.getDate();
+
+            if (muted) button.classList.add("is-muted");
+            if (sameDate(date, new Date())) button.classList.add("is-today");
+            if (sameDate(date, selectedDate)) button.classList.add("is-selected");
+
+            button.addEventListener("click", function () {
+                selectedDate = new Date(
+                    date.getFullYear(),
+                    date.getMonth(),
+                    date.getDate()
+                );
+
+                hiddenInput.value = toISO(selectedDate);
+                viewDate = new Date(
+                    selectedDate.getFullYear(),
+                    selectedDate.getMonth(),
+                    1
+                );
+
+                updateDisplay();
+                renderCalendar();
+                closeCalendar();
+            });
+
+            daysWrap.appendChild(button);
+        }
+
+        function openCalendar() {
+            document.querySelectorAll("[data-date-picker].open").forEach(function (other) {
+                if (other !== picker) {
+                    other.classList.remove("open");
+                    const otherToggle = other.querySelector("[data-date-toggle]");
+                    if (otherToggle) otherToggle.setAttribute("aria-expanded", "false");
+                }
+            });
+
+            picker.classList.add("open");
+            toggle.setAttribute("aria-expanded", "true");
+            renderCalendar();
+        }
+
+        function closeCalendar() {
+            picker.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+        }
+
+        toggle.addEventListener("click", function () {
+            if (picker.classList.contains("open")) {
+                closeCalendar();
+            } else {
+                openCalendar();
+            }
+        });
+
+        prevBtn.addEventListener("click", function () {
+            viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
+            renderCalendar();
+        });
+
+        nextBtn.addEventListener("click", function () {
+            viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
+            renderCalendar();
+        });
+
+        clearBtn.addEventListener("click", function () {
+            selectedDate = null;
+            hiddenInput.value = "";
+            viewDate = new Date();
+            viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+            updateDisplay();
+            renderCalendar();
+            closeCalendar();
+        });
+
+        todayBtn.addEventListener("click", function () {
+            const today = new Date();
+            selectedDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            hiddenInput.value = toISO(selectedDate);
+            viewDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            updateDisplay();
+            renderCalendar();
+            closeCalendar();
+        });
+
+        updateDisplay();
+        renderCalendar();
+    });
+
+    document.addEventListener("click", function (event) {
+        document.querySelectorAll("[data-date-picker].open").forEach(function (picker) {
+            if (!picker.contains(event.target)) {
+                picker.classList.remove("open");
+                const toggle = picker.querySelector("[data-date-toggle]");
+                if (toggle) toggle.setAttribute("aria-expanded", "false");
+            }
+        });
+    });
+
+    // Create-project deadline is required, but the custom picker uses a hidden input.
+    const projectForm = document.querySelector('form[action*="teamlead_project_assigning"]');
+    if (projectForm) {
+        projectForm.addEventListener("submit", function (event) {
+            const deadline = projectForm.querySelector('#deadline');
+            if (deadline && !deadline.value) {
+                event.preventDefault();
+
+                const picker = deadline.closest("[data-date-picker]");
+                if (picker) {
+                    picker.classList.add("open");
+                    picker.querySelector("[data-date-toggle]").setAttribute("aria-expanded", "true");
+                    picker.querySelector("[data-date-toggle]").focus();
+                }
+
+                alert("Please select a deadline.");
+            }
+        });
+    }
+});
+</script>
+
+<script>
+if (window.lucide) {
+    window.lucide.createIcons();
+}
+</script>
 </body>
 </html>

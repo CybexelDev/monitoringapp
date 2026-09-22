@@ -3,136 +3,2636 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Team Lead - My Tasks</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    /* Task status dropdown with white arrow */
-    select.status-select {
-        color: white;                  
-        background-color: #000;        
-        border: 1px solid #444;        
-        border-radius: 0.5rem;         
-        padding: 0.5rem 2rem 0.5rem 0.5rem; /* extra space for arrow */
-        width: 100%;
-        appearance: none;              
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        cursor: pointer;
-        background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="16" viewBox="0 0 24 24" width="16" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
-        background-repeat: no-repeat;
-        background-position: right 0.5rem center;
-        background-size: 1rem;
-    }
+    <title>Team Lead - Notepad</title>
 
-    select.status-select option {
-        color: white;
-        background-color: #000;
-    }
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-    select.status-select:hover,
-    select.status-select:focus,
-    select.status-select option:hover,
-    select.status-select option:focus,
-    select.status-select option:checked {
-        color: white !important;
-        background-color: #000 !important;
-    }
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
-    select.status-select:focus {
-        outline: none;
-        box-shadow: none;
-    }
-  </style>
+    <style>
+
+        /* =========================================================
+           TEAM LEAD NOTEPAD
+           SAME UI LANGUAGE AS PROJECT ASSIGNING
+        ========================================================= */
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden !important;
+        }
+
+        body {
+            min-height: 100vh;
+
+            background:
+                radial-gradient(
+                    circle at 15% 10%,
+                    rgba(92, 47, 145, 0.16),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 85% 15%,
+                    rgba(40, 88, 160, 0.12),
+                    transparent 30%
+                ),
+                #08080d;
+
+            color: #ffffff;
+
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
+
+        .glass-sidebar {
+
+            position: fixed;
+
+            top: 18px;
+            left: 16px;
+            bottom: 18px;
+
+            width: 242px;
+
+            z-index: 100;
+
+            display: flex;
+            flex-direction: column;
+
+            padding: 18px 14px;
+
+            border-radius: 27px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(38, 24, 49, 0.96),
+                    rgba(14, 14, 21, 0.96)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.12);
+
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+
+            box-shadow:
+                0 25px 70px rgba(0, 0, 0, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+            overflow: hidden;
+        }
+
+
+        .glass-sidebar::before {
+
+            content: "";
+
+            position: absolute;
+
+            width: 190px;
+            height: 190px;
+
+            top: -85px;
+            left: -65px;
+
+            background: rgba(139, 92, 246, 0.20);
+
+            filter: blur(70px);
+
+            pointer-events: none;
+        }
+
+
+        /* =========================================================
+           SIDEBAR PROFILE
+        ========================================================= */
+
+        .sidebar-profile {
+
+            position: relative;
+            z-index: 2;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            padding: 2px 5px 20px;
+
+            margin-bottom: 8px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.07);
+        }
+
+
+        .sidebar-logo {
+
+            width: 86px;
+            height: 86px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 8px;
+
+            border-radius: 23px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255, 255, 255, 0.08),
+                    rgba(255, 255, 255, 0.025)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+
+
+        .sidebar-logo img {
+
+            width: 68px;
+            height: 68px;
+
+            object-fit: contain;
+        }
+
+
+        .sidebar-profile-text {
+            text-align: center;
+        }
+
+
+        .sidebar-profile-text h3 {
+
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 15px;
+            font-weight: 800;
+
+            letter-spacing: 1px;
+        }
+
+
+        .sidebar-profile-text span {
+
+            display: block;
+
+            margin-top: 3px;
+
+            color: #898592;
+
+            font-size: 7px;
+
+            letter-spacing: 1.7px;
+
+            font-weight: 600;
+        }
+
+
+        /* =========================================================
+           NAVIGATION
+        ========================================================= */
+
+        .sidebar-nav {
+
+            position: relative;
+            z-index: 2;
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 5px;
+
+            margin-top: 8px;
+        }
+
+
+        .sidebar-item {
+
+            position: relative;
+
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            min-height: 44px;
+
+            padding: 0 14px;
+
+            border-radius: 13px;
+
+            color: #aaa6b2;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            border:
+                1px solid transparent;
+
+            transition:
+                background 0.25s ease,
+                color 0.25s ease,
+                transform 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+
+        .sidebar-item:hover {
+
+            color: #ffffff;
+
+            background:
+                rgba(255, 255, 255, 0.055);
+
+            border-color:
+                rgba(255, 255, 255, 0.06);
+
+            transform:
+                translateX(3px);
+        }
+
+
+        .sidebar-item.active {
+
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(111, 76, 190, 0.82),
+                    rgba(63, 79, 153, 0.72)
+                );
+
+            border:
+                1px solid rgba(154, 122, 255, 0.38);
+
+            box-shadow:
+                0 10px 28px rgba(99, 102, 241, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+            transform:
+                translateX(2px);
+        }
+
+
+        .sidebar-item.active::before {
+
+            content: "";
+
+            position: absolute;
+
+            left: -14px;
+            top: 9px;
+
+            width: 3px;
+            height: 26px;
+
+            border-radius:
+                0 5px 5px 0;
+
+            background:
+                #b99cff;
+
+            box-shadow:
+                0 0 12px rgba(185, 156, 255, 0.8);
+        }
+
+
+        .sidebar-icon {
+
+            width: 20px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #8d8995;
+        }
+
+
+        .sidebar-icon svg,
+        .sidebar-icon i {
+
+            width: 19px;
+            height: 19px;
+
+            stroke-width: 1.8;
+        }
+
+
+        .sidebar-item.active .sidebar-icon {
+            color: #ffffff;
+        }
+
+
+        .sidebar-external {
+
+            margin-left: auto;
+
+            color: #77727f;
+        }
+
+
+        .sidebar-external svg,
+        .sidebar-external i {
+
+            width: 14px;
+            height: 14px;
+        }
+
+
+        /* =========================================================
+           LOGOUT
+        ========================================================= */
+
+        .sidebar-bottom {
+
+            position: relative;
+            z-index: 2;
+
+            margin-top: auto;
+
+            padding-top: 14px;
+        }
+
+
+        .sidebar-logout {
+
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            min-height: 43px;
+
+            padding: 0 14px;
+
+            border-radius: 13px;
+
+            color: #ff9ba4;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            background:
+                rgba(255, 70, 85, 0.055);
+
+            border:
+                1px solid rgba(255, 70, 85, 0.13);
+
+            transition:
+                all 0.25s ease;
+        }
+
+
+        .sidebar-logout:hover {
+
+            color: #ffffff;
+
+            background:
+                rgba(255, 70, 85, 0.13);
+
+            transform:
+                translateY(-2px);
+        }
+
+
+        /* =========================================================
+           MAIN AREA
+        ========================================================= */
+
+        .main-area {
+
+            position: fixed;
+
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 275px;
+
+            padding: 18px 20px;
+
+            overflow: hidden;
+        }
+
+
+        /* =========================================================
+           MAIN GLASS CONTAINER
+        ========================================================= */
+
+        .dashboard-box {
+
+            position: relative;
+
+            width: 100%;
+            height: 100%;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            padding: 16px;
+
+            border-radius: 28px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(17, 16, 24, 0.94),
+                    rgba(8, 9, 14, 0.96)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.10);
+
+            box-shadow:
+                0 25px 80px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+
+            scrollbar-width: thin;
+
+            scrollbar-color:
+                rgba(151, 112, 235, 0.65)
+                transparent;
+        }
+
+
+        .dashboard-box::-webkit-scrollbar {
+            width: 7px;
+        }
+
+
+        .dashboard-box::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+
+        .dashboard-box::-webkit-scrollbar-thumb {
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #8b5cf6,
+                    #4f46e5
+                );
+
+            border-radius: 20px;
+        }
+
+
+        /* =========================================================
+           PAGE
+        ========================================================= */
+
+        .notepad-page {
+
+            width: 100%;
+
+            min-height: 100%;
+        }
+
+
+        /* =========================================================
+           HERO
+        ========================================================= */
+
+        .notepad-hero {
+
+            position: relative;
+
+            min-height: 168px;
+
+            display: flex;
+            align-items: center;
+
+            padding: 30px 32px;
+
+            margin-bottom: 28px;
+
+            border-radius: 25px;
+
+            overflow: hidden;
+
+            background:
+                linear-gradient(
+                    110deg,
+                    rgba(44, 32, 55, 0.62),
+                    rgba(18, 23, 31, 0.72),
+                    rgba(30, 31, 59, 0.62)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.10);
+
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+
+        .notepad-hero::before {
+
+            content: "";
+
+            position: absolute;
+
+            width: 260px;
+            height: 260px;
+
+            right: -100px;
+            top: -130px;
+
+            background:
+                rgba(99, 102, 241, 0.13);
+
+            filter: blur(80px);
+
+            pointer-events: none;
+        }
+
+
+        .notepad-hero-content {
+
+            position: relative;
+            z-index: 2;
+
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 25px;
+        }
+
+
+        .notepad-eyebrow {
+
+            margin-bottom: 15px;
+
+            color: #a78bfa;
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+            letter-spacing: 3px;
+        }
+
+
+        .notepad-hero h1 {
+
+            margin: 0;
+
+            font-size:
+                clamp(34px, 4vw, 52px);
+
+            line-height: 1;
+
+            font-weight: 900;
+
+            letter-spacing: -2px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #ffffff 0%,
+                    #c4b5fd 45%,
+                    #67c8ff 100%
+                );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        .notepad-hero p {
+
+            margin: 18px 0 0;
+
+            color: #96939e;
+
+            font-size: 14px;
+
+            max-width: 700px;
+        }
+
+
+        .notepad-status {
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+
+            gap: 9px;
+
+            padding: 10px 18px;
+
+            border-radius: 30px;
+
+            color: #9ee7ba;
+
+            font-size: 12px;
+
+            background:
+                rgba(52, 211, 153, 0.055);
+
+            border:
+                1px solid rgba(52, 211, 153, 0.17);
+        }
+
+
+        .status-dot {
+
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background:
+                #4ade80;
+
+            box-shadow:
+                0 0 12px rgba(74, 222, 128, 0.75);
+        }
+
+
+        /* =========================================================
+           SECTION TOOLBAR
+        ========================================================= */
+
+        .notepad-toolbar {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 18px;
+
+            margin-bottom: 24px;
+        }
+
+
+        .notepad-toolbar-copy {
+            min-width: 0;
+        }
+
+
+        .section-eyebrow {
+
+            display: block;
+
+            margin-bottom: 7px;
+
+            color: #a78bfa;
+
+            font-size: 9px;
+
+            font-weight: 800;
+
+            letter-spacing: 2.5px;
+        }
+
+
+        .notepad-toolbar h2 {
+
+            margin: 0;
+
+            font-size: 22px;
+
+            font-weight: 800;
+
+            letter-spacing: -0.02em;
+
+            color: #ffffff;
+        }
+
+
+        .notepad-toolbar p {
+
+            margin: 6px 0 0;
+
+            color:
+                rgba(226, 232, 240, 0.56);
+
+            font-size: 13px;
+        }
+
+
+        /* =========================================================
+           NOTE COUNT
+        ========================================================= */
+
+        .note-count {
+
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            min-height: 42px;
+
+            padding: 0 15px;
+
+            border-radius: 12px;
+
+            color: #ffffff;
+
+            background:
+                rgba(255, 255, 255, 0.045);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            font-size: 11px;
+
+            font-weight: 700;
+        }
+
+
+        .note-count svg,
+        .note-count i {
+
+            width: 16px;
+            height: 16px;
+        }
+
+
+        /* =========================================================
+           NOTE CARD
+        ========================================================= */
+
+        .project-card {
+
+            position: relative;
+
+            overflow: hidden;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            border-radius: 22px;
+
+            background:
+                radial-gradient(
+                    circle at 92% 0%,
+                    rgba(113, 72, 190, 0.13),
+                    transparent 34%
+                ),
+                linear-gradient(
+                    145deg,
+                    rgba(24, 22, 35, 0.92),
+                    rgba(11, 11, 17, 0.96)
+                );
+
+            box-shadow:
+                0 20px 55px rgba(0, 0, 0, 0.28),
+                inset 0 1px 0 rgba(255, 255, 255, 0.025);
+        }
+
+
+        .project-card::before {
+
+            content: "";
+
+            position: absolute;
+
+            inset: 0;
+
+            pointer-events: none;
+
+            background:
+                linear-gradient(
+                    120deg,
+                    rgba(124, 58, 237, 0.05),
+                    transparent 35%,
+                    rgba(59, 130, 246, 0.035)
+                );
+        }
+
+
+        /* =========================================================
+           EDITOR CARD
+        ========================================================= */
+
+        .notepad-editor-card {
+
+            padding: 28px;
+
+            margin-bottom: 28px;
+        }
+
+
+        .notepad-form-header {
+
+            position: relative;
+
+            z-index: 1;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 18px;
+
+            padding-bottom: 20px;
+
+            margin-bottom: 24px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.07);
+        }
+
+
+        .notepad-form-header-left {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+        }
+
+
+        .notepad-form-icon {
+
+            width: 44px;
+            height: 44px;
+
+            flex: 0 0 44px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 14px;
+
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #6d35d9,
+                    #8b5cf6
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.13);
+
+            box-shadow:
+                0 10px 28px rgba(109, 53, 217, 0.22);
+        }
+
+
+        .notepad-form-icon svg,
+        .notepad-form-icon i {
+
+            width: 20px;
+            height: 20px;
+        }
+
+
+        .notepad-form-header h3 {
+
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 17px;
+
+            font-weight: 800;
+        }
+
+
+        .notepad-form-header p {
+
+            margin: 4px 0 0;
+
+            color:
+                rgba(226, 232, 240, 0.52);
+
+            font-size: 12px;
+        }
+
+
+        /* =========================================================
+           FORM
+        ========================================================= */
+
+        .notepad-form {
+
+            position: relative;
+
+            z-index: 1;
+        }
+
+
+        .notepad-field {
+
+            min-width: 0;
+
+            margin-bottom: 19px;
+        }
+
+
+        .notepad-field label {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 6px;
+
+            margin-bottom: 8px;
+
+            color:
+                rgba(244, 244, 245, 0.82);
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.01em;
+        }
+
+
+        .notepad-input,
+        .notepad-textarea {
+
+            width: 100%;
+
+            box-sizing: border-box;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            border-radius: 12px;
+
+            outline: none;
+
+            color: #f8fafc;
+
+            background:
+                rgba(7, 7, 12, 0.72);
+
+            transition:
+                border-color 0.18s ease,
+                box-shadow 0.18s ease,
+                background 0.18s ease;
+        }
+
+
+        .notepad-input {
+
+            min-height: 44px;
+
+            padding:
+                0 13px;
+
+            font-size: 13px;
+        }
+
+
+        .notepad-textarea {
+
+            min-height: 240px;
+
+            padding:
+                13px;
+
+            resize: vertical;
+
+            line-height: 1.65;
+
+            font-size: 13px;
+        }
+
+
+        .notepad-input::placeholder,
+        .notepad-textarea::placeholder {
+
+            color:
+                rgba(203, 213, 225, 0.32);
+        }
+
+
+        .notepad-input:focus,
+        .notepad-textarea:focus {
+
+            border-color:
+                rgba(139, 92, 246, 0.72);
+
+            background:
+                rgba(10, 9, 17, 0.9);
+
+            box-shadow:
+                0 0 0 3px rgba(124, 58, 237, 0.12);
+        }
+
+
+        /* =========================================================
+           FORM ACTIONS
+        ========================================================= */
+
+        .notepad-submit-row {
+
+            position: relative;
+
+            z-index: 1;
+
+            display: flex;
+
+            justify-content: flex-end;
+
+            align-items: center;
+
+            gap: 10px;
+
+            padding-top: 4px;
+        }
+
+
+        .notepad-new-button {
+
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            min-height: 44px;
+
+            padding: 0 17px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            border-radius: 12px;
+
+            color:
+                rgba(226, 232, 240, 0.82);
+
+            background:
+                rgba(255, 255, 255, 0.045);
+
+            text-decoration: none;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            transition:
+                transform .18s ease,
+                background .18s ease,
+                border-color .18s ease;
+        }
+
+
+        .notepad-new-button:hover {
+
+            transform:
+                translateY(-1px);
+
+            background:
+                rgba(139, 92, 246, 0.13);
+
+            border-color:
+                rgba(139, 92, 246, 0.32);
+
+            color: #ffffff;
+        }
+
+
+        .notepad-new-button svg,
+        .notepad-new-button i {
+
+            width: 16px;
+            height: 16px;
+        }
+
+
+        .notepad-save {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            min-height: 44px;
+
+            padding: 0 18px;
+
+            border:
+                1px solid rgba(167, 139, 250, 0.28);
+
+            border-radius: 12px;
+
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #7138db,
+                    #5b36b6
+                );
+
+            box-shadow:
+                0 12px 25px rgba(91, 54, 182, 0.22);
+
+            font-size: 13px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            transition:
+                transform .18s ease,
+                filter .18s ease;
+        }
+
+
+        .notepad-save:hover {
+
+            filter:
+                brightness(1.08);
+
+            transform:
+                translateY(-1px);
+        }
+
+
+        .notepad-save svg,
+        .notepad-save i {
+
+            width: 16px;
+            height: 16px;
+        }
+
+
+        /* =========================================================
+           SAVED NOTES SECTION
+        ========================================================= */
+
+        .saved-notes-section {
+
+            margin-bottom: 30px;
+        }
+
+
+        .saved-notes-header {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 18px;
+
+            margin-bottom: 15px;
+        }
+
+
+        .saved-notes-title {
+
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 20px;
+
+            font-weight: 800;
+        }
+
+
+        .saved-notes-description {
+
+            margin: 6px 0 0;
+
+            color:
+                rgba(226, 232, 240, 0.52);
+
+            font-size: 12px;
+        }
+
+
+        .heading-line {
+
+            flex: 1;
+
+            height: 1px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0.12),
+                    transparent
+                );
+        }
+
+
+        /* =========================================================
+           NOTES GRID
+        ========================================================= */
+
+        .notes-grid {
+
+            position: relative;
+
+            z-index: 1;
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, minmax(0, 1fr));
+
+            gap: 13px;
+        }
+
+
+        .saved-note {
+
+            position: relative;
+
+            min-width: 0;
+
+            min-height: 92px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            padding: 15px;
+
+            color:
+                rgba(226, 232, 240, 0.75);
+
+            text-decoration: none;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            border-radius: 16px;
+
+            background:
+                rgba(255, 255, 255, 0.025);
+
+            transition:
+                background .18s ease,
+                border-color .18s ease,
+                transform .18s ease,
+                box-shadow .18s ease;
+        }
+
+
+        .saved-note:hover {
+
+            transform:
+                translateY(-2px);
+
+            color: #ffffff;
+
+            background:
+                rgba(124, 58, 237, 0.10);
+
+            border-color:
+                rgba(139, 92, 246, 0.30);
+
+            box-shadow:
+                0 12px 30px rgba(0,0,0,.18);
+        }
+
+
+        .saved-note.active {
+
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(111, 76, 190, 0.38),
+                    rgba(63, 79, 153, 0.22)
+                );
+
+            border-color:
+                rgba(154, 122, 255, 0.40);
+
+            box-shadow:
+                0 10px 30px rgba(99, 102, 241, 0.15);
+        }
+
+
+        .saved-note-icon {
+
+            width: 40px;
+            height: 40px;
+
+            flex: 0 0 40px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 12px;
+
+            color:
+                #c4b5fd;
+
+            background:
+                rgba(124, 58, 237, 0.12);
+
+            border:
+                1px solid rgba(139, 92, 246, 0.20);
+        }
+
+
+        .saved-note.active .saved-note-icon {
+
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(124, 58, 237, 0.75),
+                    rgba(79, 70, 229, 0.55)
+                );
+        }
+
+
+        .saved-note-icon svg,
+        .saved-note-icon i {
+
+            width: 18px;
+            height: 18px;
+        }
+
+
+        .saved-note-content {
+
+            min-width: 0;
+        }
+
+
+        .saved-note-title {
+
+            color: inherit;
+
+            font-size: 12px;
+
+            font-weight: 750;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+
+        .saved-note-label {
+
+            margin-top: 4px;
+
+            color:
+                rgba(226, 232, 240, 0.35);
+
+            font-size: 9px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+        }
+
+
+        /* =========================================================
+           EMPTY NOTES
+        ========================================================= */
+
+        .notes-empty {
+
+            grid-column:
+                1 / -1;
+
+            padding: 50px 20px;
+
+            text-align: center;
+
+            color:
+                rgba(226, 232, 240, 0.36);
+
+            border:
+                1px dashed rgba(255, 255, 255, 0.10);
+
+            border-radius: 18px;
+
+            background:
+                rgba(255, 255, 255, 0.018);
+        }
+
+
+        .notes-empty svg,
+        .notes-empty i {
+
+            width: 30px;
+            height: 30px;
+
+            margin:
+                0 auto 10px;
+
+            color:
+                #8b5cf6;
+        }
+
+
+        .notes-empty p {
+
+            margin: 0;
+
+            font-size: 11px;
+        }
+
+
+        /* =========================================================
+           PAGINATION
+        ========================================================= */
+
+        .notepad-pagination {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            flex-wrap: wrap;
+
+            margin-top: 18px;
+
+            padding-bottom: 10px;
+        }
+
+
+        .pagination-button,
+        .pagination-current {
+
+            min-height: 36px;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 0 13px;
+
+            border-radius: 10px;
+
+            font-size: 11px;
+
+            font-weight: 700;
+
+            text-decoration: none;
+        }
+
+
+        .pagination-button {
+
+            color:
+                rgba(226, 232, 240, 0.72);
+
+            background:
+                rgba(255, 255, 255, 0.035);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            transition:
+                .18s ease;
+        }
+
+
+        .pagination-button:hover {
+
+            color: #ffffff;
+
+            background:
+                rgba(124, 58, 237, 0.13);
+
+            border-color:
+                rgba(139, 92, 246, 0.30);
+        }
+
+
+        .pagination-current {
+
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(111, 76, 190, 0.72),
+                    rgba(63, 79, 153, 0.55)
+                );
+
+            border:
+                1px solid rgba(154, 122, 255, 0.32);
+
+            box-shadow:
+                0 8px 22px rgba(99, 102, 241, 0.13);
+        }
+
+
+        /* =========================================================
+           MOBILE MENU
+        ========================================================= */
+
+        .mobile-menu-button {
+
+            display: none;
+
+            position: fixed;
+
+            top: 18px;
+            left: 18px;
+
+            z-index: 200;
+
+            width: 42px;
+            height: 42px;
+
+            align-items: center;
+            justify-content: center;
+
+            border:
+                1px solid rgba(255,255,255,.10);
+
+            border-radius: 12px;
+
+            color: #ffffff;
+
+            background:
+                rgba(17,16,24,.92);
+
+            backdrop-filter:
+                blur(15px);
+
+            box-shadow:
+                0 12px 30px rgba(0,0,0,.35);
+
+            cursor: pointer;
+        }
+
+
+        .mobile-menu-button:hover {
+
+            background:
+                rgba(124,58,237,.20);
+
+            border-color:
+                rgba(139,92,246,.35);
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1100px) {
+
+            .glass-sidebar {
+                width: 220px;
+            }
+
+            .main-area {
+
+                left: 250px;
+
+                padding: 14px;
+            }
+
+            .notepad-hero {
+
+                padding: 26px;
+            }
+
+            .notepad-hero h1 {
+
+                font-size: 42px;
+            }
+
+            .notes-grid {
+
+                grid-template-columns:
+                    repeat(3, minmax(0, 1fr));
+            }
+        }
+
+
+        @media (max-width: 900px) {
+
+            .notes-grid {
+
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
+
+            .notepad-toolbar {
+
+                align-items: flex-start;
+
+                flex-direction: column;
+            }
+
+            .notepad-status {
+
+                align-self: flex-start;
+            }
+        }
+
+
+        @media (max-width: 768px) {
+
+            body {
+                overflow: hidden !important;
+            }
+
+
+            .glass-sidebar {
+
+                top: 10px;
+                left: 10px;
+                bottom: 10px;
+
+                width: 250px;
+
+                transform:
+                    translateX(-120%);
+
+                transition:
+                    transform 0.3s ease;
+            }
+
+
+            .glass-sidebar.open {
+
+                transform:
+                    translateX(0);
+            }
+
+
+            .mobile-menu-button {
+
+                display: flex;
+            }
+
+
+            .main-area {
+
+                left: 0;
+
+                top: 0;
+                right: 0;
+                bottom: 0;
+
+                padding: 10px;
+            }
+
+
+            .dashboard-box {
+
+                padding: 12px;
+
+                border-radius: 22px;
+            }
+
+
+            .notepad-hero {
+
+                min-height: auto;
+
+                padding: 25px 20px;
+
+                border-radius: 20px;
+            }
+
+
+            .notepad-hero-content {
+
+                flex-direction: column;
+
+                align-items: flex-start;
+            }
+
+
+            .notepad-hero h1 {
+
+                font-size: 34px;
+
+                letter-spacing: -1px;
+            }
+
+
+            .notepad-hero p {
+
+                font-size: 12px;
+
+                line-height: 1.6;
+            }
+
+
+            .notepad-status {
+
+                align-self: flex-start;
+            }
+
+
+            .notepad-editor-card {
+
+                padding: 18px;
+
+                border-radius: 18px;
+            }
+
+
+            .notepad-form-header {
+
+                align-items: flex-start;
+            }
+
+
+            .notepad-form-header-left {
+
+                align-items: flex-start;
+            }
+
+
+            .notepad-submit-row {
+
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+
+
+            .notepad-new-button,
+            .notepad-save {
+
+                width: 100%;
+            }
+
+
+            .notes-grid {
+
+                grid-template-columns:
+                    1fr;
+            }
+
+
+            .heading-line {
+
+                display: none;
+            }
+        }
+
+
+        @media (max-width: 480px) {
+
+            .notepad-hero h1 {
+
+                font-size: 28px;
+            }
+
+
+            .notepad-hero {
+
+                padding: 22px 17px;
+            }
+
+
+            .notepad-editor-card {
+
+                padding: 15px;
+            }
+
+
+            .notepad-toolbar h2 {
+
+                font-size: 19px;
+            }
+
+
+            .notepad-textarea {
+
+                min-height: 210px;
+            }
+
+
+            .saved-note {
+
+                min-height: 82px;
+            }
+        }
+
+    </style>
 </head>
-<body class="bg-black text-white font-sans select-none">
 
 
-<div id="sidebar" 
-     class="fixed top-0 left-0 h-full w-64 bg-[#250f1e] overflow-y-auto text-white p-6 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">  <div class="flex items-center justify-between mb-6">
-    <div class="w-full flex justify-center select-none">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 object-contain">
-    </div>
-    <button class="menu-toggle md:hidden text-white text-2xl max-md:mt-[-9rem]">&times;</button>
-  </div>
-  <nav class="select-none"> 
-    <ul class="space-y-8 text-sm">
-      <li><a href="{% url 'teamlead_dashboard' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Team Lead Dashboard</a></li>
-      <li><a href="{% url 'teamlead_reports' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Reports</a></li>
-      <li><a href="{% url 'teamlead_project_assigning' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Project Assigning</a></li>
-      <li><a href="{% url 'teamlead_notepad' %}" class="block py-2 px-4 rounded bg-white text-black">Notepad</a></li>
-      <li><a href="{% url 'teamlead_repository' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Knowledge Repository</a></li>
-      <li><a href="{% url 'teamlead_profile' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Profile</a></li>
-      <li><a href="{% url 'teamlead_task' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">My task</a></li>
-      <li><a href="{% url 'teamlead_chat' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Chat</a></li>
+<body>
 
-      <li>
-      <a href="https://meet.google.com/" target="_blank" class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-    </li>
-      <li>
-        <a href="{% url 'teamlead_logout' %}" class="block py-2 px-4 rounded bg-[red] text-white">Logout</a>
-      </li>
-    </ul>
-  </nav>
-</div>
 
-<button class="menu-toggle md:hidden fixed top-8 left-4 z-50 text-white p-2 rounded shadow-lg">&#9776;</button>
+    <!-- =========================================================
+         SIDEBAR
+    ========================================================== -->
 
-<div class="ml-0 md:ml-64 p-4 md:p-6 max-md:mt-[5rem]">
-  <h1 class="text-2xl font-bold mb-4">My Notepad</h1>
+    <aside id="sidebar" class="glass-sidebar">
 
-  <!-- Editor -->
-  <form method="POST">
-    {% csrf_token %}
-    {% if note %}
-      <input type="hidden" name="note_id" value="{{ note.id }}">
-    {% endif %}
-    <input type="text" name="title" 
-           value="{% if note %}{{ note.title }}{% endif %}" 
-           placeholder="Title"
-           class="w-full border text-extrabold p-2 rounded mb-2">
-    <textarea name="content" rows="10" class="w-full border p-3 rounded mb-3">{% if note %}{{ note.content }}{% endif %}</textarea>
-    <button type="submit" class="mt-3 bg-[#250f1e] text-white px-4 py-2 rounded">Save</button>
-  </form>
+        <!-- TEAM LEAD PROFILE -->
 
-  <!-- New Note button -->
-  <div class="mt-4">
-    <a href="{% url 'teammember_notepad' %}" class="px-3 py-1 border rounded bg-gray-700 text-white">+ New Note</a>
-  </div>
+        <div class="sidebar-profile">
 
-  <!-- Saved Notes Tabs -->
-  <h2 class="text-xl font-semibold mt-6 mb-2">Your Saved Notes</h2>
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-    {% for n in page_obj %}
-      <a href="?note_id={{ n.id }}" 
-         class="px-3 py-2 border rounded hover:bg-purple-300 hover:text-black 
-         {% if note and note.id == n.id %}bg-[#250f1e]/60 text-white{% else %}bg-gray-300 text-black{% endif %}">
-        {{ n.title }}
-      </a>
-    {% empty %}
-      <p class="col-span-4 text-gray-400">No saved notes yet.</p>
-    {% endfor %}
-  </div>
+            <div class="sidebar-logo">
 
-  <!-- Pagination -->
-  <div class="flex justify-center gap-2 mt-4">
-    {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-gray-300 text-black rounded">Previous</a>
-    {% endif %}
+                <img
+                    src="{% static 'images/logo.png' %}"
+                    alt="Team Lead Logo"
+                >
 
-    <span class="px-3 py-1 rounded bg-gray-200 text-black">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+            </div>
 
-    {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-gray-300 rounded text-black">Next</a>
-    {% endif %}
-  </div>
-</div>
 
-<script src="{% static 'js/admin.js' %}"></script>
-<script src="{% static 'js/activity.js' %}"></script>
+            <div class="sidebar-profile-text">
+
+                <h3>
+                    TEAM LEAD
+                </h3>
+
+                <span>
+                    TAGGING HERE
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- NAVIGATION -->
+
+        <nav class="sidebar-nav">
+
+
+            <!-- Dashboard -->
+
+            <a
+                href="{% url 'teamlead_dashboard' %}"
+                class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_dashboard' %}active{% endif %}"
+            >
+
+                <span class="sidebar-icon">
+                    <i data-lucide="layout-dashboard"></i>
+                </span>
+
+                <span>
+                    Dashboard
+                </span>
+
+            </a>
+
+
+            <!-- Reports -->
+
+            <a
+                href="{% url 'teamlead_reports' %}"
+                class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_reports' %}active{% endif %}"
+            >
+
+                <span class="sidebar-icon">
+                    <i data-lucide="chart-no-axes-combined"></i>
+                </span>
+
+                <span>
+                    Reports
+                </span>
+
+            </a>
+
+
+            <!-- Project Assigning -->
+
+            <a
+                href="{% url 'teamlead_project_assigning' %}"
+                class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_project_assigning' %}active{% endif %}"
+            >
+
+                <span class="sidebar-icon">
+                    <i data-lucide="clipboard-list"></i>
+                </span>
+
+                <span>
+                    Project Assigning
+                </span>
+
+            </a>
+
+
+            <!-- Notepad ACTIVE -->
+
+            <a
+                href="{% url 'teamlead_notepad' %}"
+                class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_notepad' %}active{% endif %}"
+            >
+
+                <span class="sidebar-icon">
+                    <i data-lucide="notebook-pen"></i>
+                </span>
+
+                <span>
+                    Notepad
+                </span>
+
+            </a>
+
+
+            <!-- Knowledge Repository -->
+
+            <a
+                href="{% url 'teamlead_repository' %}"
+                class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_repository' %}active{% endif %}"
+            >
+
+                <span class="sidebar-icon">
+                    <i data-lucide="book-open"></i>
+                </span>
+
+                <span>
+                    Knowledge Repository
+                </span>
+
+            </a>
+
+
+            <!-- Profile -->
+
+            <a
+                href="{% url 'teamlead_profile' %}"
+                class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_profile' %}active{% endif %}"
+            >
+
+                <span class="sidebar-icon">
+                    <i data-lucide="circle-user-round"></i>
+                </span>
+
+                <span>
+                    Profile
+                </span>
+
+            </a>
+
+
+            <!-- My Task -->
+
+            <a
+                href="{% url 'teamlead_task' %}"
+                class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_task' %}active{% endif %}"
+            >
+
+                <span class="sidebar-icon">
+                    <i data-lucide="list-checks"></i>
+                </span>
+
+                <span>
+                    My Task
+                </span>
+
+            </a>
+
+
+            <!-- Chat -->
+
+            <a
+                href="{% url 'teamlead_chat' %}"
+                class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_chat' %}active{% endif %}"
+            >
+
+                <span class="sidebar-icon">
+                    <i data-lucide="message-circle"></i>
+                </span>
+
+                <span>
+                    Chat
+                </span>
+
+            </a>
+
+
+            <!-- Google Meet -->
+
+            <a
+                href="https://meet.google.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="sidebar-item"
+            >
+
+                <span class="sidebar-icon">
+                    <i data-lucide="video"></i>
+                </span>
+
+                <span>
+                    Google Meet
+                </span>
+
+                <span class="sidebar-external">
+                    <i data-lucide="arrow-up-right"></i>
+                </span>
+
+            </a>
+
+        </nav>
+
+
+        <!-- LOGOUT -->
+
+        <div class="sidebar-bottom">
+
+            <a
+                href="{% url 'teamlead_logout' %}"
+                class="sidebar-logout"
+            >
+
+                <span class="sidebar-icon">
+                    <i data-lucide="log-out"></i>
+                </span>
+
+                <span>
+                    Logout
+                </span>
+
+            </a>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================================================
+         MOBILE MENU
+    ========================================================== -->
+
+    <button
+        type="button"
+        id="mobileMenuButton"
+        class="mobile-menu-button"
+        aria-label="Open navigation"
+    >
+
+        <i data-lucide="menu"></i>
+
+    </button>
+
+
+    <!-- =========================================================
+         MAIN AREA
+    ========================================================== -->
+
+    <main class="main-area">
+
+        <div class="dashboard-box">
+
+
+            <section class="notepad-page">
+
+
+                <!-- =================================================
+                     HERO
+                ================================================== -->
+
+                <div class="notepad-hero">
+
+                    <div class="notepad-hero-content">
+
+                        <div>
+
+                            <div class="notepad-eyebrow">
+                                CYBEXEL TEAM LEAD PANEL
+                            </div>
+
+                            <h1>
+                                MY NOTEPAD
+                            </h1>
+
+                            <p>
+                                Create, edit and manage your personal
+                                notes from your Team Lead workspace.
+                            </p>
+
+                        </div>
+
+
+                        <div class="notepad-status">
+
+                            <span class="status-dot"></span>
+
+                            Notes Workspace
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     CREATE / EDIT NOTE
+                ================================================== -->
+
+                <div class="project-card notepad-editor-card">
+
+
+                    <div class="notepad-form-header">
+
+                        <div class="notepad-form-header-left">
+
+                            <div class="notepad-form-icon">
+
+                                <i data-lucide="notebook-pen"></i>
+
+                            </div>
+
+
+                            <div>
+
+                                <h3>
+
+                                    {% if note %}
+                                        Edit Note
+                                    {% else %}
+                                        Create New Note
+                                    {% endif %}
+
+                                </h3>
+
+                                <p>
+                                    Write and save your important
+                                    work notes here.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- NOTE FORM -->
+
+                    <form
+                        method="POST"
+                        class="notepad-form"
+                    >
+
+                        {% csrf_token %}
+
+
+                        {% if note %}
+
+                            <input
+                                type="hidden"
+                                name="note_id"
+                                value="{{ note.id }}"
+                            >
+
+                        {% endif %}
+
+
+                        <!-- TITLE -->
+
+                        <div class="notepad-field">
+
+                            <label for="note_title">
+
+                                Note Title
+
+                            </label>
+
+                            <input
+                                id="note_title"
+                                type="text"
+                                name="title"
+                                value="{% if note %}{{ note.title }}{% endif %}"
+                                placeholder="Enter note title"
+                                class="notepad-input"
+                            >
+
+                        </div>
+
+
+                        <!-- CONTENT -->
+
+                        <div class="notepad-field">
+
+                            <label for="note_content">
+
+                                Note Content
+
+                            </label>
+
+                            <textarea
+                                id="note_content"
+                                name="content"
+                                rows="10"
+                                placeholder="Write your notes here..."
+                                class="notepad-textarea"
+                            >{% if note %}{{ note.content }}{% endif %}</textarea>
+
+                        </div>
+
+
+                        <!-- ACTIONS -->
+
+                        <div class="notepad-submit-row">
+
+
+                            <!-- NEW NOTE -->
+
+                            <a
+                                href="{% url 'teammember_notepad' %}"
+                                class="notepad-new-button"
+                            >
+
+                                <i data-lucide="plus"></i>
+
+                                New Note
+
+                            </a>
+
+
+                            <!-- SAVE -->
+
+                            <button
+                                type="submit"
+                                class="notepad-save"
+                            >
+
+                                {% if note %}
+
+                                    <i data-lucide="save"></i>
+
+                                    Update Note
+
+                                {% else %}
+
+                                    <i data-lucide="save"></i>
+
+                                    Save Note
+
+                                {% endif %}
+
+                            </button>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+
+                <!-- =================================================
+                     SAVED NOTES HEADER
+                ================================================== -->
+
+                <div class="notepad-toolbar">
+
+                    <div class="notepad-toolbar-copy">
+
+                        <span class="section-eyebrow">
+                            PERSONAL WORKSPACE
+                        </span>
+
+                        <h2>
+                            Your Saved Notes
+                        </h2>
+
+                        <p>
+                            View and continue editing your saved notes.
+                        </p>
+
+                    </div>
+
+
+                    <div class="note-count">
+
+                        <i data-lucide="layers-3"></i>
+
+                        {{ page_obj.paginator.count }} Notes
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     SAVED NOTES
+                ================================================== -->
+
+                <div class="project-card saved-notes-section">
+
+                    <div
+                        class="notes-grid"
+                        style="padding: 18px;"
+                    >
+
+
+                        {% for n in page_obj %}
+
+
+                            <a
+                                href="?note_id={{ n.id }}"
+                                class="saved-note {% if note and note.id == n.id %}active{% endif %}"
+                            >
+
+                                <div class="saved-note-icon">
+
+                                    <i data-lucide="file-text"></i>
+
+                                </div>
+
+
+                                <div class="saved-note-content">
+
+                                    <div class="saved-note-title">
+                                        {{ n.title }}
+                                    </div>
+
+                                    <div class="saved-note-label">
+
+                                        {% if note and note.id == n.id %}
+                                            Currently Open
+                                        {% else %}
+                                            Saved Note
+                                        {% endif %}
+
+                                    </div>
+
+                                </div>
+
+                            </a>
+
+
+                        {% empty %}
+
+
+                            <div class="notes-empty">
+
+                                <i data-lucide="notebook-tabs"></i>
+
+                                <p>
+                                    No saved notes yet.
+                                </p>
+
+                            </div>
+
+
+                        {% endfor %}
+
+
+                    </div>
+
+
+                    <!-- =================================================
+                         PAGINATION
+                    ================================================== -->
+
+                    {% if page_obj.paginator.num_pages > 1 %}
+
+                        <div class="notepad-pagination">
+
+
+                            {% if page_obj.has_previous %}
+
+                                <a
+                                    href="?page={{ page_obj.previous_page_number }}"
+                                    class="pagination-button"
+                                >
+                                    Previous
+                                </a>
+
+                            {% endif %}
+
+
+                            <span class="pagination-current">
+
+                                Page
+                                {{ page_obj.number }}
+                                of
+                                {{ page_obj.paginator.num_pages }}
+
+                            </span>
+
+
+                            {% if page_obj.has_next %}
+
+                                <a
+                                    href="?page={{ page_obj.next_page_number }}"
+                                    class="pagination-button"
+                                >
+                                    Next
+                                </a>
+
+                            {% endif %}
+
+
+                        </div>
+
+                    {% endif %}
+
+                </div>
+
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <!-- =========================================================
+         EXISTING JS
+    ========================================================== -->
+
+    <script src="{% static 'js/admin.js' %}"></script>
+    <script src="{% static 'js/activity.js' %}"></script>
+
+
+    <!-- =========================================================
+         PAGE JS
+    ========================================================== -->
+
+    <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                const sidebar =
+                    document.getElementById("sidebar");
+
+                const menuButton =
+                    document.getElementById("mobileMenuButton");
+
+
+                /* =============================================
+                   MOBILE SIDEBAR
+                ============================================== */
+
+                if (menuButton) {
+
+                    menuButton.addEventListener(
+                        "click",
+                        function () {
+
+                            sidebar.classList.toggle("open");
+
+                        }
+                    );
+
+                }
+
+
+                /* =============================================
+                   CLOSE SIDEBAR OUTSIDE
+                ============================================== */
+
+                document.addEventListener(
+                    "click",
+                    function (event) {
+
+                        if (
+                            window.innerWidth <= 768 &&
+                            sidebar.classList.contains("open") &&
+                            !sidebar.contains(event.target) &&
+                            !event.target.closest("#mobileMenuButton")
+                        ) {
+
+                            sidebar.classList.remove("open");
+
+                        }
+
+                    }
+                );
+
+
+                /* =============================================
+                   CLOSE SIDEBAR AFTER NAVIGATION
+                ============================================== */
+
+                document
+                    .querySelectorAll(".sidebar-item, .sidebar-logout")
+                    .forEach(function (item) {
+
+                        item.addEventListener(
+                            "click",
+                            function () {
+
+                                if (window.innerWidth <= 768) {
+
+                                    sidebar.classList.remove("open");
+
+                                }
+
+                            }
+                        );
+
+                    });
+
+
+                /* =============================================
+                   ESCAPE CLOSE
+                ============================================== */
+
+                document.addEventListener(
+                    "keydown",
+                    function (event) {
+
+                        if (
+                            event.key === "Escape" &&
+                            sidebar.classList.contains("open")
+                        ) {
+
+                            sidebar.classList.remove("open");
+
+                        }
+
+                    }
+                );
+
+
+                /* =============================================
+                   LUCIDE ICONS
+                ============================================== */
+
+                if (window.lucide) {
+
+                    lucide.createIcons();
+
+                }
+
+            }
+        );
+
+    </script>
+
 </body>
+
 </html>
