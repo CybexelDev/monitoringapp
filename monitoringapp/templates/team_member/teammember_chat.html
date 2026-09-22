@@ -1,0 +1,3763 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Team Member Chat - Cybexel</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/admin.css' %}"
+    >
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+
+    <style>
+
+        /* =========================================================
+           GLOBAL
+        ========================================================= */
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden !important;
+        }
+
+        body {
+            min-height: 100vh;
+
+            background:
+                radial-gradient(
+                    circle at top left,
+                    rgba(139, 200, 63, 0.10),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at bottom right,
+                    rgba(99, 102, 241, 0.08),
+                    transparent 30%
+                ),
+                #050505;
+
+            color: #ffffff;
+
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        ::selection {
+            background: rgba(139, 200, 63, 0.30);
+            color: #ffffff;
+        }
+
+
+        /* =========================================================
+           SCROLLBAR
+        ========================================================= */
+
+        ::-webkit-scrollbar {
+            width: 7px;
+            height: 7px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.025);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(139, 200, 63, 0.35);
+            border-radius: 999px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(139, 200, 63, 0.60);
+        }
+
+
+        /* =========================================================
+           MAIN DASHBOARD SCROLL AREA
+        ========================================================= */
+
+        .dashboard-box {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+
+            -webkit-overflow-scrolling: touch;
+
+            scrollbar-width: thin;
+        }
+
+
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
+
+        .glass-sidebar {
+            position: fixed;
+
+            top: 20px;
+            left: 20px;
+
+            /*
+                Original sidebar width:
+                250px content
+                + 22px left padding
+                + 22px right padding
+
+                Outer width ≈ 294px
+            */
+
+            width: 250px;
+            height: calc(100vh - 40px);
+
+            padding: 22px;
+
+            border-radius: 28px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.96),
+                    rgba(24, 10, 20, 0.96)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 25px 70px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            z-index: 1000;
+
+            display: flex;
+            flex-direction: column;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            transform: translateX(0);
+
+            transition:
+                transform 0.28s ease;
+
+            scrollbar-width: thin;
+        }
+
+
+        /* =========================================================
+           SIDEBAR BRAND
+        ========================================================= */
+
+        .sidebar-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            padding-bottom: 24px;
+            margin-bottom: 18px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            flex-shrink: 0;
+        }
+
+
+        .sidebar-logo {
+            width: 92px;
+            height: 92px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 24px;
+
+            background:
+                rgba(255, 255, 255, 0.04);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 15px 30px rgba(0, 0, 0, 0.30);
+        }
+
+
+        .sidebar-logo img {
+            width: 78px;
+            height: 78px;
+
+            object-fit: contain;
+        }
+
+
+        .sidebar-brand-name {
+            margin-top: 14px;
+
+            text-align: center;
+
+            font-size: 14px;
+            font-weight: 800;
+
+            letter-spacing: 0.16em;
+
+            color: #ffffff;
+        }
+
+
+        .sidebar-brand-role {
+            display: block;
+
+            margin-top: 5px;
+
+            text-align: center;
+
+            font-size: 10px;
+            font-weight: 600;
+
+            letter-spacing: 0.13em;
+
+            color: #a1a1aa;
+        }
+
+
+        /* =========================================================
+           SIDEBAR NAVIGATION
+        ========================================================= */
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+
+            gap: 7px;
+
+            flex: 1;
+            min-height: 0;
+            min-width: 0;
+        }
+
+
+        .sidebar-item,
+        .sidebar-nav a {
+            min-width: 0;
+            width: 100%;
+
+            min-height: 46px;
+
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            padding: 12px 13px;
+
+            border-radius: 14px;
+
+            color: #d4d4d8;
+
+            text-decoration: none;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            border: 1px solid transparent;
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease,
+                transform 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+
+        .sidebar-item:hover,
+        .sidebar-nav a:hover {
+            background:
+                rgba(255, 255, 255, 0.07);
+
+            color: #ffffff;
+
+            transform:
+                translateX(2px);
+        }
+
+
+        .sidebar-item.active,
+        .sidebar-nav a.active {
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(139, 200, 63, 0.22),
+                    rgba(139, 200, 63, 0.08)
+                );
+
+            color: #ffffff;
+
+            border:
+                1px solid rgba(139, 200, 63, 0.20);
+
+            box-shadow:
+                0 8px 24px rgba(0, 0, 0, 0.20);
+        }
+
+
+        /* =========================================================
+           SIDEBAR ICONS
+        ========================================================= */
+
+        .sidebar-icon,
+        .nav-icon,
+        .sidebar-external,
+        .external-icon,
+        .card-icon,
+        .input-icon,
+        .button-icon {
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            flex: 0 0 auto;
+        }
+
+
+        .nav-icon,
+        .sidebar-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+
+        .nav-icon svg,
+        .sidebar-icon svg {
+            width: 19px;
+            height: 19px;
+
+            stroke-width: 1.8;
+        }
+
+
+        .sidebar-nav a.active .nav-icon {
+            color: #8bc83f;
+        }
+
+
+        .sidebar-external,
+        .external-icon {
+            margin-left: auto;
+        }
+
+
+        .sidebar-external svg,
+        .external-icon {
+            width: 14px;
+            height: 14px;
+        }
+
+
+        /* =========================================================
+           SIDEBAR LOGOUT
+        ========================================================= */
+
+        .sidebar-logout {
+            margin-top: auto !important;
+
+            background:
+                rgba(220, 38, 38, 0.12) !important;
+
+            color: #fca5a5 !important;
+
+            border:
+                1px solid rgba(220, 38, 38, 0.12) !important;
+        }
+
+
+        .sidebar-logout:hover {
+            background:
+                rgba(220, 38, 38, 0.20) !important;
+
+            color: #ffffff !important;
+
+            border-color:
+                rgba(220, 38, 38, 0.25) !important;
+        }
+
+
+        /* =========================================================
+           SIDEBAR TEXT ELLIPSIS
+        ========================================================= */
+
+        .sidebar-nav a > span:last-of-type {
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+
+            min-width: 0;
+        }
+
+
+        /* =========================================================
+           MAIN AREA
+        ========================================================= */
+
+        .main-area {
+            position: fixed;
+
+            top: 0;
+            left: 334px;
+            right: 20px;
+            bottom: 0;
+
+            width: auto;
+
+            margin: 0;
+
+            padding: 20px 0;
+
+            height: 100vh;
+            min-height: 100vh;
+
+            min-width: 0;
+
+            box-sizing: border-box;
+
+            overflow: hidden;
+        }
+
+
+        /* =========================================================
+           BIG DASHBOARD BOX
+        ========================================================= */
+
+        .dashboard-box {
+            width: 100%;
+
+            height: calc(100vh - 40px);
+            max-height: calc(100vh - 40px);
+
+            min-width: 0;
+
+            border-radius: 30px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(18, 18, 18, 0.96),
+                    rgba(9, 9, 9, 0.96)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 30px 90px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            box-sizing: border-box;
+        }
+
+
+        /* =========================================================
+           DASHBOARD SCROLL
+        ========================================================= */
+
+        .dashboard-scroll {
+            width: 100%;
+            min-width: 0;
+        }
+
+
+        /* =========================================================
+           HEADER
+        ========================================================= */
+
+        .dashboard-header {
+            padding: 34px 34px 28px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.07);
+        }
+
+
+        .dashboard-header > div:first-child {
+            min-width: 0;
+        }
+
+
+        .header-eyebrow {
+            font-size: 10px;
+
+            font-weight: 800;
+
+            letter-spacing: 0.18em;
+
+            color: #8bc83f;
+
+            margin-bottom: 8px;
+        }
+
+
+        .dashboard-header h1 {
+            margin: 0;
+
+            font-size:
+                clamp(1.8rem, 4vw, 2.7rem);
+
+            line-height: 1;
+
+            font-weight: 900;
+
+            letter-spacing: -0.035em;
+
+            color: #ffffff;
+
+            overflow-wrap: anywhere;
+        }
+
+
+        .dashboard-header p {
+            margin-top: 10px;
+            margin-bottom: 0;
+
+            color: #a1a1aa;
+
+            font-size: 14px;
+
+            line-height: 1.6;
+
+            overflow-wrap: anywhere;
+        }
+
+
+        /* =========================================================
+           SYSTEM STATUS
+        ========================================================= */
+
+        .system-status {
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 9px 13px;
+
+            border-radius: 999px;
+
+            background:
+                rgba(34, 197, 94, 0.08);
+
+            border:
+                1px solid rgba(34, 197, 94, 0.15);
+
+            color: #bbf7d0;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            white-space: nowrap;
+
+            flex: 0 0 auto;
+        }
+
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+
+            flex: 0 0 auto;
+
+            border-radius: 50%;
+
+            background: #4ade80;
+
+            box-shadow:
+                0 0 0 4px rgba(74, 222, 128, 0.10),
+                0 0 14px rgba(74, 222, 128, 0.50);
+        }
+
+
+        /* =========================================================
+           DASHBOARD CONTENT
+        ========================================================= */
+
+        .dashboard-content {
+            padding: 30px 34px 40px;
+
+            min-width: 0;
+        }
+
+
+        /* =========================================================
+           SECTION HEADING
+        ========================================================= */
+
+        .section-heading {
+            display: flex;
+
+            align-items: center;
+
+            gap: 20px;
+
+            margin-bottom: 22px;
+
+            min-width: 0;
+        }
+
+
+        .section-heading > div:first-child {
+            min-width: 0;
+        }
+
+
+        .section-eyebrow {
+            display: block;
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+            letter-spacing: 0.16em;
+
+            color: #8bc83f;
+
+            margin-bottom: 5px;
+        }
+
+
+        .section-heading h2 {
+            margin: 0;
+
+            font-size: 22px;
+
+            font-weight: 800;
+
+            color: #ffffff;
+        }
+
+
+        .section-heading p {
+            margin-top: 5px;
+            margin-bottom: 0;
+
+            color: #71717a;
+
+            font-size: 12px;
+
+            line-height: 1.5;
+        }
+
+
+        .section-line {
+            height: 1px;
+
+            flex: 1;
+
+            min-width: 20px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,.10),
+                    transparent
+                );
+        }
+
+
+        /* =========================================================
+           CHAT WORKSPACE
+        ========================================================= */
+
+        .chat-workspace {
+            width: 100%;
+
+            min-width: 0;
+
+            height: 620px;
+
+            display: grid;
+
+            grid-template-columns:
+                minmax(250px, 0.34fr)
+                minmax(0, 0.66fr);
+
+            gap: 18px;
+        }
+
+
+        /* =========================================================
+           CHAT LIST
+        ========================================================= */
+
+        .chat-list {
+            min-width: 0;
+
+            min-height: 0;
+
+            display: flex;
+
+            flex-direction: column;
+
+            overflow: hidden;
+
+            border-radius: 22px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.80),
+                    rgba(20, 10, 17, 0.80)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.07);
+
+            box-shadow:
+                0 18px 45px rgba(0, 0, 0, 0.24);
+        }
+
+
+        /* =========================================================
+           CHAT LIST HEADER
+        ========================================================= */
+
+        .chat-list-header {
+            min-height: 72px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 12px;
+
+            padding: 15px 17px;
+
+            flex-shrink: 0;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.07);
+        }
+
+
+        .chat-list-title {
+            display: flex;
+
+            align-items: center;
+
+            gap: 11px;
+
+            min-width: 0;
+        }
+
+
+        .chat-list-title-icon {
+            width: 40px;
+            height: 40px;
+
+            flex: 0 0 auto;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            color: #8bc83f;
+
+            background:
+                rgba(139, 200, 63, 0.10);
+
+            border:
+                1px solid rgba(139, 200, 63, 0.14);
+        }
+
+
+        .chat-list-title-icon svg {
+            width: 19px;
+            height: 19px;
+        }
+
+
+        .chat-list-title-text {
+            margin: 0;
+
+            font-size: 16px;
+
+            font-weight: 800;
+
+            color: #ffffff;
+        }
+
+
+        .chat-add-button {
+            width: 36px;
+            height: 36px;
+
+            flex: 0 0 auto;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 11px;
+
+            border:
+                1px solid rgba(139, 200, 63, 0.18);
+
+            background:
+                rgba(139, 200, 63, 0.09);
+
+            color: #8bc83f;
+
+            cursor: pointer;
+
+            transition:
+                background 0.2s ease,
+                transform 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+
+        .chat-add-button:hover {
+            background:
+                rgba(139, 200, 63, 0.17);
+
+            border-color:
+                rgba(139, 200, 63, 0.32);
+
+            transform:
+                translateY(-1px);
+        }
+
+
+        .chat-add-button svg {
+            width: 17px;
+            height: 17px;
+        }
+
+
+        /* =========================================================
+           CHAT LIST SCROLL
+        ========================================================= */
+
+        .chat-list-scroll {
+            flex: 1;
+
+            min-height: 0;
+
+            overflow-y: auto;
+
+            overflow-x: hidden;
+
+            padding: 17px;
+
+            scrollbar-width: thin;
+        }
+
+
+        /* =========================================================
+           CHAT SECTION TITLE
+        ========================================================= */
+
+        .chat-section-title {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 10px;
+
+            margin-bottom: 10px;
+        }
+
+
+        .chat-section-title h3 {
+            margin: 0;
+
+            color: #71717a;
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+            letter-spacing: 0.12em;
+
+            text-transform: uppercase;
+        }
+
+
+        .chat-section-title > span {
+            min-width: 23px;
+            height: 22px;
+
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 0 7px;
+
+            border-radius: 999px;
+
+            color: #a1a1aa;
+
+            background:
+                rgba(255, 255, 255, 0.05);
+
+            font-size: 10px;
+
+            font-weight: 800;
+        }
+
+
+        /* =========================================================
+           USER LIST
+        ========================================================= */
+
+        #user-list {
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 7px;
+        }
+
+
+        .user-row {
+            min-width: 0;
+        }
+
+
+        .user-row > a {
+            width: 100%;
+
+            min-width: 0;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 11px;
+
+            padding: 10px;
+
+            border-radius: 14px;
+
+            text-decoration: none;
+
+            color: #ffffff;
+
+            background:
+                rgba(0, 0, 0, 0.20);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.045);
+
+            transition:
+                background 0.2s ease,
+                border-color 0.2s ease,
+                transform 0.2s ease;
+        }
+
+
+        .user-row > a:hover {
+            background:
+                rgba(255, 255, 255, 0.045);
+
+            border-color:
+                rgba(139, 200, 63, 0.15);
+
+            transform:
+                translateX(2px);
+        }
+
+
+        /* =========================================================
+           USER AVATAR
+        ========================================================= */
+
+        .user-avatar {
+            position: relative;
+
+            width: 42px;
+            height: 42px;
+
+            flex: 0 0 auto;
+        }
+
+
+        .user-avatar img,
+        .user-avatar-placeholder {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            object-fit: cover;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(139, 200, 63, 0.18),
+                    rgba(139, 200, 63, 0.06)
+                );
+
+            border:
+                1px solid rgba(139, 200, 63, 0.18);
+
+            color: #d9f99d;
+
+            font-size: 14px;
+
+            font-weight: 800;
+        }
+
+
+        .user-status-dot {
+            position: absolute;
+
+            right: -1px;
+            bottom: 0;
+
+            width: 11px;
+            height: 11px;
+
+            border-radius: 50%;
+
+            background: #22c55e;
+
+            border:
+                2px solid #180b13;
+
+            box-shadow:
+                0 0 0 2px rgba(34, 197, 94, 0.10);
+        }
+
+
+        /* =========================================================
+           USER INFO
+        ========================================================= */
+
+        .user-info {
+            min-width: 0;
+
+            flex: 1;
+        }
+
+
+        .user-name {
+            margin: 0;
+
+            color: #f4f4f5;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+
+        .user-phone {
+            margin: 4px 0 0;
+
+            color: #71717a;
+
+            font-size: 10px;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+
+        /* =========================================================
+           GROUPS
+        ========================================================= */
+
+        .groups-section {
+            margin-top: 24px;
+
+            padding-top: 20px;
+
+            border-top:
+                1px solid rgba(255, 255, 255, 0.06);
+        }
+
+
+        .groups-list {
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 7px;
+        }
+
+
+        .group-link {
+            min-width: 0;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 10px;
+
+            padding: 11px 12px;
+
+            border-radius: 13px;
+
+            color: #d4d4d8;
+
+            text-decoration: none;
+
+            background:
+                rgba(0, 0, 0, 0.20);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.045);
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+
+        .group-link:hover {
+            color: #ffffff;
+
+            background:
+                rgba(139, 200, 63, 0.07);
+
+            border-color:
+                rgba(139, 200, 63, 0.15);
+        }
+
+
+        .group-link span {
+            min-width: 0;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+
+        .group-link svg {
+            width: 15px;
+            height: 15px;
+
+            flex: 0 0 auto;
+
+            color: #71717a;
+        }
+
+
+        .empty-groups {
+            padding: 13px;
+
+            border-radius: 13px;
+
+            background:
+                rgba(0, 0, 0, 0.18);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.04);
+
+            color: #71717a;
+
+            font-size: 11px;
+
+            text-align: center;
+        }
+
+
+        /* =========================================================
+           CHAT WINDOW
+        ========================================================= */
+
+        #chat-window {
+            min-width: 0;
+            min-height: 0;
+
+            height: 100%;
+
+            display: flex;
+
+            flex-direction: column;
+
+            overflow: hidden;
+
+            border-radius: 22px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.78),
+                    rgba(20, 10, 17, 0.78)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.07);
+
+            box-shadow:
+                0 18px 45px rgba(0, 0, 0, 0.24);
+        }
+
+
+        /* =========================================================
+           CHAT HEADER
+        ========================================================= */
+
+        .chat-header {
+            min-height: 76px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            padding: 13px 18px;
+
+            flex-shrink: 0;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.07);
+
+            background:
+                rgba(0, 0, 0, 0.14);
+        }
+
+
+        .chat-user {
+            min-width: 0;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+        }
+
+
+        .chat-user-avatar,
+        .chat-user-placeholder {
+            width: 46px;
+            height: 46px;
+
+            flex: 0 0 auto;
+
+            border-radius: 50%;
+
+            object-fit: cover;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(139, 200, 63, 0.18),
+                    rgba(139, 200, 63, 0.05)
+                );
+
+            border:
+                1px solid rgba(139, 200, 63, 0.18);
+
+            color: #8bc83f;
+        }
+
+
+        .chat-user-placeholder svg {
+            width: 21px;
+            height: 21px;
+        }
+
+
+        .chat-user-details {
+            min-width: 0;
+        }
+
+
+        .chat-user-name {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 14px;
+
+            font-weight: 800;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+
+        .chat-user-phone {
+            margin: 4px 0 0;
+
+            color: #71717a;
+
+            font-size: 10px;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+
+        .chat-header-status {
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            flex: 0 0 auto;
+
+            color: #86efac;
+
+            font-size: 10px;
+
+            font-weight: 700;
+
+            white-space: nowrap;
+        }
+
+
+        .chat-header-status span {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #4ade80;
+
+            box-shadow:
+                0 0 10px rgba(74, 222, 128, 0.45);
+        }
+
+
+        /* =========================================================
+           CHAT MESSAGES
+        ========================================================= */
+
+        #chat-messages {
+            flex: 1;
+
+            min-height: 0;
+
+            overflow-y: auto;
+
+            overflow-x: hidden;
+
+            padding: 20px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 10px;
+
+            scrollbar-width: thin;
+        }
+
+
+        .message-row {
+            width: 100%;
+
+            display: flex;
+
+            align-items: flex-end;
+
+            gap: 8px;
+        }
+
+
+        .message-outgoing {
+            justify-content: flex-end;
+        }
+
+
+        .message-incoming {
+            justify-content: flex-start;
+        }
+
+
+        .message-bubble {
+            max-width: min(72%, 520px);
+
+            margin: 0;
+
+            padding: 10px 13px;
+
+            border-radius: 16px;
+
+            font-size: 12px;
+
+            line-height: 1.55;
+
+            overflow-wrap: anywhere;
+
+            word-break: break-word;
+        }
+
+
+        .message-outgoing .message-bubble {
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #8bc83f,
+                    #6da52e
+                );
+
+            border-bottom-right-radius: 5px;
+
+            box-shadow:
+                0 8px 20px rgba(139, 200, 63, 0.10);
+        }
+
+
+        .message-incoming .message-bubble {
+            color: #e4e4e7;
+
+            background:
+                rgba(255, 255, 255, 0.055);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.07);
+
+            border-bottom-left-radius: 5px;
+        }
+
+
+        .message-avatar,
+        .message-avatar-placeholder {
+            width: 30px;
+            height: 30px;
+
+            flex: 0 0 auto;
+
+            border-radius: 50%;
+
+            object-fit: cover;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            background:
+                rgba(139, 200, 63, 0.10);
+
+            border:
+                1px solid rgba(139, 200, 63, 0.14);
+
+            color: #8bc83f;
+        }
+
+
+        .message-avatar-placeholder svg {
+            width: 15px;
+            height: 15px;
+        }
+
+
+        /* =========================================================
+           CHAT INPUT
+        ========================================================= */
+
+        .chat-input-area {
+            min-height: 72px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 13px 15px;
+
+            flex-shrink: 0;
+
+            border-top:
+                1px solid rgba(255, 255, 255, 0.07);
+
+            background:
+                rgba(0, 0, 0, 0.16);
+        }
+
+
+        #chat-input {
+            width: 100%;
+
+            min-width: 0;
+
+            height: 44px;
+
+            padding: 11px 14px;
+
+            border-radius: 13px;
+
+            outline: none;
+
+            background:
+                #050505;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            color: #ffffff;
+
+            font-size: 12px;
+
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease,
+                background 0.2s ease;
+        }
+
+
+        #chat-input::placeholder {
+            color: #52525b;
+        }
+
+
+        #chat-input:hover {
+            border-color:
+                rgba(255, 255, 255, 0.15);
+        }
+
+
+        #chat-input:focus {
+            background:
+                rgba(0, 0, 0, 0.72);
+
+            border-color:
+                rgba(139, 200, 63, 0.55);
+
+            box-shadow:
+                0 0 0 3px rgba(139, 200, 63, 0.08);
+        }
+
+
+        #sendBtn {
+            height: 44px;
+
+            flex: 0 0 auto;
+
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            gap: 7px;
+
+            padding: 0 16px;
+
+            border: 0;
+
+            border-radius: 13px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #8bc83f,
+                    #6da52e
+                );
+
+            color: #ffffff;
+
+            font-size: 12px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 10px 25px rgba(139, 200, 63, 0.14);
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                filter 0.2s ease;
+        }
+
+
+        #sendBtn:hover {
+            transform:
+                translateY(-1px);
+
+            filter:
+                brightness(1.06);
+
+            box-shadow:
+                0 14px 30px rgba(139, 200, 63, 0.20);
+        }
+
+
+        #sendBtn:active {
+            transform:
+                translateY(0);
+        }
+
+
+        #sendBtn svg {
+            width: 16px;
+            height: 16px;
+
+            stroke-width: 2.2;
+        }
+
+
+        /* =========================================================
+           GROUP MODAL
+        ========================================================= */
+
+        #groupModal {
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 5000;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+
+            background:
+                rgba(0, 0, 0, 0.70);
+
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+
+
+        #groupModal.hidden {
+            display: none;
+        }
+
+
+        .group-modal-card {
+            width: 100%;
+
+            max-width: 480px;
+
+            max-height:
+                calc(100vh - 40px);
+
+            overflow-y: auto;
+
+            padding: 25px;
+
+            border-radius: 22px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(37, 15, 30, 0.98),
+                    rgba(20, 10, 17, 0.98)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.60);
+
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+
+        .modal-title {
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin-bottom: 22px;
+        }
+
+
+        .modal-title-icon {
+            width: 44px;
+            height: 44px;
+
+            flex: 0 0 auto;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 13px;
+
+            color: #8bc83f;
+
+            background:
+                rgba(139, 200, 63, 0.10);
+
+            border:
+                1px solid rgba(139, 200, 63, 0.16);
+        }
+
+
+        .modal-title-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+
+        .modal-title h2 {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 19px;
+
+            font-weight: 800;
+        }
+
+
+        .modal-label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #d4d4d8;
+
+            font-size: 12px;
+
+            font-weight: 700;
+        }
+
+
+        .modal-input,
+        .modal-select {
+            width: 100%;
+
+            box-sizing: border-box;
+
+            padding: 12px 13px;
+
+            margin-bottom: 17px;
+
+            border-radius: 13px;
+
+            outline: none;
+
+            background:
+                #050505;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            color: #ffffff;
+
+            font-family: inherit;
+
+            font-size: 12px;
+
+            transition:
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
+        }
+
+
+        .modal-select {
+            min-height: 125px;
+
+            resize: vertical;
+        }
+
+
+        .modal-input::placeholder {
+            color: #52525b;
+        }
+
+
+        .modal-input:focus,
+        .modal-select:focus {
+            border-color:
+                rgba(139, 200, 63, 0.55);
+
+            box-shadow:
+                0 0 0 3px rgba(139, 200, 63, 0.08);
+        }
+
+
+        .modal-select option {
+            background: #050505;
+
+            color: #ffffff;
+        }
+
+
+        .modal-actions {
+            display: flex;
+
+            justify-content: flex-end;
+
+            gap: 10px;
+
+            padding-top: 4px;
+        }
+
+
+        .modal-button {
+            min-height: 42px;
+
+            padding: 0 16px;
+
+            border-radius: 12px;
+
+            font-size: 12px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.2s ease,
+                background 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+
+        .modal-cancel {
+            background:
+                rgba(255, 255, 255, 0.05);
+
+            color: #d4d4d8;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.08);
+        }
+
+
+        .modal-cancel:hover {
+            background:
+                rgba(255, 255, 255, 0.09);
+
+            color: #ffffff;
+        }
+
+
+        .modal-create {
+            background:
+                linear-gradient(
+                    135deg,
+                    #8bc83f,
+                    #6da52e
+                );
+
+            color: #ffffff;
+
+            border:
+                1px solid transparent;
+
+            box-shadow:
+                0 10px 24px rgba(139, 200, 63, 0.14);
+        }
+
+
+        .modal-create:hover {
+            transform:
+                translateY(-1px);
+
+            filter:
+                brightness(1.05);
+        }
+
+
+        /* =========================================================
+           MOBILE MENU BUTTON
+        ========================================================= */
+
+        .mobile-menu-button {
+            display: none;
+
+            position: fixed;
+
+            top: 18px;
+            left: 18px;
+
+            width: 44px;
+            height: 44px;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 14px;
+
+            border:
+                1px solid rgba(255, 255, 255, 0.10);
+
+            background:
+                rgba(37, 15, 30, 0.92);
+
+            color: #ffffff;
+
+            cursor: pointer;
+
+            z-index: 1001;
+
+            box-shadow:
+                0 12px 30px rgba(0, 0, 0, 0.35);
+
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+
+        .mobile-menu-button svg {
+            width: 20px;
+            height: 20px;
+        }
+
+
+        /* =========================================================
+           MOBILE SIDEBAR OVERLAY
+        ========================================================= */
+
+        .sidebar-overlay {
+            display: none;
+
+            position: fixed;
+
+            inset: 0;
+
+            background:
+                rgba(0, 0, 0, 0.55);
+
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+
+            z-index: 999;
+        }
+
+
+        .sidebar-overlay.open {
+            display: block;
+        }
+
+
+        /* =========================================================
+           DESKTOP
+           1201px+
+        ========================================================= */
+
+        @media (min-width: 1201px) {
+
+            .glass-sidebar {
+                top: 20px;
+                left: 20px;
+
+                width: 250px;
+                height: calc(100vh - 40px);
+
+                padding: 22px;
+            }
+
+
+            .main-area {
+                position: fixed;
+
+                top: 0;
+                left: 334px;
+                right: 20px;
+                bottom: 0;
+
+                width: auto;
+
+                margin: 0;
+
+                padding: 20px 0;
+
+                height: 100vh;
+
+                box-sizing: border-box;
+
+                min-width: 0;
+
+                overflow: hidden;
+            }
+
+
+            .dashboard-box {
+                width: 100%;
+
+                height: calc(100vh - 40px);
+
+                max-height: calc(100vh - 40px);
+            }
+
+
+            .dashboard-header {
+                display: block;
+            }
+
+
+            .dashboard-header > div:first-child {
+                max-width: 100%;
+            }
+        }
+
+
+        /* =========================================================
+           LAPTOP
+           901px - 1200px
+        ========================================================= */
+
+        @media (min-width: 901px) and (max-width: 1200px) {
+
+            .glass-sidebar {
+                top: 20px;
+                left: 20px;
+
+                width: 250px;
+                height: calc(100vh - 40px);
+
+                padding: 22px;
+            }
+
+
+            .main-area {
+                position: fixed;
+
+                top: 0;
+                left: 334px;
+                right: 20px;
+                bottom: 0;
+
+                width: auto;
+
+                margin: 0;
+
+                padding: 20px 0;
+
+                height: 100vh;
+
+                box-sizing: border-box;
+
+                min-width: 0;
+
+                overflow: hidden;
+            }
+
+
+            .dashboard-box {
+                width: 100%;
+
+                height: calc(100vh - 40px);
+
+                max-height: calc(100vh - 40px);
+            }
+
+
+            .chat-workspace {
+                grid-template-columns:
+                    minmax(220px, 0.38fr)
+                    minmax(0, 0.62fr);
+
+                height: 580px;
+            }
+
+
+            .dashboard-header {
+                padding:
+                    28px 28px 24px;
+            }
+
+
+            .dashboard-content {
+                padding:
+                    26px 28px 34px;
+            }
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+           <= 900px
+        ========================================================= */
+
+        @media (max-width: 900px) {
+
+            .glass-sidebar {
+                position: fixed;
+
+                top: 0;
+                left: 0;
+                bottom: 0;
+
+                width: 280px;
+
+                height: 100vh;
+
+                box-sizing: border-box;
+
+                border-radius:
+                    0 26px 26px 0;
+
+                transform:
+                    translateX(-115%);
+            }
+
+
+            .glass-sidebar.open {
+                transform:
+                    translateX(0);
+            }
+
+
+            .mobile-menu-button {
+                display: flex;
+            }
+
+
+            .main-area {
+                position: relative;
+
+                top: auto;
+                left: auto;
+                right: auto;
+                bottom: auto;
+
+                width: 100% !important;
+
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+
+                padding: 12px !important;
+
+                height: 100vh;
+
+                min-height: 100vh;
+
+                box-sizing: border-box;
+
+                overflow: hidden;
+            }
+
+
+            .dashboard-box {
+                width: 100%;
+
+                height:
+                    calc(100vh - 24px) !important;
+
+                max-height:
+                    calc(100vh - 24px) !important;
+
+                border-radius:
+                    24px !important;
+
+                box-sizing: border-box;
+            }
+
+
+            .dashboard-header {
+                padding:
+                    28px 22px !important;
+
+                padding-top:
+                    30px !important;
+            }
+
+
+            .dashboard-header > div:first-child {
+                min-width: 0;
+            }
+
+
+            .system-status {
+                margin-top: 18px;
+
+                align-self: flex-start;
+            }
+
+
+            .dashboard-content {
+                padding:
+                    22px !important;
+            }
+
+
+            .chat-workspace {
+                grid-template-columns: 1fr;
+
+                height: auto;
+
+                min-height: 900px;
+            }
+
+
+            .chat-list {
+                height: 380px;
+            }
+
+
+            #chat-window {
+                height: 520px;
+            }
+
+
+            .section-heading {
+                align-items: flex-start;
+            }
+        }
+
+
+        /* =========================================================
+           MOBILE
+           <= 600px
+        ========================================================= */
+
+        @media (max-width: 600px) {
+
+            .main-area {
+                padding: 8px !important;
+            }
+
+
+            .dashboard-box {
+                height:
+                    calc(100vh - 16px) !important;
+
+                max-height:
+                    calc(100vh - 16px) !important;
+
+                border-radius:
+                    20px !important;
+            }
+
+
+            .dashboard-header {
+                padding:
+                    24px 17px !important;
+            }
+
+
+            .dashboard-header h1 {
+                font-size:
+                    clamp(
+                        1.55rem,
+                        8vw,
+                        2.1rem
+                    ) !important;
+
+                line-height: 1.05;
+            }
+
+
+            .dashboard-header p {
+                font-size:
+                    0.85rem !important;
+            }
+
+
+            .system-status {
+                font-size: 10px;
+
+                padding:
+                    8px 11px;
+            }
+
+
+            .dashboard-content {
+                padding:
+                    17px !important;
+            }
+
+
+            .section-heading {
+                gap: 12px;
+            }
+
+
+            .section-heading h2 {
+                font-size: 19px;
+            }
+
+
+            .section-line {
+                display: none;
+            }
+
+
+            .chat-workspace {
+                gap: 14px;
+
+                min-height: 0;
+            }
+
+
+            .chat-list {
+                height: 350px;
+
+                border-radius: 18px;
+            }
+
+
+            .chat-list-scroll {
+                padding: 13px;
+            }
+
+
+            #chat-window {
+                height: 500px;
+
+                border-radius: 18px;
+            }
+
+
+            .chat-header {
+                padding:
+                    12px 13px;
+            }
+
+
+            .chat-user-avatar,
+            .chat-user-placeholder {
+                width: 40px;
+                height: 40px;
+            }
+
+
+            .chat-header-status {
+                display: none;
+            }
+
+
+            #chat-messages {
+                padding: 15px;
+            }
+
+
+            .message-bubble {
+                max-width: 82%;
+
+                font-size: 11px;
+            }
+
+
+            .chat-input-area {
+                padding:
+                    10px;
+            }
+
+
+            #sendBtn {
+                width: 44px;
+
+                padding: 0;
+            }
+
+
+            #sendBtn span {
+                display: none;
+            }
+
+
+            .group-modal-card {
+                padding:
+                    20px;
+
+                border-radius:
+                    19px;
+            }
+
+
+            .modal-actions {
+                flex-direction: column-reverse;
+            }
+
+
+            .modal-button {
+                width: 100%;
+            }
+        }
+
+
+        /* =========================================================
+           VERY SMALL MOBILE
+           <= 400px
+        ========================================================= */
+
+        @media (max-width: 400px) {
+
+            .dashboard-header h1 {
+                font-size:
+                    1.55rem !important;
+            }
+
+
+            .chat-list-header {
+                padding:
+                    13px;
+            }
+
+
+            .chat-list-scroll {
+                padding:
+                    11px;
+            }
+
+
+            .chat-list-title-text {
+                font-size: 15px;
+            }
+
+
+            .chat-user-name {
+                font-size: 13px;
+            }
+
+
+            .chat-user-phone {
+                font-size: 9px;
+            }
+
+
+            #chat-messages {
+                padding:
+                    12px;
+            }
+
+
+            .message-bubble {
+                max-width: 86%;
+            }
+        }
+
+
+        /* =========================================================
+           EXTRA WIDTH PROTECTION
+        ========================================================= */
+
+        .dashboard-header,
+        .dashboard-content,
+        .chat-workspace,
+        .chat-list,
+        #chat-window {
+            min-width: 0;
+        }
+
+
+        .chat-user-details,
+        .user-info,
+        .card-heading > div:last-child {
+            min-width: 0;
+        }
+
+
+        .group-link span,
+        .user-name,
+        .user-phone,
+        .chat-user-name,
+        .chat-user-phone {
+            overflow-wrap: anywhere;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     MOBILE OVERLAY
+========================================================= -->
+
+<div
+    id="sidebar-overlay"
+    class="sidebar-overlay"
+></div>
+
+
+<!-- =========================================================
+     SIDEBAR
+========================================================= -->
+
+<aside
+    id="sidebar"
+    class="glass-sidebar"
+>
+
+    <!-- =====================================================
+         BRAND
+    ====================================================== -->
+
+    <div class="sidebar-brand">
+
+        <div class="sidebar-logo">
+
+            <img
+                src="{% static 'images/logo.png' %}"
+                alt="Cybexel Logo"
+            >
+
+        </div>
+
+
+        <div class="sidebar-brand-name">
+            CYBEXEL
+        </div>
+
+
+        <div class="sidebar-brand-role">
+            TEAM MEMBER
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         NAVIGATION
+    ====================================================== -->
+
+    <nav class="sidebar-nav">
+
+
+        <!-- Dashboard -->
+
+        <a
+            href="{% url 'teammember_dashboard' %}"
+            class="sidebar-item"
+        >
+
+            <span class="nav-icon">
+                <i data-lucide="layout-dashboard"></i>
+            </span>
+
+            <span>
+                Dashboard
+            </span>
+
+        </a>
+
+
+        <!-- Project -->
+
+        <a
+            href="{% url 'teammember_project' %}"
+            class="sidebar-item"
+        >
+
+            <span class="nav-icon">
+                <i data-lucide="folder-kanban"></i>
+            </span>
+
+            <span>
+                My Project
+            </span>
+
+        </a>
+
+
+        <!-- Notepad -->
+
+        <a
+            href="{% url 'teammember_notepad' %}"
+            class="sidebar-item"
+        >
+
+            <span class="nav-icon">
+                <i data-lucide="notebook-pen"></i>
+            </span>
+
+            <span>
+                Notepad
+            </span>
+
+        </a>
+
+
+        <!-- Repository -->
+
+        <a
+            href="{% url 'teammember_repository' %}"
+            class="sidebar-item"
+        >
+
+            <span class="nav-icon">
+                <i data-lucide="library"></i>
+            </span>
+
+            <span>
+                Knowledge Repository
+            </span>
+
+        </a>
+
+
+        <!-- Profile -->
+
+        <a
+            href="{% url 'teammember_profile' %}"
+            class="sidebar-item"
+        >
+
+            <span class="nav-icon">
+                <i data-lucide="user-round"></i>
+            </span>
+
+            <span>
+                Profile
+            </span>
+
+        </a>
+
+
+        <!-- Task -->
+
+        <a
+            href="{% url 'teammember_task' %}"
+            class="sidebar-item"
+        >
+
+            <span class="nav-icon">
+                <i data-lucide="list-checks"></i>
+            </span>
+
+            <span>
+                My Task
+            </span>
+
+        </a>
+
+
+        <!-- Chat -->
+
+        <a
+            href="{% url 'teammember_chat' %}"
+            class="sidebar-item active"
+        >
+
+            <span class="nav-icon">
+                <i data-lucide="message-circle"></i>
+            </span>
+
+            <span>
+                Chat
+            </span>
+
+        </a>
+
+
+        <!-- Google Meet -->
+
+        <a
+            href="https://meet.google.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="sidebar-item"
+        >
+
+            <span class="nav-icon">
+                <i data-lucide="video"></i>
+            </span>
+
+            <span>
+                Google Meet
+            </span>
+
+            <i
+                data-lucide="external-link"
+                class="external-icon"
+            ></i>
+
+        </a>
+
+
+        <!-- =================================================
+             LOGOUT
+             margin-top:auto pushes this to the bottom
+        ================================================== -->
+
+        <a
+            href="{% url 'teammember_logout' %}"
+            class="sidebar-logout"
+        >
+
+            <span class="nav-icon">
+                <i data-lucide="log-out"></i>
+            </span>
+
+            <span>
+                Logout
+            </span>
+
+        </a>
+
+    </nav>
+
+</aside>
+
+
+<!-- =========================================================
+     MOBILE MENU BUTTON
+========================================================= -->
+
+<button
+    id="mobile-menu-button"
+    class="mobile-menu-button"
+    type="button"
+    aria-label="Open navigation"
+>
+
+    <i data-lucide="menu"></i>
+
+</button>
+
+
+<!-- =========================================================
+     MAIN AREA
+========================================================= -->
+
+<main class="main-area">
+
+    <div class="dashboard-box">
+
+        <div class="dashboard-scroll">
+
+
+            <!-- =================================================
+                 HEADER
+            ================================================== -->
+
+            <header class="dashboard-header">
+
+                <div>
+
+                    <div class="header-eyebrow">
+                        TEAM MEMBER • CHAT
+                    </div>
+
+
+                    <h1>
+                        Team Chat
+                    </h1>
+
+
+                    <p>
+                        Connect with your team members and manage
+                        your group conversations from one place.
+                    </p>
+
+                </div>
+
+
+                <div class="system-status">
+
+                    <span class="status-dot"></span>
+
+                    <i
+                        data-lucide="message-circle"
+                        style="width:15px;height:15px;"
+                    ></i>
+
+                    Chat Workspace Active
+
+                </div>
+
+            </header>
+
+
+            <!-- =================================================
+                 CONTENT
+            ================================================== -->
+
+            <section class="dashboard-content">
+
+
+                <!-- SECTION HEADING -->
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <div class="section-eyebrow">
+                            COMMUNICATION
+                        </div>
+
+
+                        <h2>
+                            Team Conversations
+                        </h2>
+
+
+                        <p>
+                            Select a team member or group
+                            to start chatting.
+                        </p>
+
+                    </div>
+
+
+                    <div class="section-line"></div>
+
+                </div>
+
+
+                <!-- =================================================
+                     CHAT WORKSPACE
+                ================================================== -->
+
+                <div class="chat-workspace">
+
+
+                    <!-- =================================================
+                         LEFT CHAT LIST
+                    ================================================== -->
+
+                    <aside class="chat-list">
+
+
+                        <!-- CHAT LIST HEADER -->
+
+                        <div class="chat-list-header">
+
+                            <div class="chat-list-title">
+
+                                <div class="chat-list-title-icon">
+
+                                    <i
+                                        data-lucide="messages-square"
+                                    ></i>
+
+                                </div>
+
+
+                                <h2 class="chat-list-title-text">
+                                    Chats
+                                </h2>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                id="openModal"
+                                class="chat-add-button"
+                                title="Create Group"
+                            >
+
+                                <i data-lucide="plus"></i>
+
+                            </button>
+
+                        </div>
+
+
+                        <!-- CHAT LIST SCROLL -->
+
+                        <div class="chat-list-scroll">
+
+
+                            <!-- =================================================
+                                 TEAM MEMBERS
+                            ================================================== -->
+
+                            <div class="chat-section-title">
+
+                                <h3>
+                                    Team Members
+                                </h3>
+
+
+                                <span>
+                                    {{ users|length }}
+                                </span>
+
+                            </div>
+
+
+                            <div id="user-list">
+
+                                {% for user in users %}
+
+                                    <div class="user-row">
+
+                                        <a
+                                            href="{% url 'chat_room' user.id %}"
+                                        >
+
+
+                                            <!-- Avatar -->
+
+                                            <div class="user-avatar">
+
+                                                {% if user.profile_image %}
+
+                                                    <img
+                                                        src="{{ user.profile_image.url }}"
+                                                        alt="{{ user.name }}"
+                                                    >
+
+                                                {% else %}
+
+                                                    <div class="user-avatar-placeholder">
+
+                                                        {% if user.id == current_user.id %}
+
+                                                            M
+
+                                                        {% else %}
+
+                                                            {{ user.name|first|upper }}
+
+                                                        {% endif %}
+
+                                                    </div>
+
+                                                {% endif %}
+
+
+                                                <!-- Status -->
+
+                                                <span
+                                                    class="user-status-dot user-status-dot-js"
+                                                    data-user-id="{{ user.id }}"
+                                                    title="Active"
+                                                ></span>
+
+                                            </div>
+
+
+                                            <!-- User Info -->
+
+                                            <div class="user-info">
+
+                                                {% if user.id == current_user.id %}
+
+                                                    <p class="user-name">
+                                                        Me
+                                                    </p>
+
+                                                {% else %}
+
+                                                    <p class="user-name">
+                                                        {{ user.name }}
+                                                    </p>
+
+                                                {% endif %}
+
+
+                                                <p class="user-phone">
+                                                    {{ user.phone }}
+                                                </p>
+
+                                            </div>
+
+                                        </a>
+
+                                    </div>
+
+                                {% empty %}
+
+                                    <div class="empty-groups">
+                                        No team members found.
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+
+                            <!-- =================================================
+                                 GROUPS
+                            ================================================== -->
+
+                            <div class="groups-section">
+
+
+                                <div class="chat-section-title">
+
+                                    <h3>
+                                        Groups
+                                    </h3>
+
+
+                                    <button
+                                        type="button"
+                                        id="openModalGroup"
+                                        class="text-zinc-500 hover:text-[#8bc83f] transition"
+                                        title="Create Group"
+                                    >
+
+                                        <i
+                                            data-lucide="plus"
+                                            style="width:16px;height:16px;"
+                                        ></i>
+
+                                    </button>
+
+                                </div>
+
+
+                                <div class="groups-list">
+
+                                    {% for group in groups %}
+
+                                        <a
+                                            href="{% url 'group_chat_view' group.id %}"
+                                            class="group-link"
+                                        >
+
+                                            <span>
+                                                {{ group.name }}
+                                            </span>
+
+
+                                            <i
+                                                data-lucide="chevron-right"
+                                            ></i>
+
+                                        </a>
+
+                                    {% empty %}
+
+                                        <div class="empty-groups">
+                                            No group chats yet.
+                                        </div>
+
+                                    {% endfor %}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </aside>
+
+
+                    <!-- =================================================
+                         CHAT WINDOW
+                    ================================================== -->
+
+                    <section id="chat-window">
+
+
+                        <!-- CHAT HEADER -->
+
+                        <div class="chat-header">
+
+
+                            <div class="chat-user">
+
+
+                                {% if other_user.profile_image %}
+
+                                    <img
+                                        id="chat-avatar"
+                                        src="{{ other_user.profile_image.url }}"
+                                        alt="{{ other_user.name }}"
+                                        class="chat-user-avatar"
+                                    >
+
+                                {% else %}
+
+                                    <div
+                                        id="chat-avatar"
+                                        class="chat-user-placeholder"
+                                    >
+
+                                        <i
+                                            data-lucide="user-round"
+                                        ></i>
+
+                                    </div>
+
+                                {% endif %}
+
+
+                                <div class="chat-user-details">
+
+                                    <p
+                                        id="chat-username"
+                                        class="chat-user-name"
+                                    >
+                                        {{ other_user.name }}
+                                    </p>
+
+
+                                    <p
+                                        id="chat-userphone"
+                                        class="chat-user-phone"
+                                    >
+                                        {{ other_user.phone }}
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="chat-header-status">
+
+                                <span></span>
+
+                                Active
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             MESSAGES
+                        ================================================== -->
+
+                        <div id="chat-messages">
+
+                            {% for msg in messages %}
+
+
+                                {% if msg.sender.id == current_user.id %}
+
+
+                                    <!-- OUTGOING -->
+
+                                    <div
+                                        class="message-row message-outgoing"
+                                    >
+
+                                        <p class="message-bubble">
+                                            {{ msg.content }}
+                                        </p>
+
+                                    </div>
+
+
+                                {% else %}
+
+
+                                    <!-- INCOMING -->
+
+                                    <div
+                                        class="message-row message-incoming"
+                                    >
+
+
+                                        {% if msg.sender.profile_image %}
+
+                                            <img
+                                                src="{{ msg.sender.profile_image.url }}"
+                                                alt="{{ msg.sender.name }}"
+                                                class="message-avatar"
+                                            >
+
+                                        {% else %}
+
+                                            <div
+                                                class="message-avatar-placeholder"
+                                            >
+
+                                                <i
+                                                    data-lucide="user-round"
+                                                ></i>
+
+                                            </div>
+
+                                        {% endif %}
+
+
+                                        <p class="message-bubble">
+                                            {{ msg.content }}
+                                        </p>
+
+                                    </div>
+
+
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </div>
+
+
+                        <!-- =================================================
+                             CHAT INPUT
+                        ================================================== -->
+
+                        <div class="chat-input-area">
+
+
+                            <input
+                                id="chat-input"
+                                type="text"
+                                placeholder="Type a message..."
+                                autocomplete="off"
+                            >
+
+
+                            <button
+                                id="sendBtn"
+                                type="button"
+                            >
+
+                                <i data-lucide="send"></i>
+
+                                <span>
+                                    Send
+                                </span>
+
+                            </button>
+
+                        </div>
+
+                    </section>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<!-- =========================================================
+     CREATE GROUP MODAL
+========================================================= -->
+
+<div
+    id="groupModal"
+    class="hidden"
+>
+
+
+    <div class="group-modal-card">
+
+
+        <!-- MODAL TITLE -->
+
+        <div class="modal-title">
+
+            <div class="modal-title-icon">
+
+                <i data-lucide="users-round"></i>
+
+            </div>
+
+
+            <h2>
+                Create New Group
+            </h2>
+
+        </div>
+
+
+        <!-- FORM -->
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+
+            <input
+                type="hidden"
+                name="action"
+                value="create_group"
+            >
+
+
+            <!-- Group Name -->
+
+            <label class="modal-label">
+                Group Name
+            </label>
+
+
+            <input
+                type="text"
+                name="group_name"
+                class="modal-input"
+                placeholder="Enter group name"
+                required
+            >
+
+
+            <!-- Members -->
+
+            <label class="modal-label">
+                Add Members
+            </label>
+
+
+            <select
+                name="members"
+                multiple
+                class="modal-select"
+            >
+
+                {% for user in users %}
+
+                    <option value="{{ user.id }}">
+                        {{ user.name }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+
+            <!-- Actions -->
+
+            <div class="modal-actions">
+
+
+                <button
+                    type="button"
+                    id="closeModal"
+                    class="modal-button modal-cancel"
+                >
+                    Cancel
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="modal-button modal-create"
+                >
+                    Create Group
+                </button>
+
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+
+        /* =====================================================
+           LUCIDE ICONS
+        ====================================================== */
+
+        if (
+            typeof lucide !== "undefined"
+        ) {
+
+            lucide.createIcons();
+
+        }
+
+
+        /* =====================================================
+           SIDEBAR MOBILE TOGGLE
+        ====================================================== */
+
+        const sidebar =
+            document.getElementById(
+                "sidebar"
+            );
+
+
+        const menuButton =
+            document.getElementById(
+                "mobile-menu-button"
+            );
+
+
+        const overlay =
+            document.getElementById(
+                "sidebar-overlay"
+            );
+
+
+        function openSidebar() {
+
+            if (!sidebar) {
+                return;
+            }
+
+
+            sidebar.classList.add(
+                "open"
+            );
+
+
+            if (overlay) {
+
+                overlay.classList.add(
+                    "open"
+                );
+
+            }
+
+
+            document.body.style.overflow =
+                "hidden";
+
+        }
+
+
+        function closeSidebar() {
+
+            if (!sidebar) {
+                return;
+            }
+
+
+            sidebar.classList.remove(
+                "open"
+            );
+
+
+            if (overlay) {
+
+                overlay.classList.remove(
+                    "open"
+                );
+
+            }
+
+
+            document.body.style.overflow =
+                "";
+
+        }
+
+
+        if (menuButton) {
+
+            menuButton.addEventListener(
+                "click",
+                function () {
+
+                    if (
+                        sidebar &&
+                        sidebar.classList.contains(
+                            "open"
+                        )
+                    ) {
+
+                        closeSidebar();
+
+                    } else {
+
+                        openSidebar();
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        if (overlay) {
+
+            overlay.addEventListener(
+                "click",
+                closeSidebar
+            );
+
+        }
+
+
+        /* =====================================================
+           GROUP MODAL
+        ====================================================== */
+
+        const modal =
+            document.getElementById(
+                "groupModal"
+            );
+
+
+        const openModalButton =
+            document.getElementById(
+                "openModal"
+            );
+
+
+        const openModalGroupButton =
+            document.getElementById(
+                "openModalGroup"
+            );
+
+
+        const closeModalButton =
+            document.getElementById(
+                "closeModal"
+            );
+
+
+        function openGroupModal() {
+
+            if (modal) {
+
+                modal.classList.remove(
+                    "hidden"
+                );
+
+                document.body.style.overflow =
+                    "hidden";
+
+            }
+
+        }
+
+
+        function closeGroupModal() {
+
+            if (modal) {
+
+                modal.classList.add(
+                    "hidden"
+                );
+
+                document.body.style.overflow =
+                    "";
+
+            }
+
+        }
+
+
+        if (openModalButton) {
+
+            openModalButton.addEventListener(
+                "click",
+                openGroupModal
+            );
+
+        }
+
+
+        if (openModalGroupButton) {
+
+            openModalGroupButton.addEventListener(
+                "click",
+                openGroupModal
+            );
+
+        }
+
+
+        if (closeModalButton) {
+
+            closeModalButton.addEventListener(
+                "click",
+                closeGroupModal
+            );
+
+        }
+
+
+        /* =====================================================
+           CLOSE MODAL OUTSIDE
+        ====================================================== */
+
+        if (modal) {
+
+            modal.addEventListener(
+                "click",
+                function (event) {
+
+                    if (
+                        event.target === modal
+                    ) {
+
+                        closeGroupModal();
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        /* =====================================================
+           ESCAPE KEY
+        ====================================================== */
+
+        document.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Escape"
+                ) {
+
+                    closeGroupModal();
+
+                    closeSidebar();
+
+                }
+
+            }
+        );
+
+
+        /* =====================================================
+           MOBILE SIDEBAR CLOSE
+        ====================================================== */
+
+        const sidebarLinks =
+            document.querySelectorAll(
+                ".sidebar-nav a"
+            );
+
+
+        sidebarLinks.forEach(
+            function (link) {
+
+                link.addEventListener(
+                    "click",
+                    function () {
+
+                        if (
+                            window.innerWidth <= 900
+                        ) {
+
+                            closeSidebar();
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        /* =====================================================
+           KEEP CHAT SCROLLED TO BOTTOM
+        ====================================================== */
+
+        const chatMessages =
+            document.getElementById(
+                "chat-messages"
+            );
+
+
+        if (chatMessages) {
+
+            chatMessages.scrollTop =
+                chatMessages.scrollHeight;
+
+        }
+
+
+    }
+);
+
+</script>
+
+
+<!-- =========================================================
+     EXISTING APPLICATION JAVASCRIPT
+========================================================= -->
+
+<script src="{% static 'js/admin.js' %}"></script>
+
+<script src="{% static 'js/activity.js' %}"></script>
+
+
+</body>
+
+</html>
