@@ -2467,6 +2467,244 @@
 
         }
 
+        /* =========================================================
+   DELETE CONFIRMATION MODAL
+   ========================================================= */
+
+.delete-modal {
+    position: fixed;
+    inset: 0;
+
+    z-index: 5000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.72);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+
+.delete-modal.hidden {
+    display: none;
+}
+
+
+/* =========================================================
+   MODAL CARD
+   ========================================================= */
+
+.delete-modal-card {
+    width: min(420px, 100%);
+
+    padding: 28px;
+
+    text-align: center;
+
+    border-radius: 24px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 15, 30, 0.98),
+            rgba(20, 8, 17, 0.98)
+        );
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.60),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+    animation: deleteModalShow 0.2s ease;
+}
+
+
+@keyframes deleteModalShow {
+
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+}
+
+
+/* =========================================================
+   ICON
+   ========================================================= */
+
+.delete-modal-icon {
+    width: 54px;
+    height: 54px;
+
+    margin: 0 auto 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 16px;
+
+    background: rgba(239, 68, 68, 0.12);
+
+    border: 1px solid rgba(239, 68, 68, 0.25);
+
+    color: #f87171;
+}
+
+
+.delete-modal-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+
+/* =========================================================
+   TEXT
+   ========================================================= */
+
+.delete-modal-card h2 {
+    margin: 0 0 10px;
+
+    color: #ffffff;
+
+    font-size: 20px;
+    font-weight: 800;
+}
+
+
+.delete-modal-card p {
+    margin: 0 auto 8px;
+
+    max-width: 340px;
+
+    color: #a1a1aa;
+
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+
+.delete-modal-card p strong {
+    color: #ffffff;
+}
+
+
+.delete-modal-warning {
+    display: block;
+
+    margin-bottom: 22px;
+
+    color: #fca5a5;
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.delete-modal-actions {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 10px;
+}
+
+
+.delete-modal-cancel,
+.delete-modal-confirm {
+    min-height: 44px;
+
+    border-radius: 12px;
+
+    font-size: 12px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.delete-modal-cancel {
+    border: 1px solid rgba(255, 255, 255, 0.10);
+
+    background: rgba(255, 255, 255, 0.04);
+
+    color: #d4d4d8;
+}
+
+
+.delete-modal-cancel:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+
+.delete-modal-confirm {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    border: 1px solid rgba(239, 68, 68, 0.30);
+
+    background: rgba(220, 38, 38, 0.14);
+
+    color: #f87171;
+}
+
+
+.delete-modal-confirm:hover {
+    background: rgba(220, 38, 38, 0.24);
+
+    transform: translateY(-1px);
+}
+
+
+.delete-modal-confirm svg {
+    width: 15px;
+    height: 15px;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .delete-modal {
+        padding: 15px;
+    }
+
+    .delete-modal-card {
+        padding: 24px 20px;
+        border-radius: 20px;
+    }
+
+    .delete-modal-actions {
+        grid-template-columns: 1fr;
+    }
+
+}
+
     </style>
 
 </head>
@@ -2998,24 +3236,28 @@
                             <!-- Delete -->
 
                             <form
-                                method="POST"
-                                action="{% url 'teammember_repository_delete' item.id %}"
-                                class="delete-form">
+    method="POST"
+    action="{% url 'teammember_repository_delete' item.id %}"
+    class="delete-form"
+    id="delete-form-{{ item.id }}">
 
-                                {% csrf_token %}
+    {% csrf_token %}
 
+    <button
+        type="button"
+        class="delete-button"
+        title="Delete Resource"
+        aria-label="Delete Resource"
+        onclick="openDeleteModal(
+            '{{ item.id }}',
+            '{{ item.title|escapejs }}'
+        )">
 
-                                <button
-                                    type="submit"
-                                    class="delete-button"
-                                    title="Delete Resource"
-                                    aria-label="Delete Resource">
+        <i data-lucide="trash-2"></i>
 
-                                    <i data-lucide="trash-2"></i>
+    </button>
 
-                                </button>
-
-                            </form>
+</form>
 
 
                             <!-- Card top -->
@@ -3424,7 +3666,75 @@
 
 </div>
 
+<!-- =========================================================
+     DELETE CONFIRMATION MODAL
+     ========================================================= -->
 
+<div
+    id="deleteModal"
+    class="delete-modal hidden">
+
+    <div
+        class="delete-modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deleteModalTitle">
+
+        <!-- Icon -->
+
+        <div class="delete-modal-icon">
+
+            <i data-lucide="trash-2"></i>
+
+        </div>
+
+
+        <!-- Content -->
+
+        <h2 id="deleteModalTitle">
+            Delete Resource?
+        </h2>
+
+        <p>
+            Are you sure you want to delete
+            <strong id="deleteResourceName"></strong>?
+        </p>
+
+        <span class="delete-modal-warning">
+            This action cannot be undone.
+        </span>
+
+
+        <!-- Buttons -->
+
+        <div class="delete-modal-actions">
+
+            <button
+                type="button"
+                class="delete-modal-cancel"
+                onclick="closeDeleteModal()">
+
+                Cancel
+
+            </button>
+
+
+            <button
+                type="button"
+                class="delete-modal-confirm"
+                onclick="confirmDelete()">
+
+                <i data-lucide="trash-2"></i>
+
+                Delete
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 <!-- =========================================================
      JAVASCRIPT
      ========================================================= -->
@@ -3758,6 +4068,152 @@
 
         }
     );
+
+    /* =========================================================
+   DELETE CONFIRMATION
+   ========================================================= */
+
+let deleteResourceId = null;
+
+
+/* =========================================================
+   OPEN DELETE MODAL
+   ========================================================= */
+
+function openDeleteModal(id, title) {
+
+    const modal =
+        document.getElementById("deleteModal");
+
+    const resourceName =
+        document.getElementById("deleteResourceName");
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    deleteResourceId = id;
+
+    resourceName.textContent = title;
+
+    modal.classList.remove("hidden");
+
+    document.body.style.overflow = "hidden";
+
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+
+}
+
+
+/* =========================================================
+   CLOSE DELETE MODAL
+   ========================================================= */
+
+function closeDeleteModal() {
+
+    const modal =
+        document.getElementById("deleteModal");
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add("hidden");
+
+    document.body.style.overflow = "";
+
+    deleteResourceId = null;
+
+}
+
+
+/* =========================================================
+   CONFIRM DELETE
+   ========================================================= */
+
+function confirmDelete() {
+
+    if (!deleteResourceId) {
+        return;
+    }
+
+
+    const form =
+        document.getElementById(
+            "delete-form-" + deleteResourceId
+        );
+
+
+    if (!form) {
+        return;
+    }
+
+
+    form.submit();
+
+}
+
+
+/* =========================================================
+   CLOSE WHEN CLICKING BACKDROP
+   ========================================================= */
+
+document.addEventListener(
+    "click",
+    function (event) {
+
+        const modal =
+            document.getElementById("deleteModal");
+
+
+        if (
+            modal &&
+            event.target === modal
+        ) {
+
+            closeDeleteModal();
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   ESCAPE TO CLOSE
+   ========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (event.key !== "Escape") {
+            return;
+        }
+
+
+        const modal =
+            document.getElementById("deleteModal");
+
+
+        if (
+            modal &&
+            !modal.classList.contains("hidden")
+        ) {
+
+            closeDeleteModal();
+
+        }
+
+    }
+);
 
 </script>
 
