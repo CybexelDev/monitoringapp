@@ -1,2511 +1,1257 @@
-{% load static %}
+{% extends "team_member/base3.html" %}
 {% load tz %}
 
-<!DOCTYPE html>
 
-<html lang="en">
+{% block title %}
+    Team Member Dashboard - Cybexel
+{% endblock %}
 
-<head>
 
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Team Member Dashboard - Cybexel</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
-<link rel="stylesheet" href="{% static 'css/admin.css' %}">
-
-<script src="https://unpkg.com/lucide@latest"></script>
-
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-
+{% block extra_css %}
 
 <style>
 
-
-/* =========================================================
-   GLOBAL
-========================================================= */
-
-html,
-body {
-    width: 100%;
-    height: 100%;
-    margin: 0;
-    overflow: hidden !important;
-}
-
-body {
-    min-height: 100vh;
-    background:
-        radial-gradient(
-            circle at top left,
-            rgba(139, 200, 63, 0.10),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at bottom right,
-            rgba(99, 102, 241, 0.08),
-            transparent 30%
-        ),
-        #050505;
-    color: #ffffff;
-}
-
-
-/* =========================================================
-   MAIN DASHBOARD SCROLL AREA
-========================================================= */
-
-.dashboard-box {
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
-}
-
-
-/* =========================================================
-   SIDEBAR
-========================================================= */
-
-.glass-sidebar {
-    position: fixed;
-
-    top: 20px;
-    left: 20px;
-
-    /*
-       IMPORTANT:
-       Keep width as 250px exactly.
-
-       Because padding is 22px on both sides and
-       we are NOT changing the original box model,
-       the real outer width remains approximately:
-
-       250 + 22 + 22 = 294px
-    */
-    width: 250px;
-
-    height: calc(100vh - 40px);
-
-    padding: 22px;
-
-    border-radius: 28px;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(37, 15, 30, 0.96),
-            rgba(24, 10, 20, 0.96)
-        );
-
-    border: 1px solid rgba(255, 255, 255, 0.08);
-
-    box-shadow:
-        0 25px 70px rgba(0, 0, 0, 0.45),
-        inset 0 1px 0 rgba(255, 255, 255, 0.04);
-
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-
-    z-index: 1000;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    transform: translateX(0);
-    transition: transform .28s ease;
-
-    scrollbar-width: thin;
-}
-
-
-/* =========================================================
-   SIDEBAR PROFILE
-========================================================= */
-
-.sidebar-profile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    padding-bottom: 24px;
-    margin-bottom: 18px;
-
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.sidebar-logo {
-    width: 92px;
-    height: 92px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 24px;
-
-    background: rgba(255, 255, 255, 0.04);
-
-    border: 1px solid rgba(255, 255, 255, 0.08);
-
-    box-shadow:
-        0 15px 30px rgba(0, 0, 0, 0.30);
-}
-
-.sidebar-logo img {
-    width: 78px;
-    height: 78px;
-    object-fit: contain;
-}
-
-.sidebar-profile-text {
-    text-align: center;
-    margin-top: 14px;
-}
-
-.sidebar-profile-text h3 {
-    margin: 0;
-
-    font-size: 14px;
-    font-weight: 800;
-    letter-spacing: .16em;
-
-    color: #ffffff;
-}
-
-.sidebar-profile-text span {
-    display: block;
-
-    margin-top: 5px;
-
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: .13em;
-
-    color: #a1a1aa;
-}
-
-
-/* =========================================================
-   SIDEBAR NAV
-========================================================= */
-
-.sidebar-nav {
-    display: flex;
-    flex-direction: column;
-
-    gap: 7px;
-
-    flex: 1;
-
-    min-width: 0;
-}
-
-.sidebar-item,
-.sidebar-logout {
-    min-width: 0;
-
-    width: 100%;
-
-    display: flex;
-    align-items: center;
-
-    gap: 12px;
-
-    padding: 12px 13px;
-
-    border-radius: 14px;
-
-    color: #d4d4d8;
-
-    text-decoration: none;
-
-    font-size: 13px;
-    font-weight: 600;
-
-    transition:
-        background .2s ease,
-        color .2s ease,
-        transform .2s ease;
-}
-
-.sidebar-item:hover {
-    background: rgba(255, 255, 255, 0.07);
-
-    color: #ffffff;
-
-    transform: translateX(2px);
-}
-
-.sidebar-item.active {
-    background:
-        linear-gradient(
-            135deg,
-            rgba(139, 200, 63, 0.22),
-            rgba(139, 200, 63, 0.08)
-        );
-
-    color: #ffffff;
-
-    border: 1px solid rgba(139, 200, 63, 0.20);
-
-    box-shadow:
-        0 8px 24px rgba(0, 0, 0, 0.20);
-}
-
-
-/* =========================================================
-   SIDEBAR ICONS
-========================================================= */
-
-.sidebar-icon,
-.sidebar-external,
-.card-icon,
-.input-icon,
-.button-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    flex: 0 0 auto;
-}
-
-.sidebar-icon {
-    width: 20px;
-    height: 20px;
-}
-
-.sidebar-icon svg {
-    width: 19px;
-    height: 19px;
-
-    stroke-width: 1.8;
-}
-
-.sidebar-external {
-    margin-left: auto;
-}
-
-.sidebar-external svg {
-    width: 14px;
-    height: 14px;
-}
-
-
-/* =========================================================
-   SIDEBAR LOGOUT
-========================================================= */
-
-.sidebar-bottom {
-    margin-top: 18px;
-
-    padding-top: 18px;
-
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.sidebar-logout {
-    background: rgba(220, 38, 38, 0.12);
-
-    color: #fca5a5;
-
-    border: 1px solid rgba(220, 38, 38, 0.12);
-}
-
-.sidebar-logout:hover {
-    background: rgba(220, 38, 38, 0.20);
-
-    color: #ffffff;
-}
-
-
-/* =========================================================
-   MAIN AREA
-   DESKTOP GEOMETRY FIX
-========================================================= */
-
-/*
-    ORIGINAL SIDEBAR OUTER WIDTH:
-
-    width       = 250px
-    left        = 20px
-    padding     = 22px + 22px
-    --------------------------------
-    outer width = 294px
-
-    Sidebar right edge:
-
-    20 + 294 = 314px
-
-    Desired gap:
-
-    20px
-
-    Therefore main starts at:
-
-    314 + 20 = 334px
-
-
-    IMPORTANT:
-    We do NOT use:
-
-        width: calc(100% - 290px);
-
-    because that was causing the page to become wider
-    than the viewport.
-
-    Instead the main area uses left + right boundaries.
-*/
-
-.main-area {
-    position: fixed;
-
-    top: 0;
-    right: 20px;
-    bottom: 0;
-    left: 334px;
-
-    width: auto;
-
-    margin: 0;
-
-    padding: 20px 0;
-
-    height: 100vh;
-    min-height: 100vh;
-
-    min-width: 0;
-
-    box-sizing: border-box;
-
-    overflow: hidden;
-}
-
-
-/* =========================================================
-   BIG DASHBOARD BOX
-========================================================= */
-
-.dashboard-box {
-    width: 100%;
-
-    height: calc(100vh - 40px);
-
-    max-height: calc(100vh - 40px);
-
-    min-width: 0;
-
-    border-radius: 30px;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(18, 18, 18, 0.96),
-            rgba(9, 9, 9, 0.96)
-        );
-
-    border: 1px solid rgba(255, 255, 255, 0.08);
-
-    box-shadow:
-        0 30px 90px rgba(0, 0, 0, 0.45),
-        inset 0 1px 0 rgba(255, 255, 255, 0.035);
-
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-
-    box-sizing: border-box;
-}
-
-
-/* =========================================================
-   HEADER
-========================================================= */
-
-.dashboard-header {
-    padding: 34px 34px 28px;
-
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-}
-
-.dashboard-header-content {
-    display: flex;
-
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 30px;
-
-    min-width: 0;
-}
-
-.dashboard-eyebrow {
-    font-size: 10px;
-    font-weight: 800;
-
-    letter-spacing: .18em;
-
-    color: #8bc83f;
-
-    margin-bottom: 8px;
-}
-
-.dashboard-header h1 {
-    margin: 0;
-
-    font-size: clamp(1.8rem, 4vw, 2.7rem);
-
-    line-height: 1;
-
-    font-weight: 900;
-
-    letter-spacing: -.035em;
-
-    color: #ffffff;
-}
-
-.dashboard-header p {
-    margin-top: 10px;
-    margin-bottom: 0;
-
-    color: #a1a1aa;
-
-    font-size: 14px;
-}
-
-
-/* =========================================================
-   SYSTEM STATUS
-========================================================= */
-
-.system-status {
-    display: inline-flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    padding: 9px 13px;
-
-    border-radius: 999px;
-
-    background: rgba(34, 197, 94, 0.08);
-
-    border: 1px solid rgba(34, 197, 94, 0.15);
-
-    color: #bbf7d0;
-
-    font-size: 12px;
-    font-weight: 700;
-
-    white-space: nowrap;
-
-    flex: 0 0 auto;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-
-    border-radius: 50%;
-
-    background: #4ade80;
-
-    box-shadow:
-        0 0 0 4px rgba(74, 222, 128, 0.10),
-        0 0 14px rgba(74, 222, 128, 0.50);
-}
-
-
-/* =========================================================
-   DASHBOARD CONTENT
-========================================================= */
-
-.dashboard-content {
-    padding: 30px 34px 40px;
-
-    min-width: 0;
-}
-
-
-/* =========================================================
-   SECTION HEADING
-========================================================= */
-
-.section-heading {
-    display: flex;
-
-    align-items: center;
-
-    gap: 20px;
-
-    margin-bottom: 22px;
-
-    min-width: 0;
-}
-
-.section-eyebrow {
-    display: block;
-
-    font-size: 10px;
-    font-weight: 800;
-
-    letter-spacing: .16em;
-
-    color: #8bc83f;
-
-    margin-bottom: 5px;
-}
-
-.section-heading h2 {
-    margin: 0;
-
-    font-size: 22px;
-    font-weight: 800;
-
-    color: #ffffff;
-}
-
-.heading-line {
-    height: 1px;
-
-    flex: 1;
-
-    min-width: 20px;
-
-    background:
-        linear-gradient(
-            90deg,
-            rgba(255,255,255,.10),
-            transparent
-        );
-}
-
-
-/* =========================================================
-   DASHBOARD GRID
-========================================================= */
-
-.dashboard-grid {
-    display: grid;
-
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    gap: 20px;
-
-    margin-bottom: 22px;
-
-    width: 100%;
-    min-width: 0;
-}
-
-
-/* =========================================================
-   DASHBOARD CARD
-========================================================= */
-
-.dashboard-card {
-    min-width: 0;
-
-    padding: 22px;
-
-    border-radius: 22px;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(37, 15, 30, 0.78),
-            rgba(20, 10, 17, 0.78)
-        );
-
-    border: 1px solid rgba(255, 255, 255, 0.07);
-
-    box-shadow:
-        0 15px 40px rgba(0, 0, 0, 0.20);
-
-    transition:
-        transform .25s ease,
-        border-color .25s ease,
-        box-shadow .25s ease;
-}
-
-.dashboard-card:hover {
-    transform: translateY(-2px);
-
-    border-color: rgba(139, 200, 63, 0.16);
-
-    box-shadow:
-        0 20px 45px rgba(0, 0, 0, 0.28);
-}
-
-
-/* =========================================================
-   CARD HEADING
-========================================================= */
-
-.card-heading {
-    display: flex;
-
-    align-items: center;
-
-    gap: 14px;
-
-    margin-bottom: 20px;
-
-    min-width: 0;
-}
-
-.card-icon {
-    width: 48px;
-    height: 48px;
-
-    min-width: 48px;
-
-    border-radius: 15px;
-
-    background: rgba(139, 200, 63, 0.10);
-
-    border: 1px solid rgba(139, 200, 63, 0.14);
-
-    color: #8bc83f;
-}
-
-.card-icon svg {
-    width: 24px;
-    height: 24px;
-
-    stroke-width: 1.7;
-}
-
-.login-icon {
-    background: rgba(59, 130, 246, 0.10);
-
-    border-color: rgba(59, 130, 246, 0.14);
-
-    color: #60a5fa;
-}
-
-.announcement-icon {
-    background: rgba(168, 85, 247, 0.10);
-
-    border-color: rgba(168, 85, 247, 0.14);
-
-    color: #c084fc;
-}
-
-.morning-icon {
-    background: rgba(245, 158, 11, 0.10);
-
-    border-color: rgba(245, 158, 11, 0.14);
-
-    color: #fbbf24;
-}
-
-.evening-icon {
-    background: rgba(99, 102, 241, 0.10);
-
-    border-color: rgba(99, 102, 241, 0.14);
-
-    color: #818cf8;
-}
-
-.report-icon {
-    background: rgba(34, 197, 94, 0.10);
-
-    border-color: rgba(34, 197, 94, 0.14);
-
-    color: #4ade80;
-}
-
-.card-heading h3 {
-    margin: 0;
-
-    font-size: 17px;
-    font-weight: 800;
-
-    color: #ffffff;
-
-    min-width: 0;
-}
-
-.card-heading p {
-    margin: 4px 0 0;
-
-    font-size: 12px;
-
-    color: #a1a1aa;
-}
-
-
-/* =========================================================
-   LOGIN TIME
-========================================================= */
-
-.login-time-value {
-    min-height: 92px;
-
-    display: flex;
-    align-items: center;
-
-    padding: 18px;
-
-    border-radius: 16px;
-
-    background: rgba(0, 0, 0, 0.28);
-
-    border: 1px solid rgba(255, 255, 255, 0.06);
-
-    font-size: 18px;
-    font-weight: 800;
-
-    color: #ffffff;
-
-    min-width: 0;
-}
-
-.login-time-value span {
-    color: #71717a;
-
-    font-size: 14px;
-
-    font-weight: 600;
-}
-
-
-/* =========================================================
-   ANNOUNCEMENTS
-========================================================= */
-
-.announcement-list {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 12px;
-
-    min-width: 0;
-}
-
-.announcement-item {
-    padding: 15px;
-
-    border-radius: 16px;
-
-    background: rgba(0, 0, 0, 0.25);
-
-    border: 1px solid rgba(255, 255, 255, 0.06);
-
-    min-width: 0;
-}
-
-.announcement-item:hover {
-    border-color: rgba(168, 85, 247, 0.20);
-}
-
-.announcement-title {
-    font-size: 14px;
-
-    font-weight: 800;
-
-    color: #ffffff;
-
-    margin-bottom: 5px;
-}
-
-.announcement-message {
-    font-size: 13px;
-
-    line-height: 1.6;
-
-    color: #d4d4d8;
-
-    overflow-wrap: anywhere;
-}
-
-.announcement-meta {
-    margin-top: 9px;
-
-    font-size: 10px;
-
-    color: #71717a;
-}
-
-.announcement-meta strong {
-    color: #a1a1aa;
-}
-
-
-/* =========================================================
-   REPORT FORMS
-========================================================= */
-
-.report-form {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 12px;
-
-    min-width: 0;
-
-    width: 100%;
-}
-
-.report-textarea {
-    width: 100%;
-
-    min-height: 125px;
-
-    box-sizing: border-box;
-
-    resize: vertical;
-
-    padding: 14px 15px;
-
-    border-radius: 15px;
-
-    background: #050505;
-
-    border: 1px solid rgba(255, 255, 255, 0.10);
-
-    color: #ffffff;
-
-    outline: none;
-
-    font-family: inherit;
-
-    font-size: 13px;
-
-    line-height: 1.5;
-
-    transition:
-        border-color .2s ease,
-        box-shadow .2s ease;
-}
-
-.report-textarea::placeholder {
-    color: #71717a;
-}
-
-.report-textarea:focus {
-    border-color: rgba(139, 200, 63, 0.55);
-
-    box-shadow:
-        0 0 0 3px rgba(139, 200, 63, 0.08);
-}
-
-
-/* =========================================================
-   SELECT
-========================================================= */
-
-.morning-select {
-    width: 100%;
-
-    box-sizing: border-box;
-
-    padding: 12px 14px;
-
-    background-color: #050505 !important;
-
-    color: #ffffff !important;
-
-    border: 1px solid rgba(255, 255, 255, 0.10);
-
-    border-radius: 14px;
-
-    outline: none;
-
-    font-size: 13px;
-
-    cursor: pointer;
-}
-
-.morning-select:focus {
-    border-color: rgba(139, 200, 63, 0.55);
-
-    box-shadow:
-        0 0 0 3px rgba(139, 200, 63, 0.08);
-}
-
-.morning-select option {
-    background-color: #050505 !important;
-    color: #ffffff !important;
-}
-
-
-/* =========================================================
-   BUTTON
-========================================================= */
-
-.report-button {
-    display: inline-flex;
-
-    align-items: center;
-    justify-content: center;
-
-    gap: 8px;
-
-    width: 100%;
-
-    padding: 12px 16px;
-
-    border: 0;
-
-    border-radius: 14px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #8bc83f,
-            #6da52e
-        );
-
-    color: #ffffff;
-
-    font-size: 13px;
-
-    font-weight: 800;
-
-    cursor: pointer;
-
-    box-shadow:
-        0 10px 25px rgba(139, 200, 63, 0.16);
-
-    transition:
-        transform .2s ease,
-        box-shadow .2s ease;
-}
-
-.report-button:hover {
-    transform: translateY(-1px);
-
-    box-shadow:
-        0 14px 30px rgba(139, 200, 63, 0.22);
-}
-
-.report-button:active {
-    transform: translateY(0);
-}
-
-.button-icon svg {
-    width: 16px;
-    height: 16px;
-
-    stroke-width: 2.2;
-}
-
-
-/* =========================================================
-   RESTRICTION MESSAGE
-========================================================= */
-
-.restriction-message {
-    padding: 16px;
-
-    border-radius: 15px;
-
-    background: rgba(0, 0, 0, 0.25);
-
-    border: 1px solid rgba(255, 255, 255, 0.06);
-
-    color: #a1a1aa;
-
-    font-size: 13px;
-
-    line-height: 1.6;
-
-    overflow-wrap: anywhere;
-}
-
-
-/* =========================================================
-   FULL WIDTH REPORT CARD
-========================================================= */
-
-.full-width-card {
-    margin-top: 20px;
-
-    min-width: 0;
-}
-
-
-/* =========================================================
-   TABLE
-========================================================= */
-
-.table-wrapper {
-    width: 100%;
-
-    min-width: 0;
-
-    overflow-x: auto;
-
-    -webkit-overflow-scrolling: touch;
-
-    border-radius: 16px;
-
-    border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-table {
-    width: 100%;
-
-    min-width: 650px;
-
-    border-collapse: collapse;
-
-    color: #e4e4e7;
-
-    font-size: 12px;
-}
-
-thead {
-    background: rgba(0, 0, 0, 0.40);
-}
-
-th {
-    padding: 13px 15px;
-
-    text-align: left;
-
-    font-size: 10px;
-
-    font-weight: 800;
-
-    letter-spacing: .08em;
-
-    text-transform: uppercase;
-
-    color: #a1a1aa;
-
-    white-space: nowrap;
-}
-
-td {
-    padding: 14px 15px;
-
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-
-    vertical-align: top;
-
-    color: #d4d4d8;
-}
-
-tbody tr {
-    transition: background .2s ease;
-}
-
-tbody tr:hover {
-    background: rgba(255, 255, 255, 0.025);
-}
-
-.report-type {
-    display: inline-flex;
-
-    align-items: center;
-
-    padding: 5px 9px;
-
-    border-radius: 999px;
-
-    background: rgba(139, 200, 63, 0.08);
-
-    border: 1px solid rgba(139, 200, 63, 0.12);
-
-    color: #bef264;
-
-    font-size: 10px;
-
-    font-weight: 800;
-}
-
-.report-status {
-    display: inline-flex;
-
-    align-items: center;
-
-    padding: 5px 9px;
-
-    border-radius: 999px;
-
-    background: rgba(99, 102, 241, 0.10);
-
-    border: 1px solid rgba(99, 102, 241, 0.14);
-
-    color: #a5b4fc;
-
-    font-size: 10px;
-
-    font-weight: 800;
-}
-
-.report-text-cell {
-    max-width: 430px;
-
-    line-height: 1.6;
-
-    white-space: normal;
-
-    overflow-wrap: anywhere;
-}
-
-.empty-row {
-    padding: 28px !important;
-
-    text-align: center;
-
-    color: #71717a;
-}
-
-
-/* =========================================================
-   EMPTY STATE
-========================================================= */
-
-.empty-state {
-    padding: 25px;
-
-    border-radius: 16px;
-
-    background: rgba(0, 0, 0, 0.22);
-
-    border: 1px solid rgba(255, 255, 255, 0.06);
-
-    color: #71717a;
-
-    font-size: 13px;
-
-    text-align: center;
-}
-
-
-/* =========================================================
-   TOAST
-========================================================= */
-
-.toast-container {
-    position: fixed;
-
-    bottom: 20px;
-    right: 20px;
-
-    z-index: 9999;
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 12px;
-
-    width: 350px;
-
-    max-width: calc(100% - 40px);
-}
-
-.toast-message {
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(37, 15, 30, 0.98),
-            rgba(20, 10, 17, 0.98)
-        );
-
-    color: #ffffff;
-
-    border: 1px solid rgba(139, 200, 63, 0.30);
-
-    padding: 15px 17px;
-
-    border-radius: 16px;
-
-    box-shadow:
-        0 20px 45px rgba(0, 0, 0, 0.45);
-
-    backdrop-filter: blur(15px);
-
-    -webkit-backdrop-filter: blur(15px);
-
-    animation: toastSlideIn 0.35s ease-out;
-}
-
-.toast-message.toast-hide {
-    animation: toastSlideOut 0.35s ease-in forwards;
-}
-
-@keyframes toastSlideIn {
-    from {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes toastSlideOut {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-}
-
-.toast-icon {
-    width: 24px;
-    height: 24px;
-
-    flex-shrink: 0;
-}
-
-.toast-text {
-    flex: 1;
-
-    font-size: 12px;
-
-    font-weight: 600;
-
-    line-height: 1.5;
-}
-
-.toast-close {
-    background: transparent;
-
-    border: 0;
-
-    color: #a1a1aa;
-
-    font-size: 20px;
-
-    line-height: 1;
-
-    cursor: pointer;
-
-    flex-shrink: 0;
-}
-
-.toast-close:hover {
-    color: #ffffff;
-}
-
-
-/* =========================================================
-   MOBILE MENU BUTTON
-========================================================= */
-
-.mobile-menu-button {
-    display: none;
-
-    position: fixed;
-
-    top: 18px;
-    left: 18px;
-
-    width: 44px;
-    height: 44px;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 14px;
-
-    border: 1px solid rgba(255, 255, 255, 0.10);
-
-    background: rgba(37, 15, 30, 0.92);
-
-    color: #ffffff;
-
-    cursor: pointer;
-
-    z-index: 1001;
-
-    box-shadow:
-        0 12px 30px rgba(0, 0, 0, 0.35);
-
-    backdrop-filter: blur(12px);
-
-    -webkit-backdrop-filter: blur(12px);
-}
-
-.mobile-menu-button svg {
-    width: 20px;
-    height: 20px;
-}
-
-
-/* =========================================================
-   MOBILE SIDEBAR OVERLAY
-========================================================= */
-
-.sidebar-overlay {
-    display: none;
-
-    position: fixed;
-
-    inset: 0;
-
-    background: rgba(0, 0, 0, 0.55);
-
-    backdrop-filter: blur(3px);
-
-    -webkit-backdrop-filter: blur(3px);
-
-    z-index: 999;
-}
-
-.sidebar-overlay.active {
-    display: block;
-}
-
-
-/* =========================================================
-   LAPTOP / DESKTOP
-   1201px+
-========================================================= */
-
-@media (min-width: 1201px) {
-
-    /*
-       Keep original sidebar visual size.
-       Its actual outer width is 294px.
-
-       left: 20px
-       outer width: 294px
-       gap: 20px
-       main left: 334px
-    */
-
-    .glass-sidebar {
-        top: 20px;
-        left: 20px;
-
-        width: 250px;
-
-        height: calc(100vh - 40px);
-
-        padding: 22px;
-    }
-
-    .main-area {
-        position: fixed;
-
-        top: 0;
-        left: 334px;
-        right: 20px;
-        bottom: 0;
-
-        width: auto;
-
-        margin: 0;
-
-        padding: 20px 0;
-
-        height: 100vh;
-
-        box-sizing: border-box;
-
-        min-width: 0;
-
-        overflow: hidden;
-    }
-
-    .dashboard-box {
-        width: 100%;
-
-        height: calc(100vh - 40px);
-
-        max-height: calc(100vh - 40px);
-    }
-
-    /*
-       Preserve your original 2-column desktop structure.
-    */
-
-    .dashboard-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-
-/* =========================================================
-   LAPTOP
-   901px - 1200px
-========================================================= */
-
-@media (min-width: 901px) and (max-width: 1200px) {
-
-    /*
-       IMPORTANT:
-       Do not shrink or collapse the sidebar.
-
-       Keep the same original visual structure.
-    */
-
-    .glass-sidebar {
-        top: 20px;
-        left: 20px;
-
-        width: 250px;
-
-        height: calc(100vh - 40px);
-
-        padding: 22px;
-    }
-
-    /*
-       Sidebar outer width:
-
-       250 + 44 padding = 294px
-
-       20px left position
-       + 294px sidebar
-       + 20px gap
-       = 334px
-    */
-
-    .main-area {
-        position: fixed;
-
-        top: 0;
-        left: 334px;
-        right: 20px;
-        bottom: 0;
-
-        width: auto;
-
-        margin: 0;
-
-        padding: 20px 0;
-
-        height: 100vh;
-
-        box-sizing: border-box;
-
-        min-width: 0;
-
-        overflow: hidden;
-    }
-
-    .dashboard-box {
-        width: 100%;
-
-        height: calc(100vh - 40px);
-
-        max-height: calc(100vh - 40px);
-    }
-
-    /*
-       Keep the ORIGINAL laptop behaviour:
-       one card per row at <= 1200px.
-    */
-
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-
-@media (max-width: 900px) {
-
-    .glass-sidebar {
-        position: fixed;
-
-        top: 0;
-        left: 0;
-        bottom: 0;
-
-        width: 280px;
-
-        height: 100vh;
-
-        transform: translateX(-115%);
-    }
-
-    .glass-sidebar.open {
-        transform: translateX(0);
-    }
-
-    .mobile-menu-button {
-        display: flex;
-    }
-
-    /*
-       Reset desktop fixed geometry completely.
-    */
-
-    .main-area {
-        position: relative;
-
-        top: auto;
-        left: auto;
-        right: auto;
-        bottom: auto;
-
-        width: 100% !important;
-
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-
-        padding: 12px !important;
-
-        height: 100vh;
-
-        min-height: 100vh;
-
-        box-sizing: border-box;
-
-        overflow: hidden;
-    }
-
-    .dashboard-box {
-        width: 100%;
-
-        height: calc(100vh - 24px) !important;
-
-        max-height: calc(100vh - 24px) !important;
-
-        border-radius: 24px !important;
-
-        box-sizing: border-box;
-    }
+    /* =========================================================
+       HEADER
+    ========================================================= */
 
     .dashboard-header {
-        padding: 28px 22px !important;
 
-        padding-top: 30px !important;
+        padding: 34px 34px 28px;
+
+        border-bottom:
+            1px solid rgba(255, 255, 255, 0.07);
     }
+
 
     .dashboard-header-content {
-        flex-direction: column;
 
-        align-items: flex-start !important;
+        display: flex;
 
-        gap: 18px;
+        align-items: center;
+
+        justify-content: space-between;
+
+        gap: 30px;
+
+        min-width: 0;
     }
 
-    .system-status {
-        align-self: flex-start;
+
+    .dashboard-header-content > div:first-child {
+
+        min-width: 0;
     }
 
-    .dashboard-content {
-        padding: 22px !important;
+
+    .dashboard-eyebrow {
+
+        font-size: 10px;
+
+        font-weight: 800;
+
+        letter-spacing: 0.18em;
+
+        color: #8bc83f;
+
+        margin-bottom: 8px;
     }
 
-    /*
-       Keep mobile one-column behaviour.
-    */
-
-    .dashboard-grid {
-        grid-template-columns: 1fr !important;
-    }
-}
-
-
-/* =========================================================
-   MOBILE 600px
-========================================================= */
-
-@media (max-width: 600px) {
-
-    .main-area {
-        padding: 8px !important;
-    }
-
-    .dashboard-box {
-        height: calc(100vh - 16px) !important;
-
-        max-height: calc(100vh - 16px) !important;
-
-        border-radius: 20px !important;
-    }
-
-    .dashboard-header {
-        padding: 24px 17px !important;
-    }
-
-    .dashboard-content {
-        padding: 17px !important;
-    }
 
     .dashboard-header h1 {
-        font-size: clamp(1.55rem, 8vw, 2.1rem) !important;
 
-        line-height: 1.05;
+        margin: 0;
+
+        font-size:
+            clamp(1.8rem, 4vw, 2.7rem);
+
+        line-height: 1;
+
+        font-weight: 900;
+
+        letter-spacing: -0.035em;
+
+        color: #ffffff;
+
+        overflow-wrap: anywhere;
     }
+
 
     .dashboard-header p {
-        font-size: .85rem !important;
+
+        margin-top: 10px;
+
+        margin-bottom: 0;
+
+        color: #a1a1aa;
+
+        font-size: 14px;
+
+        overflow-wrap: anywhere;
     }
+
+
+    /* =========================================================
+       SYSTEM STATUS
+    ========================================================= */
+
+    .system-status {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 8px;
+
+        padding: 9px 13px;
+
+        border-radius: 999px;
+
+        background: rgba(34, 197, 94, 0.08);
+
+        border:
+            1px solid rgba(34, 197, 94, 0.15);
+
+        color: #bbf7d0;
+
+        font-size: 12px;
+
+        font-weight: 700;
+
+        white-space: nowrap;
+
+        flex: 0 0 auto;
+    }
+
+
+    .status-dot {
+
+        width: 8px;
+
+        height: 8px;
+
+        border-radius: 50%;
+
+        background: #4ade80;
+
+        box-shadow:
+            0 0 0 4px rgba(74, 222, 128, 0.10),
+            0 0 14px rgba(74, 222, 128, 0.50);
+    }
+
+
+    /* =========================================================
+       DASHBOARD CONTENT
+    ========================================================= */
+
+    .dashboard-content {
+
+        padding: 30px 34px 40px;
+
+        min-width: 0;
+    }
+
+
+    /* =========================================================
+       SECTION HEADING
+    ========================================================= */
 
     .section-heading {
-        gap: 12px;
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 20px;
+
+        margin-bottom: 22px;
+
+        min-width: 0;
     }
+
+
+    .section-eyebrow {
+
+        display: block;
+
+        font-size: 10px;
+
+        font-weight: 800;
+
+        letter-spacing: 0.16em;
+
+        color: #8bc83f;
+
+        margin-bottom: 5px;
+    }
+
+
+    .section-heading h2 {
+
+        margin: 0;
+
+        font-size: 22px;
+
+        font-weight: 800;
+
+        color: #ffffff;
+    }
+
 
     .heading-line {
-        display: none;
+
+        height: 1px;
+
+        flex: 1;
+
+        min-width: 20px;
+
+        background:
+            linear-gradient(
+                90deg,
+                rgba(255,255,255,.10),
+                transparent
+            );
     }
+
+
+    /* =========================================================
+       DASHBOARD GRID
+    ========================================================= */
+
+    .dashboard-grid {
+
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 20px;
+
+        margin-bottom: 22px;
+
+        width: 100%;
+
+        min-width: 0;
+    }
+
+
+    /* =========================================================
+       DASHBOARD CARD
+    ========================================================= */
 
     .dashboard-card {
-        padding: 17px !important;
 
-        border-radius: 18px !important;
+        min-width: 0;
+
+        padding: 22px;
+
+        border-radius: 22px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(37, 15, 30, 0.78),
+                rgba(20, 10, 17, 0.78)
+            );
+
+        border:
+            1px solid rgba(255, 255, 255, 0.07);
+
+        box-shadow:
+            0 15px 40px rgba(0, 0, 0, 0.20);
+
+        transition:
+            transform .25s ease,
+            border-color .25s ease,
+            box-shadow .25s ease;
     }
+
+
+    .dashboard-card:hover {
+
+        transform: translateY(-2px);
+
+        border-color:
+            rgba(139, 200, 63, 0.16);
+
+        box-shadow:
+            0 20px 45px rgba(0, 0, 0, 0.28);
+    }
+
+
+    /* =========================================================
+       CARD HEADING
+    ========================================================= */
 
     .card-heading {
-        align-items: flex-start;
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 14px;
+
+        margin-bottom: 20px;
+
+        min-width: 0;
     }
+
+
+    .card-heading > div:last-child {
+
+        min-width: 0;
+    }
+
 
     .card-icon {
-        width: 43px !important;
-        height: 43px !important;
 
-        min-width: 43px !important;
+        width: 48px;
+
+        height: 48px;
+
+        min-width: 48px;
+
+        border-radius: 15px;
+
+        display: inline-flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        background:
+            rgba(139, 200, 63, 0.10);
+
+        border:
+            1px solid rgba(139, 200, 63, 0.14);
+
+        color: #8bc83f;
     }
 
-    .table-wrapper {
-        margin-left: -4px;
 
-        margin-right: -4px;
+    .card-icon svg {
 
-        width: calc(100% + 8px);
+        width: 24px;
+
+        height: 24px;
+
+        stroke-width: 1.7;
     }
 
-    table {
-        min-width: 650px;
+
+    .login-icon {
+
+        background:
+            rgba(59, 130, 246, 0.10);
+
+        border-color:
+            rgba(59, 130, 246, 0.14);
+
+        color: #60a5fa;
     }
 
-    .toast-container {
-        right: 10px;
 
-        bottom: 10px;
+    .announcement-icon {
 
-        width: calc(100% - 20px);
+        background:
+            rgba(168, 85, 247, 0.10);
 
-        max-width: none;
-    }
-}
+        border-color:
+            rgba(168, 85, 247, 0.14);
 
-
-/* =========================================================
-   VERY SMALL MOBILE
-========================================================= */
-
-@media (max-width: 400px) {
-
-    .dashboard-header h1 {
-        font-size: 1.55rem !important;
+        color: #c084fc;
     }
 
-    .dashboard-card {
-        padding: 15px !important;
+
+    .morning-icon {
+
+        background:
+            rgba(245, 158, 11, 0.10);
+
+        border-color:
+            rgba(245, 158, 11, 0.14);
+
+        color: #fbbf24;
     }
+
+
+    .evening-icon {
+
+        background:
+            rgba(99, 102, 241, 0.10);
+
+        border-color:
+            rgba(99, 102, 241, 0.14);
+
+        color: #818cf8;
+    }
+
+
+    .report-icon {
+
+        background:
+            rgba(34, 197, 94, 0.10);
+
+        border-color:
+            rgba(34, 197, 94, 0.14);
+
+        color: #4ade80;
+    }
+
 
     .card-heading h3 {
-        font-size: 15px;
+
+        margin: 0;
+
+        font-size: 17px;
+
+        font-weight: 800;
+
+        color: #ffffff;
+
+        min-width: 0;
     }
+
 
     .card-heading p {
-        font-size: 11px;
+
+        margin: 4px 0 0;
+
+        font-size: 12px;
+
+        color: #a1a1aa;
     }
-}
 
 
-/* =========================================================
-   SIDEBAR TEXT ELLIPSIS
-========================================================= */
+    /* =========================================================
+       LOGIN TIME
+    ========================================================= */
 
-.sidebar-item > span:last-of-type,
-.sidebar-logout > span:last-of-type {
-    overflow: hidden;
+    .login-time-value {
 
-    text-overflow: ellipsis;
+        min-height: 92px;
 
-    white-space: nowrap;
+        display: flex;
 
-    min-width: 0;
-}
+        align-items: center;
 
+        padding: 18px;
 
-/* =========================================================
-   EXTRA WIDTH PROTECTION
-   Does NOT change the visual structure.
-========================================================= */
+        border-radius: 16px;
 
-.dashboard-header-content > div:first-child {
-    min-width: 0;
-}
+        background:
+            rgba(0, 0, 0, 0.28);
 
-.dashboard-header h1,
-.dashboard-header p {
-    overflow-wrap: anywhere;
-}
+        border:
+            1px solid rgba(255, 255, 255, 0.06);
 
-.card-heading > div:last-child {
-    min-width: 0;
-}
+        font-size: 18px;
 
-.announcement-message,
-.restriction-message,
-.report-text-cell {
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}
+        font-weight: 800;
+
+        color: #ffffff;
+
+        min-width: 0;
+
+        overflow-wrap: anywhere;
+    }
 
 
+    .login-time-value span {
+
+        color: #71717a;
+
+        font-size: 14px;
+
+        font-weight: 600;
+    }
+
+
+    /* =========================================================
+       ANNOUNCEMENTS
+    ========================================================= */
+
+    .announcement-list {
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 12px;
+
+        min-width: 0;
+    }
+
+
+    .announcement-item {
+
+        padding: 15px;
+
+        border-radius: 16px;
+
+        background:
+            rgba(0, 0, 0, 0.25);
+
+        border:
+            1px solid rgba(255, 255, 255, 0.06);
+
+        min-width: 0;
+    }
+
+
+    .announcement-item:hover {
+
+        border-color:
+            rgba(168, 85, 247, 0.20);
+    }
+
+
+    .announcement-title {
+
+        font-size: 14px;
+
+        font-weight: 800;
+
+        color: #ffffff;
+
+        margin-bottom: 5px;
+    }
+
+
+    .announcement-message {
+
+        font-size: 13px;
+
+        line-height: 1.6;
+
+        color: #d4d4d8;
+
+        overflow-wrap: anywhere;
+    }
+
+
+    .announcement-meta {
+
+        margin-top: 9px;
+
+        font-size: 10px;
+
+        color: #71717a;
+    }
+
+
+    .announcement-meta strong {
+
+        color: #a1a1aa;
+    }
+
+
+    /* =========================================================
+       REPORT FORM
+    ========================================================= */
+
+    .report-form {
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 12px;
+
+        min-width: 0;
+
+        width: 100%;
+    }
+
+
+    .report-textarea {
+
+        width: 100%;
+
+        min-height: 125px;
+
+        box-sizing: border-box;
+
+        resize: vertical;
+
+        padding: 14px 15px;
+
+        border-radius: 15px;
+
+        background: #050505;
+
+        border:
+            1px solid rgba(255, 255, 255, 0.10);
+
+        color: #ffffff;
+
+        outline: none;
+
+        font-family: inherit;
+
+        font-size: 13px;
+
+        line-height: 1.5;
+
+        transition:
+            border-color .2s ease,
+            box-shadow .2s ease;
+    }
+
+
+    .report-textarea::placeholder {
+
+        color: #71717a;
+    }
+
+
+    .report-textarea:focus {
+
+        border-color:
+            rgba(139, 200, 63, 0.55);
+
+        box-shadow:
+            0 0 0 3px
+            rgba(139, 200, 63, 0.08);
+    }
+
+
+    /* =========================================================
+       SELECT
+    ========================================================= */
+
+    .morning-select {
+
+        width: 100%;
+
+        box-sizing: border-box;
+
+        padding: 12px 14px;
+
+        background-color:
+            #050505 !important;
+
+        color:
+            #ffffff !important;
+
+        border:
+            1px solid rgba(255, 255, 255, 0.10);
+
+        border-radius: 14px;
+
+        outline: none;
+
+        font-size: 13px;
+
+        cursor: pointer;
+    }
+
+
+    .morning-select:focus {
+
+        border-color:
+            rgba(139, 200, 63, 0.55);
+
+        box-shadow:
+            0 0 0 3px
+            rgba(139, 200, 63, 0.08);
+    }
+
+
+    .morning-select option {
+
+        background-color:
+            #050505 !important;
+
+        color:
+            #ffffff !important;
+    }
+
+
+    /* =========================================================
+       BUTTON
+    ========================================================= */
+
+    .report-button {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        gap: 8px;
+
+        width: 100%;
+
+        padding: 12px 16px;
+
+        border: 0;
+
+        border-radius: 14px;
+
+        background:
+            linear-gradient(
+                135deg,
+                #8bc83f,
+                #6da52e
+            );
+
+        color: #ffffff;
+
+        font-size: 13px;
+
+        font-weight: 800;
+
+        cursor: pointer;
+
+        box-shadow:
+            0 10px 25px
+            rgba(139, 200, 63, 0.16);
+
+        transition:
+            transform .2s ease,
+            box-shadow .2s ease;
+    }
+
+
+    .report-button:hover {
+
+        transform: translateY(-1px);
+
+        box-shadow:
+            0 14px 30px
+            rgba(139, 200, 63, 0.22);
+    }
+
+
+    .report-button:active {
+
+        transform: translateY(0);
+    }
+
+
+    .button-icon {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        justify-content: center;
+    }
+
+
+    .button-icon svg {
+
+        width: 16px;
+
+        height: 16px;
+
+        stroke-width: 2.2;
+    }
+
+
+    /* =========================================================
+       RESTRICTION
+    ========================================================= */
+
+    .restriction-message {
+
+        padding: 16px;
+
+        border-radius: 15px;
+
+        background:
+            rgba(0, 0, 0, 0.25);
+
+        border:
+            1px solid rgba(255, 255, 255, 0.06);
+
+        color: #a1a1aa;
+
+        font-size: 13px;
+
+        line-height: 1.6;
+
+        overflow-wrap: anywhere;
+    }
+
+
+    /* =========================================================
+       FULL WIDTH CARD
+    ========================================================= */
+
+    .full-width-card {
+
+        margin-top: 20px;
+
+        min-width: 0;
+    }
+
+
+    /* =========================================================
+       TABLE
+    ========================================================= */
+
+    .table-wrapper {
+
+        width: 100%;
+
+        min-width: 0;
+
+        overflow-x: auto;
+
+        -webkit-overflow-scrolling: touch;
+
+        border-radius: 16px;
+
+        border:
+            1px solid rgba(255, 255, 255, 0.06);
+    }
+
+
+    table {
+
+        width: 100%;
+
+        min-width: 650px;
+
+        border-collapse: collapse;
+
+        color: #e4e4e7;
+
+        font-size: 12px;
+    }
+
+
+    thead {
+
+        background:
+            rgba(0, 0, 0, 0.40);
+    }
+
+
+    th {
+
+        padding: 13px 15px;
+
+        text-align: left;
+
+        font-size: 10px;
+
+        font-weight: 800;
+
+        letter-spacing: 0.08em;
+
+        text-transform: uppercase;
+
+        color: #a1a1aa;
+
+        white-space: nowrap;
+    }
+
+
+    td {
+
+        padding: 14px 15px;
+
+        border-top:
+            1px solid rgba(255, 255, 255, 0.05);
+
+        vertical-align: top;
+
+        color: #d4d4d8;
+    }
+
+
+    tbody tr {
+
+        transition:
+            background .2s ease;
+    }
+
+
+    tbody tr:hover {
+
+        background:
+            rgba(255, 255, 255, 0.025);
+    }
+
+
+    .report-type {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        padding: 5px 9px;
+
+        border-radius: 999px;
+
+        background:
+            rgba(139, 200, 63, 0.08);
+
+        border:
+            1px solid rgba(139, 200, 63, 0.12);
+
+        color: #bef264;
+
+        font-size: 10px;
+
+        font-weight: 800;
+    }
+
+
+    .report-status {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        padding: 5px 9px;
+
+        border-radius: 999px;
+
+        background:
+            rgba(99, 102, 241, 0.10);
+
+        border:
+            1px solid rgba(99, 102, 241, 0.14);
+
+        color: #a5b4fc;
+
+        font-size: 10px;
+
+        font-weight: 800;
+    }
+
+
+    .report-text-cell {
+
+        max-width: 430px;
+
+        line-height: 1.6;
+
+        white-space: normal;
+
+        overflow-wrap: anywhere;
+
+        word-break: break-word;
+    }
+
+
+    /* =========================================================
+       EMPTY STATE
+    ========================================================= */
+
+    .empty-state {
+
+        padding: 25px;
+
+        border-radius: 16px;
+
+        background:
+            rgba(0, 0, 0, 0.22);
+
+        border:
+            1px solid rgba(255, 255, 255, 0.06);
+
+        color: #71717a;
+
+        font-size: 13px;
+
+        text-align: center;
+    }
+
+
+    /* =========================================================
+       LAPTOP
+    ========================================================= */
+
+    @media (min-width: 901px) and (max-width: 1200px) {
+
+        .dashboard-grid {
+
+            grid-template-columns: 1fr;
+        }
+    }
+
+
+    /* =========================================================
+       MOBILE
+    ========================================================= */
+
+    @media (max-width: 900px) {
+
+        .dashboard-header {
+
+            padding: 28px 22px;
+        }
+
+
+        .dashboard-header-content {
+
+            flex-direction: column;
+
+            align-items: flex-start;
+
+            gap: 18px;
+        }
+
+
+        .system-status {
+
+            align-self: flex-start;
+        }
+
+
+        .dashboard-content {
+
+            padding: 22px;
+        }
+
+
+        .dashboard-grid {
+
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+
+    /* =========================================================
+       SMALL MOBILE
+    ========================================================= */
+
+    @media (max-width: 600px) {
+
+        .dashboard-header {
+
+            padding: 24px 17px;
+        }
+
+
+        .dashboard-content {
+
+            padding: 17px;
+        }
+
+
+        .dashboard-header h1 {
+
+            font-size:
+                clamp(1.55rem, 8vw, 2.1rem);
+
+            line-height: 1.05;
+        }
+
+
+        .dashboard-header p {
+
+            font-size: 0.85rem;
+        }
+
+
+        .section-heading {
+
+            gap: 12px;
+        }
+
+
+        .heading-line {
+
+            display: none;
+        }
+
+
+        .dashboard-card {
+
+            padding: 17px;
+
+            border-radius: 18px;
+        }
+
+
+        .card-heading {
+
+            align-items: flex-start;
+        }
+
+
+        .card-icon {
+
+            width: 43px;
+
+            height: 43px;
+
+            min-width: 43px;
+        }
+
+
+        .table-wrapper {
+
+            margin-left: -4px;
+
+            margin-right: -4px;
+
+            width: calc(100% + 8px);
+        }
+
+
+        table {
+
+            min-width: 650px;
+        }
+    }
+
+
+    /* =========================================================
+       VERY SMALL MOBILE
+    ========================================================= */
+
+    @media (max-width: 400px) {
+
+        .dashboard-header h1 {
+
+            font-size: 1.55rem;
+        }
+
+
+        .dashboard-card {
+
+            padding: 15px;
+        }
+
+
+        .card-heading h3 {
+
+            font-size: 15px;
+        }
+
+
+        .card-heading p {
+
+            font-size: 11px;
+        }
+    }
 
 </style>
 
-</head>
+{% endblock %}
 
-<body>
+
+
+{% block content %}
+
 
 <!-- =========================================================
-     MOBILE MENU BUTTON
+     HEADER
 ========================================================= -->
 
-<button
-id="mobile-menu-button"
-class="mobile-menu-button"
-type="button"
-aria-label="Open menu"
+<section class="dashboard-header">
 
->
+    <div class="dashboard-header-content">
 
 
-<i data-lucide="menu"></i>
+        <div>
+
+            <div class="dashboard-eyebrow">
+                CYBEXEL TEAM WORKSPACE
+            </div>
 
 
-</button>
-
-<!-- =========================================================
-     MOBILE OVERLAY
-========================================================= -->
-
-<div
-    id="sidebar-overlay"
-    class="sidebar-overlay"
-></div>
-
-<!-- =========================================================
-     LEFT SIDEBAR
-========================================================= -->
-
-<aside
-    id="sidebar"
-    class="glass-sidebar"
->
+            <h1>
+                TEAM MEMBER DASHBOARD
+            </h1>
 
 
-<!-- =====================================================
-     SIDEBAR PROFILE
-====================================================== -->
+            <p>
+                Manage your work, reports and daily activities from one place.
+            </p>
 
-<div class="sidebar-profile">
+        </div>
 
-    <div class="sidebar-logo">
 
-        <img
-            src="{% static 'images/logo.png' %}"
-            alt="Cybexel Logo"
-        >
+        <!-- System Status -->
+
+        <div class="system-status">
+
+            <span class="status-dot"></span>
+
+            <span>
+                System Online
+            </span>
+
+        </div>
 
     </div>
 
-    <div class="sidebar-profile-text">
+</section>
 
-        <h3>TEAM MEMBER</h3>
 
-        <span>CYBEXEL WORKSPACE</span>
+
+<!-- =========================================================
+     DASHBOARD CONTENT
+========================================================= -->
+
+<section class="dashboard-content">
+
+
+    <!-- =====================================================
+         DAILY ACTIVITY
+    ====================================================== -->
+
+    <div class="section-heading">
+
+        <div>
+
+            <span class="section-eyebrow">
+                WORKSPACE
+            </span>
+
+            <h2>
+                Daily Activity
+            </h2>
+
+        </div>
+
+
+        <div class="heading-line"></div>
 
     </div>
 
-</div>
 
 
-<!-- =====================================================
-     NAVIGATION
-====================================================== -->
+    <!-- =====================================================
+         LOGIN + ANNOUNCEMENTS
+    ====================================================== -->
 
-<nav class="sidebar-nav">
-
-
-    <!-- Dashboard -->
-
-    <a
-        href="{% url 'teammember_dashboard' %}"
-        class="sidebar-item {% if request.resolver_match.url_name == 'teammember_dashboard' %}active{% endif %}"
-    >
-
-        <span class="sidebar-icon">
-            <i data-lucide="layout-dashboard"></i>
-        </span>
-
-        <span>Dashboard</span>
-
-    </a>
-
-
-    <!-- Project -->
-
-    <a
-        href="{% url 'teammember_project' %}"
-        class="sidebar-item {% if request.resolver_match.url_name == 'teammember_project' %}active{% endif %}"
-    >
-
-        <span class="sidebar-icon">
-            <i data-lucide="folder-kanban"></i>
-        </span>
-
-        <span>Projects</span>
-
-    </a>
-
-
-    <!-- Notepad -->
-
-    <a
-        href="{% url 'teammember_notepad' %}"
-        class="sidebar-item {% if request.resolver_match.url_name == 'teammember_notepad' %}active{% endif %}"
-    >
-
-        <span class="sidebar-icon">
-            <i data-lucide="notebook-pen"></i>
-        </span>
-
-        <span>Notepad</span>
-
-    </a>
-
-
-    <!-- Knowledge Repository -->
-
-    <a
-        href="{% url 'teammember_repository' %}"
-        class="sidebar-item {% if request.resolver_match.url_name == 'teammember_repository' %}active{% endif %}"
-    >
-
-        <span class="sidebar-icon">
-            <i data-lucide="library"></i>
-        </span>
-
-        <span>Knowledge Repository</span>
-
-    </a>
-
-
-    <!-- My Task -->
-
-    <a
-        href="{% url 'teammember_task' %}"
-        class="sidebar-item {% if request.resolver_match.url_name == 'teammember_task' %}active{% endif %}"
-    >
-
-        <span class="sidebar-icon">
-            <i data-lucide="list-checks"></i>
-        </span>
-
-        <span>My Task</span>
-
-    </a>
-
-
-    <!-- Chat -->
-
-    <a
-        href="{% url 'teammember_chat' %}"
-        class="sidebar-item {% if request.resolver_match.url_name == 'teammember_chat' %}active{% endif %}"
-    >
-
-        <span class="sidebar-icon">
-            <i data-lucide="message-circle"></i>
-        </span>
-
-        <span>Chat</span>
-
-    </a>
-
-
-    <!-- Profile -->
-
-    <a
-        href="{% url 'teammember_profile' %}"
-        class="sidebar-item {% if request.resolver_match.url_name == 'teammember_profile' %}active{% endif %}"
-    >
-
-        <span class="sidebar-icon">
-            <i data-lucide="circle-user-round"></i>
-        </span>
-
-        <span>Profile</span>
-
-    </a>
-
-
-    <!-- Google Meet -->
-
-    <a
-        href="https://meet.google.com/"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="sidebar-item"
-    >
-
-        <span class="sidebar-icon">
-            <i data-lucide="video"></i>
-        </span>
-
-        <span>Google Meet</span>
-
-        <span class="sidebar-external">
-            <i data-lucide="arrow-up-right"></i>
-        </span>
-
-    </a>
-
-
-</nav>
-
-
-<!-- =====================================================
-     LOGOUT
-====================================================== -->
-
-<div class="sidebar-bottom">
-
-    <a
-        href="{% url 'teammember_logout' %}"
-        class="sidebar-logout"
-    >
-
-        <span class="sidebar-icon">
-            <i data-lucide="log-out"></i>
-        </span>
-
-        <span>Logout</span>
-
-    </a>
-
-</div>
-
-
-</aside>
-
-<!-- =========================================================
-     MAIN AREA
-========================================================= -->
-
-<main class="main-area">
-
-
-<!-- =====================================================
-     BIG DASHBOARD BOX
-====================================================== -->
-
-<div class="dashboard-box">
-
-
-    <!-- =================================================
-         HEADER
-    ================================================== -->
-
-    <section class="dashboard-header">
-
-        <div class="dashboard-header-content">
-
-
-            <div>
-
-                <div class="dashboard-eyebrow">
-                    CYBEXEL TEAM WORKSPACE
-                </div>
-
-                <h1>
-                    TEAM MEMBER DASHBOARD
-                </h1>
-
-                <p>
-                    Manage your work, reports and daily activities from one place.
-                </p>
-
-            </div>
-
-
-            <!-- System status -->
-
-            <div class="system-status">
-
-                <span class="status-dot"></span>
-
-                <span>
-                    System Online
-                </span>
-
-            </div>
-
-
-        </div>
-
-    </section>
-
-
-    <!-- =================================================
-         CONTENT
-    ================================================== -->
-
-    <section class="dashboard-content">
+    <div class="dashboard-grid">
 
 
         <!-- =================================================
-             SECTION HEADING
+             LOGIN TIME
         ================================================== -->
 
-        <div class="section-heading">
-
-            <div>
-
-                <span class="section-eyebrow">
-                    WORKSPACE
-                </span>
-
-                <h2>
-                    Daily Activity
-                </h2>
-
-            </div>
-
-            <div class="heading-line"></div>
-
-        </div>
-
-
-        <!-- =================================================
-             TOP CARDS
-        ================================================== -->
-
-        <div class="dashboard-grid">
-
-
-            <!-- =================================================
-                 LOGIN TIME
-            ================================================== -->
-
-            <div class="dashboard-card">
-
-                <div class="card-heading">
-
-                    <div class="card-icon login-icon">
-
-                        <i data-lucide="clock-3"></i>
-
-                    </div>
-
-                    <div>
-
-                        <h3>
-                            Logged In Time
-                        </h3>
-
-                        <p>
-                            Your current session information
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <div class="login-time-value">
-
-                    {% if login_time %}
-
-                        {{ login_time|date:"d M Y, h:i A" }}
-
-                    {% else %}
-
-                        <span>
-                            Not Available
-                        </span>
-
-                    {% endif %}
-
-                </div>
-
-            </div>
-
-
-            <!-- =================================================
-                 ANNOUNCEMENTS
-            ================================================== -->
-
-            <div class="dashboard-card">
-
-                <div class="card-heading">
-
-                    <div class="card-icon announcement-icon">
-
-                        <i data-lucide="megaphone"></i>
-
-                    </div>
-
-                    <div>
-
-                        <h3>
-                            Announcements
-                        </h3>
-
-                        <p>
-                            Latest updates from your organization
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                {% if announcements %}
-
-                    <div class="announcement-list">
-
-                        {% for ann in announcements %}
-
-                            <div class="announcement-item">
-
-                                <div class="announcement-title">
-
-                                    {{ ann.title }}
-
-                                </div>
-
-                                <div class="announcement-message">
-
-                                    {{ ann.message }}
-
-                                </div>
-
-                                <div class="announcement-meta">
-
-                                    Posted by
-
-                                    <strong>
-                                        {{ ann.created_by.username }}
-                                    </strong>
-
-                                    on
-
-                                    {{ ann.created_at|localtime|date:"M d, Y h:i A" }}
-
-                                </div>
-
-                            </div>
-
-                        {% endfor %}
-
-                    </div>
-
-                {% else %}
-
-                    <div class="empty-state">
-
-                        No announcements in the last 12 hours.
-
-                    </div>
-
-                {% endif %}
-
-            </div>
-
-
-        </div>
-
-
-        <!-- =================================================
-             REPORT SECTION HEADING
-        ================================================== -->
-
-        <div class="section-heading">
-
-            <div>
-
-                <span class="section-eyebrow">
-                    DAILY REPORTS
-                </span>
-
-                <h2>
-                    Submit Your Report
-                </h2>
-
-            </div>
-
-            <div class="heading-line"></div>
-
-        </div>
-
-
-        <!-- =================================================
-             MORNING + EVENING REPORTS
-        ================================================== -->
-
-        <div class="dashboard-grid">
-
-
-            <!-- =================================================
-                 MORNING REPORT
-            ================================================== -->
-
-            <div class="dashboard-card">
-
-                <div class="card-heading">
-
-                    <div class="card-icon morning-icon">
-
-                        <i data-lucide="sunrise"></i>
-
-                    </div>
-
-                    <div>
-
-                        <h3>
-                            Submit Morning Report
-                        </h3>
-
-                        <p>
-                            Start your working day with an update
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                {% if morning_allowed %}
-
-                    <form
-                        method="POST"
-                        class="report-form"
-                    >
-
-                        {% csrf_token %}
-
-
-                        <textarea
-                            name="morning_report"
-                            rows="4"
-                            class="report-textarea"
-                            placeholder="Write your morning report..."
-                        ></textarea>
-
-
-                        <select
-                            name="morning_status"
-                            class="morning-select"
-                        >
-
-                            <option value="Pending">
-                                Pending
-                            </option>
-
-                            <option value="In Progress">
-                                In Progress
-                            </option>
-
-                            <option value="Completed">
-                                Completed
-                            </option>
-
-                        </select>
-
-
-                        <button
-                            type="submit"
-                            name="morning_submit"
-                            class="report-button"
-                        >
-
-                            <span class="button-icon">
-
-                                <i data-lucide="send"></i>
-
-                            </span>
-
-                            Submit Morning Report
-
-                        </button>
-
-                    </form>
-
-                {% else %}
-
-                    <div class="restriction-message">
-
-                        <i
-                            data-lucide="info"
-                            style="width:16px;height:16px;vertical-align:middle;margin-right:5px;"
-                        ></i>
-
-                        Morning report submission is only allowed between
-                        9:30 and 10:30 AM.
-
-                    </div>
-
-                {% endif %}
-
-            </div>
-
-
-            <!-- =================================================
-                 EVENING REPORT
-            ================================================== -->
-
-            <div class="dashboard-card">
-
-                <div class="card-heading">
-
-                    <div class="card-icon evening-icon">
-
-                        <i data-lucide="sunset"></i>
-
-                    </div>
-
-                    <div>
-
-                        <h3>
-                            Submit Evening Report
-                        </h3>
-
-                        <p>
-                            Complete your daily work summary
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                {% if evening_allowed %}
-
-                    <form
-                        method="POST"
-                        class="report-form"
-                    >
-
-                        {% csrf_token %}
-
-
-                        <textarea
-                            name="evening_report"
-                            rows="4"
-                            class="report-textarea"
-                            placeholder="Write your evening report..."
-                        ></textarea>
-
-
-                        <select
-                            name="evening_status"
-                            class="morning-select"
-                        >
-
-                            <option value="Pending">
-                                Pending
-                            </option>
-
-                            <option value="In Progress">
-                                In Progress
-                            </option>
-
-                            <option value="Completed">
-                                Completed
-                            </option>
-
-                        </select>
-
-
-                        <button
-                            type="submit"
-                            name="evening_submit"
-                            class="report-button"
-                        >
-
-                            <span class="button-icon">
-
-                                <i data-lucide="send"></i>
-
-                            </span>
-
-                            Submit Evening Report
-
-                        </button>
-
-                    </form>
-
-                {% else %}
-
-                    <div class="restriction-message">
-
-                        <i
-                            data-lucide="info"
-                            style="width:16px;height:16px;vertical-align:middle;margin-right:5px;"
-                        ></i>
-
-                        Evening report submission is only allowed between
-                        5:00 and 6:15 PM.
-
-                    </div>
-
-                {% endif %}
-
-            </div>
-
-
-        </div>
-
-
-        <!-- =================================================
-             SUBMITTED REPORTS
-        ================================================== -->
-
-        <div class="dashboard-card full-width-card">
-
+        <div class="dashboard-card">
 
             <div class="card-heading">
 
-                <div class="card-icon report-icon">
+                <div class="card-icon login-icon">
 
-                    <i data-lucide="file-check-2"></i>
+                    <i data-lucide="clock-3"></i>
 
                 </div>
+
 
                 <div>
 
                     <h3>
-                        Your Reports
+                        Logged In Time
                     </h3>
 
                     <p>
-                        Reports submitted during the last 24 hours
+                        Your current session information
                     </p>
 
                 </div>
@@ -2513,85 +1259,97 @@ aria-label="Open menu"
             </div>
 
 
-            {% if all_reports %}
+            <div class="login-time-value">
 
-                <div class="table-wrapper">
+                {% if login_time %}
 
-                    <table>
+                    {{ login_time|date:"d M Y, h\:i A" }}
 
-                        <thead>
+                {% else %}
 
-                            <tr>
+                    <span>
+                        Not Available
+                    </span>
 
-                                <th>
-                                    Type
-                                </th>
+                {% endif %}
 
-                                <th>
-                                    Report
-                                </th>
+            </div>
 
-                                <th>
-                                    Status
-                                </th>
-
-                                <th>
-                                    Submitted At
-                                </th>
-
-                            </tr>
-
-                        </thead>
+        </div>
 
 
-                        <tbody>
 
-                            {% for report in all_reports %}
+        <!-- =================================================
+             ANNOUNCEMENTS
+        ================================================== -->
 
-                                <tr>
+        <div class="dashboard-card">
 
-                                    <td>
+            <div class="card-heading">
 
-                                        <span class="report-type">
+                <div class="card-icon announcement-icon">
 
-                                            {{ report.type }}
+                    <i data-lucide="megaphone"></i>
 
-                                        </span>
-
-                                    </td>
-
-
-                                    <td class="report-text-cell">
-
-                                        {{ report.report_text }}
-
-                                    </td>
+                </div>
 
 
-                                    <td>
+                <div>
 
-                                        <span class="report-status">
+                    <h3>
+                        Announcements
+                    </h3>
 
-                                            {{ report.status }}
+                    <p>
+                        Latest updates from your organization
+                    </p>
 
-                                        </span>
+                </div>
 
-                                    </td>
+            </div>
 
 
-                                    <td>
+            {% if announcements %}
 
-                                        {{ report.created_at|date:"M d, Y H:i A" }}
+                <div class="announcement-list">
 
-                                    </td>
+                    {% for ann in announcements %}
 
-                                </tr>
+                        <div class="announcement-item">
 
-                            {% endfor %}
 
-                        </tbody>
+                            <div class="announcement-title">
 
-                    </table>
+                                {{ ann.title }}
+
+                            </div>
+
+
+                            <div class="announcement-message">
+
+                                {{ ann.message }}
+
+                            </div>
+
+
+                            <div class="announcement-meta">
+
+                                Posted by
+
+                                <strong>
+                                    {{ ann.created_by.username }}
+                                </strong>
+
+                                on
+
+                                {{ ann.created_at|localtime|date:"M d, Y h\:i A" }}
+
+                            </div>
+
+
+                        </div>
+
+                    {% endfor %}
 
                 </div>
 
@@ -2599,307 +1357,418 @@ aria-label="Open menu"
 
                 <div class="empty-state">
 
-                    <i
-                        data-lucide="file-x-2"
-                        style="width:20px;height:20px;margin-bottom:7px;"
-                    ></i>
-
-                    <br>
-
-                    No reports submitted in the last 24 hours.
+                    No announcements in the last 12 hours.
 
                 </div>
 
             {% endif %}
 
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         DAILY REPORTS HEADING
+    ====================================================== -->
+
+    <div class="section-heading">
+
+        <div>
+
+            <span class="section-eyebrow">
+                DAILY REPORTS
+            </span>
+
+            <h2>
+                Submit Your Report
+            </h2>
 
         </div>
 
 
-    </section>
+        <div class="heading-line"></div>
+
+    </div>
 
 
-</div>
+
+    <!-- =====================================================
+         MORNING + EVENING REPORTS
+    ====================================================== -->
+
+    <div class="dashboard-grid">
 
 
-</main>
+        <!-- =================================================
+             MORNING REPORT
+        ================================================== -->
 
-<!-- =========================================================
-     TOAST CONTAINER
-========================================================= -->
-
-<div
-    id="toast-container"
-    class="toast-container"
->
+        <div class="dashboard-card">
 
 
-{% if messages %}
+            <div class="card-heading">
 
-    {% for message in messages %}
+                <div class="card-icon morning-icon">
+
+                    <i data-lucide="sunrise"></i>
+
+                </div>
 
 
-        <div
-            class="toast-message"
-        >
+                <div>
+
+                    <h3>
+                        Submit Morning Report
+                    </h3>
+
+                    <p>
+                        Start your working day with an update
+                    </p>
+
+                </div>
+
+            </div>
 
 
-            <!-- =================================================
-                 ICON
-            ================================================== -->
+            {% if morning_allowed %}
 
-            {% if message.tags == "error" %}
+                <form
+                    method="POST"
+                    class="report-form">
 
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="toast-icon"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    style="color:#f87171;"
-                >
+                    {% csrf_token %}
 
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12"
-                    />
 
-                </svg>
+                    <textarea
+                        name="morning_report"
+                        rows="4"
+                        class="report-textarea"
+                        placeholder="Write your morning report..."
+                    ></textarea>
+
+
+                    <select
+                        name="morning_status"
+                        class="morning-select">
+
+                        <option value="Pending">
+                            Pending
+                        </option>
+
+                        <option value="In Progress">
+                            In Progress
+                        </option>
+
+                        <option value="Completed">
+                            Completed
+                        </option>
+
+                    </select>
+
+
+                    <button
+                        type="submit"
+                        name="morning_submit"
+                        class="report-button">
+
+
+                        <span class="button-icon">
+
+                            <i data-lucide="send"></i>
+
+                        </span>
+
+
+                        Submit Morning Report
+
+                    </button>
+
+                </form>
 
             {% else %}
 
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="toast-icon"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    style="color:#4ade80;"
-                >
+                <div class="restriction-message">
 
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M5 13l4 4L19 7"
-                    />
+                    <i
+                        data-lucide="info"
+                        style="
+                            width:16px;
+                            height:16px;
+                            vertical-align:middle;
+                            margin-right:5px;
+                        ">
+                    </i>
 
-                </svg>
+                    Morning report submission is only allowed between
+                    9:30 and 10:30 AM.
+
+                </div>
 
             {% endif %}
-
-
-            <!-- =================================================
-                 MESSAGE
-            ================================================== -->
-
-            <span class="toast-text">
-
-                {{ message }}
-
-            </span>
-
-
-            <!-- =================================================
-                 CLOSE
-            ================================================== -->
-
-            <button
-                type="button"
-                onclick="removeToast(this.parentElement)"
-                class="toast-close"
-                aria-label="Close notification"
-            >
-
-                &times;
-
-            </button>
-
 
         </div>
 
 
-    {% endfor %}
 
-{% endif %}
+        <!-- =================================================
+             EVENING REPORT
+        ================================================== -->
 
+        <div class="dashboard-card">
 
-</div>
 
-<!-- =========================================================
-     JAVASCRIPT
-========================================================= -->
+            <div class="card-heading">
 
-<script>
+                <div class="card-icon evening-icon">
 
-document.addEventListener("DOMContentLoaded", function () {
+                    <i data-lucide="sunset"></i>
 
+                </div>
 
-    /* =========================================================
-       LUCIDE ICONS
-    ========================================================= */
 
-    if (window.lucide) {
+                <div>
 
-        lucide.createIcons();
+                    <h3>
+                        Submit Evening Report
+                    </h3>
 
-    }
+                    <p>
+                        Complete your daily work summary
+                    </p>
 
+                </div>
 
-    /* =========================================================
-       SIDEBAR
-    ========================================================= */
+            </div>
 
-    const sidebar =
-        document.getElementById("sidebar");
 
-    const menuButton =
-        document.getElementById("mobile-menu-button");
+            {% if evening_allowed %}
 
-    const sidebarOverlay =
-        document.getElementById("sidebar-overlay");
+                <form
+                    method="POST"
+                    class="report-form">
 
+                    {% csrf_token %}
 
-    function openSidebar() {
 
-        sidebar.classList.add("open");
+                    <textarea
+                        name="evening_report"
+                        rows="4"
+                        class="report-textarea"
+                        placeholder="Write your evening report..."
+                    ></textarea>
 
-        sidebarOverlay.classList.add("active");
 
-    }
+                    <select
+                        name="evening_status"
+                        class="morning-select">
 
+                        <option value="Pending">
+                            Pending
+                        </option>
 
-    function closeSidebar() {
+                        <option value="In Progress">
+                            In Progress
+                        </option>
 
-        sidebar.classList.remove("open");
+                        <option value="Completed">
+                            Completed
+                        </option>
 
-        sidebarOverlay.classList.remove("active");
+                    </select>
 
-    }
 
+                    <button
+                        type="submit"
+                        name="evening_submit"
+                        class="report-button">
 
-    if (menuButton) {
 
-        menuButton.addEventListener(
-            "click",
-            function () {
+                        <span class="button-icon">
 
-                if (sidebar.classList.contains("open")) {
+                            <i data-lucide="send"></i>
 
-                    closeSidebar();
+                        </span>
 
-                } else {
 
-                    openSidebar();
+                        Submit Evening Report
 
-                }
+                    </button>
 
-            }
-        );
+                </form>
 
-    }
+            {% else %}
 
+                <div class="restriction-message">
 
-    if (sidebarOverlay) {
+                    <i
+                        data-lucide="info"
+                        style="
+                            width:16px;
+                            height:16px;
+                            vertical-align:middle;
+                            margin-right:5px;
+                        ">
+                    </i>
 
-        sidebarOverlay.addEventListener(
-            "click",
-            closeSidebar
-        );
+                    Evening report submission is only allowed between
+                    5:00 and 6:15 PM.
 
-    }
+                </div>
 
+            {% endif %}
 
-    /* =========================================================
-       CLOSE MOBILE SIDEBAR AFTER NAVIGATION
-    ========================================================= */
+        </div>
 
-    const sidebarLinks =
-        sidebar.querySelectorAll("a");
+    </div>
 
-    sidebarLinks.forEach(function (link) {
 
-        link.addEventListener(
-            "click",
-            function () {
 
-                if (
-                    window.innerWidth <= 900 &&
-                    !link.hasAttribute("target")
-                ) {
+    <!-- =====================================================
+         SUBMITTED REPORTS
+    ====================================================== -->
 
-                    closeSidebar();
+    <div class="dashboard-card full-width-card">
 
-                }
 
-            }
-        );
+        <div class="card-heading">
 
-    });
+            <div class="card-icon report-icon">
 
+                <i data-lucide="file-check-2"></i>
 
-    /* =========================================================
-       TOAST AUTO HIDE
-    ========================================================= */
+            </div>
 
-    const toasts =
-        document.querySelectorAll(".toast-message");
 
+            <div>
 
-    toasts.forEach(function (toast) {
+                <h3>
+                    Your Reports
+                </h3>
 
-        setTimeout(function () {
+                <p>
+                    Reports submitted during the last 24 hours
+                </p>
 
-            removeToast(toast);
+            </div>
 
-        }, 4000);
+        </div>
 
-    });
 
+        {% if all_reports %}
 
-});
 
+            <div class="table-wrapper">
 
-/* =========================================================
-   REMOVE TOAST
-========================================================= */
+                <table>
 
-function removeToast(toast) {
+                    <thead>
 
-    if (!toast) {
+                        <tr>
 
-        return;
+                            <th>
+                                Type
+                            </th>
 
-    }
+                            <th>
+                                Report
+                            </th>
 
+                            <th>
+                                Status
+                            </th>
 
-    toast.classList.add("toast-hide");
+                            <th>
+                                Submitted At
+                            </th>
 
+                        </tr>
 
-    setTimeout(function () {
+                    </thead>
 
-        if (toast.parentElement) {
 
-            toast.remove();
+                    <tbody>
 
-        }
+                        {% for report in all_reports %}
 
-    }, 350);
+                            <tr>
 
-}
 
-</script>
+                                <td>
 
-<!-- =========================================================
-     EXISTING JAVASCRIPT
-========================================================= -->
+                                    <span class="report-type">
 
-<script src="{% static 'js/team_member.js' %}"></script>
+                                        {{ report.type }}
 
-<script src="{% static 'js/activity.js' %}"></script>
+                                    </span>
 
-</body>
+                                </td>
 
-</html>
+
+                                <td class="report-text-cell">
+
+                                    {{ report.report_text }}
+
+                                </td>
+
+
+                                <td>
+
+                                    <span class="report-status">
+
+                                        {{ report.status }}
+
+                                    </span>
+
+                                </td>
+
+
+                                <td>
+
+                                    {{ report.created_at|date:"M d, Y H\:i A" }}
+
+                                </td>
+
+
+                            </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+        {% else %}
+
+
+            <div class="empty-state">
+
+                <i
+                    data-lucide="file-x-2"
+                    style="
+                        width:20px;
+                        height:20px;
+                        margin-bottom:7px;
+                    ">
+                </i>
+
+                <br>
+
+                No reports submitted in the last 24 hours.
+
+            </div>
+
+
+        {% endif %}
+
+
+    </div>
+
+
+</section>
+
+{% endblock %}

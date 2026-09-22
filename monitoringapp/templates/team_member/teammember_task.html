@@ -1,3356 +1,1806 @@
-{% load static %}
+{% extends "team_member/base3.html" %}
 {% load tz %}
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>My Tasks - Cybexel</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
-
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+{% block title %}
+My Tasks - Cybexel
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+/* =========================================================
+   TASK PAGE - SECTION HEADING
+   ========================================================= */
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 22px;
+    min-width: 0;
+}
+
+.section-heading > div:first-child {
+    min-width: 0;
+}
+
+.section-eyebrow {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    color: #8bc83f;
+    margin-bottom: 5px;
+}
+
+.section-heading h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.section-description {
+    margin: 5px 0 0;
+    color: #71717a;
+    font-size: 12px;
+}
+
+.heading-line {
+    height: 1px;
+    flex: 1;
+    min-width: 20px;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.10),
+        transparent
+    );
+}
+
+
+/* =========================================================
+   ADD TASK CARD
+   ========================================================= */
+
+.task-form-card {
+    min-width: 0;
+    padding: 22px;
+    margin-bottom: 28px;
+
+    border-radius: 22px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 15, 30, 0.78),
+            rgba(20, 10, 17, 0.78)
+        );
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.07);
+
+    box-shadow:
+        0 15px 40px
+        rgba(0, 0, 0, 0.20);
+
+    transition:
+        transform 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.task-form-card:hover {
+    transform: translateY(-2px);
+
+    border-color:
+        rgba(139, 200, 63, 0.16);
+
+    box-shadow:
+        0 20px 45px
+        rgba(0, 0, 0, 0.28);
+}
+
+
+/* =========================================================
+   CARD HEADING
+   ========================================================= */
+
+.card-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    min-width: 0;
+}
+
+.card-heading-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 15px;
+
+    background:
+        rgba(139, 200, 63, 0.10);
+
+    border:
+        1px solid
+        rgba(139, 200, 63, 0.14);
+
+    color: #8bc83f;
+}
+
+.card-heading-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 1.7;
+}
+
+.card-heading > div:last-child {
+    min-width: 0;
+}
+
+.card-heading h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 800;
+    color: #ffffff;
+    min-width: 0;
+}
+
+.card-heading p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #a1a1aa;
+}
+
+
+/* =========================================================
+   TASK FORM
+   ========================================================= */
+
+.task-form {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
+
+    gap: 16px;
+    min-width: 0;
+}
+
+.form-field {
+    min-width: 0;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    margin-bottom: 8px;
 
+    color: #d4d4d8;
+    font-size: 12px;
+    font-weight: 700;
+}
 
-    <style>
+.form-label svg {
+    width: 14px;
+    height: 14px;
+    color: #8bc83f;
+}
 
-        /* =========================================================
-           GLOBAL
-        ========================================================= */
+.task-input,
+.task-textarea {
+    width: 100%;
 
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
+    color: #ffffff;
+
+    background:
+        #050505;
 
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden !important;
-        }
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.10);
 
-        body {
-            min-height: 100vh;
+    outline: none;
 
-            background:
-                radial-gradient(
-                    circle at top left,
-                    rgba(139, 200, 63, 0.10),
-                    transparent 30%
-                ),
-                radial-gradient(
-                    circle at bottom right,
-                    rgba(99, 102, 241, 0.08),
-                    transparent 30%
-                ),
-                #050505;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
 
-            color: #ffffff;
+.task-input {
+    min-height: 46px;
+    padding: 11px 13px;
+    border-radius: 13px;
+}
 
-            font-family:
-                Inter,
-                ui-sans-serif,
-                system-ui,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
-        }
+.task-textarea {
+    min-height: 110px;
+    padding: 12px 13px;
+    border-radius: 13px;
+    resize: vertical;
+}
 
-        ::selection {
-            background: rgba(139, 200, 63, 0.30);
-            color: #ffffff;
-        }
+.task-input::placeholder,
+.task-textarea::placeholder {
+    color: #52525b;
+}
+
+.task-input:focus,
+.task-textarea:focus {
+    background:
+        rgba(0, 0, 0, 0.72);
 
+    border-color:
+        rgba(139, 200, 63, 0.55);
 
-        /* =========================================================
-           SCROLLBAR
-        ========================================================= */
+    box-shadow:
+        0 0 0 3px
+        rgba(139, 200, 63, 0.08);
+}
 
-        ::-webkit-scrollbar {
-            width: 7px;
-            height: 7px;
-        }
+.form-actions {
+    grid-column: 1 / -1;
 
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.025);
-        }
+    display: flex;
+    justify-content: flex-end;
 
-        ::-webkit-scrollbar-thumb {
-            background: rgba(139, 200, 63, 0.35);
-            border-radius: 999px;
-        }
+    padding-top: 3px;
+}
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(139, 200, 63, 0.60);
-        }
 
+/* =========================================================
+   ADD TASK BUTTON
+   ========================================================= */
 
-        /* =========================================================
-           MAIN DASHBOARD SCROLL AREA
-        ========================================================= */
+.add-task-button {
+    min-height: 45px;
 
-        .dashboard-box {
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-        }
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 
+    padding: 0 18px;
 
-        /* =========================================================
-           SIDEBAR
-        ========================================================= */
+    border: 0;
+    border-radius: 13px;
 
-        .glass-sidebar {
+    background:
+        linear-gradient(
+            135deg,
+            #8bc83f,
+            #6da52e
+        );
 
-            position: fixed;
+    color: #ffffff;
 
-            top: 20px;
-            left: 20px;
+    font-size: 12px;
+    font-weight: 800;
 
-            width: 250px;
-            height: calc(100vh - 40px);
+    cursor: pointer;
 
-            padding: 22px;
+    box-shadow:
+        0 12px 28px
+        rgba(139, 200, 63, 0.14);
 
-            border-radius: 28px;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+}
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(37, 15, 30, 0.96),
-                    rgba(24, 10, 20, 0.96)
-                );
+.add-task-button:hover {
+    transform: translateY(-1px);
 
-            border:
-                1px solid
-                rgba(255, 255, 255, 0.08);
+    filter: brightness(1.06);
 
-            box-shadow:
-                0 25px 70px rgba(0, 0, 0, 0.45),
-                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow:
+        0 16px 34px
+        rgba(139, 200, 63, 0.20);
+}
 
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+.add-task-button:active {
+    transform: translateY(0);
+}
 
-            z-index: 1000;
+.add-task-button svg {
+    width: 16px;
+    height: 16px;
+}
 
-            display: flex;
-            flex-direction: column;
 
-            overflow-y: auto;
-            overflow-x: hidden;
+/* =========================================================
+   TASK LIST
+   ========================================================= */
 
-            transform: translateX(0);
+.tasks-section {
+    margin-top: 4px;
+    min-width: 0;
+}
 
-            transition:
-                transform 0.28s ease;
+.tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
 
-            scrollbar-width: thin;
-        }
 
+/* =========================================================
+   TASK ITEM
+   ========================================================= */
 
-        /* =========================================================
-           SIDEBAR PROFILE
-        ========================================================= */
+.task-item {
+    position: relative;
 
-        .sidebar-profile {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+    gap: 20px;
+    padding: 20px;
 
-            padding-bottom: 24px;
-            margin-bottom: 18px;
+    min-width: 0;
 
-            border-bottom:
-                1px solid
-                rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
 
-            flex-shrink: 0;
-        }
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 15, 30, 0.78),
+            rgba(20, 10, 17, 0.78)
+        );
 
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
 
-        .sidebar-logo {
+    box-shadow:
+        0 14px 36px
+        rgba(0, 0, 0, 0.22);
 
-            width: 92px;
-            height: 92px;
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+.task-item:hover {
+    transform: translateY(-2px);
 
-            border-radius: 24px;
+    border-color:
+        rgba(139, 200, 63, 0.20);
 
-            background:
-                rgba(255, 255, 255, 0.04);
+    background:
+        linear-gradient(
+            145deg,
+            rgba(42, 19, 35, 0.82),
+            rgba(22, 11, 18, 0.82)
+        );
+}
 
-            border:
-                1px solid
-                rgba(255, 255, 255, 0.08);
+.task-item.completed {
+    border-color:
+        rgba(74, 222, 128, 0.16);
+}
 
-            box-shadow:
-                0 15px 30px
-                rgba(0, 0, 0, 0.30);
-        }
 
+/* =========================================================
+   TASK MAIN
+   ========================================================= */
 
-        .sidebar-logo img {
+.task-main {
+    min-width: 0;
+    flex: 1;
+}
 
-            width: 78px;
-            height: 78px;
+.task-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
 
-            object-fit: contain;
-        }
+.task-icon {
+    width: 40px;
+    height: 40px;
 
+    flex-shrink: 0;
 
-        .sidebar-profile-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-            text-align: center;
+    border-radius: 12px;
 
-            margin-top: 14px;
-        }
+    color: #8bc83f;
 
+    background:
+        rgba(139, 200, 63, 0.10);
 
-        .sidebar-profile-text h3 {
+    border:
+        1px solid
+        rgba(139, 200, 63, 0.14);
+}
 
-            margin: 0;
+.task-icon svg {
+    width: 18px;
+    height: 18px;
+}
 
-            font-size: 14px;
+.task-title {
+    margin: 0;
 
-            font-weight: 800;
+    color: #ffffff;
 
-            letter-spacing: 0.16em;
+    font-size: 15px;
+    font-weight: 750;
+    line-height: 1.4;
 
-            color: #ffffff;
-        }
+    overflow-wrap: anywhere;
+    min-width: 0;
+}
 
+.task-description {
+    margin:
+        10px
+        0
+        0
+        50px;
 
-        .sidebar-profile-text span {
+    color: #a1a1aa;
 
-            display: block;
+    font-size: 12px;
+    line-height: 1.65;
 
-            margin-top: 5px;
+    overflow-wrap: anywhere;
+}
 
-            font-size: 10px;
+.task-status-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 
-            font-weight: 600;
+    margin:
+        12px
+        0
+        0
+        50px;
+}
 
-            letter-spacing: 0.13em;
+.status-label {
+    color: #71717a;
 
-            color: #a1a1aa;
-        }
+    font-size: 10px;
+    font-weight: 700;
 
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
 
-        /* =========================================================
-           SIDEBAR NAV
-        ========================================================= */
+.task-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 
-        .sidebar-nav {
+    font-size: 11px;
+    font-weight: 750;
+}
 
-            display: flex;
+.task-status::before {
+    content: "";
 
-            flex-direction: column;
+    width: 6px;
+    height: 6px;
 
-            gap: 7px;
+    border-radius: 50%;
 
-            flex: 1;
+    background:
+        currentColor;
+}
 
-            min-width: 0;
+.task-status.pending {
+    color: #f87171;
+}
 
-            min-height: 0;
-        }
+.task-status.in-progress {
+    color: #fbbf24;
+}
 
+.task-status.completed {
+    color: #4ade80;
+}
 
-        .sidebar-item,
-        .sidebar-logout {
 
-            min-width: 0;
+/* =========================================================
+   TASK ACTIONS
+   ========================================================= */
 
-            width: 100%;
+.task-actions {
+    flex-shrink: 0;
 
-            min-height: 46px;
+    display: flex;
+    align-items: center;
 
-            display: flex;
+    gap: 9px;
+}
 
-            align-items: center;
 
-            gap: 12px;
+/* =========================================================
+   STATUS SELECT
+   ========================================================= */
 
-            padding: 12px 13px;
+.status-form {
+    position: relative;
+    width: 150px;
+}
 
-            border-radius: 14px;
+select.status-select {
+    width: 100%;
+    min-height: 42px;
 
-            color: #d4d4d8;
+    padding:
+        9px
+        38px
+        9px
+        12px;
 
-            text-decoration: none;
+    color: #ffffff;
 
-            font-size: 13px;
+    background-color: #090909;
 
-            font-weight: 600;
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.11);
 
-            border:
-                1px solid
-                transparent;
+    border-radius: 12px;
 
-            transition:
-                background 0.2s ease,
-                color 0.2s ease,
-                transform 0.2s ease,
-                border-color 0.2s ease;
-        }
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
 
+    cursor: pointer;
+    outline: none;
 
-        .sidebar-item:hover {
+    font-size: 11px;
+    font-weight: 650;
 
-            background:
-                rgba(255, 255, 255, 0.07);
+    background-image:
+        url("data:image/svg+xml,%3Csvg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
 
-            color: #ffffff;
+    background-repeat: no-repeat;
 
-            transform:
-                translateX(2px);
-        }
+    background-position:
+        right 10px center;
 
+    background-size: 16px;
 
-        .sidebar-item.active {
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
 
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(139, 200, 63, 0.22),
-                    rgba(139, 200, 63, 0.08)
-                );
+select.status-select:hover {
+    border-color:
+        rgba(139, 200, 63, 0.30);
+}
 
-            color: #ffffff;
+select.status-select:focus {
+    border-color:
+        rgba(139, 200, 63, 0.55);
 
-            border:
-                1px solid
-                rgba(139, 200, 63, 0.20);
+    box-shadow:
+        0 0 0 3px
+        rgba(139, 200, 63, 0.07);
 
-            box-shadow:
-                0 8px 24px
-                rgba(0, 0, 0, 0.20);
-        }
+    outline: none;
+}
 
+select.status-select option {
+    color: #ffffff;
+    background-color: #090909;
+}
 
-        /* =========================================================
-           SIDEBAR ICONS
-        ========================================================= */
 
-        .sidebar-icon,
-        .sidebar-external,
-        .card-icon,
-        .input-icon,
-        .button-icon {
+/* =========================================================
+   DELETE BUTTON
+   ========================================================= */
 
-            display: inline-flex;
+.delete-task-button {
+    width: 42px;
+    height: 42px;
 
-            align-items: center;
-            justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-            flex: 0 0 auto;
-        }
+    flex-shrink: 0;
 
+    color: #f87171;
 
-        .sidebar-icon {
+    background:
+        rgba(239, 68, 68, 0.08);
 
-            width: 20px;
-            height: 20px;
-        }
+    border:
+        1px solid
+        rgba(239, 68, 68, 0.16);
 
+    border-radius: 12px;
 
-        .sidebar-icon svg {
+    cursor: pointer;
 
-            width: 19px;
-            height: 19px;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
 
-            stroke-width: 1.8;
-        }
+.delete-task-button:hover {
+    color: #fecaca;
 
+    background:
+        rgba(239, 68, 68, 0.17);
 
-        .sidebar-item.active .sidebar-icon {
+    border-color:
+        rgba(239, 68, 68, 0.30);
 
-            color: #8bc83f;
-        }
+    transform: translateY(-1px);
+}
 
+.delete-task-button svg {
+    width: 17px;
+    height: 17px;
+}
 
-        .sidebar-external {
 
-            margin-left: auto;
-        }
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
 
+.empty-state {
+    padding: 25px;
+    min-height: 200px;
 
-        .sidebar-external svg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
-            width: 14px;
-            height: 14px;
+    border-radius: 16px;
 
-            opacity: 0.55;
-        }
+    background:
+        rgba(0, 0, 0, 0.22);
 
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.06);
 
-        /* =========================================================
-           SIDEBAR TEXT ELLIPSIS
-        ========================================================= */
+    color: #71717a;
 
-        .sidebar-item > span:last-of-type,
-        .sidebar-logout > span:last-of-type {
+    font-size: 13px;
+    text-align: center;
+}
 
-            overflow: hidden;
+.empty-state-icon {
+    width: 58px;
+    height: 58px;
 
-            text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-            white-space: nowrap;
+    margin-bottom: 15px;
 
-            min-width: 0;
-        }
+    border-radius: 18px;
 
+    color: #8bc83f;
 
-        /* =========================================================
-           SIDEBAR BOTTOM
-        ========================================================= */
+    background:
+        rgba(139, 200, 63, 0.09);
 
-        .sidebar-bottom {
+    border:
+        1px solid
+        rgba(139, 200, 63, 0.14);
+}
 
-            margin-top: 18px;
+.empty-state-icon svg {
+    width: 25px;
+    height: 25px;
+}
 
-            padding-top: 18px;
+.empty-state h3 {
+    margin: 0;
 
-            border-top:
-                1px solid
-                rgba(255, 255, 255, 0.08);
+    color: #ffffff;
 
-            flex-shrink: 0;
-        }
+    font-size: 16px;
+    font-weight: 800;
+}
 
+.empty-state p {
+    max-width: 400px;
 
-        /* =========================================================
-           LOGOUT
-        ========================================================= */
+    margin:
+        7px
+        0
+        0;
 
-        .sidebar-logout {
+    color: #71717a;
 
-            background:
-                rgba(220, 38, 38, 0.12);
+    font-size: 12px;
+    line-height: 1.6;
+}
 
-            color:
-                #fca5a5;
 
-            border:
-                1px solid
-                rgba(220, 38, 38, 0.12);
-        }
+/* =========================================================
+   PAGE-SPECIFIC RESPONSIVE STYLES
+   ========================================================= */
 
+@media (max-width: 900px) {
 
-        .sidebar-logout:hover {
+    .task-form {
+        grid-template-columns: 1fr;
+    }
 
-            background:
-                rgba(220, 38, 38, 0.20);
+    .form-actions {
+        grid-column: auto;
+        justify-content: stretch;
+    }
 
-            color:
-                #ffffff;
+    .add-task-button {
+        width: 100%;
+    }
 
-            border-color:
-                rgba(220, 38, 38, 0.20);
-        }
+    .task-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 
+    .task-actions {
+        width: 100%;
+    }
 
-        .sidebar-logout .sidebar-icon {
+    .status-form {
+        flex: 1;
+        width: auto;
+    }
+}
 
-            color: #f87171;
-        }
 
+@media (max-width: 600px) {
 
-        /* =========================================================
-           MAIN AREA
-        ========================================================= */
+    .section-heading {
+        gap: 12px;
+    }
 
-        .main-area {
+    .heading-line {
+        display: none;
+    }
 
-            position: fixed;
+    .task-form-card {
+        padding: 17px !important;
+        border-radius: 18px !important;
+    }
 
-            top: 0;
+    .card-heading {
+        align-items: flex-start;
+    }
 
-            left: 334px;
+    .card-heading-icon {
+        width: 43px;
+        height: 43px;
+        min-width: 43px;
+    }
 
-            right: 20px;
+    .task-item {
+        padding: 17px;
+        border-radius: 18px;
+    }
 
-            bottom: 0;
+    .task-description {
+        margin-left: 0;
+    }
 
-            width: auto;
+    .task-status-line {
+        margin-left: 0;
+    }
+}
 
-            margin: 0;
 
-            padding: 20px 0;
+@media (max-width: 400px) {
 
-            height: 100vh;
+    .task-form-card {
+        padding: 15px !important;
+    }
 
-            min-height: 100vh;
+    .card-heading h3 {
+        font-size: 15px;
+    }
 
-            min-width: 0;
+    .card-heading p {
+        font-size: 11px;
+    }
+}
+/* =========================================================
+   DELETE TASK MODAL
+========================================================= */
 
-            box-sizing: border-box;
+.delete-task-modal {
+    position: fixed;
+    inset: 0;
 
-            overflow: hidden;
-        }
+    z-index: 10000;
 
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-        /* =========================================================
-           BIG DASHBOARD BOX
-        ========================================================= */
+    padding: 20px;
+}
 
-        .dashboard-box {
 
-            width: 100%;
+.delete-task-modal.hidden {
+    display: none;
+}
 
-            height:
-                calc(100vh - 40px);
 
-            max-height:
-                calc(100vh - 40px);
+/* Overlay */
 
-            min-width: 0;
+.delete-task-modal-overlay {
+    position: absolute;
+    inset: 0;
 
-            border-radius: 30px;
+    background: rgba(0, 0, 0, 0.72);
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(18, 18, 18, 0.96),
-                    rgba(9, 9, 9, 0.96)
-                );
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
 
-            border:
-                1px solid
-                rgba(255, 255, 255, 0.08);
 
-            box-shadow:
-                0 30px 90px
-                rgba(0, 0, 0, 0.45),
+/* Modal box */
 
-                inset 0 1px 0
-                rgba(255, 255, 255, 0.035);
+.delete-task-modal-box {
+    position: relative;
 
-            backdrop-filter:
-                blur(18px);
+    width: 100%;
+    max-width: 430px;
 
-            -webkit-backdrop-filter:
-                blur(18px);
+    padding: 28px;
 
-            box-sizing: border-box;
-        }
+    border-radius: 24px;
 
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 15, 30, 0.98),
+            rgba(15, 8, 13, 0.98)
+        );
 
-        /* =========================================================
-           HEADER
-        ========================================================= */
+    border: 1px solid rgba(255, 255, 255, 0.10);
 
-        .dashboard-header {
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
-            padding:
-                34px
-                34px
-                28px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 
-            border-bottom:
-                1px solid
-                rgba(255, 255, 255, 0.07);
-        }
+    animation: deleteModalIn 0.22s ease-out;
+}
 
 
-        .dashboard-header-content {
+/* Icon */
 
-            display: flex;
+.delete-task-modal-icon {
+    width: 52px;
+    height: 52px;
 
-            align-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-            justify-content: space-between;
+    margin-bottom: 18px;
 
-            gap: 30px;
+    border-radius: 16px;
 
-            min-width: 0;
-        }
+    background: rgba(220, 38, 38, 0.12);
 
+    border: 1px solid rgba(220, 38, 38, 0.20);
 
-        .dashboard-eyebrow {
+    color: #f87171;
+}
 
-            font-size: 10px;
 
-            font-weight: 800;
+.delete-task-modal-icon svg {
+    width: 24px;
+    height: 24px;
+}
 
-            letter-spacing: 0.18em;
 
-            color: #8bc83f;
+/* Content */
 
-            margin-bottom: 8px;
-        }
+.delete-task-modal-content h3 {
+    margin: 0;
 
+    font-size: 20px;
+    font-weight: 800;
 
-        .dashboard-header h1 {
+    color: #ffffff;
+}
 
-            margin: 0;
 
-            font-size:
-                clamp(
-                    1.8rem,
-                    4vw,
-                    2.7rem
-                );
+.delete-task-modal-content p {
+    margin: 10px 0 0;
 
-            line-height: 1;
+    font-size: 13px;
+    line-height: 1.6;
 
-            font-weight: 900;
+    color: #a1a1aa;
+}
 
-            letter-spacing: -0.035em;
 
-            color: #ffffff;
-        }
+.delete-task-modal-content strong {
+    color: #ffffff;
+    font-weight: 700;
+}
 
 
-        .dashboard-header p {
+.delete-task-warning {
+    display: block;
 
-            margin-top: 10px;
+    margin-top: 8px;
 
-            margin-bottom: 0;
+    font-size: 12px;
+    font-weight: 600;
 
-            color: #a1a1aa;
+    color: #f87171;
+}
 
-            font-size: 14px;
 
-            line-height: 1.6;
-        }
+/* Actions */
 
+.delete-task-modal-actions {
+    display: flex;
 
-        /* =========================================================
-           SYSTEM STATUS
-        ========================================================= */
+    align-items: center;
+    justify-content: flex-end;
 
-        .system-status {
+    gap: 10px;
 
-            display: inline-flex;
+    margin-top: 26px;
+}
 
-            align-items: center;
 
-            gap: 8px;
+/* Cancel */
 
-            padding:
-                9px
-                13px;
+.delete-task-cancel {
+    padding: 10px 16px;
 
-            border-radius: 999px;
+    border-radius: 12px;
 
-            background:
-                rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.10);
 
-            border:
-                1px solid
-                rgba(34, 197, 94, 0.15);
+    background: rgba(255, 255, 255, 0.05);
 
-            color:
-                #bbf7d0;
+    color: #d4d4d8;
 
-            font-size: 12px;
+    font-size: 12px;
+    font-weight: 700;
 
-            font-weight: 700;
+    cursor: pointer;
 
-            white-space: nowrap;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+}
 
-            flex: 0 0 auto;
-        }
 
+.delete-task-cancel:hover {
+    background: rgba(255, 255, 255, 0.09);
 
-        .status-dot {
+    color: #ffffff;
+}
 
-            width: 8px;
-            height: 8px;
 
-            border-radius: 50%;
+/* Confirm */
 
-            background:
-                #4ade80;
+.delete-task-confirm {
+    display: inline-flex;
 
-            box-shadow:
-                0 0 0 4px
-                rgba(74, 222, 128, 0.10),
+    align-items: center;
+    justify-content: center;
 
-                0 0 14px
-                rgba(74, 222, 128, 0.50);
-        }
+    gap: 8px;
 
+    padding: 10px 16px;
 
-        /* =========================================================
-           DASHBOARD CONTENT
-        ========================================================= */
+    border-radius: 12px;
 
-        .dashboard-content {
+    border: 1px solid rgba(220, 38, 38, 0.25);
 
-            padding:
-                30px
-                34px
-                40px;
+    background: rgba(220, 38, 38, 0.16);
 
-            min-width: 0;
-        }
+    color: #fca5a5;
 
+    font-size: 12px;
+    font-weight: 700;
 
-        /* =========================================================
-           SECTION HEADING
-        ========================================================= */
+    cursor: pointer;
 
-        .section-heading {
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
 
-            display: flex;
 
-            align-items: center;
+.delete-task-confirm:hover {
+    background: rgba(220, 38, 38, 0.28);
 
-            gap: 20px;
+    color: #ffffff;
 
-            margin-bottom: 22px;
+    transform: translateY(-1px);
+}
 
-            min-width: 0;
-        }
 
+.delete-task-confirm svg {
+    width: 16px;
+    height: 16px;
+}
 
-        .section-heading > div:first-child {
 
-            min-width: 0;
-        }
+/* Animation */
 
+@keyframes deleteModalIn {
 
-        .section-eyebrow {
+    from {
+        opacity: 0;
 
-            display: block;
+        transform: scale(0.94) translateY(8px);
+    }
 
-            font-size: 10px;
+    to {
+        opacity: 1;
 
-            font-weight: 800;
+        transform: scale(1) translateY(0);
+    }
+}
 
-            letter-spacing: 0.16em;
 
-            color: #8bc83f;
+/* Mobile */
 
-            margin-bottom: 5px;
-        }
+@media (max-width: 480px) {
 
+    .delete-task-modal {
+        padding: 16px;
+    }
 
-        .section-heading h2 {
 
-            margin: 0;
+    .delete-task-modal-box {
+        padding: 22px;
 
-            font-size: 22px;
+        border-radius: 20px;
+    }
 
-            font-weight: 800;
 
-            color: #ffffff;
-        }
+    .delete-task-modal-actions {
+        flex-direction: column-reverse;
 
+        align-items: stretch;
+    }
 
-        .section-description {
 
-            margin:
-                5px
-                0
-                0;
+    .delete-task-cancel,
+    .delete-task-confirm {
+        width: 100%;
+    }
+}
+</style>
 
-            color: #71717a;
+{% endblock %}
 
-            font-size: 12px;
-        }
 
 
-        .heading-line {
-
-            height: 1px;
-
-            flex: 1;
-
-            min-width: 20px;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    rgba(255, 255, 255, 0.10),
-                    transparent
-                );
-        }
-
-
-        /* =========================================================
-           ADD TASK CARD
-        ========================================================= */
-
-        .task-form-card {
-
-            min-width: 0;
-
-            padding: 22px;
-
-            margin-bottom: 28px;
-
-            border-radius: 22px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(37, 15, 30, 0.78),
-                    rgba(20, 10, 17, 0.78)
-                );
-
-            border:
-                1px solid
-                rgba(255, 255, 255, 0.07);
-
-            box-shadow:
-                0 15px 40px
-                rgba(0, 0, 0, 0.20);
-
-            transition:
-                transform 0.25s ease,
-                border-color 0.25s ease,
-                box-shadow 0.25s ease;
-        }
-
-
-        .task-form-card:hover {
-
-            transform:
-                translateY(-2px);
-
-            border-color:
-                rgba(139, 200, 63, 0.16);
-
-            box-shadow:
-                0 20px 45px
-                rgba(0, 0, 0, 0.28);
-        }
-
-
-        /* =========================================================
-           CARD HEADING
-        ========================================================= */
-
-        .card-heading {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 14px;
-
-            margin-bottom: 20px;
-
-            min-width: 0;
-        }
-
-
-        .card-heading-icon {
-
-            width: 48px;
-            height: 48px;
-
-            min-width: 48px;
-
-            display: inline-flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 15px;
-
-            background:
-                rgba(139, 200, 63, 0.10);
-
-            border:
-                1px solid
-                rgba(139, 200, 63, 0.14);
-
-            color:
-                #8bc83f;
-        }
-
-
-        .card-heading-icon svg {
-
-            width: 24px;
-            height: 24px;
-
-            stroke-width: 1.7;
-        }
-
-
-        .card-heading > div:last-child {
-
-            min-width: 0;
-        }
-
-
-        .card-heading h3 {
-
-            margin: 0;
-
-            font-size: 17px;
-
-            font-weight: 800;
-
-            color: #ffffff;
-
-            min-width: 0;
-        }
-
-
-        .card-heading p {
-
-            margin:
-                4px
-                0
-                0;
-
-            font-size: 12px;
-
-            color: #a1a1aa;
-        }
-
-
-        /* =========================================================
-           TASK FORM
-        ========================================================= */
-
-        .task-form {
-
-            display: grid;
-
-            grid-template-columns:
-                repeat(
-                    2,
-                    minmax(0, 1fr)
-                );
-
-            gap: 16px;
-
-            min-width: 0;
-        }
-
-
-        .form-field {
-
-            min-width: 0;
-        }
-
-
-        .form-label {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 7px;
-
-            margin-bottom: 8px;
-
-            color: #d4d4d8;
-
-            font-size: 12px;
-
-            font-weight: 700;
-        }
-
-
-        .form-label svg {
-
-            width: 14px;
-            height: 14px;
-
-            color: #8bc83f;
-        }
-
-
-        .task-input,
-        .task-textarea {
-
-            width: 100%;
-
-            color: #ffffff;
-
-            background:
-                #050505;
-
-            border:
-                1px solid
-                rgba(255, 255, 255, 0.10);
-
-            outline: none;
-
-            transition:
-                border-color 0.2s ease,
-                box-shadow 0.2s ease,
-                background 0.2s ease;
-        }
-
-
-        .task-input {
-
-            min-height: 46px;
-
-            padding:
-                11px
-                13px;
-
-            border-radius: 13px;
-        }
-
-
-        .task-textarea {
-
-            min-height: 110px;
-
-            padding:
-                12px
-                13px;
-
-            border-radius: 13px;
-
-            resize: vertical;
-        }
-
-
-        .task-input::placeholder,
-        .task-textarea::placeholder {
-
-            color: #52525b;
-        }
-
-
-        .task-input:focus,
-        .task-textarea:focus {
-
-            background:
-                rgba(0, 0, 0, 0.72);
-
-            border-color:
-                rgba(139, 200, 63, 0.55);
-
-            box-shadow:
-                0 0 0 3px
-                rgba(139, 200, 63, 0.08);
-        }
-
-
-        .form-actions {
-
-            grid-column:
-                1 / -1;
-
-            display: flex;
-
-            justify-content: flex-end;
-
-            padding-top: 3px;
-        }
-
-
-        /* =========================================================
-           ADD TASK BUTTON
-        ========================================================= */
-
-        .add-task-button {
-
-            min-height: 45px;
-
-            display: inline-flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            gap: 8px;
-
-            padding:
-                0
-                18px;
-
-            border: 0;
-
-            border-radius: 13px;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #8bc83f,
-                    #6da52e
-                );
-
-            color:
-                #ffffff;
-
-            font-size: 12px;
-
-            font-weight: 800;
-
-            cursor: pointer;
-
-            box-shadow:
-                0 12px 28px
-                rgba(139, 200, 63, 0.14);
-
-            transition:
-                transform 0.2s ease,
-                box-shadow 0.2s ease,
-                filter 0.2s ease;
-        }
-
-
-        .add-task-button:hover {
-
-            transform:
-                translateY(-1px);
-
-            filter:
-                brightness(1.06);
-
-            box-shadow:
-                0 16px 34px
-                rgba(139, 200, 63, 0.20);
-        }
-
-
-        .add-task-button:active {
-
-            transform:
-                translateY(0);
-        }
-
-
-        .add-task-button svg {
-
-            width: 16px;
-            height: 16px;
-        }
-
-
-        /* =========================================================
-           TASK LIST
-        ========================================================= */
-
-        .tasks-section {
-
-            margin-top: 4px;
-
-            min-width: 0;
-        }
-
-
-        .tasks-list {
-
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 12px;
-
-            min-width: 0;
-        }
-
-
-        /* =========================================================
-           TASK ITEM
-        ========================================================= */
-
-        .task-item {
-
-            position: relative;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            gap: 20px;
-
-            padding: 20px;
-
-            min-width: 0;
-
-            border-radius: 20px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(37, 15, 30, 0.78),
-                    rgba(20, 10, 17, 0.78)
-                );
-
-            border:
-                1px solid
-                rgba(255, 255, 255, 0.08);
-
-            box-shadow:
-                0 14px 36px
-                rgba(0, 0, 0, 0.22);
-
-            transition:
-                transform 0.2s ease,
-                border-color 0.2s ease,
-                background 0.2s ease;
-        }
-
-
-        .task-item:hover {
-
-            transform:
-                translateY(-2px);
-
-            border-color:
-                rgba(139, 200, 63, 0.20);
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(42, 19, 35, 0.82),
-                    rgba(22, 11, 18, 0.82)
-                );
-        }
-
-
-        .task-item.completed {
-
-            border-color:
-                rgba(74, 222, 128, 0.16);
-        }
-
-
-        /* =========================================================
-           TASK MAIN
-        ========================================================= */
-
-        .task-main {
-
-            min-width: 0;
-
-            flex: 1;
-        }
-
-
-        .task-title-row {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 10px;
-
-            min-width: 0;
-        }
-
-
-        .task-icon {
-
-            width: 40px;
-            height: 40px;
-
-            flex-shrink: 0;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 12px;
-
-            color:
-                #8bc83f;
-
-            background:
-                rgba(139, 200, 63, 0.10);
-
-            border:
-                1px solid
-                rgba(139, 200, 63, 0.14);
-        }
-
-
-        .task-icon svg {
-
-            width: 18px;
-            height: 18px;
-        }
-
-
-        .task-title {
-
-            margin: 0;
-
-            color: #ffffff;
-
-            font-size: 15px;
-
-            font-weight: 750;
-
-            line-height: 1.4;
-
-            overflow-wrap: anywhere;
-
-            min-width: 0;
-        }
-
-
-        .task-description {
-
-            margin:
-                10px
-                0
-                0
-                50px;
-
-            color:
-                #a1a1aa;
-
-            font-size: 12px;
-
-            line-height: 1.65;
-
-            overflow-wrap: anywhere;
-        }
-
-
-        .task-status-line {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 8px;
-
-            margin:
-                12px
-                0
-                0
-                50px;
-        }
-
-
-        .status-label {
-
-            color:
-                #71717a;
-
-            font-size: 10px;
-
-            font-weight: 700;
-
-            text-transform: uppercase;
-
-            letter-spacing: 0.06em;
-        }
-
-
-        .task-status {
-
-            display: inline-flex;
-
-            align-items: center;
-
-            gap: 6px;
-
-            font-size: 11px;
-
-            font-weight: 750;
-        }
-
-
-        .task-status::before {
-
-            content: "";
-
-            width: 6px;
-            height: 6px;
-
-            border-radius: 50%;
-
-            background:
-                currentColor;
-        }
-
-
-        .task-status.pending {
-
-            color:
-                #f87171;
-        }
-
-
-        .task-status.in-progress {
-
-            color:
-                #fbbf24;
-        }
-
-
-        .task-status.completed {
-
-            color:
-                #4ade80;
-        }
-
-
-        /* =========================================================
-           TASK ACTIONS
-        ========================================================= */
-
-        .task-actions {
-
-            flex-shrink: 0;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 9px;
-        }
-
-
-        /* =========================================================
-           STATUS SELECT
-        ========================================================= */
-
-        .status-form {
-
-            position: relative;
-
-            width: 150px;
-        }
-
-
-        select.status-select {
-
-            width: 100%;
-
-            min-height: 42px;
-
-            padding:
-                9px
-                38px
-                9px
-                12px;
-
-            color:
-                #ffffff;
-
-            background-color:
-                #090909;
-
-            border:
-                1px solid
-                rgba(255, 255, 255, 0.11);
-
-            border-radius: 12px;
-
-            appearance: none;
-
-            -webkit-appearance: none;
-
-            -moz-appearance: none;
-
-            cursor: pointer;
-
-            outline: none;
-
-            font-size: 11px;
-
-            font-weight: 650;
-
-            background-image:
-                url("data:image/svg+xml,%3Csvg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
-
-            background-repeat: no-repeat;
-
-            background-position:
-                right 10px center;
-
-            background-size: 16px;
-
-            transition:
-                border-color 0.2s ease,
-                box-shadow 0.2s ease;
-        }
-
-
-        select.status-select:hover {
-
-            border-color:
-                rgba(139, 200, 63, 0.30);
-        }
-
-
-        select.status-select:focus {
-
-            border-color:
-                rgba(139, 200, 63, 0.55);
-
-            box-shadow:
-                0 0 0 3px
-                rgba(139, 200, 63, 0.07);
-
-            outline: none;
-        }
-
-
-        select.status-select option {
-
-            color:
-                #ffffff;
-
-            background-color:
-                #090909;
-        }
-
-
-        /* =========================================================
-           DELETE BUTTON
-        ========================================================= */
-
-        .delete-task-button {
-
-            width: 42px;
-            height: 42px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            flex-shrink: 0;
-
-            color:
-                #f87171;
-
-            background:
-                rgba(239, 68, 68, 0.08);
-
-            border:
-                1px solid
-                rgba(239, 68, 68, 0.16);
-
-            border-radius: 12px;
-
-            cursor: pointer;
-
-            transition:
-                background 0.2s ease,
-                color 0.2s ease,
-                border-color 0.2s ease,
-                transform 0.2s ease;
-        }
-
-
-        .delete-task-button:hover {
-
-            color:
-                #fecaca;
-
-            background:
-                rgba(239, 68, 68, 0.17);
-
-            border-color:
-                rgba(239, 68, 68, 0.30);
-
-            transform:
-                translateY(-1px);
-        }
-
-
-        .delete-task-button svg {
-
-            width: 17px;
-            height: 17px;
-        }
-
-
-        /* =========================================================
-           EMPTY STATE
-        ========================================================= */
-
-        .empty-state {
-
-            padding: 25px;
-
-            min-height: 200px;
-
-            display: flex;
-
-            flex-direction: column;
-
-            align-items: center;
-
-            justify-content: center;
-
-            border-radius: 16px;
-
-            background:
-                rgba(0, 0, 0, 0.22);
-
-            border:
-                1px solid
-                rgba(255, 255, 255, 0.06);
-
-            color:
-                #71717a;
-
-            font-size: 13px;
-
-            text-align: center;
-        }
-
-
-        .empty-state-icon {
-
-            width: 58px;
-            height: 58px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            margin-bottom: 15px;
-
-            border-radius: 18px;
-
-            color:
-                #8bc83f;
-
-            background:
-                rgba(139, 200, 63, 0.09);
-
-            border:
-                1px solid
-                rgba(139, 200, 63, 0.14);
-        }
-
-
-        .empty-state-icon svg {
-
-            width: 25px;
-            height: 25px;
-        }
-
-
-        .empty-state h3 {
-
-            margin: 0;
-
-            color:
-                #ffffff;
-
-            font-size: 16px;
-
-            font-weight: 800;
-        }
-
-
-        .empty-state p {
-
-            max-width: 400px;
-
-            margin:
-                7px
-                0
-                0;
-
-            color:
-                #71717a;
-
-            font-size: 12px;
-
-            line-height: 1.6;
-        }
-
-
-        /* =========================================================
-           TOAST
-        ========================================================= */
-
-        #toast-container {
-
-            position: fixed;
-
-            bottom: 20px;
-
-            right: 20px;
-
-            z-index: 9999;
-
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 12px;
-
-            width: 350px;
-
-            max-width:
-                calc(100% - 40px);
-        }
-
-
-        .toast-message {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 12px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(37, 15, 30, 0.98),
-                    rgba(20, 10, 17, 0.98)
-                );
-
-            color:
-                #ffffff;
-
-            border:
-                1px solid
-                rgba(139, 200, 63, 0.30);
-
-            padding:
-                15px
-                17px;
-
-            border-radius: 16px;
-
-            box-shadow:
-                0 20px 45px
-                rgba(0, 0, 0, 0.45);
-
-            backdrop-filter:
-                blur(15px);
-
-            -webkit-backdrop-filter:
-                blur(15px);
-
-            animation:
-                toastSlideIn
-                0.35s
-                ease-out;
-        }
-
-
-        .toast-message.toast-hide {
-
-            animation:
-                toastSlideOut
-                0.35s
-                ease-in
-                forwards;
-        }
-
-
-        .toast-icon {
-
-            width: 24px;
-            height: 24px;
-
-            flex-shrink: 0;
-        }
-
-
-        .toast-text {
-
-            flex: 1;
-
-            font-size: 12px;
-
-            font-weight: 600;
-
-            line-height: 1.5;
-        }
-
-
-        .toast-close {
-
-            background:
-                transparent;
-
-            border: 0;
-
-            color:
-                #a1a1aa;
-
-            font-size: 20px;
-
-            line-height: 1;
-
-            cursor: pointer;
-
-            flex-shrink: 0;
-        }
-
-
-        .toast-close:hover {
-
-            color:
-                #ffffff;
-        }
-
-
-        @keyframes toastSlideIn {
-
-            from {
-
-                opacity: 0;
-
-                transform:
-                    translateX(100%);
-            }
-
-            to {
-
-                opacity: 1;
-
-                transform:
-                    translateX(0);
-            }
-        }
-
-
-        @keyframes toastSlideOut {
-
-            from {
-
-                opacity: 1;
-
-                transform:
-                    translateX(0);
-            }
-
-            to {
-
-                opacity: 0;
-
-                transform:
-                    translateX(100%);
-            }
-        }
-
-
-        /* =========================================================
-           MOBILE MENU BUTTON
-        ========================================================= */
-
-        .mobile-menu-button {
-
-            display: none;
-
-            position: fixed;
-
-            top: 18px;
-
-            left: 18px;
-
-            width: 44px;
-            height: 44px;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 14px;
-
-            border:
-                1px solid
-                rgba(255, 255, 255, 0.10);
-
-            background:
-                rgba(37, 15, 30, 0.92);
-
-            color:
-                #ffffff;
-
-            cursor: pointer;
-
-            z-index: 1001;
-
-            box-shadow:
-                0 12px 30px
-                rgba(0, 0, 0, 0.35);
-
-            backdrop-filter:
-                blur(12px);
-
-            -webkit-backdrop-filter:
-                blur(12px);
-        }
-
-
-        .mobile-menu-button svg {
-
-            width: 20px;
-            height: 20px;
-        }
-
-
-        /* =========================================================
-           MOBILE SIDEBAR OVERLAY
-        ========================================================= */
-
-        .sidebar-overlay {
-
-            display: none;
-
-            position: fixed;
-
-            inset: 0;
-
-            background:
-                rgba(0, 0, 0, 0.55);
-
-            backdrop-filter:
-                blur(3px);
-
-            -webkit-backdrop-filter:
-                blur(3px);
-
-            z-index: 999;
-        }
-
-
-        .sidebar-overlay.active {
-
-            display: block;
-        }
-
-
-        /* =========================================================
-           EXTRA WIDTH PROTECTION
-        ========================================================= */
-
-        .dashboard-header-content > div:first-child {
-
-            min-width: 0;
-        }
-
-
-        .dashboard-header h1,
-        .dashboard-header p {
-
-            overflow-wrap: anywhere;
-        }
-
-
-        .card-heading > div:last-child {
-
-            min-width: 0;
-        }
-
-
-        .task-description {
-
-            overflow-wrap: anywhere;
-
-            word-break: break-word;
-        }
-
-
-        /* =========================================================
-           DESKTOP 1201+
-        ========================================================= */
-
-        @media (min-width: 1201px) {
-
-            .glass-sidebar {
-
-                top: 20px;
-
-                left: 20px;
-
-                width: 250px;
-
-                height:
-                    calc(100vh - 40px);
-
-                padding: 22px;
-            }
-
-
-            .main-area {
-
-                position: fixed;
-
-                top: 0;
-
-                left: 334px;
-
-                right: 20px;
-
-                bottom: 0;
-
-                width: auto;
-
-                margin: 0;
-
-                padding: 20px 0;
-
-                height: 100vh;
-
-                box-sizing: border-box;
-
-                min-width: 0;
-
-                overflow: hidden;
-            }
-
-
-            .dashboard-box {
-
-                width: 100%;
-
-                height:
-                    calc(100vh - 40px);
-
-                max-height:
-                    calc(100vh - 40px);
-            }
-        }
-
-
-        /* =========================================================
-           LAPTOP 901px - 1200px
-        ========================================================= */
-
-        @media (min-width: 901px) and (max-width: 1200px) {
-
-            .glass-sidebar {
-
-                top: 20px;
-
-                left: 20px;
-
-                width: 250px;
-
-                height:
-                    calc(100vh - 40px);
-
-                padding: 22px;
-            }
-
-
-            .main-area {
-
-                position: fixed;
-
-                top: 0;
-
-                left: 334px;
-
-                right: 20px;
-
-                bottom: 0;
-
-                width: auto;
-
-                margin: 0;
-
-                padding: 20px 0;
-
-                height: 100vh;
-
-                box-sizing: border-box;
-
-                min-width: 0;
-
-                overflow: hidden;
-            }
-
-
-            .dashboard-box {
-
-                width: 100%;
-
-                height:
-                    calc(100vh - 40px);
-
-                max-height:
-                    calc(100vh - 40px);
-            }
-        }
-
-
-        /* =========================================================
-           MOBILE <= 900px
-        ========================================================= */
-
-        @media (max-width: 900px) {
-
-            .glass-sidebar {
-
-                position: fixed;
-
-                top: 0;
-
-                left: 0;
-
-                bottom: 0;
-
-                width: 280px;
-
-                height: 100vh;
-
-                padding: 22px;
-
-                border-radius:
-                    0
-                    26px
-                    26px
-                    0;
-
-                transform:
-                    translateX(-115%);
-
-                transition:
-                    transform 0.28s ease;
-            }
-
-
-            .glass-sidebar.open {
-
-                transform:
-                    translateX(0);
-            }
-
-
-            .mobile-menu-button {
-
-                display: flex;
-            }
-
-
-            .main-area {
-
-                position: relative;
-
-                top: auto;
-
-                left: auto;
-
-                right: auto;
-
-                bottom: auto;
-
-                width: 100% !important;
-
-                margin-left: 0 !important;
-
-                margin-right: 0 !important;
-
-                padding: 12px !important;
-
-                height: 100vh;
-
-                min-height: 100vh;
-
-                box-sizing: border-box;
-
-                overflow: hidden;
-            }
-
-
-            .dashboard-box {
-
-                width: 100%;
-
-                height:
-                    calc(100vh - 24px) !important;
-
-                max-height:
-                    calc(100vh - 24px) !important;
-
-                border-radius:
-                    24px !important;
-            }
-
-
-            .dashboard-header {
-
-                padding:
-                    28px
-                    22px !important;
-
-                padding-top:
-                    30px !important;
-            }
-
-
-            .dashboard-header-content {
-
-                flex-direction: column;
-
-                align-items: flex-start !important;
-
-                gap: 18px;
-            }
-
-
-            .system-status {
-
-                align-self:
-                    flex-start;
-            }
-
-
-            .dashboard-content {
-
-                padding:
-                    22px !important;
-            }
-
-
-            .task-form {
-
-                grid-template-columns:
-                    1fr;
-            }
-
-
-            .form-actions {
-
-                grid-column:
-                    auto;
-
-                justify-content:
-                    stretch;
-            }
-
-
-            .add-task-button {
-
-                width: 100%;
-            }
-
-
-            .task-item {
-
-                align-items:
-                    flex-start;
-
-                flex-direction:
-                    column;
-            }
-
-
-            .task-actions {
-
-                width: 100%;
-            }
-
-
-            .status-form {
-
-                flex: 1;
-
-                width: auto;
-            }
-        }
-
-
-        /* =========================================================
-           MOBILE <= 600px
-        ========================================================= */
-
-        @media (max-width: 600px) {
-
-            .main-area {
-
-                padding:
-                    8px !important;
-            }
-
-
-            .dashboard-box {
-
-                height:
-                    calc(100vh - 16px) !important;
-
-                max-height:
-                    calc(100vh - 16px) !important;
-
-                border-radius:
-                    20px !important;
-            }
-
-
-            .dashboard-header {
-
-                padding:
-                    24px
-                    17px !important;
-            }
-
-
-            .dashboard-content {
-
-                padding:
-                    17px !important;
-            }
-
-
-            .dashboard-header h1 {
-
-                font-size:
-                    clamp(
-                        1.55rem,
-                        8vw,
-                        2.1rem
-                    ) !important;
-
-                line-height:
-                    1.05;
-            }
-
-
-            .dashboard-header p {
-
-                font-size:
-                    0.85rem !important;
-            }
-
-
-            .section-heading {
-
-                gap:
-                    12px;
-            }
-
-
-            .heading-line {
-
-                display:
-                    none;
-            }
-
-
-            .task-form-card {
-
-                padding:
-                    17px !important;
-
-                border-radius:
-                    18px !important;
-            }
-
-
-            .card-heading {
-
-                align-items:
-                    flex-start;
-            }
-
-
-            .card-heading-icon {
-
-                width:
-                    43px;
-
-                height:
-                    43px;
-
-                min-width:
-                    43px;
-            }
-
-
-            .task-item {
-
-                padding:
-                    17px;
-
-                border-radius:
-                    18px;
-            }
-
-
-            .task-description {
-
-                margin-left:
-                    0;
-            }
-
-
-            .task-status-line {
-
-                margin-left:
-                    0;
-            }
-
-
-            #toast-container {
-
-                right:
-                    10px;
-
-                bottom:
-                    10px;
-
-                width:
-                    calc(100% - 20px);
-
-                max-width:
-                    none;
-            }
-        }
-
-
-        /* =========================================================
-           VERY SMALL MOBILE
-        ========================================================= */
-
-        @media (max-width: 400px) {
-
-            .dashboard-header h1 {
-
-                font-size:
-                    1.55rem !important;
-            }
-
-
-            .task-form-card {
-
-                padding:
-                    15px !important;
-            }
-
-
-            .card-heading h3 {
-
-                font-size:
-                    15px;
-            }
-
-
-            .card-heading p {
-
-                font-size:
-                    11px;
-            }
-        }
-
-    </style>
-
-</head>
-
-
-<body class="select-none">
-
+{% block content %}
 
 <!-- =========================================================
-     SIDEBAR OVERLAY
-========================================================= -->
+     HEADER
+     ========================================================= -->
 
-<div
-    id="sidebar-overlay"
-    class="sidebar-overlay">
-</div>
+<header class="dashboard-header">
 
+    <div class="dashboard-header-content">
 
-<!-- =========================================================
-     SIDEBAR
-========================================================= -->
+        <div>
 
-<aside
-    id="sidebar"
-    class="glass-sidebar">
+            <div class="dashboard-eyebrow">
+                TEAM MEMBER • TASKS
+            </div>
 
+            <h1>
+                My Tasks
+            </h1>
 
-    <!-- =====================================================
-         SIDEBAR PROFILE
-    ====================================================== -->
-
-    <div class="sidebar-profile">
-
-
-        <div class="sidebar-logo">
-
-            <img
-                src="{% static 'images/logo.png' %}"
-                alt="Cybexel Logo"
-            >
+            <p>
+                Create, manage, and track your assigned tasks
+                from your team workspace.
+            </p>
 
         </div>
 
+        <div class="system-status">
 
-        <div class="sidebar-profile-text">
-
-            <h3>
-                CYBEXEL
-            </h3>
+            <span class="status-dot"></span>
 
             <span>
-                TEAM MEMBER
+                Task Workspace
             </span>
 
         </div>
 
+    </div>
+
+</header>
+
+
+
+<!-- =========================================================
+     CONTENT
+     ========================================================= -->
+
+<section class="dashboard-content">
+
+
+    <!-- =====================================================
+         TASK MANAGEMENT HEADING
+         ===================================================== -->
+
+    <div class="section-heading">
+
+        <div>
+
+            <div class="section-eyebrow">
+                TASK MANAGEMENT
+            </div>
+
+            <h2>
+                Manage Your Work
+            </h2>
+
+            <p class="section-description">
+                Add new tasks and keep track of their current status.
+            </p>
+
+        </div>
+
+        <div class="heading-line"></div>
 
     </div>
 
 
-    <!-- =====================================================
-         SIDEBAR NAVIGATION
-    ====================================================== -->
-
-    <nav class="sidebar-nav">
-
-
-        <!-- Dashboard -->
-
-        <a
-            href="{% url 'teammember_dashboard' %}"
-            class="sidebar-item"
-        >
-
-            <span class="sidebar-icon">
-
-                <i data-lucide="layout-dashboard"></i>
-
-            </span>
-
-            <span>
-                Dashboard
-            </span>
-
-        </a>
-
-
-        <!-- My Project -->
-
-        <a
-            href="{% url 'teammember_project' %}"
-            class="sidebar-item"
-        >
-
-            <span class="sidebar-icon">
-
-                <i data-lucide="folder-kanban"></i>
-
-            </span>
-
-            <span>
-                My Project
-            </span>
-
-        </a>
-
-
-        <!-- Notepad -->
-
-        <a
-            href="{% url 'teammember_notepad' %}"
-            class="sidebar-item"
-        >
-
-            <span class="sidebar-icon">
-
-                <i data-lucide="notebook-pen"></i>
-
-            </span>
-
-            <span>
-                Notepad
-            </span>
-
-        </a>
-
-
-        <!-- Knowledge Repository -->
-
-        <a
-            href="{% url 'teammember_repository' %}"
-            class="sidebar-item"
-        >
-
-            <span class="sidebar-icon">
-
-                <i data-lucide="library"></i>
-
-            </span>
-
-            <span>
-                Knowledge Repository
-            </span>
-
-        </a>
-
-
-        <!-- Profile -->
-
-        <a
-            href="{% url 'teammember_profile' %}"
-            class="sidebar-item"
-        >
-
-            <span class="sidebar-icon">
-
-                <i data-lucide="user-round"></i>
-
-            </span>
-
-            <span>
-                Profile
-            </span>
-
-        </a>
-
-
-        <!-- My Task - ACTIVE -->
-
-        <a
-            href="{% url 'teammember_task' %}"
-            class="sidebar-item active"
-        >
-
-            <span class="sidebar-icon">
-
-                <i data-lucide="list-checks"></i>
-
-            </span>
-
-            <span>
-                My Task
-            </span>
-
-        </a>
-
-
-        <!-- Chat -->
-
-        <a
-            href="{% url 'teammember_chat' %}"
-            class="sidebar-item"
-        >
-
-            <span class="sidebar-icon">
-
-                <i data-lucide="message-circle"></i>
-
-            </span>
-
-            <span>
-                Chat
-            </span>
-
-        </a>
-
-
-        <!-- Google Meet -->
-
-        <a
-            href="https://meet.google.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="sidebar-item"
-        >
-
-            <span class="sidebar-icon">
-
-                <i data-lucide="video"></i>
-
-            </span>
-
-            <span>
-                Google Meet
-            </span>
-
-            <span class="sidebar-external">
-
-                <i data-lucide="external-link"></i>
-
-            </span>
-
-        </a>
-
-
-    </nav>
-
 
     <!-- =====================================================
-         SIDEBAR BOTTOM
-    ====================================================== -->
+         ADD TASK CARD
+         ===================================================== -->
 
-    <div class="sidebar-bottom">
+    <div class="task-form-card">
 
+        <div class="card-heading">
 
-        <!-- Logout -->
+            <div class="card-heading-icon">
 
-        <a
-            href="{% url 'teammember_logout' %}"
-            class="sidebar-logout"
-        >
-
-            <span class="sidebar-icon">
-
-                <i data-lucide="log-out"></i>
-
-            </span>
-
-            <span>
-                Logout
-            </span>
-
-        </a>
-
-
-    </div>
-
-
-</aside>
-
-
-<!-- =========================================================
-     MOBILE MENU BUTTON
-========================================================= -->
-
-<button
-    type="button"
-    id="mobile-menu-button"
-    class="mobile-menu-button"
-    aria-label="Open menu"
->
-
-    <i data-lucide="menu"></i>
-
-</button>
-
-
-<!-- =========================================================
-     TOAST CONTAINER
-========================================================= -->
-
-<div id="toast-container">
-
-
-    {% if messages %}
-
-        {% for message in messages %}
-
-            <div class="toast-message">
-
-
-                {% if message.tags == "error" %}
-
-                    <i
-                        data-lucide="circle-alert"
-                        class="toast-icon"
-                        style="color:#f87171;"
-                    ></i>
-
-                {% else %}
-
-                    <i
-                        data-lucide="circle-check"
-                        class="toast-icon"
-                        style="color:#4ade80;"
-                    ></i>
-
-                {% endif %}
-
-
-                <span class="toast-text">
-
-                    {{ message }}
-
-                </span>
-
-
-                <button
-                    type="button"
-                    class="toast-close"
-                    onclick="removeToast(this.parentElement)"
-                    aria-label="Close notification"
-                >
-                    &times;
-                </button>
-
+                <i data-lucide="square-plus"></i>
 
             </div>
 
-        {% endfor %}
+            <div>
 
-    {% endif %}
+                <h3>
+                    Add New Task
+                </h3>
 
+                <p>
+                    Create a task for yourself and track its progress.
+                </p>
 
-</div>
+            </div>
 
-
-<!-- =========================================================
-     MAIN AREA
-========================================================= -->
-
-<main class="main-area">
-
-
-    <div class="dashboard-box">
+        </div>
 
 
-        <!-- =================================================
-             HEADER
-        ================================================== -->
 
-        <header class="dashboard-header">
+        <form
+            method="POST"
+            class="task-form"
+        >
 
-
-            <div class="dashboard-header-content">
-
-
-                <div>
-
-                    <div class="dashboard-eyebrow">
-
-                        TEAM MEMBER • TASKS
-
-                    </div>
+            {% csrf_token %}
 
 
-                    <h1>
+            <!-- Task Title -->
 
-                        My Tasks
+            <div class="form-field">
 
-                    </h1>
+                <label
+                    class="form-label"
+                    for="task-title"
+                >
 
-
-                    <p>
-
-                        Create, manage, and track your assigned tasks
-                        from your team workspace.
-
-                    </p>
-
-                </div>
-
-
-                <div class="system-status">
-
-                    <span class="status-dot"></span>
+                    <i data-lucide="type"></i>
 
                     <span>
-                        Task Workspace
+                        Task Title
                     </span>
 
-                </div>
+                </label>
 
 
-            </div>
-
-
-        </header>
-
-
-        <!-- =================================================
-             CONTENT
-        ================================================== -->
-
-        <section class="dashboard-content">
-
-
-            <!-- =================================================
-                 TASK MANAGEMENT HEADING
-            ================================================== -->
-
-            <div class="section-heading">
-
-
-                <div>
-
-                    <div class="section-eyebrow">
-
-                        TASK MANAGEMENT
-
-                    </div>
-
-
-                    <h2>
-
-                        Manage Your Work
-
-                    </h2>
-
-
-                    <p class="section-description">
-
-                        Add new tasks and keep track of their current status.
-
-                    </p>
-
-                </div>
-
-
-                <div class="heading-line"></div>
-
-
-            </div>
-
-
-            <!-- =================================================
-                 ADD TASK CARD
-            ================================================== -->
-
-            <div class="task-form-card">
-
-
-                <div class="card-heading">
-
-
-                    <div class="card-heading-icon">
-
-                        <i data-lucide="square-plus"></i>
-
-                    </div>
-
-
-                    <div>
-
-                        <h3>
-
-                            Add New Task
-
-                        </h3>
-
-
-                        <p>
-
-                            Create a task for yourself and track its progress.
-
-                        </p>
-
-                    </div>
-
-
-                </div>
-
-
-                <form
-                    method="POST"
-                    class="task-form"
+                <input
+                    id="task-title"
+                    type="text"
+                    name="title"
+                    placeholder="Enter task title"
+                    class="task-input"
+                    required
                 >
 
-                    {% csrf_token %}
+            </div>
 
 
-                    <!-- Task Title -->
 
-                    <div class="form-field">
+            <!-- Task Description -->
 
+            <div class="form-field">
 
-                        <label
-                            class="form-label"
-                            for="task-title"
-                        >
+                <label
+                    class="form-label"
+                    for="task-description"
+                >
 
-                            <i data-lucide="type"></i>
+                    <i data-lucide="align-left"></i>
 
-                            <span>
-                                Task Title
-                            </span>
+                    <span>
+                        Task Description
+                    </span>
 
-                        </label>
-
-
-                        <input
-                            id="task-title"
-                            type="text"
-                            name="title"
-                            placeholder="Enter task title"
-                            class="task-input"
-                            required
-                        >
+                </label>
 
 
-                    </div>
-
-
-                    <!-- Task Description -->
-
-                    <div class="form-field">
-
-
-                        <label
-                            class="form-label"
-                            for="task-description"
-                        >
-
-                            <i data-lucide="align-left"></i>
-
-                            <span>
-                                Task Description
-                            </span>
-
-                        </label>
-
-
-                        <input
-                            id="task-description"
-                            type="text"
-                            name="description"
-                            placeholder="Enter a short description"
-                            class="task-input"
-                        >
-
-
-                    </div>
-
-
-                    <!-- Add Button -->
-
-                    <div class="form-actions">
-
-
-                        <button
-                            type="submit"
-                            class="add-task-button"
-                        >
-
-                            <i data-lucide="plus"></i>
-
-                            <span>
-                                Add Task
-                            </span>
-
-                        </button>
-
-
-                    </div>
-
-
-                </form>
-
+                <input
+                    id="task-description"
+                    type="text"
+                    name="description"
+                    placeholder="Enter a short description"
+                    class="task-input"
+                >
 
             </div>
 
 
-            <!-- =================================================
-                 TASK LIST
-            ================================================== -->
 
-            <div class="tasks-section">
+            <!-- Add Button -->
 
+            <div class="form-actions">
 
-                <div class="section-heading">
+                <button
+                    type="submit"
+                    class="add-task-button"
+                >
 
+                    <i data-lucide="plus"></i>
 
-                    <div>
+                    <span>
+                        Add Task
+                    </span>
 
-                        <div class="section-eyebrow">
+                </button>
 
-                            YOUR TASK LIST
+            </div>
 
-                        </div>
+        </form>
 
-
-                        <h2>
-
-                            Current Tasks
-
-                        </h2>
-
-                    </div>
+    </div>
 
 
-                    <div class="heading-line"></div>
+
+    <!-- =====================================================
+         TASK LIST
+         ===================================================== -->
+
+    <div class="tasks-section">
 
 
+        <div class="section-heading">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    YOUR TASK LIST
                 </div>
 
+                <h2>
+                    Current Tasks
+                </h2>
 
-                <div class="tasks-list">
+            </div>
 
+            <div class="heading-line"></div>
 
-                    {% for task in tasks %}
-
-
-                        <!-- =================================================
-                             TASK ITEM
-                        ================================================== -->
-
-                        <div
-                            class="task-item
-                            {% if task.status == 'completed' %}
-                                completed
-                            {% endif %}
-                            "
-                        >
+        </div>
 
 
-                            <!-- Task Information -->
 
-                            <div class="task-main">
-
-
-                                <div class="task-title-row">
+        <div class="tasks-list">
 
 
-                                    <div class="task-icon">
+            {% for task in tasks %}
 
 
-                                        {% if task.status == "completed" %}
+                <!-- =================================================
+                     TASK ITEM
+                     ================================================= -->
 
-                                            <i data-lucide="circle-check"></i>
-
-                                        {% elif task.status == "in_progress" %}
-
-                                            <i data-lucide="loader-circle"></i>
-
-                                        {% else %}
-
-                                            <i data-lucide="circle-dot"></i>
-
-                                        {% endif %}
-
-
-                                    </div>
+                <div
+                    class="
+                        task-item
+                        {% if task.status == 'completed' %}
+                            completed
+                        {% endif %}
+                    "
+                >
 
 
-                                    <h2 class="task-title">
+                    <!-- Task Information -->
 
-                                        {{ task.title }}
-
-                                    </h2>
+                    <div class="task-main">
 
 
-                                </div>
+                        <div class="task-title-row">
 
 
-                                {% if task.description %}
+                            <div class="task-icon">
 
-                                    <p class="task-description">
 
-                                        {{ task.description }}
+                                {% if task.status == "completed" %}
 
-                                    </p>
+                                    <i data-lucide="circle-check"></i>
+
+                                {% elif task.status == "in_progress" %}
+
+                                    <i data-lucide="loader-circle"></i>
 
                                 {% else %}
 
-                                    <p class="task-description">
-
-                                        No description provided.
-
-                                    </p>
+                                    <i data-lucide="circle-dot"></i>
 
                                 {% endif %}
 
 
-                                <!-- Status -->
-
-                                <div class="task-status-line">
-
-
-                                    <span class="status-label">
-
-                                        Status
-
-                                    </span>
-
-
-                                    {% if task.status == "completed" %}
-
-                                        <span class="task-status completed">
-
-                                            {{ task.get_status_display }}
-
-                                        </span>
-
-                                    {% elif task.status == "in_progress" %}
-
-                                        <span class="task-status in-progress">
-
-                                            {{ task.get_status_display }}
-
-                                        </span>
-
-                                    {% else %}
-
-                                        <span class="task-status pending">
-
-                                            {{ task.get_status_display }}
-
-                                        </span>
-
-                                    {% endif %}
-
-
-                                </div>
-
-
                             </div>
 
 
-                            <!-- =================================================
-                                 TASK ACTIONS
-                            ================================================== -->
-
-                            <div class="task-actions">
-
-
-                                <!-- Update Status -->
-
-                                <form
-                                    method="POST"
-                                    action="{% url 'update_task' task.id %}"
-                                    class="status-form"
-                                >
-
-                                    {% csrf_token %}
-
-
-                                    <select
-                                        name="status"
-                                        class="status-select"
-                                        onchange="this.form.submit()"
-                                        aria-label="Update task status"
-                                    >
-
-
-                                        <option
-                                            value="pending"
-                                            {% if task.status == 'pending' %}
-                                                selected
-                                            {% endif %}
-                                        >
-                                            Pending
-                                        </option>
-
-
-                                        <option
-                                            value="in_progress"
-                                            {% if task.status == 'in_progress' %}
-                                                selected
-                                            {% endif %}
-                                        >
-                                            In Progress
-                                        </option>
-
-
-                                        <option
-                                            value="completed"
-                                            {% if task.status == 'completed' %}
-                                                selected
-                                            {% endif %}
-                                        >
-                                            Completed
-                                        </option>
-
-
-                                    </select>
-
-
-                                </form>
-
-
-                                <!-- Delete -->
-
-                                <form
-                                    method="POST"
-                                    action="{% url 'delete_task' task.id %}"
-                                >
-
-                                    {% csrf_token %}
-
-
-                                    <button
-                                        type="submit"
-                                        class="delete-task-button"
-                                        title="Delete Task"
-                                        aria-label="Delete Task"
-                                    >
-
-                                        <i data-lucide="trash-2"></i>
-
-                                    </button>
-
-
-                                </form>
-
-
-                            </div>
+                            <h2 class="task-title">
+                                {{ task.title }}
+                            </h2>
 
 
                         </div>
 
 
-                    {% empty %}
 
+                        {% if task.description %}
 
-                        <!-- =================================================
-                             EMPTY STATE
-                        ================================================== -->
-
-                        <div class="empty-state">
-
-
-                            <div class="empty-state-icon">
-
-                                <i data-lucide="clipboard-list"></i>
-
-                            </div>
-
-
-                            <h3>
-
-                                No Tasks Yet
-
-                            </h3>
-
-
-                            <p>
-
-                                You don't have any tasks yet.
-                                Use the form above to create your first task.
-
+                            <p class="task-description">
+                                {{ task.description }}
                             </p>
 
+                        {% else %}
+
+                            <p class="task-description">
+                                No description provided.
+                            </p>
+
+                        {% endif %}
+
+
+
+                        <!-- Status -->
+
+                        <div class="task-status-line">
+
+                            <span class="status-label">
+                                Status
+                            </span>
+
+
+                            {% if task.status == "completed" %}
+
+                                <span class="task-status completed">
+                                    {{ task.get_status_display }}
+                                </span>
+
+                            {% elif task.status == "in_progress" %}
+
+                                <span class="task-status in-progress">
+                                    {{ task.get_status_display }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="task-status pending">
+                                    {{ task.get_status_display }}
+                                </span>
+
+                            {% endif %}
+
 
                         </div>
 
 
-                    {% endfor %}
+                    </div>
+
+
+
+                    <!-- =================================================
+                         TASK ACTIONS
+                         ================================================= -->
+
+                    <div class="task-actions">
+
+
+                        <!-- Update Status -->
+
+                        <form
+                            method="POST"
+                            action="{% url 'update_task' task.id %}"
+                            class="status-form"
+                        >
+
+                            {% csrf_token %}
+
+
+                            <select
+                                name="status"
+                                class="status-select"
+                                onchange="this.form.submit()"
+                                aria-label="Update task status"
+                            >
+
+                                <option
+                                    value="pending"
+                                    {% if task.status == 'pending' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Pending
+                                </option>
+
+
+                                <option
+                                    value="in_progress"
+                                    {% if task.status == 'in_progress' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    In Progress
+                                </option>
+
+
+                                <option
+                                    value="completed"
+                                    {% if task.status == 'completed' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Completed
+                                </option>
+
+                            </select>
+
+                        </form>
+
+
+
+                        <!-- Delete -->
+
+                        <button
+                          type="button"
+                          class="delete-task-button"
+                          title="Delete Task"
+                          aria-label="Delete Task"
+                          onclick="openDeleteTaskModal(
+                              '{{ task.id }}',
+                              '{{ task.title|escapejs }}'
+                          )"
+                      >
+
+                          <i data-lucide="trash-2"></i>
+
+                      </button>
+
+
+                    </div>
 
 
                 </div>
 
 
-            </div>
+            {% empty %}
 
 
-        </section>
+                <!-- =================================================
+                     EMPTY STATE
+                     ================================================= -->
 
+                <div class="empty-state">
+
+                    <div class="empty-state-icon">
+
+                        <i data-lucide="clipboard-list"></i>
+
+                    </div>
+
+
+                    <h3>
+                        No Tasks Yet
+                    </h3>
+
+
+                    <p>
+                        You don't have any tasks yet.
+                        Use the form above to create your first task.
+                    </p>
+
+                </div>
+
+
+            {% endfor %}
+
+
+        </div>
 
     </div>
 
 
-</main>
+</section>
+
 
 
 <!-- =========================================================
-     JAVASCRIPT
+     DELETE TASK CONFIRMATION MODAL
 ========================================================= -->
+
+<div
+    id="deleteTaskModal"
+    class="delete-task-modal hidden"
+>
+
+    <div
+        class="delete-task-modal-overlay"
+        onclick="closeDeleteTaskModal()"
+    ></div>
+
+
+    <div
+        class="delete-task-modal-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deleteTaskModalTitle"
+    >
+
+        <!-- Icon -->
+
+        <div class="delete-task-modal-icon">
+
+            <i data-lucide="trash-2"></i>
+
+        </div>
+
+
+        <!-- Content -->
+
+        <div class="delete-task-modal-content">
+
+            <h3 id="deleteTaskModalTitle">
+                Delete Task?
+            </h3>
+
+            <p>
+                Are you sure you want to delete
+                <strong id="deleteTaskName"></strong>?
+            </p>
+
+            <span class="delete-task-warning">
+                This action cannot be undone.
+            </span>
+
+        </div>
+
+
+        <!-- Actions -->
+
+        <div class="delete-task-modal-actions">
+
+            <button
+                type="button"
+                class="delete-task-cancel"
+                onclick="closeDeleteTaskModal()"
+            >
+                Cancel
+            </button>
+
+
+            <form
+                id="deleteTaskForm"
+                method="POST"
+            >
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="delete-task-confirm"
+                >
+
+                    <i data-lucide="trash-2"></i>
+
+                    <span>
+                        Delete Task
+                    </span>
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+{% endblock %}
+
+
+
+{% block extra_js %}
 
 <script>
 
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+    }
+);
+
 
     /* =========================================================
-       LUCIDE ICONS
+       DELETE TASK MODAL
+    ========================================================= */
+
+    function openDeleteTaskModal(taskId, taskName) {
+
+        const modal =
+            document.getElementById("deleteTaskModal");
+
+        const taskNameElement =
+            document.getElementById("deleteTaskName");
+
+        const deleteForm =
+            document.getElementById("deleteTaskForm");
+
+
+        if (!modal || !deleteForm) {
+            return;
+        }
+
+
+        /* Set task name */
+
+        if (taskNameElement) {
+
+            taskNameElement.textContent =
+                '"' + taskName + '"';
+
+        }
+
+
+        /* Set delete URL */
+
+        deleteForm.action =
+            "{% url 'delete_task' 0 %}"
+                .replace("/0/", "/" + taskId + "/");
+
+
+        /* Show modal */
+
+        modal.classList.remove("hidden");
+
+
+        /* Prevent background scrolling */
+
+        document.body.style.overflow = "hidden";
+
+
+        /* Refresh Lucide icons */
+
+        if (window.lucide) {
+
+            lucide.createIcons();
+
+        }
+
+    }
+
+
+    /* =========================================================
+       CLOSE DELETE MODAL
+    ========================================================= */
+
+    function closeDeleteTaskModal() {
+
+        const modal =
+            document.getElementById("deleteTaskModal");
+
+
+        if (!modal) {
+            return;
+        }
+
+
+        modal.classList.add("hidden");
+
+
+        /* Restore scrolling */
+
+        document.body.style.overflow = "";
+
+    }
+
+
+    /* =========================================================
+       ESCAPE KEY
+    ========================================================= */
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Escape") {
+
+                closeDeleteTaskModal();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       LUCIDE
     ========================================================= */
 
     document.addEventListener(
@@ -3367,222 +1817,7 @@
     );
 
 
-    /* =========================================================
-       MOBILE SIDEBAR
-    ========================================================= */
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-
-
-            const sidebar =
-                document.getElementById(
-                    "sidebar"
-                );
-
-
-            const menuButton =
-                document.getElementById(
-                    "mobile-menu-button"
-                );
-
-
-            const overlay =
-                document.getElementById(
-                    "sidebar-overlay"
-                );
-
-
-            function openSidebar() {
-
-                sidebar.classList.add(
-                    "open"
-                );
-
-                overlay.classList.add(
-                    "active"
-                );
-
-                document.body.style.overflow =
-                    "hidden";
-            }
-
-
-            function closeSidebar() {
-
-                sidebar.classList.remove(
-                    "open"
-                );
-
-                overlay.classList.remove(
-                    "active"
-                );
-
-                document.body.style.overflow =
-                    "";
-            }
-
-
-            if (menuButton) {
-
-                menuButton.addEventListener(
-                    "click",
-                    openSidebar
-                );
-
-            }
-
-
-            if (overlay) {
-
-                overlay.addEventListener(
-                    "click",
-                    closeSidebar
-                );
-
-            }
-
-
-            sidebar
-                .querySelectorAll("a")
-                .forEach(
-                    function (link) {
-
-                        link.addEventListener(
-                            "click",
-                            function () {
-
-                                if (
-                                    window.innerWidth <= 900
-                                ) {
-
-                                    closeSidebar();
-
-                                }
-
-                            }
-                        );
-
-                    }
-                );
-
-
-            window.addEventListener(
-                "resize",
-                function () {
-
-                    if (
-                        window.innerWidth > 900
-                    ) {
-
-                        closeSidebar();
-
-                    }
-
-                }
-            );
-
-
-        }
-    );
-
-
-    /* =========================================================
-       REMOVE TOAST
-    ========================================================= */
-
-    function removeToast(toast) {
-
-
-        if (!toast) {
-
-            return;
-
-        }
-
-
-        toast.classList.add(
-            "toast-hide"
-        );
-
-
-        setTimeout(
-            function () {
-
-                if (
-                    toast.parentElement
-                ) {
-
-                    toast.remove();
-
-                }
-
-            },
-            350
-        );
-
-    }
-
-
-    /* =========================================================
-       AUTO HIDE TOASTS
-    ========================================================= */
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-
-
-            const toasts =
-                document.querySelectorAll(
-                    ".toast-message"
-                );
-
-
-            toasts.forEach(
-                function (toast) {
-
-
-                    setTimeout(
-                        function () {
-
-                            if (
-                                toast.parentElement
-                            ) {
-
-                                removeToast(
-                                    toast
-                                );
-
-                            }
-
-                        },
-                        4000
-                    );
-
-
-                }
-            );
-
-
-        }
-    );
-
 
 </script>
 
-
-<!-- Existing Team Member JS -->
-
-<script src="{% static 'js/team_member.js' %}"></script>
-
-
-<!-- Existing Activity JS -->
-
-<script src="{% static 'js/activity.js' %}"></script>
-
-
-</body>
-
-</html>
+{% endblock %}

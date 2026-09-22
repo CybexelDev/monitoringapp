@@ -1,3308 +1,1961 @@
-{% load static %}
-
-<!DOCTYPE html>
-<html lang="en">
+{% extends "team_member/base3.html" %}
 
-<head>
-
-    <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Team Member Chat - Cybexel</title>
+{% block title %}
+Team Member Chat - Cybexel
+{% endblock %}
 
-    <script src="https://cdn.tailwindcss.com"></script>
 
-    <link
-        rel="stylesheet"
-        href="{% static 'css/admin.css' %}"
-    >
+{% block extra_css %}
 
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+<style>
 
+/* =========================================================
+   CHAT WORKSPACE
+========================================================= */
 
-    <style>
+.chat-workspace {
+    width: 100%;
+    min-width: 0;
 
-        /* =========================================================
-           GLOBAL
-        ========================================================= */
+    height: 620px;
 
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
+    display: grid;
 
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            overflow: hidden !important;
-        }
+    grid-template-columns:
+        minmax(250px, 0.34fr)
+        minmax(0, 0.66fr);
 
-        body {
-            min-height: 100vh;
+    gap: 18px;
+}
 
-            background:
-                radial-gradient(
-                    circle at top left,
-                    rgba(139, 200, 63, 0.10),
-                    transparent 30%
-                ),
-                radial-gradient(
-                    circle at bottom right,
-                    rgba(99, 102, 241, 0.08),
-                    transparent 30%
-                ),
-                #050505;
 
-            color: #ffffff;
+/* =========================================================
+   CHAT LIST
+========================================================= */
 
-            font-family:
-                Inter,
-                ui-sans-serif,
-                system-ui,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
-        }
+.chat-list {
+    min-width: 0;
+    min-height: 0;
 
-        ::selection {
-            background: rgba(139, 200, 63, 0.30);
-            color: #ffffff;
-        }
+    display: flex;
+    flex-direction: column;
 
+    overflow: hidden;
 
-        /* =========================================================
-           SCROLLBAR
-        ========================================================= */
+    border-radius: 22px;
 
-        ::-webkit-scrollbar {
-            width: 7px;
-            height: 7px;
-        }
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 15, 30, 0.80),
+            rgba(20, 10, 17, 0.80)
+        );
 
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.025);
-        }
+    border:
+        1px solid rgba(255, 255, 255, 0.07);
 
-        ::-webkit-scrollbar-thumb {
-            background: rgba(139, 200, 63, 0.35);
-            border-radius: 999px;
-        }
+    box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.24);
+}
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(139, 200, 63, 0.60);
-        }
 
+/* =========================================================
+   CHAT LIST HEADER
+========================================================= */
 
-        /* =========================================================
-           MAIN DASHBOARD SCROLL AREA
-        ========================================================= */
+.chat-list-header {
+    min-height: 72px;
 
-        .dashboard-box {
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-            -webkit-overflow-scrolling: touch;
+    gap: 12px;
 
-            scrollbar-width: thin;
-        }
+    padding: 15px 17px;
 
+    flex-shrink: 0;
 
-        /* =========================================================
-           SIDEBAR
-        ========================================================= */
+    border-bottom:
+        1px solid rgba(255, 255, 255, 0.07);
+}
 
-        .glass-sidebar {
-            position: fixed;
 
-            top: 20px;
-            left: 20px;
+.chat-list-title {
+    display: flex;
+    align-items: center;
 
-            /*
-                Original sidebar width:
-                250px content
-                + 22px left padding
-                + 22px right padding
+    gap: 11px;
 
-                Outer width ≈ 294px
-            */
+    min-width: 0;
+}
 
-            width: 250px;
-            height: calc(100vh - 40px);
 
-            padding: 22px;
+.chat-list-title-icon {
+    width: 40px;
+    height: 40px;
 
-            border-radius: 28px;
+    flex: 0 0 auto;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(37, 15, 30, 0.96),
-                    rgba(24, 10, 20, 0.96)
-                );
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-            border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
 
-            box-shadow:
-                0 25px 70px rgba(0, 0, 0, 0.45),
-                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    color: #8bc83f;
 
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+    background:
+        rgba(139, 200, 63, 0.10);
 
-            z-index: 1000;
+    border:
+        1px solid rgba(139, 200, 63, 0.14);
+}
 
-            display: flex;
-            flex-direction: column;
 
-            overflow-y: auto;
-            overflow-x: hidden;
+.chat-list-title-icon svg {
+    width: 19px;
+    height: 19px;
+}
 
-            transform: translateX(0);
 
-            transition:
-                transform 0.28s ease;
+.chat-list-title-text {
+    margin: 0;
 
-            scrollbar-width: thin;
-        }
+    font-size: 16px;
+    font-weight: 800;
 
+    color: #ffffff;
+}
 
-        /* =========================================================
-           SIDEBAR BRAND
-        ========================================================= */
 
-        .sidebar-brand {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+/* =========================================================
+   ADD GROUP BUTTON
+========================================================= */
 
-            padding-bottom: 24px;
-            margin-bottom: 18px;
+.chat-add-button {
+    width: 36px;
+    height: 36px;
 
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.08);
+    flex: 0 0 auto;
 
-            flex-shrink: 0;
-        }
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
+    border-radius: 11px;
 
-        .sidebar-logo {
-            width: 92px;
-            height: 92px;
+    border:
+        1px solid rgba(139, 200, 63, 0.18);
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    background:
+        rgba(139, 200, 63, 0.09);
 
-            border-radius: 24px;
+    color: #8bc83f;
 
-            background:
-                rgba(255, 255, 255, 0.04);
+    cursor: pointer;
 
-            border:
-                1px solid rgba(255, 255, 255, 0.08);
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        border-color 0.2s ease;
+}
 
-            box-shadow:
-                0 15px 30px rgba(0, 0, 0, 0.30);
-        }
 
+.chat-add-button:hover {
+    background:
+        rgba(139, 200, 63, 0.17);
 
-        .sidebar-logo img {
-            width: 78px;
-            height: 78px;
+    border-color:
+        rgba(139, 200, 63, 0.32);
 
-            object-fit: contain;
-        }
+    transform:
+        translateY(-1px);
+}
 
 
-        .sidebar-brand-name {
-            margin-top: 14px;
+.chat-add-button svg {
+    width: 17px;
+    height: 17px;
+}
 
-            text-align: center;
 
-            font-size: 14px;
-            font-weight: 800;
+/* =========================================================
+   CHAT LIST SCROLL
+========================================================= */
 
-            letter-spacing: 0.16em;
+.chat-list-scroll {
+    flex: 1;
 
-            color: #ffffff;
-        }
+    min-height: 0;
 
+    overflow-y: auto;
+    overflow-x: hidden;
 
-        .sidebar-brand-role {
-            display: block;
+    padding: 17px;
 
-            margin-top: 5px;
+    scrollbar-width: thin;
+}
 
-            text-align: center;
 
-            font-size: 10px;
-            font-weight: 600;
+/* =========================================================
+   CHAT SECTION TITLE
+========================================================= */
 
-            letter-spacing: 0.13em;
+.chat-section-title {
+    display: flex;
 
-            color: #a1a1aa;
-        }
+    align-items: center;
+    justify-content: space-between;
 
+    gap: 10px;
 
-        /* =========================================================
-           SIDEBAR NAVIGATION
-        ========================================================= */
+    margin-bottom: 10px;
+}
 
-        .sidebar-nav {
-            display: flex;
-            flex-direction: column;
 
-            gap: 7px;
+.chat-section-title h3 {
+    margin: 0;
 
-            flex: 1;
-            min-height: 0;
-            min-width: 0;
-        }
+    color: #71717a;
 
+    font-size: 10px;
+    font-weight: 800;
 
-        .sidebar-item,
-        .sidebar-nav a {
-            min-width: 0;
-            width: 100%;
+    letter-spacing: 0.12em;
 
-            min-height: 46px;
+    text-transform: uppercase;
+}
 
-            display: flex;
-            align-items: center;
 
-            gap: 12px;
+.chat-section-title > span {
+    min-width: 23px;
+    height: 22px;
 
-            padding: 12px 13px;
+    display: inline-flex;
 
-            border-radius: 14px;
+    align-items: center;
+    justify-content: center;
 
-            color: #d4d4d8;
+    padding: 0 7px;
 
-            text-decoration: none;
+    border-radius: 999px;
 
-            font-size: 13px;
-            font-weight: 600;
+    color: #a1a1aa;
 
-            border: 1px solid transparent;
+    background:
+        rgba(255, 255, 255, 0.05);
 
-            transition:
-                background 0.2s ease,
-                color 0.2s ease,
-                transform 0.2s ease,
-                border-color 0.2s ease;
-        }
+    font-size: 10px;
+    font-weight: 800;
+}
 
 
-        .sidebar-item:hover,
-        .sidebar-nav a:hover {
-            background:
-                rgba(255, 255, 255, 0.07);
+/* =========================================================
+   USER LIST
+========================================================= */
 
-            color: #ffffff;
+#user-list {
+    display: flex;
+    flex-direction: column;
 
-            transform:
-                translateX(2px);
-        }
+    gap: 7px;
+}
 
 
-        .sidebar-item.active,
-        .sidebar-nav a.active {
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(139, 200, 63, 0.22),
-                    rgba(139, 200, 63, 0.08)
-                );
+.user-row {
+    min-width: 0;
+}
 
-            color: #ffffff;
 
-            border:
-                1px solid rgba(139, 200, 63, 0.20);
+.user-row > a {
+    width: 100%;
+    min-width: 0;
 
-            box-shadow:
-                0 8px 24px rgba(0, 0, 0, 0.20);
-        }
+    display: flex;
 
+    align-items: center;
 
-        /* =========================================================
-           SIDEBAR ICONS
-        ========================================================= */
+    gap: 11px;
 
-        .sidebar-icon,
-        .nav-icon,
-        .sidebar-external,
-        .external-icon,
-        .card-icon,
-        .input-icon,
-        .button-icon {
-            display: inline-flex;
+    padding: 10px;
 
-            align-items: center;
-            justify-content: center;
+    border-radius: 14px;
 
-            flex: 0 0 auto;
-        }
+    text-decoration: none;
 
+    color: #ffffff;
 
-        .nav-icon,
-        .sidebar-icon {
-            width: 20px;
-            height: 20px;
-        }
+    background:
+        rgba(0, 0, 0, 0.20);
 
+    border:
+        1px solid rgba(255, 255, 255, 0.045);
 
-        .nav-icon svg,
-        .sidebar-icon svg {
-            width: 19px;
-            height: 19px;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
 
-            stroke-width: 1.8;
-        }
 
+.user-row > a:hover {
+    background:
+        rgba(255, 255, 255, 0.045);
 
-        .sidebar-nav a.active .nav-icon {
-            color: #8bc83f;
-        }
+    border-color:
+        rgba(139, 200, 63, 0.15);
 
+    transform:
+        translateX(2px);
+}
 
-        .sidebar-external,
-        .external-icon {
-            margin-left: auto;
-        }
 
+/* =========================================================
+   USER AVATAR
+========================================================= */
 
-        .sidebar-external svg,
-        .external-icon {
-            width: 14px;
-            height: 14px;
-        }
+.user-avatar {
+    position: relative;
 
+    width: 42px;
+    height: 42px;
 
-        /* =========================================================
-           SIDEBAR LOGOUT
-        ========================================================= */
+    flex: 0 0 auto;
+}
 
-        .sidebar-logout {
-            margin-top: auto !important;
 
-            background:
-                rgba(220, 38, 38, 0.12) !important;
+.user-avatar img,
+.user-avatar-placeholder {
+    width: 42px;
+    height: 42px;
 
-            color: #fca5a5 !important;
+    display: flex;
 
-            border:
-                1px solid rgba(220, 38, 38, 0.12) !important;
-        }
+    align-items: center;
+    justify-content: center;
 
+    border-radius: 50%;
 
-        .sidebar-logout:hover {
-            background:
-                rgba(220, 38, 38, 0.20) !important;
+    object-fit: cover;
 
-            color: #ffffff !important;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(139, 200, 63, 0.18),
+            rgba(139, 200, 63, 0.06)
+        );
 
-            border-color:
-                rgba(220, 38, 38, 0.25) !important;
-        }
+    border:
+        1px solid rgba(139, 200, 63, 0.18);
 
+    color: #d9f99d;
 
-        /* =========================================================
-           SIDEBAR TEXT ELLIPSIS
-        ========================================================= */
+    font-size: 14px;
+    font-weight: 800;
+}
 
-        .sidebar-nav a > span:last-of-type {
-            overflow: hidden;
 
-            text-overflow: ellipsis;
+/* =========================================================
+   USER STATUS
+========================================================= */
 
-            white-space: nowrap;
+.user-status-dot {
+    position: absolute;
 
-            min-width: 0;
-        }
+    right: -1px;
+    bottom: 0;
 
+    width: 11px;
+    height: 11px;
 
-        /* =========================================================
-           MAIN AREA
-        ========================================================= */
+    border-radius: 50%;
 
-        .main-area {
-            position: fixed;
+    background: #22c55e;
 
-            top: 0;
-            left: 334px;
-            right: 20px;
-            bottom: 0;
+    border:
+        2px solid #180b13;
 
-            width: auto;
+    box-shadow:
+        0 0 0 2px rgba(34, 197, 94, 0.10);
+}
 
-            margin: 0;
 
-            padding: 20px 0;
+/* =========================================================
+   USER INFORMATION
+========================================================= */
 
-            height: 100vh;
-            min-height: 100vh;
+.user-info {
+    min-width: 0;
 
-            min-width: 0;
+    flex: 1;
+}
 
-            box-sizing: border-box;
 
-            overflow: hidden;
-        }
+.user-name {
+    margin: 0;
 
+    color: #f4f4f5;
 
-        /* =========================================================
-           BIG DASHBOARD BOX
-        ========================================================= */
+    font-size: 13px;
+    font-weight: 700;
 
-        .dashboard-box {
-            width: 100%;
+    overflow: hidden;
 
-            height: calc(100vh - 40px);
-            max-height: calc(100vh - 40px);
+    text-overflow: ellipsis;
 
-            min-width: 0;
+    white-space: nowrap;
+}
 
-            border-radius: 30px;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(18, 18, 18, 0.96),
-                    rgba(9, 9, 9, 0.96)
-                );
+.user-phone {
+    margin: 4px 0 0;
 
-            border:
-                1px solid rgba(255, 255, 255, 0.08);
+    color: #71717a;
 
-            box-shadow:
-                0 30px 90px rgba(0, 0, 0, 0.45),
-                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+    font-size: 10px;
 
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+    overflow: hidden;
 
-            box-sizing: border-box;
-        }
+    text-overflow: ellipsis;
 
+    white-space: nowrap;
+}
 
-        /* =========================================================
-           DASHBOARD SCROLL
-        ========================================================= */
 
-        .dashboard-scroll {
-            width: 100%;
-            min-width: 0;
-        }
+/* =========================================================
+   GROUPS
+========================================================= */
 
+.groups-section {
+    margin-top: 24px;
 
-        /* =========================================================
-           HEADER
-        ========================================================= */
+    padding-top: 20px;
 
-        .dashboard-header {
-            padding: 34px 34px 28px;
+    border-top:
+        1px solid rgba(255, 255, 255, 0.06);
+}
 
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.07);
-        }
 
+.groups-list {
+    display: flex;
 
-        .dashboard-header > div:first-child {
-            min-width: 0;
-        }
+    flex-direction: column;
 
+    gap: 7px;
+}
 
-        .header-eyebrow {
-            font-size: 10px;
 
-            font-weight: 800;
+.group-link {
+    min-width: 0;
 
-            letter-spacing: 0.18em;
+    display: flex;
 
-            color: #8bc83f;
+    align-items: center;
+    justify-content: space-between;
 
-            margin-bottom: 8px;
-        }
+    gap: 10px;
 
+    padding: 11px 12px;
 
-        .dashboard-header h1 {
-            margin: 0;
+    border-radius: 13px;
 
-            font-size:
-                clamp(1.8rem, 4vw, 2.7rem);
+    color: #d4d4d8;
 
-            line-height: 1;
+    text-decoration: none;
 
-            font-weight: 900;
+    background:
+        rgba(0, 0, 0, 0.20);
 
-            letter-spacing: -0.035em;
+    border:
+        1px solid rgba(255, 255, 255, 0.045);
 
-            color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
 
-            overflow-wrap: anywhere;
-        }
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
 
 
-        .dashboard-header p {
-            margin-top: 10px;
-            margin-bottom: 0;
+.group-link:hover {
+    color: #ffffff;
 
-            color: #a1a1aa;
+    background:
+        rgba(139, 200, 63, 0.07);
 
-            font-size: 14px;
+    border-color:
+        rgba(139, 200, 63, 0.15);
+}
 
-            line-height: 1.6;
 
-            overflow-wrap: anywhere;
-        }
+.group-link span {
+    min-width: 0;
 
+    overflow: hidden;
 
-        /* =========================================================
-           SYSTEM STATUS
-        ========================================================= */
+    text-overflow: ellipsis;
 
-        .system-status {
-            display: inline-flex;
+    white-space: nowrap;
+}
 
-            align-items: center;
 
-            gap: 8px;
+.group-link svg {
+    width: 15px;
+    height: 15px;
 
-            padding: 9px 13px;
+    flex: 0 0 auto;
 
-            border-radius: 999px;
+    color: #71717a;
+}
 
-            background:
-                rgba(34, 197, 94, 0.08);
 
-            border:
-                1px solid rgba(34, 197, 94, 0.15);
+.empty-groups {
+    padding: 13px;
 
-            color: #bbf7d0;
+    border-radius: 13px;
 
-            font-size: 12px;
+    background:
+        rgba(0, 0, 0, 0.18);
 
-            font-weight: 700;
+    border:
+        1px solid rgba(255, 255, 255, 0.04);
 
-            white-space: nowrap;
+    color: #71717a;
 
-            flex: 0 0 auto;
-        }
+    font-size: 11px;
 
+    text-align: center;
+}
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
 
-            flex: 0 0 auto;
+/* =========================================================
+   CHAT WINDOW
+========================================================= */
 
-            border-radius: 50%;
+#chat-window {
+    min-width: 0;
+    min-height: 0;
 
-            background: #4ade80;
+    height: 100%;
 
-            box-shadow:
-                0 0 0 4px rgba(74, 222, 128, 0.10),
-                0 0 14px rgba(74, 222, 128, 0.50);
-        }
+    display: flex;
 
+    flex-direction: column;
 
-        /* =========================================================
-           DASHBOARD CONTENT
-        ========================================================= */
+    overflow: hidden;
 
-        .dashboard-content {
-            padding: 30px 34px 40px;
+    border-radius: 22px;
 
-            min-width: 0;
-        }
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 15, 30, 0.78),
+            rgba(20, 10, 17, 0.78)
+        );
 
+    border:
+        1px solid rgba(255, 255, 255, 0.07);
 
-        /* =========================================================
-           SECTION HEADING
-        ========================================================= */
+    box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.24);
+}
 
-        .section-heading {
-            display: flex;
 
-            align-items: center;
+/* =========================================================
+   CHAT HEADER
+========================================================= */
 
-            gap: 20px;
+.chat-header {
+    min-height: 76px;
 
-            margin-bottom: 22px;
+    display: flex;
 
-            min-width: 0;
-        }
+    align-items: center;
+    justify-content: space-between;
 
+    gap: 15px;
 
-        .section-heading > div:first-child {
-            min-width: 0;
-        }
+    padding: 13px 18px;
 
+    flex-shrink: 0;
 
-        .section-eyebrow {
-            display: block;
+    border-bottom:
+        1px solid rgba(255, 255, 255, 0.07);
 
-            font-size: 10px;
+    background:
+        rgba(0, 0, 0, 0.14);
+}
 
-            font-weight: 800;
 
-            letter-spacing: 0.16em;
+.chat-user {
+    min-width: 0;
 
-            color: #8bc83f;
+    display: flex;
 
-            margin-bottom: 5px;
-        }
+    align-items: center;
 
+    gap: 12px;
+}
 
-        .section-heading h2 {
-            margin: 0;
 
-            font-size: 22px;
+.chat-user-avatar,
+.chat-user-placeholder {
+    width: 46px;
+    height: 46px;
 
-            font-weight: 800;
+    flex: 0 0 auto;
 
-            color: #ffffff;
-        }
+    border-radius: 50%;
 
+    object-fit: cover;
 
-        .section-heading p {
-            margin-top: 5px;
-            margin-bottom: 0;
+    display: flex;
 
-            color: #71717a;
+    align-items: center;
+    justify-content: center;
 
-            font-size: 12px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(139, 200, 63, 0.18),
+            rgba(139, 200, 63, 0.05)
+        );
 
-            line-height: 1.5;
-        }
+    border:
+        1px solid rgba(139, 200, 63, 0.18);
 
+    color: #8bc83f;
+}
 
-        .section-line {
-            height: 1px;
 
-            flex: 1;
+.chat-user-placeholder svg {
+    width: 21px;
+    height: 21px;
+}
 
-            min-width: 20px;
 
-            background:
-                linear-gradient(
-                    90deg,
-                    rgba(255,255,255,.10),
-                    transparent
-                );
-        }
+.chat-user-details {
+    min-width: 0;
+}
 
 
-        /* =========================================================
-           CHAT WORKSPACE
-        ========================================================= */
+.chat-user-name {
+    margin: 0;
 
-        .chat-workspace {
-            width: 100%;
+    color: #ffffff;
 
-            min-width: 0;
+    font-size: 14px;
+    font-weight: 800;
 
-            height: 620px;
+    overflow: hidden;
 
-            display: grid;
+    text-overflow: ellipsis;
 
-            grid-template-columns:
-                minmax(250px, 0.34fr)
-                minmax(0, 0.66fr);
+    white-space: nowrap;
+}
 
-            gap: 18px;
-        }
 
+.chat-user-phone {
+    margin: 4px 0 0;
 
-        /* =========================================================
-           CHAT LIST
-        ========================================================= */
+    color: #71717a;
 
-        .chat-list {
-            min-width: 0;
+    font-size: 10px;
 
-            min-height: 0;
+    overflow: hidden;
 
-            display: flex;
+    text-overflow: ellipsis;
 
-            flex-direction: column;
+    white-space: nowrap;
+}
 
-            overflow: hidden;
 
-            border-radius: 22px;
+.chat-header-status {
+    display: inline-flex;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(37, 15, 30, 0.80),
-                    rgba(20, 10, 17, 0.80)
-                );
+    align-items: center;
 
-            border:
-                1px solid rgba(255, 255, 255, 0.07);
+    gap: 7px;
 
-            box-shadow:
-                0 18px 45px rgba(0, 0, 0, 0.24);
-        }
+    flex: 0 0 auto;
 
+    color: #86efac;
 
-        /* =========================================================
-           CHAT LIST HEADER
-        ========================================================= */
+    font-size: 10px;
+    font-weight: 700;
 
-        .chat-list-header {
-            min-height: 72px;
+    white-space: nowrap;
+}
 
-            display: flex;
 
-            align-items: center;
+.chat-header-status span {
+    width: 7px;
+    height: 7px;
 
-            justify-content: space-between;
+    border-radius: 50%;
 
-            gap: 12px;
+    background: #4ade80;
 
-            padding: 15px 17px;
+    box-shadow:
+        0 0 10px rgba(74, 222, 128, 0.45);
+}
 
-            flex-shrink: 0;
 
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.07);
-        }
+/* =========================================================
+   CHAT MESSAGES
+========================================================= */
 
+#chat-messages {
+    flex: 1;
 
-        .chat-list-title {
-            display: flex;
+    min-height: 0;
 
-            align-items: center;
+    overflow-y: auto;
+    overflow-x: hidden;
 
-            gap: 11px;
+    padding: 20px;
 
-            min-width: 0;
-        }
+    display: flex;
 
+    flex-direction: column;
 
-        .chat-list-title-icon {
-            width: 40px;
-            height: 40px;
+    gap: 10px;
 
-            flex: 0 0 auto;
+    scrollbar-width: thin;
+}
 
-            display: flex;
 
-            align-items: center;
-            justify-content: center;
+.message-row {
+    width: 100%;
 
-            border-radius: 12px;
+    display: flex;
 
-            color: #8bc83f;
+    align-items: flex-end;
 
-            background:
-                rgba(139, 200, 63, 0.10);
+    gap: 8px;
+}
 
-            border:
-                1px solid rgba(139, 200, 63, 0.14);
-        }
 
+.message-outgoing {
+    justify-content: flex-end;
+}
 
-        .chat-list-title-icon svg {
-            width: 19px;
-            height: 19px;
-        }
 
+.message-incoming {
+    justify-content: flex-start;
+}
 
-        .chat-list-title-text {
-            margin: 0;
 
-            font-size: 16px;
+.message-bubble {
+    max-width: min(72%, 520px);
 
-            font-weight: 800;
+    margin: 0;
 
-            color: #ffffff;
-        }
+    padding: 10px 13px;
 
+    border-radius: 16px;
 
-        .chat-add-button {
-            width: 36px;
-            height: 36px;
+    font-size: 12px;
 
-            flex: 0 0 auto;
+    line-height: 1.55;
 
-            display: flex;
+    overflow-wrap: anywhere;
 
-            align-items: center;
-            justify-content: center;
+    word-break: break-word;
+}
 
-            border-radius: 11px;
 
-            border:
-                1px solid rgba(139, 200, 63, 0.18);
+.message-outgoing .message-bubble {
+    color: #ffffff;
 
-            background:
-                rgba(139, 200, 63, 0.09);
+    background:
+        linear-gradient(
+            135deg,
+            #8bc83f,
+            #6da52e
+        );
 
-            color: #8bc83f;
+    border-bottom-right-radius: 5px;
 
-            cursor: pointer;
+    box-shadow:
+        0 8px 20px rgba(139, 200, 63, 0.10);
+}
 
-            transition:
-                background 0.2s ease,
-                transform 0.2s ease,
-                border-color 0.2s ease;
-        }
 
+.message-incoming .message-bubble {
+    color: #e4e4e7;
 
-        .chat-add-button:hover {
-            background:
-                rgba(139, 200, 63, 0.17);
+    background:
+        rgba(255, 255, 255, 0.055);
 
-            border-color:
-                rgba(139, 200, 63, 0.32);
+    border:
+        1px solid rgba(255, 255, 255, 0.07);
 
-            transform:
-                translateY(-1px);
-        }
+    border-bottom-left-radius: 5px;
+}
 
 
-        .chat-add-button svg {
-            width: 17px;
-            height: 17px;
-        }
+/* =========================================================
+   MESSAGE AVATAR
+========================================================= */
 
+.message-avatar,
+.message-avatar-placeholder {
+    width: 30px;
+    height: 30px;
 
-        /* =========================================================
-           CHAT LIST SCROLL
-        ========================================================= */
+    flex: 0 0 auto;
 
-        .chat-list-scroll {
-            flex: 1;
+    border-radius: 50%;
 
-            min-height: 0;
+    object-fit: cover;
 
-            overflow-y: auto;
+    display: flex;
 
-            overflow-x: hidden;
+    align-items: center;
+    justify-content: center;
 
-            padding: 17px;
+    background:
+        rgba(139, 200, 63, 0.10);
 
-            scrollbar-width: thin;
-        }
+    border:
+        1px solid rgba(139, 200, 63, 0.14);
 
+    color: #8bc83f;
+}
 
-        /* =========================================================
-           CHAT SECTION TITLE
-        ========================================================= */
 
-        .chat-section-title {
-            display: flex;
+.message-avatar-placeholder svg {
+    width: 15px;
+    height: 15px;
+}
 
-            align-items: center;
 
-            justify-content: space-between;
+/* =========================================================
+   CHAT INPUT
+========================================================= */
 
-            gap: 10px;
+.chat-input-area {
+    min-height: 72px;
 
-            margin-bottom: 10px;
-        }
+    display: flex;
 
+    align-items: center;
 
-        .chat-section-title h3 {
-            margin: 0;
+    gap: 10px;
 
-            color: #71717a;
+    padding: 13px 15px;
 
-            font-size: 10px;
+    flex-shrink: 0;
 
-            font-weight: 800;
+    border-top:
+        1px solid rgba(255, 255, 255, 0.07);
 
-            letter-spacing: 0.12em;
+    background:
+        rgba(0, 0, 0, 0.16);
+}
 
-            text-transform: uppercase;
-        }
 
+#chat-input {
+    width: 100%;
 
-        .chat-section-title > span {
-            min-width: 23px;
-            height: 22px;
+    min-width: 0;
 
-            display: inline-flex;
+    height: 44px;
 
-            align-items: center;
-            justify-content: center;
+    padding: 11px 14px;
 
-            padding: 0 7px;
+    border-radius: 13px;
 
-            border-radius: 999px;
+    outline: none;
 
-            color: #a1a1aa;
+    background:
+        #050505;
 
-            background:
-                rgba(255, 255, 255, 0.05);
+    border:
+        1px solid rgba(255, 255, 255, 0.09);
 
-            font-size: 10px;
+    color: #ffffff;
 
-            font-weight: 800;
-        }
+    font-size: 12px;
 
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
 
-        /* =========================================================
-           USER LIST
-        ========================================================= */
 
-        #user-list {
-            display: flex;
+#chat-input::placeholder {
+    color: #52525b;
+}
 
-            flex-direction: column;
 
-            gap: 7px;
-        }
+#chat-input:hover {
+    border-color:
+        rgba(255, 255, 255, 0.15);
+}
 
 
-        .user-row {
-            min-width: 0;
-        }
+#chat-input:focus {
+    background:
+        rgba(0, 0, 0, 0.72);
 
+    border-color:
+        rgba(139, 200, 63, 0.55);
 
-        .user-row > a {
-            width: 100%;
+    box-shadow:
+        0 0 0 3px rgba(139, 200, 63, 0.08);
+}
 
-            min-width: 0;
 
-            display: flex;
+#sendBtn {
+    height: 44px;
 
-            align-items: center;
+    flex: 0 0 auto;
 
-            gap: 11px;
+    display: inline-flex;
 
-            padding: 10px;
+    align-items: center;
+    justify-content: center;
 
-            border-radius: 14px;
+    gap: 7px;
 
-            text-decoration: none;
+    padding: 0 16px;
 
-            color: #ffffff;
+    border: 0;
 
-            background:
-                rgba(0, 0, 0, 0.20);
+    border-radius: 13px;
 
-            border:
-                1px solid rgba(255, 255, 255, 0.045);
+    background:
+        linear-gradient(
+            135deg,
+            #8bc83f,
+            #6da52e
+        );
 
-            transition:
-                background 0.2s ease,
-                border-color 0.2s ease,
-                transform 0.2s ease;
-        }
+    color: #ffffff;
 
+    font-size: 12px;
+    font-weight: 800;
 
-        .user-row > a:hover {
-            background:
-                rgba(255, 255, 255, 0.045);
+    cursor: pointer;
 
-            border-color:
-                rgba(139, 200, 63, 0.15);
+    box-shadow:
+        0 10px 25px rgba(139, 200, 63, 0.14);
 
-            transform:
-                translateX(2px);
-        }
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+}
 
 
-        /* =========================================================
-           USER AVATAR
-        ========================================================= */
+#sendBtn:hover {
+    transform:
+        translateY(-1px);
 
-        .user-avatar {
-            position: relative;
+    filter:
+        brightness(1.06);
 
-            width: 42px;
-            height: 42px;
+    box-shadow:
+        0 14px 30px rgba(139, 200, 63, 0.20);
+}
 
-            flex: 0 0 auto;
-        }
 
+#sendBtn:active {
+    transform:
+        translateY(0);
+}
 
-        .user-avatar img,
-        .user-avatar-placeholder {
-            width: 42px;
-            height: 42px;
 
-            display: flex;
+#sendBtn svg {
+    width: 16px;
+    height: 16px;
 
-            align-items: center;
-            justify-content: center;
+    stroke-width: 2.2;
+}
 
-            border-radius: 50%;
 
-            object-fit: cover;
+/* =========================================================
+   GROUP MODAL
+========================================================= */
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(139, 200, 63, 0.18),
-                    rgba(139, 200, 63, 0.06)
-                );
+#groupModal {
+    position: fixed;
 
-            border:
-                1px solid rgba(139, 200, 63, 0.18);
+    inset: 0;
 
-            color: #d9f99d;
+    z-index: 5000;
 
-            font-size: 14px;
+    display: flex;
 
-            font-weight: 800;
-        }
+    align-items: center;
+    justify-content: center;
 
+    padding: 20px;
 
-        .user-status-dot {
-            position: absolute;
+    background:
+        rgba(0, 0, 0, 0.70);
 
-            right: -1px;
-            bottom: 0;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
 
-            width: 11px;
-            height: 11px;
 
-            border-radius: 50%;
+#groupModal.hidden {
+    display: none;
+}
 
-            background: #22c55e;
 
-            border:
-                2px solid #180b13;
+.group-modal-card {
+    width: 100%;
 
-            box-shadow:
-                0 0 0 2px rgba(34, 197, 94, 0.10);
-        }
+    max-width: 480px;
 
+    max-height:
+        calc(100vh - 40px);
 
-        /* =========================================================
-           USER INFO
-        ========================================================= */
+    overflow-y: auto;
 
-        .user-info {
-            min-width: 0;
+    padding: 25px;
 
-            flex: 1;
-        }
+    border-radius: 22px;
 
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 15, 30, 0.98),
+            rgba(20, 10, 17, 0.98)
+        );
 
-        .user-name {
-            margin: 0;
+    border:
+        1px solid rgba(255, 255, 255, 0.09);
 
-            color: #f4f4f5;
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.60);
 
-            font-size: 13px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
 
-            font-weight: 700;
 
-            overflow: hidden;
+/* =========================================================
+   MODAL TITLE
+========================================================= */
 
-            text-overflow: ellipsis;
+.modal-title {
+    display: flex;
 
-            white-space: nowrap;
-        }
+    align-items: center;
 
+    gap: 12px;
 
-        .user-phone {
-            margin: 4px 0 0;
+    margin-bottom: 22px;
+}
 
-            color: #71717a;
 
-            font-size: 10px;
+.modal-title-icon {
+    width: 44px;
+    height: 44px;
 
-            overflow: hidden;
+    flex: 0 0 auto;
 
-            text-overflow: ellipsis;
+    display: flex;
 
-            white-space: nowrap;
-        }
+    align-items: center;
+    justify-content: center;
 
+    border-radius: 13px;
 
-        /* =========================================================
-           GROUPS
-        ========================================================= */
+    color: #8bc83f;
 
-        .groups-section {
-            margin-top: 24px;
+    background:
+        rgba(139, 200, 63, 0.10);
 
-            padding-top: 20px;
+    border:
+        1px solid rgba(139, 200, 63, 0.16);
+}
 
-            border-top:
-                1px solid rgba(255, 255, 255, 0.06);
-        }
 
+.modal-title-icon svg {
+    width: 20px;
+    height: 20px;
+}
 
-        .groups-list {
-            display: flex;
 
-            flex-direction: column;
+.modal-title h2 {
+    margin: 0;
 
-            gap: 7px;
-        }
+    color: #ffffff;
 
+    font-size: 19px;
+    font-weight: 800;
+}
 
-        .group-link {
-            min-width: 0;
 
-            display: flex;
+/* =========================================================
+   MODAL FORM
+========================================================= */
 
-            align-items: center;
+.modal-label {
+    display: block;
 
-            justify-content: space-between;
+    margin-bottom: 8px;
 
-            gap: 10px;
+    color: #d4d4d8;
 
-            padding: 11px 12px;
+    font-size: 12px;
+    font-weight: 700;
+}
 
-            border-radius: 13px;
 
-            color: #d4d4d8;
+.modal-input,
+.modal-select {
+    width: 100%;
 
-            text-decoration: none;
+    box-sizing: border-box;
 
-            background:
-                rgba(0, 0, 0, 0.20);
+    padding: 12px 13px;
 
-            border:
-                1px solid rgba(255, 255, 255, 0.045);
+    margin-bottom: 17px;
 
-            font-size: 12px;
+    border-radius: 13px;
 
-            font-weight: 600;
+    outline: none;
 
-            transition:
-                background 0.2s ease,
-                color 0.2s ease,
-                border-color 0.2s ease;
-        }
+    background:
+        #050505;
 
+    border:
+        1px solid rgba(255, 255, 255, 0.09);
 
-        .group-link:hover {
-            color: #ffffff;
+    color: #ffffff;
 
-            background:
-                rgba(139, 200, 63, 0.07);
+    font-family: inherit;
 
-            border-color:
-                rgba(139, 200, 63, 0.15);
-        }
+    font-size: 12px;
 
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
 
-        .group-link span {
-            min-width: 0;
 
-            overflow: hidden;
+.modal-select {
+    min-height: 125px;
 
-            text-overflow: ellipsis;
+    resize: vertical;
+}
 
-            white-space: nowrap;
-        }
 
+.modal-input::placeholder {
+    color: #52525b;
+}
 
-        .group-link svg {
-            width: 15px;
-            height: 15px;
 
-            flex: 0 0 auto;
+.modal-input:focus,
+.modal-select:focus {
+    border-color:
+        rgba(139, 200, 63, 0.55);
 
-            color: #71717a;
-        }
+    box-shadow:
+        0 0 0 3px rgba(139, 200, 63, 0.08);
+}
 
 
-        .empty-groups {
-            padding: 13px;
+.modal-select option {
+    background: #050505;
 
-            border-radius: 13px;
+    color: #ffffff;
+}
 
-            background:
-                rgba(0, 0, 0, 0.18);
 
-            border:
-                1px solid rgba(255, 255, 255, 0.04);
+/* =========================================================
+   MODAL ACTIONS
+========================================================= */
 
-            color: #71717a;
+.modal-actions {
+    display: flex;
 
-            font-size: 11px;
+    justify-content: flex-end;
 
-            text-align: center;
-        }
+    gap: 10px;
 
+    padding-top: 4px;
+}
 
-        /* =========================================================
-           CHAT WINDOW
-        ========================================================= */
 
-        #chat-window {
-            min-width: 0;
-            min-height: 0;
+.modal-button {
+    min-height: 42px;
 
-            height: 100%;
+    padding: 0 16px;
 
-            display: flex;
+    border-radius: 12px;
 
-            flex-direction: column;
+    font-size: 12px;
+    font-weight: 800;
 
-            overflow: hidden;
+    cursor: pointer;
 
-            border-radius: 22px;
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(37, 15, 30, 0.78),
-                    rgba(20, 10, 17, 0.78)
-                );
 
-            border:
-                1px solid rgba(255, 255, 255, 0.07);
+.modal-cancel {
+    background:
+        rgba(255, 255, 255, 0.05);
 
-            box-shadow:
-                0 18px 45px rgba(0, 0, 0, 0.24);
-        }
+    color: #d4d4d8;
 
+    border:
+        1px solid rgba(255, 255, 255, 0.08);
+}
 
-        /* =========================================================
-           CHAT HEADER
-        ========================================================= */
 
-        .chat-header {
-            min-height: 76px;
+.modal-cancel:hover {
+    background:
+        rgba(255, 255, 255, 0.09);
 
-            display: flex;
+    color: #ffffff;
+}
 
-            align-items: center;
 
-            justify-content: space-between;
+.modal-create {
+    background:
+        linear-gradient(
+            135deg,
+            #8bc83f,
+            #6da52e
+        );
 
-            gap: 15px;
+    color: #ffffff;
 
-            padding: 13px 18px;
+    border:
+        1px solid transparent;
 
-            flex-shrink: 0;
+    box-shadow:
+        0 10px 24px rgba(139, 200, 63, 0.14);
+}
 
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.07);
 
-            background:
-                rgba(0, 0, 0, 0.14);
-        }
+.modal-create:hover {
+    transform:
+        translateY(-1px);
 
+    filter:
+        brightness(1.05);
+}
 
-        .chat-user {
-            min-width: 0;
 
-            display: flex;
+/* =========================================================
+   WIDTH PROTECTION
+========================================================= */
 
-            align-items: center;
+.chat-workspace,
+.chat-list,
+#chat-window,
+.chat-user-details,
+.user-info {
+    min-width: 0;
+}
 
-            gap: 12px;
-        }
 
+/* =========================================================
+   LAPTOP
+========================================================= */
 
-        .chat-user-avatar,
-        .chat-user-placeholder {
-            width: 46px;
-            height: 46px;
+@media (min-width: 901px) and (max-width: 1200px) {
 
-            flex: 0 0 auto;
+    .chat-workspace {
+        grid-template-columns:
+            minmax(220px, 0.38fr)
+            minmax(0, 0.62fr);
 
-            border-radius: 50%;
+        height: 580px;
+    }
 
-            object-fit: cover;
+}
 
-            display: flex;
 
-            align-items: center;
-            justify-content: center;
+/* =========================================================
+   TABLET / MOBILE
+========================================================= */
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(139, 200, 63, 0.18),
-                    rgba(139, 200, 63, 0.05)
-                );
+@media (max-width: 900px) {
 
-            border:
-                1px solid rgba(139, 200, 63, 0.18);
+    .chat-workspace {
+        grid-template-columns: 1fr;
 
-            color: #8bc83f;
-        }
+        height: auto;
 
+        min-height: 900px;
+    }
 
-        .chat-user-placeholder svg {
-            width: 21px;
-            height: 21px;
-        }
 
+    .chat-list {
+        height: 380px;
+    }
 
-        .chat-user-details {
-            min-width: 0;
-        }
 
+    #chat-window {
+        height: 520px;
+    }
 
-        .chat-user-name {
-            margin: 0;
+}
 
-            color: #ffffff;
 
-            font-size: 14px;
+/* =========================================================
+   MOBILE
+========================================================= */
 
-            font-weight: 800;
+@media (max-width: 600px) {
 
-            overflow: hidden;
+    .chat-workspace {
+        gap: 14px;
 
-            text-overflow: ellipsis;
+        min-height: 0;
+    }
 
-            white-space: nowrap;
-        }
 
+    .chat-list {
+        height: 350px;
 
-        .chat-user-phone {
-            margin: 4px 0 0;
+        border-radius: 18px;
+    }
 
-            color: #71717a;
 
-            font-size: 10px;
+    .chat-list-scroll {
+        padding: 13px;
+    }
 
-            overflow: hidden;
 
-            text-overflow: ellipsis;
+    #chat-window {
+        height: 500px;
 
-            white-space: nowrap;
-        }
+        border-radius: 18px;
+    }
 
 
-        .chat-header-status {
-            display: inline-flex;
+    .chat-header {
+        padding:
+            12px 13px;
+    }
 
-            align-items: center;
 
-            gap: 7px;
+    .chat-user-avatar,
+    .chat-user-placeholder {
+        width: 40px;
+        height: 40px;
+    }
 
-            flex: 0 0 auto;
 
-            color: #86efac;
+    .chat-header-status {
+        display: none;
+    }
 
-            font-size: 10px;
 
-            font-weight: 700;
+    #chat-messages {
+        padding: 15px;
+    }
 
-            white-space: nowrap;
-        }
 
+    .message-bubble {
+        max-width: 82%;
 
-        .chat-header-status span {
-            width: 7px;
-            height: 7px;
+        font-size: 11px;
+    }
 
-            border-radius: 50%;
 
-            background: #4ade80;
+    .chat-input-area {
+        padding:
+            10px;
+    }
 
-            box-shadow:
-                0 0 10px rgba(74, 222, 128, 0.45);
-        }
 
+    #sendBtn {
+        width: 44px;
 
-        /* =========================================================
-           CHAT MESSAGES
-        ========================================================= */
+        padding: 0;
+    }
 
-        #chat-messages {
-            flex: 1;
 
-            min-height: 0;
+    #sendBtn span {
+        display: none;
+    }
 
-            overflow-y: auto;
 
-            overflow-x: hidden;
+    .group-modal-card {
+        padding:
+            20px;
 
-            padding: 20px;
+        border-radius:
+            19px;
+    }
 
-            display: flex;
 
-            flex-direction: column;
+    .modal-actions {
+        flex-direction: column-reverse;
+    }
 
-            gap: 10px;
 
-            scrollbar-width: thin;
-        }
+    .modal-button {
+        width: 100%;
+    }
 
+}
 
-        .message-row {
-            width: 100%;
 
-            display: flex;
+/* =========================================================
+   VERY SMALL MOBILE
+========================================================= */
 
-            align-items: flex-end;
+@media (max-width: 400px) {
 
-            gap: 8px;
-        }
+    .chat-list-header {
+        padding:
+            13px;
+    }
 
 
-        .message-outgoing {
-            justify-content: flex-end;
-        }
+    .chat-list-scroll {
+        padding:
+            11px;
+    }
 
 
-        .message-incoming {
-            justify-content: flex-start;
-        }
+    .chat-list-title-text {
+        font-size: 15px;
+    }
 
 
-        .message-bubble {
-            max-width: min(72%, 520px);
+    .chat-user-name {
+        font-size: 13px;
+    }
 
-            margin: 0;
 
-            padding: 10px 13px;
+    .chat-user-phone {
+        font-size: 9px;
+    }
 
-            border-radius: 16px;
 
-            font-size: 12px;
+    #chat-messages {
+        padding:
+            12px;
+    }
 
-            line-height: 1.55;
 
-            overflow-wrap: anywhere;
+    .message-bubble {
+        max-width: 86%;
+    }
 
-            word-break: break-word;
-        }
+}
 
+</style>
 
-        .message-outgoing .message-bubble {
-            color: #ffffff;
+{% endblock %}
 
-            background:
-                linear-gradient(
-                    135deg,
-                    #8bc83f,
-                    #6da52e
-                );
 
-            border-bottom-right-radius: 5px;
+{% block content %}
 
-            box-shadow:
-                0 8px 20px rgba(139, 200, 63, 0.10);
-        }
+<!-- =========================================================
+     HEADER
+========================================================= -->
 
+<header class="dashboard-header">
 
-        .message-incoming .message-bubble {
-            color: #e4e4e7;
+    <div>
 
-            background:
-                rgba(255, 255, 255, 0.055);
+        <div class="header-eyebrow">
+            TEAM MEMBER • CHAT
+        </div>
 
-            border:
-                1px solid rgba(255, 255, 255, 0.07);
+        <h1>
+            Team Chat
+        </h1>
 
-            border-bottom-left-radius: 5px;
-        }
+        <p>
+            Connect with your team members and manage
+            your group conversations from one place.
+        </p>
 
+    </div>
 
-        .message-avatar,
-        .message-avatar-placeholder {
-            width: 30px;
-            height: 30px;
 
-            flex: 0 0 auto;
+    <div class="system-status">
 
-            border-radius: 50%;
+        <span class="status-dot"></span>
 
-            object-fit: cover;
+        <i
+            data-lucide="message-circle"
+            style="width:15px;height:15px;"
+        ></i>
 
-            display: flex;
+        Chat Workspace Active
 
-            align-items: center;
-            justify-content: center;
+    </div>
 
-            background:
-                rgba(139, 200, 63, 0.10);
-
-            border:
-                1px solid rgba(139, 200, 63, 0.14);
-
-            color: #8bc83f;
-        }
-
-
-        .message-avatar-placeholder svg {
-            width: 15px;
-            height: 15px;
-        }
-
-
-        /* =========================================================
-           CHAT INPUT
-        ========================================================= */
-
-        .chat-input-area {
-            min-height: 72px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 10px;
-
-            padding: 13px 15px;
-
-            flex-shrink: 0;
-
-            border-top:
-                1px solid rgba(255, 255, 255, 0.07);
-
-            background:
-                rgba(0, 0, 0, 0.16);
-        }
-
-
-        #chat-input {
-            width: 100%;
-
-            min-width: 0;
-
-            height: 44px;
-
-            padding: 11px 14px;
-
-            border-radius: 13px;
-
-            outline: none;
-
-            background:
-                #050505;
-
-            border:
-                1px solid rgba(255, 255, 255, 0.09);
-
-            color: #ffffff;
-
-            font-size: 12px;
-
-            transition:
-                border-color 0.2s ease,
-                box-shadow 0.2s ease,
-                background 0.2s ease;
-        }
-
-
-        #chat-input::placeholder {
-            color: #52525b;
-        }
-
-
-        #chat-input:hover {
-            border-color:
-                rgba(255, 255, 255, 0.15);
-        }
-
-
-        #chat-input:focus {
-            background:
-                rgba(0, 0, 0, 0.72);
-
-            border-color:
-                rgba(139, 200, 63, 0.55);
-
-            box-shadow:
-                0 0 0 3px rgba(139, 200, 63, 0.08);
-        }
-
-
-        #sendBtn {
-            height: 44px;
-
-            flex: 0 0 auto;
-
-            display: inline-flex;
-
-            align-items: center;
-            justify-content: center;
-
-            gap: 7px;
-
-            padding: 0 16px;
-
-            border: 0;
-
-            border-radius: 13px;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #8bc83f,
-                    #6da52e
-                );
-
-            color: #ffffff;
-
-            font-size: 12px;
-
-            font-weight: 800;
-
-            cursor: pointer;
-
-            box-shadow:
-                0 10px 25px rgba(139, 200, 63, 0.14);
-
-            transition:
-                transform 0.2s ease,
-                box-shadow 0.2s ease,
-                filter 0.2s ease;
-        }
-
-
-        #sendBtn:hover {
-            transform:
-                translateY(-1px);
-
-            filter:
-                brightness(1.06);
-
-            box-shadow:
-                0 14px 30px rgba(139, 200, 63, 0.20);
-        }
-
-
-        #sendBtn:active {
-            transform:
-                translateY(0);
-        }
-
-
-        #sendBtn svg {
-            width: 16px;
-            height: 16px;
-
-            stroke-width: 2.2;
-        }
-
-
-        /* =========================================================
-           GROUP MODAL
-        ========================================================= */
-
-        #groupModal {
-            position: fixed;
-
-            inset: 0;
-
-            z-index: 5000;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            padding: 20px;
-
-            background:
-                rgba(0, 0, 0, 0.70);
-
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-        }
-
-
-        #groupModal.hidden {
-            display: none;
-        }
-
-
-        .group-modal-card {
-            width: 100%;
-
-            max-width: 480px;
-
-            max-height:
-                calc(100vh - 40px);
-
-            overflow-y: auto;
-
-            padding: 25px;
-
-            border-radius: 22px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(37, 15, 30, 0.98),
-                    rgba(20, 10, 17, 0.98)
-                );
-
-            border:
-                1px solid rgba(255, 255, 255, 0.09);
-
-            box-shadow:
-                0 30px 80px rgba(0, 0, 0, 0.60);
-
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-        }
-
-
-        .modal-title {
-            display: flex;
-
-            align-items: center;
-
-            gap: 12px;
-
-            margin-bottom: 22px;
-        }
-
-
-        .modal-title-icon {
-            width: 44px;
-            height: 44px;
-
-            flex: 0 0 auto;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 13px;
-
-            color: #8bc83f;
-
-            background:
-                rgba(139, 200, 63, 0.10);
-
-            border:
-                1px solid rgba(139, 200, 63, 0.16);
-        }
-
-
-        .modal-title-icon svg {
-            width: 20px;
-            height: 20px;
-        }
-
-
-        .modal-title h2 {
-            margin: 0;
-
-            color: #ffffff;
-
-            font-size: 19px;
-
-            font-weight: 800;
-        }
-
-
-        .modal-label {
-            display: block;
-
-            margin-bottom: 8px;
-
-            color: #d4d4d8;
-
-            font-size: 12px;
-
-            font-weight: 700;
-        }
-
-
-        .modal-input,
-        .modal-select {
-            width: 100%;
-
-            box-sizing: border-box;
-
-            padding: 12px 13px;
-
-            margin-bottom: 17px;
-
-            border-radius: 13px;
-
-            outline: none;
-
-            background:
-                #050505;
-
-            border:
-                1px solid rgba(255, 255, 255, 0.09);
-
-            color: #ffffff;
-
-            font-family: inherit;
-
-            font-size: 12px;
-
-            transition:
-                border-color 0.2s ease,
-                box-shadow 0.2s ease;
-        }
-
-
-        .modal-select {
-            min-height: 125px;
-
-            resize: vertical;
-        }
-
-
-        .modal-input::placeholder {
-            color: #52525b;
-        }
-
-
-        .modal-input:focus,
-        .modal-select:focus {
-            border-color:
-                rgba(139, 200, 63, 0.55);
-
-            box-shadow:
-                0 0 0 3px rgba(139, 200, 63, 0.08);
-        }
-
-
-        .modal-select option {
-            background: #050505;
-
-            color: #ffffff;
-        }
-
-
-        .modal-actions {
-            display: flex;
-
-            justify-content: flex-end;
-
-            gap: 10px;
-
-            padding-top: 4px;
-        }
-
-
-        .modal-button {
-            min-height: 42px;
-
-            padding: 0 16px;
-
-            border-radius: 12px;
-
-            font-size: 12px;
-
-            font-weight: 800;
-
-            cursor: pointer;
-
-            transition:
-                transform 0.2s ease,
-                background 0.2s ease,
-                border-color 0.2s ease;
-        }
-
-
-        .modal-cancel {
-            background:
-                rgba(255, 255, 255, 0.05);
-
-            color: #d4d4d8;
-
-            border:
-                1px solid rgba(255, 255, 255, 0.08);
-        }
-
-
-        .modal-cancel:hover {
-            background:
-                rgba(255, 255, 255, 0.09);
-
-            color: #ffffff;
-        }
-
-
-        .modal-create {
-            background:
-                linear-gradient(
-                    135deg,
-                    #8bc83f,
-                    #6da52e
-                );
-
-            color: #ffffff;
-
-            border:
-                1px solid transparent;
-
-            box-shadow:
-                0 10px 24px rgba(139, 200, 63, 0.14);
-        }
-
-
-        .modal-create:hover {
-            transform:
-                translateY(-1px);
-
-            filter:
-                brightness(1.05);
-        }
-
-
-        /* =========================================================
-           MOBILE MENU BUTTON
-        ========================================================= */
-
-        .mobile-menu-button {
-            display: none;
-
-            position: fixed;
-
-            top: 18px;
-            left: 18px;
-
-            width: 44px;
-            height: 44px;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 14px;
-
-            border:
-                1px solid rgba(255, 255, 255, 0.10);
-
-            background:
-                rgba(37, 15, 30, 0.92);
-
-            color: #ffffff;
-
-            cursor: pointer;
-
-            z-index: 1001;
-
-            box-shadow:
-                0 12px 30px rgba(0, 0, 0, 0.35);
-
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-
-
-        .mobile-menu-button svg {
-            width: 20px;
-            height: 20px;
-        }
-
-
-        /* =========================================================
-           MOBILE SIDEBAR OVERLAY
-        ========================================================= */
-
-        .sidebar-overlay {
-            display: none;
-
-            position: fixed;
-
-            inset: 0;
-
-            background:
-                rgba(0, 0, 0, 0.55);
-
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(3px);
-
-            z-index: 999;
-        }
-
-
-        .sidebar-overlay.open {
-            display: block;
-        }
-
-
-        /* =========================================================
-           DESKTOP
-           1201px+
-        ========================================================= */
-
-        @media (min-width: 1201px) {
-
-            .glass-sidebar {
-                top: 20px;
-                left: 20px;
-
-                width: 250px;
-                height: calc(100vh - 40px);
-
-                padding: 22px;
-            }
-
-
-            .main-area {
-                position: fixed;
-
-                top: 0;
-                left: 334px;
-                right: 20px;
-                bottom: 0;
-
-                width: auto;
-
-                margin: 0;
-
-                padding: 20px 0;
-
-                height: 100vh;
-
-                box-sizing: border-box;
-
-                min-width: 0;
-
-                overflow: hidden;
-            }
-
-
-            .dashboard-box {
-                width: 100%;
-
-                height: calc(100vh - 40px);
-
-                max-height: calc(100vh - 40px);
-            }
-
-
-            .dashboard-header {
-                display: block;
-            }
-
-
-            .dashboard-header > div:first-child {
-                max-width: 100%;
-            }
-        }
-
-
-        /* =========================================================
-           LAPTOP
-           901px - 1200px
-        ========================================================= */
-
-        @media (min-width: 901px) and (max-width: 1200px) {
-
-            .glass-sidebar {
-                top: 20px;
-                left: 20px;
-
-                width: 250px;
-                height: calc(100vh - 40px);
-
-                padding: 22px;
-            }
-
-
-            .main-area {
-                position: fixed;
-
-                top: 0;
-                left: 334px;
-                right: 20px;
-                bottom: 0;
-
-                width: auto;
-
-                margin: 0;
-
-                padding: 20px 0;
-
-                height: 100vh;
-
-                box-sizing: border-box;
-
-                min-width: 0;
-
-                overflow: hidden;
-            }
-
-
-            .dashboard-box {
-                width: 100%;
-
-                height: calc(100vh - 40px);
-
-                max-height: calc(100vh - 40px);
-            }
-
-
-            .chat-workspace {
-                grid-template-columns:
-                    minmax(220px, 0.38fr)
-                    minmax(0, 0.62fr);
-
-                height: 580px;
-            }
-
-
-            .dashboard-header {
-                padding:
-                    28px 28px 24px;
-            }
-
-
-            .dashboard-content {
-                padding:
-                    26px 28px 34px;
-            }
-        }
-
-
-        /* =========================================================
-           RESPONSIVE
-           <= 900px
-        ========================================================= */
-
-        @media (max-width: 900px) {
-
-            .glass-sidebar {
-                position: fixed;
-
-                top: 0;
-                left: 0;
-                bottom: 0;
-
-                width: 280px;
-
-                height: 100vh;
-
-                box-sizing: border-box;
-
-                border-radius:
-                    0 26px 26px 0;
-
-                transform:
-                    translateX(-115%);
-            }
-
-
-            .glass-sidebar.open {
-                transform:
-                    translateX(0);
-            }
-
-
-            .mobile-menu-button {
-                display: flex;
-            }
-
-
-            .main-area {
-                position: relative;
-
-                top: auto;
-                left: auto;
-                right: auto;
-                bottom: auto;
-
-                width: 100% !important;
-
-                margin-left: 0 !important;
-                margin-right: 0 !important;
-
-                padding: 12px !important;
-
-                height: 100vh;
-
-                min-height: 100vh;
-
-                box-sizing: border-box;
-
-                overflow: hidden;
-            }
-
-
-            .dashboard-box {
-                width: 100%;
-
-                height:
-                    calc(100vh - 24px) !important;
-
-                max-height:
-                    calc(100vh - 24px) !important;
-
-                border-radius:
-                    24px !important;
-
-                box-sizing: border-box;
-            }
-
-
-            .dashboard-header {
-                padding:
-                    28px 22px !important;
-
-                padding-top:
-                    30px !important;
-            }
-
-
-            .dashboard-header > div:first-child {
-                min-width: 0;
-            }
-
-
-            .system-status {
-                margin-top: 18px;
-
-                align-self: flex-start;
-            }
-
-
-            .dashboard-content {
-                padding:
-                    22px !important;
-            }
-
-
-            .chat-workspace {
-                grid-template-columns: 1fr;
-
-                height: auto;
-
-                min-height: 900px;
-            }
-
-
-            .chat-list {
-                height: 380px;
-            }
-
-
-            #chat-window {
-                height: 520px;
-            }
-
-
-            .section-heading {
-                align-items: flex-start;
-            }
-        }
-
-
-        /* =========================================================
-           MOBILE
-           <= 600px
-        ========================================================= */
-
-        @media (max-width: 600px) {
-
-            .main-area {
-                padding: 8px !important;
-            }
-
-
-            .dashboard-box {
-                height:
-                    calc(100vh - 16px) !important;
-
-                max-height:
-                    calc(100vh - 16px) !important;
-
-                border-radius:
-                    20px !important;
-            }
-
-
-            .dashboard-header {
-                padding:
-                    24px 17px !important;
-            }
-
-
-            .dashboard-header h1 {
-                font-size:
-                    clamp(
-                        1.55rem,
-                        8vw,
-                        2.1rem
-                    ) !important;
-
-                line-height: 1.05;
-            }
-
-
-            .dashboard-header p {
-                font-size:
-                    0.85rem !important;
-            }
-
-
-            .system-status {
-                font-size: 10px;
-
-                padding:
-                    8px 11px;
-            }
-
-
-            .dashboard-content {
-                padding:
-                    17px !important;
-            }
-
-
-            .section-heading {
-                gap: 12px;
-            }
-
-
-            .section-heading h2 {
-                font-size: 19px;
-            }
-
-
-            .section-line {
-                display: none;
-            }
-
-
-            .chat-workspace {
-                gap: 14px;
-
-                min-height: 0;
-            }
-
-
-            .chat-list {
-                height: 350px;
-
-                border-radius: 18px;
-            }
-
-
-            .chat-list-scroll {
-                padding: 13px;
-            }
-
-
-            #chat-window {
-                height: 500px;
-
-                border-radius: 18px;
-            }
-
-
-            .chat-header {
-                padding:
-                    12px 13px;
-            }
-
-
-            .chat-user-avatar,
-            .chat-user-placeholder {
-                width: 40px;
-                height: 40px;
-            }
-
-
-            .chat-header-status {
-                display: none;
-            }
-
-
-            #chat-messages {
-                padding: 15px;
-            }
-
-
-            .message-bubble {
-                max-width: 82%;
-
-                font-size: 11px;
-            }
-
-
-            .chat-input-area {
-                padding:
-                    10px;
-            }
-
-
-            #sendBtn {
-                width: 44px;
-
-                padding: 0;
-            }
-
-
-            #sendBtn span {
-                display: none;
-            }
-
-
-            .group-modal-card {
-                padding:
-                    20px;
-
-                border-radius:
-                    19px;
-            }
-
-
-            .modal-actions {
-                flex-direction: column-reverse;
-            }
-
-
-            .modal-button {
-                width: 100%;
-            }
-        }
-
-
-        /* =========================================================
-           VERY SMALL MOBILE
-           <= 400px
-        ========================================================= */
-
-        @media (max-width: 400px) {
-
-            .dashboard-header h1 {
-                font-size:
-                    1.55rem !important;
-            }
-
-
-            .chat-list-header {
-                padding:
-                    13px;
-            }
-
-
-            .chat-list-scroll {
-                padding:
-                    11px;
-            }
-
-
-            .chat-list-title-text {
-                font-size: 15px;
-            }
-
-
-            .chat-user-name {
-                font-size: 13px;
-            }
-
-
-            .chat-user-phone {
-                font-size: 9px;
-            }
-
-
-            #chat-messages {
-                padding:
-                    12px;
-            }
-
-
-            .message-bubble {
-                max-width: 86%;
-            }
-        }
-
-
-        /* =========================================================
-           EXTRA WIDTH PROTECTION
-        ========================================================= */
-
-        .dashboard-header,
-        .dashboard-content,
-        .chat-workspace,
-        .chat-list,
-        #chat-window {
-            min-width: 0;
-        }
-
-
-        .chat-user-details,
-        .user-info,
-        .card-heading > div:last-child {
-            min-width: 0;
-        }
-
-
-        .group-link span,
-        .user-name,
-        .user-phone,
-        .chat-user-name,
-        .chat-user-phone {
-            overflow-wrap: anywhere;
-        }
-
-    </style>
-
-</head>
-
-
-<body>
+</header>
 
 
 <!-- =========================================================
-     MOBILE OVERLAY
+     CONTENT
 ========================================================= -->
 
-<div
-    id="sidebar-overlay"
-    class="sidebar-overlay"
-></div>
+<section class="dashboard-content">
 
 
-<!-- =========================================================
-     SIDEBAR
-========================================================= -->
+    <!-- SECTION HEADING -->
 
-<aside
-    id="sidebar"
-    class="glass-sidebar"
->
+    <div class="section-heading">
 
-    <!-- =====================================================
-         BRAND
-    ====================================================== -->
+        <div>
 
-    <div class="sidebar-brand">
+            <div class="section-eyebrow">
+                COMMUNICATION
+            </div>
 
-        <div class="sidebar-logo">
+            <h2>
+                Team Conversations
+            </h2>
 
-            <img
-                src="{% static 'images/logo.png' %}"
-                alt="Cybexel Logo"
-            >
+            <p>
+                Select a team member or group
+                to start chatting.
+            </p>
 
         </div>
 
 
-        <div class="sidebar-brand-name">
-            CYBEXEL
-        </div>
-
-
-        <div class="sidebar-brand-role">
-            TEAM MEMBER
-        </div>
+        <div class="section-line"></div>
 
     </div>
 
 
     <!-- =====================================================
-         NAVIGATION
+         CHAT WORKSPACE
     ====================================================== -->
 
-    <nav class="sidebar-nav">
-
-
-        <!-- Dashboard -->
-
-        <a
-            href="{% url 'teammember_dashboard' %}"
-            class="sidebar-item"
-        >
-
-            <span class="nav-icon">
-                <i data-lucide="layout-dashboard"></i>
-            </span>
-
-            <span>
-                Dashboard
-            </span>
-
-        </a>
-
-
-        <!-- Project -->
-
-        <a
-            href="{% url 'teammember_project' %}"
-            class="sidebar-item"
-        >
-
-            <span class="nav-icon">
-                <i data-lucide="folder-kanban"></i>
-            </span>
-
-            <span>
-                My Project
-            </span>
-
-        </a>
-
-
-        <!-- Notepad -->
-
-        <a
-            href="{% url 'teammember_notepad' %}"
-            class="sidebar-item"
-        >
-
-            <span class="nav-icon">
-                <i data-lucide="notebook-pen"></i>
-            </span>
-
-            <span>
-                Notepad
-            </span>
-
-        </a>
-
-
-        <!-- Repository -->
-
-        <a
-            href="{% url 'teammember_repository' %}"
-            class="sidebar-item"
-        >
-
-            <span class="nav-icon">
-                <i data-lucide="library"></i>
-            </span>
-
-            <span>
-                Knowledge Repository
-            </span>
-
-        </a>
-
-
-        <!-- Profile -->
-
-        <a
-            href="{% url 'teammember_profile' %}"
-            class="sidebar-item"
-        >
-
-            <span class="nav-icon">
-                <i data-lucide="user-round"></i>
-            </span>
-
-            <span>
-                Profile
-            </span>
-
-        </a>
-
-
-        <!-- Task -->
-
-        <a
-            href="{% url 'teammember_task' %}"
-            class="sidebar-item"
-        >
-
-            <span class="nav-icon">
-                <i data-lucide="list-checks"></i>
-            </span>
-
-            <span>
-                My Task
-            </span>
-
-        </a>
-
-
-        <!-- Chat -->
-
-        <a
-            href="{% url 'teammember_chat' %}"
-            class="sidebar-item active"
-        >
-
-            <span class="nav-icon">
-                <i data-lucide="message-circle"></i>
-            </span>
-
-            <span>
-                Chat
-            </span>
-
-        </a>
-
-
-        <!-- Google Meet -->
-
-        <a
-            href="https://meet.google.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="sidebar-item"
-        >
-
-            <span class="nav-icon">
-                <i data-lucide="video"></i>
-            </span>
-
-            <span>
-                Google Meet
-            </span>
-
-            <i
-                data-lucide="external-link"
-                class="external-icon"
-            ></i>
-
-        </a>
+    <div class="chat-workspace">
 
 
         <!-- =================================================
-             LOGOUT
-             margin-top:auto pushes this to the bottom
+             LEFT CHAT LIST
         ================================================== -->
 
-        <a
-            href="{% url 'teammember_logout' %}"
-            class="sidebar-logout"
-        >
-
-            <span class="nav-icon">
-                <i data-lucide="log-out"></i>
-            </span>
-
-            <span>
-                Logout
-            </span>
-
-        </a>
-
-    </nav>
-
-</aside>
+        <aside class="chat-list">
 
 
-<!-- =========================================================
-     MOBILE MENU BUTTON
-========================================================= -->
+            <!-- CHAT LIST HEADER -->
 
-<button
-    id="mobile-menu-button"
-    class="mobile-menu-button"
-    type="button"
-    aria-label="Open navigation"
->
+            <div class="chat-list-header">
 
-    <i data-lucide="menu"></i>
+                <div class="chat-list-title">
 
-</button>
+                    <div class="chat-list-title-icon">
 
+                        <i
+                            data-lucide="messages-square"
+                        ></i>
 
-<!-- =========================================================
-     MAIN AREA
-========================================================= -->
-
-<main class="main-area">
-
-    <div class="dashboard-box">
-
-        <div class="dashboard-scroll">
-
-
-            <!-- =================================================
-                 HEADER
-            ================================================== -->
-
-            <header class="dashboard-header">
-
-                <div>
-
-                    <div class="header-eyebrow">
-                        TEAM MEMBER • CHAT
                     </div>
 
 
-                    <h1>
-                        Team Chat
-                    </h1>
-
-
-                    <p>
-                        Connect with your team members and manage
-                        your group conversations from one place.
-                    </p>
+                    <h2 class="chat-list-title-text">
+                        Chats
+                    </h2>
 
                 </div>
 
 
-                <div class="system-status">
+                <button
+                    type="button"
+                    id="openModal"
+                    class="chat-add-button"
+                    title="Create Group"
+                >
 
-                    <span class="status-dot"></span>
+                    <i data-lucide="plus"></i>
 
-                    <i
-                        data-lucide="message-circle"
-                        style="width:15px;height:15px;"
-                    ></i>
+                </button>
 
-                    Chat Workspace Active
+            </div>
+
+
+            <!-- CHAT LIST SCROLL -->
+
+            <div class="chat-list-scroll">
+
+
+                <!-- =================================================
+                     TEAM MEMBERS
+                ================================================== -->
+
+                <div class="chat-section-title">
+
+                    <h3>
+                        Team Members
+                    </h3>
+
+                    <span>
+                        {{ users|length }}
+                    </span>
 
                 </div>
 
-            </header>
+
+                <div id="user-list">
+
+                    {% for user in users %}
+
+                        <div class="user-row">
+
+                            <a
+                                href="{% url 'chat_room' user.id %}"
+                            >
 
 
-            <!-- =================================================
-                 CONTENT
-            ================================================== -->
+                                <!-- Avatar -->
 
-            <section class="dashboard-content">
+                                <div class="user-avatar">
+
+                                    {% if user.profile_image %}
+
+                                        <img
+                                            src="{{ user.profile_image.url }}"
+                                            alt="{{ user.name }}"
+                                        >
+
+                                    {% else %}
+
+                                        <div class="user-avatar-placeholder">
+
+                                            {% if user.id == current_user.id %}
+
+                                                M
+
+                                            {% else %}
+
+                                                {{ user.name|first|upper }}
+
+                                            {% endif %}
+
+                                        </div>
+
+                                    {% endif %}
 
 
-                <!-- SECTION HEADING -->
+                                    <!-- Status -->
 
-                <div class="section-heading">
+                                    <span
+                                        class="user-status-dot user-status-dot-js"
+                                        data-user-id="{{ user.id }}"
+                                        title="Active"
+                                    ></span>
 
-                    <div>
+                                </div>
 
-                        <div class="section-eyebrow">
-                            COMMUNICATION
+
+                                <!-- User Info -->
+
+                                <div class="user-info">
+
+                                    {% if user.id == current_user.id %}
+
+                                        <p class="user-name">
+                                            Me
+                                        </p>
+
+                                    {% else %}
+
+                                        <p class="user-name">
+                                            {{ user.name }}
+                                        </p>
+
+                                    {% endif %}
+
+
+                                    <p class="user-phone">
+                                        {{ user.phone }}
+                                    </p>
+
+                                </div>
+
+                            </a>
+
                         </div>
 
+                    {% empty %}
 
-                        <h2>
-                            Team Conversations
-                        </h2>
+                        <div class="empty-groups">
+                            No team members found.
+                        </div>
 
-
-                        <p>
-                            Select a team member or group
-                            to start chatting.
-                        </p>
-
-                    </div>
-
-
-                    <div class="section-line"></div>
+                    {% endfor %}
 
                 </div>
 
 
                 <!-- =================================================
-                     CHAT WORKSPACE
+                     GROUPS
                 ================================================== -->
 
-                <div class="chat-workspace">
+                <div class="groups-section">
 
 
-                    <!-- =================================================
-                         LEFT CHAT LIST
-                    ================================================== -->
+                    <div class="chat-section-title">
 
-                    <aside class="chat-list">
+                        <h3>
+                            Groups
+                        </h3>
 
 
-                        <!-- CHAT LIST HEADER -->
+                        <button
+                            type="button"
+                            id="openModalGroup"
+                            class="text-zinc-500 hover:text-[#8bc83f] transition"
+                            title="Create Group"
+                        >
 
-                        <div class="chat-list-header">
+                            <i
+                                data-lucide="plus"
+                                style="width:16px;height:16px;"
+                            ></i>
 
-                            <div class="chat-list-title">
+                        </button>
 
-                                <div class="chat-list-title-icon">
+                    </div>
+
+
+                    <div class="groups-list">
+
+                        {% for group in groups %}
+
+                            <a
+                                href="{% url 'group_chat_view' group.id %}"
+                                class="group-link"
+                            >
+
+                                <span>
+                                    {{ group.name }}
+                                </span>
+
+
+                                <i
+                                    data-lucide="chevron-right"
+                                ></i>
+
+                            </a>
+
+                        {% empty %}
+
+                            <div class="empty-groups">
+                                No group chats yet.
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- =================================================
+             CHAT WINDOW
+        ================================================== -->
+
+        <section id="chat-window">
+
+
+            <!-- CHAT HEADER -->
+
+            <div class="chat-header">
+
+
+                <div class="chat-user">
+
+
+                    {% if other_user.profile_image %}
+
+                        <img
+                            id="chat-avatar"
+                            src="{{ other_user.profile_image.url }}"
+                            alt="{{ other_user.name }}"
+                            class="chat-user-avatar"
+                        >
+
+                    {% else %}
+
+                        <div
+                            id="chat-avatar"
+                            class="chat-user-placeholder"
+                        >
+
+                            <i
+                                data-lucide="user-round"
+                            ></i>
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <div class="chat-user-details">
+
+                        <p
+                            id="chat-username"
+                            class="chat-user-name"
+                        >
+                            {{ other_user.name }}
+                        </p>
+
+
+                        <p
+                            id="chat-userphone"
+                            class="chat-user-phone"
+                        >
+                            {{ other_user.phone }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="chat-header-status">
+
+                    <span></span>
+
+                    Active
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 MESSAGES
+            ================================================== -->
+
+            <div id="chat-messages">
+
+                {% for msg in messages %}
+
+
+                    {% if msg.sender.id == current_user.id %}
+
+
+                        <!-- OUTGOING -->
+
+                        <div
+                            class="message-row message-outgoing"
+                        >
+
+                            <p class="message-bubble">
+                                {{ msg.content }}
+                            </p>
+
+                        </div>
+
+
+                    {% else %}
+
+
+                        <!-- INCOMING -->
+
+                        <div
+                            class="message-row message-incoming"
+                        >
+
+
+                            {% if msg.sender.profile_image %}
+
+                                <img
+                                    src="{{ msg.sender.profile_image.url }}"
+                                    alt="{{ msg.sender.name }}"
+                                    class="message-avatar"
+                                >
+
+                            {% else %}
+
+                                <div
+                                    class="message-avatar-placeholder"
+                                >
 
                                     <i
-                                        data-lucide="messages-square"
+                                        data-lucide="user-round"
                                     ></i>
 
                                 </div>
 
-
-                                <h2 class="chat-list-title-text">
-                                    Chats
-                                </h2>
-
-                            </div>
+                            {% endif %}
 
 
-                            <button
-                                type="button"
-                                id="openModal"
-                                class="chat-add-button"
-                                title="Create Group"
-                            >
-
-                                <i data-lucide="plus"></i>
-
-                            </button>
+                            <p class="message-bubble">
+                                {{ msg.content }}
+                            </p>
 
                         </div>
 
 
-                        <!-- CHAT LIST SCROLL -->
+                    {% endif %}
 
-                        <div class="chat-list-scroll">
+                {% endfor %}
 
+            </div>
 
-                            <!-- =================================================
-                                 TEAM MEMBERS
-                            ================================================== -->
 
-                            <div class="chat-section-title">
+            <!-- =================================================
+                 CHAT INPUT
+            ================================================== -->
 
-                                <h3>
-                                    Team Members
-                                </h3>
+            <div class="chat-input-area">
 
 
-                                <span>
-                                    {{ users|length }}
-                                </span>
+                <input
+                    id="chat-input"
+                    type="text"
+                    placeholder="Type a message..."
+                    autocomplete="off"
+                >
 
-                            </div>
 
+                <button
+                    id="sendBtn"
+                    type="button"
+                >
 
-                            <div id="user-list">
+                    <i data-lucide="send"></i>
 
-                                {% for user in users %}
+                    <span>
+                        Send
+                    </span>
 
-                                    <div class="user-row">
+                </button>
 
-                                        <a
-                                            href="{% url 'chat_room' user.id %}"
-                                        >
+            </div>
 
-
-                                            <!-- Avatar -->
-
-                                            <div class="user-avatar">
-
-                                                {% if user.profile_image %}
-
-                                                    <img
-                                                        src="{{ user.profile_image.url }}"
-                                                        alt="{{ user.name }}"
-                                                    >
-
-                                                {% else %}
-
-                                                    <div class="user-avatar-placeholder">
-
-                                                        {% if user.id == current_user.id %}
-
-                                                            M
-
-                                                        {% else %}
-
-                                                            {{ user.name|first|upper }}
-
-                                                        {% endif %}
-
-                                                    </div>
-
-                                                {% endif %}
-
-
-                                                <!-- Status -->
-
-                                                <span
-                                                    class="user-status-dot user-status-dot-js"
-                                                    data-user-id="{{ user.id }}"
-                                                    title="Active"
-                                                ></span>
-
-                                            </div>
-
-
-                                            <!-- User Info -->
-
-                                            <div class="user-info">
-
-                                                {% if user.id == current_user.id %}
-
-                                                    <p class="user-name">
-                                                        Me
-                                                    </p>
-
-                                                {% else %}
-
-                                                    <p class="user-name">
-                                                        {{ user.name }}
-                                                    </p>
-
-                                                {% endif %}
-
-
-                                                <p class="user-phone">
-                                                    {{ user.phone }}
-                                                </p>
-
-                                            </div>
-
-                                        </a>
-
-                                    </div>
-
-                                {% empty %}
-
-                                    <div class="empty-groups">
-                                        No team members found.
-                                    </div>
-
-                                {% endfor %}
-
-                            </div>
-
-
-                            <!-- =================================================
-                                 GROUPS
-                            ================================================== -->
-
-                            <div class="groups-section">
-
-
-                                <div class="chat-section-title">
-
-                                    <h3>
-                                        Groups
-                                    </h3>
-
-
-                                    <button
-                                        type="button"
-                                        id="openModalGroup"
-                                        class="text-zinc-500 hover:text-[#8bc83f] transition"
-                                        title="Create Group"
-                                    >
-
-                                        <i
-                                            data-lucide="plus"
-                                            style="width:16px;height:16px;"
-                                        ></i>
-
-                                    </button>
-
-                                </div>
-
-
-                                <div class="groups-list">
-
-                                    {% for group in groups %}
-
-                                        <a
-                                            href="{% url 'group_chat_view' group.id %}"
-                                            class="group-link"
-                                        >
-
-                                            <span>
-                                                {{ group.name }}
-                                            </span>
-
-
-                                            <i
-                                                data-lucide="chevron-right"
-                                            ></i>
-
-                                        </a>
-
-                                    {% empty %}
-
-                                        <div class="empty-groups">
-                                            No group chats yet.
-                                        </div>
-
-                                    {% endfor %}
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </aside>
-
-
-                    <!-- =================================================
-                         CHAT WINDOW
-                    ================================================== -->
-
-                    <section id="chat-window">
-
-
-                        <!-- CHAT HEADER -->
-
-                        <div class="chat-header">
-
-
-                            <div class="chat-user">
-
-
-                                {% if other_user.profile_image %}
-
-                                    <img
-                                        id="chat-avatar"
-                                        src="{{ other_user.profile_image.url }}"
-                                        alt="{{ other_user.name }}"
-                                        class="chat-user-avatar"
-                                    >
-
-                                {% else %}
-
-                                    <div
-                                        id="chat-avatar"
-                                        class="chat-user-placeholder"
-                                    >
-
-                                        <i
-                                            data-lucide="user-round"
-                                        ></i>
-
-                                    </div>
-
-                                {% endif %}
-
-
-                                <div class="chat-user-details">
-
-                                    <p
-                                        id="chat-username"
-                                        class="chat-user-name"
-                                    >
-                                        {{ other_user.name }}
-                                    </p>
-
-
-                                    <p
-                                        id="chat-userphone"
-                                        class="chat-user-phone"
-                                    >
-                                        {{ other_user.phone }}
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="chat-header-status">
-
-                                <span></span>
-
-                                Active
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- =================================================
-                             MESSAGES
-                        ================================================== -->
-
-                        <div id="chat-messages">
-
-                            {% for msg in messages %}
-
-
-                                {% if msg.sender.id == current_user.id %}
-
-
-                                    <!-- OUTGOING -->
-
-                                    <div
-                                        class="message-row message-outgoing"
-                                    >
-
-                                        <p class="message-bubble">
-                                            {{ msg.content }}
-                                        </p>
-
-                                    </div>
-
-
-                                {% else %}
-
-
-                                    <!-- INCOMING -->
-
-                                    <div
-                                        class="message-row message-incoming"
-                                    >
-
-
-                                        {% if msg.sender.profile_image %}
-
-                                            <img
-                                                src="{{ msg.sender.profile_image.url }}"
-                                                alt="{{ msg.sender.name }}"
-                                                class="message-avatar"
-                                            >
-
-                                        {% else %}
-
-                                            <div
-                                                class="message-avatar-placeholder"
-                                            >
-
-                                                <i
-                                                    data-lucide="user-round"
-                                                ></i>
-
-                                            </div>
-
-                                        {% endif %}
-
-
-                                        <p class="message-bubble">
-                                            {{ msg.content }}
-                                        </p>
-
-                                    </div>
-
-
-                                {% endif %}
-
-                            {% endfor %}
-
-                        </div>
-
-
-                        <!-- =================================================
-                             CHAT INPUT
-                        ================================================== -->
-
-                        <div class="chat-input-area">
-
-
-                            <input
-                                id="chat-input"
-                                type="text"
-                                placeholder="Type a message..."
-                                autocomplete="off"
-                            >
-
-
-                            <button
-                                id="sendBtn"
-                                type="button"
-                            >
-
-                                <i data-lucide="send"></i>
-
-                                <span>
-                                    Send
-                                </span>
-
-                            </button>
-
-                        </div>
-
-                    </section>
-
-                </div>
-
-            </section>
-
-        </div>
+        </section>
 
     </div>
 
-</main>
+</section>
 
+{% endblock %}
+
+
+{% block modals %}
 
 <!-- =========================================================
      CREATE GROUP MODAL
@@ -3312,7 +1965,6 @@
     id="groupModal"
     class="hidden"
 >
-
 
     <div class="group-modal-card">
 
@@ -3419,142 +2071,16 @@
 
 </div>
 
+{% endblock %}
 
-<!-- =========================================================
-     JAVASCRIPT
-========================================================= -->
+
+{% block extra_js %}
 
 <script>
 
 document.addEventListener(
     "DOMContentLoaded",
     function () {
-
-
-        /* =====================================================
-           LUCIDE ICONS
-        ====================================================== */
-
-        if (
-            typeof lucide !== "undefined"
-        ) {
-
-            lucide.createIcons();
-
-        }
-
-
-        /* =====================================================
-           SIDEBAR MOBILE TOGGLE
-        ====================================================== */
-
-        const sidebar =
-            document.getElementById(
-                "sidebar"
-            );
-
-
-        const menuButton =
-            document.getElementById(
-                "mobile-menu-button"
-            );
-
-
-        const overlay =
-            document.getElementById(
-                "sidebar-overlay"
-            );
-
-
-        function openSidebar() {
-
-            if (!sidebar) {
-                return;
-            }
-
-
-            sidebar.classList.add(
-                "open"
-            );
-
-
-            if (overlay) {
-
-                overlay.classList.add(
-                    "open"
-                );
-
-            }
-
-
-            document.body.style.overflow =
-                "hidden";
-
-        }
-
-
-        function closeSidebar() {
-
-            if (!sidebar) {
-                return;
-            }
-
-
-            sidebar.classList.remove(
-                "open"
-            );
-
-
-            if (overlay) {
-
-                overlay.classList.remove(
-                    "open"
-                );
-
-            }
-
-
-            document.body.style.overflow =
-                "";
-
-        }
-
-
-        if (menuButton) {
-
-            menuButton.addEventListener(
-                "click",
-                function () {
-
-                    if (
-                        sidebar &&
-                        sidebar.classList.contains(
-                            "open"
-                        )
-                    ) {
-
-                        closeSidebar();
-
-                    } else {
-
-                        openSidebar();
-
-                    }
-
-                }
-            );
-
-        }
-
-
-        if (overlay) {
-
-            overlay.addEventListener(
-                "click",
-                closeSidebar
-            );
-
-        }
 
 
         /* =====================================================
@@ -3685,41 +2211,7 @@ document.addEventListener(
 
                     closeGroupModal();
 
-                    closeSidebar();
-
                 }
-
-            }
-        );
-
-
-        /* =====================================================
-           MOBILE SIDEBAR CLOSE
-        ====================================================== */
-
-        const sidebarLinks =
-            document.querySelectorAll(
-                ".sidebar-nav a"
-            );
-
-
-        sidebarLinks.forEach(
-            function (link) {
-
-                link.addEventListener(
-                    "click",
-                    function () {
-
-                        if (
-                            window.innerWidth <= 900
-                        ) {
-
-                            closeSidebar();
-
-                        }
-
-                    }
-                );
 
             }
         );
@@ -3748,16 +2240,4 @@ document.addEventListener(
 
 </script>
 
-
-<!-- =========================================================
-     EXISTING APPLICATION JAVASCRIPT
-========================================================= -->
-
-<script src="{% static 'js/admin.js' %}"></script>
-
-<script src="{% static 'js/activity.js' %}"></script>
-
-
-</body>
-
-</html>
+{% endblock %}

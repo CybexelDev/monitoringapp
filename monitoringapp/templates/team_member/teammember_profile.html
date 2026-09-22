@@ -1,3040 +1,1524 @@
-{% load static %}
-{% load tz %}
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>Team Member Profile - Cybexel</title>
-
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
-
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <style>
-
-        /* =========================================================
-           GLOBAL
-        ========================================================= */
-
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
+{% extends "team_member/base3.html" %}{% load static %}
 
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            overflow: hidden !important;
-        }
-
-        body {
-            min-height: 100vh;
+{% block title %}Team Member Profile - Cybexel{% endblock %}
 
-            background:
-                radial-gradient(
-                    circle at top left,
-                    rgba(139, 200, 63, 0.10),
-                    transparent 30%
-                ),
-                radial-gradient(
-                    circle at bottom right,
-                    rgba(99, 102, 241, 0.08),
-                    transparent 30%
-                ),
-                #050505;
 
-            color: #ffffff;
+{% block extra_css %}
 
-            font-family:
-                Inter,
-                ui-sans-serif,
-                system-ui,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
-        }
+<style>
 
-        ::selection {
-            background: rgba(139, 200, 63, 0.30);
-            color: #ffffff;
-        }
+    /* =========================================================
+       PROFILE PAGE
+    ========================================================= */
 
-        ::-webkit-scrollbar {
-            width: 7px;
-            height: 7px;
-        }
+    .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 22px;
+        min-width: 0;
+    }
 
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.025);
-        }
+    .section-eyebrow {
+        display: block;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .16em;
+        color: #8bc83f;
+        margin-bottom: 5px;
+    }
 
-        ::-webkit-scrollbar-thumb {
-            background: rgba(139, 200, 63, 0.35);
-            border-radius: 999px;
-        }
+    .section-heading h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 800;
+        color: #ffffff;
+    }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(139, 200, 63, 0.60);
-        }
+    .heading-line {
+        height: 1px;
+        flex: 1;
+        min-width: 20px;
+        background: linear-gradient(
+            90deg,
+            rgba(255,255,255,.10),
+            transparent
+        );
+    }
 
 
-        /* =========================================================
-           MAIN DASHBOARD SCROLL AREA
-        ========================================================= */
+    /* =========================================================
+       PROFILE HERO
+    ========================================================= */
 
-        .dashboard-box {
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-        }
+    .profile-card {
+        position: relative;
 
+        display: flex;
+        align-items: center;
 
-        /* =========================================================
-           SIDEBAR
-        ========================================================= */
+        gap: 28px;
 
-        .glass-sidebar {
-            position: fixed;
+        padding: 26px;
+        margin-bottom: 24px;
 
-            top: 20px;
-            left: 20px;
+        border-radius: 24px;
 
-            /*
-                IMPORTANT:
+        background:
+            radial-gradient(
+                circle at top right,
+                rgba(139, 200, 63, 0.09),
+                transparent 35%
+            ),
+            linear-gradient(
+                145deg,
+                rgba(37, 15, 30, 0.82),
+                rgba(20, 10, 17, 0.82)
+            );
 
-                Keep width as 250px exactly.
+        border: 1px solid rgba(255, 255, 255, 0.08);
 
-                Because padding is 22px on both sides
-                and we are using the original box model,
-                the approximate outer width is:
+        box-shadow:
+            0 18px 45px rgba(0, 0, 0, 0.28);
 
-                250 + 22 + 22 = 294px
-            */
+        min-width: 0;
+    }
 
-            width: 250px;
-            height: calc(100vh - 40px);
 
-            padding: 22px;
+    /* =========================================================
+       PROFILE IMAGE
+    ========================================================= */
 
-            border-radius: 28px;
+    .profile-image-wrapper {
+        position: relative;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(37, 15, 30, 0.96),
-                    rgba(24, 10, 20, 0.96)
-                );
+        width: 138px;
+        height: 138px;
 
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        flex-shrink: 0;
 
-            box-shadow:
-                0 25px 70px rgba(0, 0, 0, 0.45),
-                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        cursor: pointer;
+    }
 
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+    .profile-image-ring {
+        width: 138px;
+        height: 138px;
 
-            z-index: 1000;
+        padding: 4px;
 
-            display: flex;
-            flex-direction: column;
+        border-radius: 50%;
 
-            overflow-y: auto;
-            overflow-x: hidden;
+        background:
+            linear-gradient(
+                145deg,
+                rgba(139, 200, 63, 0.95),
+                rgba(139, 200, 63, 0.25)
+            );
 
-            transform: translateX(0);
-            transition: transform .28s ease;
+        box-shadow:
+            0 16px 40px rgba(139, 200, 63, 0.10);
+    }
 
-            scrollbar-width: thin;
-        }
+    #profile-display {
+        width: 130px;
+        height: 130px;
 
+        display: block;
 
-        /* =========================================================
-           SIDEBAR PROFILE
-        ========================================================= */
+        border-radius: 50%;
 
-        .sidebar-profile {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        object-fit: cover;
 
-            padding-bottom: 24px;
-            margin-bottom: 18px;
+        border: 3px solid #111111;
 
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.08);
-        }
+        transition:
+            transform .25s ease,
+            filter .25s ease;
+    }
 
-        .sidebar-logo {
-            width: 92px;
-            height: 92px;
+    .profile-image-wrapper:hover #profile-display {
+        transform: scale(1.025);
+        filter: brightness(1.08);
+    }
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+    .profile-edit-badge {
+        position: absolute;
 
-            border-radius: 24px;
+        right: 0;
+        bottom: 2px;
 
-            background:
-                rgba(255, 255, 255, 0.04);
+        width: 38px;
+        height: 38px;
 
-            border:
-                1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
-            box-shadow:
-                0 15px 30px rgba(0, 0, 0, 0.30);
-        }
+        border-radius: 50%;
 
-        .sidebar-logo img {
-            width: 78px;
-            height: 78px;
-            object-fit: contain;
-        }
+        color: #ffffff;
 
-        .sidebar-profile-text {
-            text-align: center;
-            margin-top: 14px;
-        }
+        background:
+            linear-gradient(
+                135deg,
+                #8bc83f,
+                #6da52e
+            );
 
-        .sidebar-profile-text h3 {
-            margin: 0;
+        border: 3px solid #111111;
 
-            font-size: 14px;
-            font-weight: 800;
+        box-shadow:
+            0 8px 20px rgba(0, 0, 0, 0.35);
 
-            letter-spacing: .16em;
+        pointer-events: none;
+    }
 
-            color: #ffffff;
-        }
+    .profile-edit-badge svg {
+        width: 17px;
+        height: 17px;
+    }
 
-        .sidebar-profile-text span {
-            display: block;
+    .profile-status-dot {
+        position: absolute;
 
-            margin-top: 5px;
+        right: 9px;
+        bottom: 38px;
 
-            font-size: 10px;
-            font-weight: 600;
+        width: 17px;
+        height: 17px;
 
-            letter-spacing: .13em;
+        border-radius: 50%;
 
-            color: #a1a1aa;
-        }
+        background: #22c55e;
 
+        border: 3px solid #111111;
 
-        /* =========================================================
-           SIDEBAR NAV
-        ========================================================= */
+        box-shadow:
+            0 0 0 3px rgba(34, 197, 94, 0.12);
+    }
 
-        .sidebar-nav {
-            display: flex;
-            flex-direction: column;
 
-            gap: 7px;
+    /* =========================================================
+       PROFILE SUMMARY
+    ========================================================= */
 
-            flex: 1;
-            min-width: 0;
-            min-height: 0;
-        }
+    .profile-summary {
+        min-width: 0;
+        flex: 1;
+    }
 
-        .sidebar-item,
-        .sidebar-logout {
-            min-width: 0;
-            width: 100%;
+    .profile-summary-label {
+        color: #8bc83f;
 
-            display: flex;
-            align-items: center;
+        font-size: 10px;
+        font-weight: 800;
 
-            gap: 12px;
+        letter-spacing: .16em;
 
-            padding: 12px 13px;
+        text-transform: uppercase;
 
-            border-radius: 14px;
+        margin-bottom: 7px;
+    }
 
-            color: #d4d4d8;
+    .profile-summary h2 {
+        margin: 0;
 
-            text-decoration: none;
+        font-size: 26px;
 
-            font-size: 13px;
-            font-weight: 600;
+        line-height: 1.15;
 
-            border: 1px solid transparent;
+        font-weight: 850;
 
-            transition:
-                background .2s ease,
-                color .2s ease,
-                transform .2s ease,
-                border-color .2s ease;
-        }
+        letter-spacing: -.03em;
 
-        .sidebar-item:hover {
-            background:
-                rgba(255, 255, 255, 0.07);
+        color: #ffffff;
 
-            color: #ffffff;
+        overflow-wrap: anywhere;
+    }
 
-            transform:
-                translateX(2px);
-        }
+    .profile-summary-role {
+        margin-top: 7px;
 
-        .sidebar-item.active {
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(139, 200, 63, 0.22),
-                    rgba(139, 200, 63, 0.08)
-                );
+        color: #a1a1aa;
 
-            color: #ffffff;
+        font-size: 13px;
+    }
 
-            border:
-                1px solid rgba(139, 200, 63, 0.20);
+    .profile-summary-id {
+        display: inline-flex;
 
-            box-shadow:
-                0 8px 24px rgba(0, 0, 0, 0.20);
-        }
+        align-items: center;
 
+        gap: 7px;
 
-        /* =========================================================
-           SIDEBAR ICONS
-        ========================================================= */
+        margin-top: 15px;
 
-        .sidebar-icon,
-        .sidebar-external,
-        .card-icon,
-        .input-icon,
-        .button-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        padding: 7px 10px;
 
-            flex: 0 0 auto;
-        }
+        border-radius: 10px;
 
-        .sidebar-icon {
-            width: 20px;
-            height: 20px;
-        }
+        color: #d4d4d8;
 
-        .sidebar-icon svg {
-            width: 19px;
-            height: 19px;
+        background:
+            rgba(255, 255, 255, 0.04);
 
-            stroke-width: 1.8;
-        }
+        border:
+            1px solid rgba(255, 255, 255, 0.06);
 
-        .sidebar-external {
-            margin-left: auto;
-        }
+        font-size: 11px;
+        font-weight: 600;
 
-        .sidebar-external svg {
-            width: 14px;
-            height: 14px;
-        }
+        max-width: 100%;
+    }
 
+    .profile-summary-id svg {
+        width: 14px;
+        height: 14px;
 
-        /* =========================================================
-           SIDEBAR LOGOUT
-        ========================================================= */
+        color: #8bc83f;
 
-        .sidebar-bottom {
-            margin-top: auto;
+        flex-shrink: 0;
+    }
 
-            padding-top: 18px;
 
-            border-top:
-                1px solid rgba(255, 255, 255, 0.08);
-        }
+    /* =========================================================
+       PROFILE DETAILS CARD
+    ========================================================= */
 
-        .sidebar-logout {
-            margin-top: auto !important;
+    .profile-details-card,
+    .edit-profile-card {
+        min-width: 0;
 
-            background:
-                rgba(220, 38, 38, 0.12);
+        border-radius: 22px;
 
-            color: #fca5a5;
+        background:
+            linear-gradient(
+                145deg,
+                rgba(37, 15, 30, 0.78),
+                rgba(20, 10, 17, 0.78)
+            );
 
-            border:
-                1px solid rgba(220, 38, 38, 0.12);
-        }
+        border:
+            1px solid rgba(255, 255, 255, 0.07);
 
-        .sidebar-logout:hover {
-            background:
-                rgba(220, 38, 38, 0.20);
+        box-shadow:
+            0 15px 40px rgba(0, 0, 0, 0.20);
+    }
 
-            color: #ffffff;
-        }
+    .profile-details-card {
+        padding: 24px;
+        margin-bottom: 22px;
+    }
 
 
-        /* =========================================================
-           SIDEBAR TEXT ELLIPSIS
-        ========================================================= */
+    /* =========================================================
+       CARD HEADING
+    ========================================================= */
 
-        .sidebar-item > span:last-of-type,
-        .sidebar-logout > span:last-of-type {
-            overflow: hidden;
+    .card-heading {
+        display: flex;
 
-            text-overflow: ellipsis;
+        align-items: center;
 
-            white-space: nowrap;
+        gap: 14px;
 
-            min-width: 0;
-        }
+        margin-bottom: 20px;
 
+        min-width: 0;
+    }
 
-        /* =========================================================
-           MOBILE MENU BUTTON
-        ========================================================= */
+    .card-icon {
+        width: 48px;
+        height: 48px;
 
-        .mobile-menu-button {
-            display: none;
+        min-width: 48px;
 
-            position: fixed;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
 
-            top: 18px;
-            left: 18px;
+        border-radius: 15px;
 
-            width: 44px;
-            height: 44px;
+        background:
+            rgba(139, 200, 63, 0.10);
 
-            align-items: center;
-            justify-content: center;
+        border:
+            1px solid rgba(139, 200, 63, 0.14);
 
-            border-radius: 14px;
+        color: #8bc83f;
+    }
 
-            border:
-                1px solid rgba(255, 255, 255, 0.10);
+    .card-icon svg {
+        width: 24px;
+        height: 24px;
 
-            background:
-                rgba(37, 15, 30, 0.92);
+        stroke-width: 1.7;
+    }
 
-            color: #ffffff;
+    .card-heading > div:last-child {
+        min-width: 0;
+    }
 
-            cursor: pointer;
+    .card-heading h3 {
+        margin: 0;
 
-            z-index: 1001;
+        font-size: 17px;
 
-            box-shadow:
-                0 12px 30px rgba(0, 0, 0, 0.35);
+        font-weight: 800;
 
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
+        color: #ffffff;
 
-        .mobile-menu-button svg {
-            width: 20px;
-            height: 20px;
-        }
+        min-width: 0;
+    }
 
+    .card-heading p {
+        margin: 4px 0 0;
 
-        /* =========================================================
-           MOBILE SIDEBAR OVERLAY
-        ========================================================= */
+        font-size: 12px;
 
-        .sidebar-overlay {
-            display: none;
+        color: #a1a1aa;
 
-            position: fixed;
-            inset: 0;
+        line-height: 1.5;
+    }
 
-            background:
-                rgba(0, 0, 0, 0.55);
 
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(3px);
+    /* =========================================================
+       INFORMATION GRID
+    ========================================================= */
 
-            z-index: 999;
-        }
+    .details-grid {
+        display: grid;
 
-        .sidebar-overlay.active {
-            display: block;
-        }
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
 
+        gap: 12px;
 
-        /* =========================================================
-           MAIN AREA
-           DESKTOP GEOMETRY
-        ========================================================= */
+        width: 100%;
 
-        /*
-            Original sidebar outer width:
+        min-width: 0;
+    }
 
-            width       = 250px
-            left        = 20px
-            padding     = 22px + 22px
+    .detail-item {
+        min-width: 0;
 
-            --------------------------------
+        padding: 15px;
 
-            outer width = 294px
+        border-radius: 16px;
 
-            Sidebar right edge:
+        background:
+            rgba(0, 0, 0, 0.25);
 
-            20 + 294 = 314px
+        border:
+            1px solid rgba(255, 255, 255, 0.06);
 
-            Desired gap:
+        transition:
+            background .2s ease,
+            border-color .2s ease;
+    }
 
-            20px
+    .detail-item:hover {
+        background:
+            rgba(255, 255, 255, 0.035);
 
-            Therefore main starts at:
+        border-color:
+            rgba(139, 200, 63, 0.16);
+    }
 
-            314 + 20 = 334px
-        */
+    .detail-label {
+        display: flex;
 
-        .main-area {
-            position: fixed;
+        align-items: center;
 
-            top: 0;
-            right: 20px;
-            bottom: 0;
-            left: 334px;
+        gap: 7px;
 
-            width: auto;
+        margin-bottom: 7px;
 
-            margin: 0;
+        color: #71717a;
 
-            padding: 20px 0;
+        font-size: 10px;
 
-            height: 100vh;
-            min-height: 100vh;
+        font-weight: 700;
 
-            min-width: 0;
+        text-transform: uppercase;
 
-            box-sizing: border-box;
+        letter-spacing: .07em;
+    }
 
-            overflow: hidden;
-        }
+    .detail-label svg {
+        width: 14px;
+        height: 14px;
 
+        color: #8bc83f;
 
-        /* =========================================================
-           BIG DASHBOARD BOX
-        ========================================================= */
+        flex-shrink: 0;
+    }
 
-        .dashboard-box {
-            width: 100%;
+    .detail-value {
+        color: #f4f4f5;
 
-            height: calc(100vh - 40px);
-            max-height: calc(100vh - 40px);
+        font-size: 13px;
 
-            min-width: 0;
+        font-weight: 600;
 
-            border-radius: 30px;
+        line-height: 1.5;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(18, 18, 18, 0.96),
-                    rgba(9, 9, 9, 0.96)
-                );
+        overflow-wrap: anywhere;
 
-            border:
-                1px solid rgba(255, 255, 255, 0.08);
+        word-break: break-word;
+    }
 
-            box-shadow:
-                0 30px 90px rgba(0, 0, 0, 0.45),
-                inset 0 1px 0 rgba(255, 255, 255, 0.035);
 
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
+    /* =========================================================
+       EDIT PROFILE
+    ========================================================= */
 
-            box-sizing: border-box;
-        }
+    .edit-profile-card {
+        padding: 24px;
+    }
 
+    .edit-form {
+        display: grid;
 
-        /* =========================================================
-           HEADER
-        ========================================================= */
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
 
-        .dashboard-header {
-            padding: 34px 34px 28px;
+        gap: 18px;
 
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.07);
-        }
+        min-width: 0;
+    }
 
-        .dashboard-header-content {
-            display: flex;
+    .form-field {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
 
-            align-items: center;
-            justify-content: space-between;
+    .form-field.full-width {
+        grid-column: 1 / -1;
+    }
 
-            gap: 30px;
+    .form-field label {
+        display: flex;
 
-            min-width: 0;
-        }
+        align-items: center;
 
-        .dashboard-eyebrow {
-            font-size: 10px;
-            font-weight: 800;
+        gap: 7px;
 
-            letter-spacing: .18em;
+        margin-bottom: 8px;
 
-            color: #8bc83f;
+        color: #d4d4d8;
 
-            margin-bottom: 8px;
-        }
+        font-size: 12px;
 
-        .dashboard-header h1 {
-            margin: 0;
+        font-weight: 700;
+    }
 
-            font-size:
-                clamp(1.8rem, 4vw, 2.7rem);
+    .form-field label svg {
+        width: 14px;
+        height: 14px;
 
-            line-height: 1;
+        color: #8bc83f;
 
-            font-weight: 900;
+        flex-shrink: 0;
+    }
 
-            letter-spacing: -.035em;
+    .form-input {
+        width: 100%;
 
-            color: #ffffff;
-        }
+        min-height: 46px;
 
-        .dashboard-header p {
-            margin-top: 10px;
-            margin-bottom: 0;
+        padding: 11px 13px;
 
-            color: #a1a1aa;
+        border-radius: 13px;
 
-            font-size: 14px;
+        background:
+            rgba(0, 0, 0, 0.55);
 
-            line-height: 1.6;
-        }
+        border:
+            1px solid rgba(255, 255, 255, 0.09);
 
+        color: #ffffff;
 
-        /* =========================================================
-           SYSTEM STATUS
-        ========================================================= */
+        outline: none;
 
-        .system-status {
-            display: inline-flex;
+        font-size: 13px;
 
-            align-items: center;
+        transition:
+            border-color .2s ease,
+            box-shadow .2s ease,
+            background .2s ease;
+    }
 
-            gap: 8px;
+    .form-input::placeholder {
+        color: #52525b;
+    }
 
-            padding: 9px 13px;
+    .form-input:hover {
+        border-color:
+            rgba(255, 255, 255, 0.15);
+    }
 
-            border-radius: 999px;
+    .form-input:focus {
+        background:
+            rgba(0, 0, 0, 0.72);
 
-            background:
-                rgba(34, 197, 94, 0.08);
+        border-color:
+            rgba(139, 200, 63, 0.55);
 
-            border:
-                1px solid rgba(34, 197, 94, 0.15);
+        box-shadow:
+            0 0 0 3px rgba(139, 200, 63, 0.08);
+    }
 
-            color: #bbf7d0;
+    .form-input:disabled {
+        cursor: not-allowed;
+        opacity: .65;
+    }
 
-            font-size: 12px;
-            font-weight: 700;
+    .form-actions {
+        grid-column: 1 / -1;
 
-            white-space: nowrap;
+        display: flex;
 
-            flex: 0 0 auto;
-        }
+        align-items: center;
+        justify-content: flex-end;
 
-        .system-status svg {
-            width: 15px;
-            height: 15px;
-        }
+        padding-top: 4px;
+    }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
+    .save-button {
+        display: inline-flex;
 
-            flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
 
-            border-radius: 50%;
+        gap: 8px;
 
-            background: #4ade80;
+        min-height: 45px;
 
-            box-shadow:
-                0 0 0 4px rgba(74, 222, 128, 0.10),
-                0 0 14px rgba(74, 222, 128, 0.50);
-        }
+        padding: 0 18px;
 
+        border: 0;
 
-        /* =========================================================
-           DASHBOARD CONTENT
-        ========================================================= */
+        border-radius: 13px;
 
-        .dashboard-content {
-            padding: 30px 34px 40px;
+        background:
+            linear-gradient(
+                135deg,
+                #8bc83f,
+                #6da52e
+            );
 
-            min-width: 0;
-        }
+        color: #ffffff;
 
+        font-size: 12px;
 
-        /* =========================================================
-           SECTION HEADING
-        ========================================================= */
+        font-weight: 800;
 
-        .section-heading {
-            display: flex;
+        cursor: pointer;
 
-            align-items: center;
+        box-shadow:
+            0 12px 28px rgba(139, 200, 63, 0.14);
 
-            gap: 20px;
+        transition:
+            transform .2s ease,
+            box-shadow .2s ease,
+            filter .2s ease;
+    }
 
-            margin-bottom: 22px;
+    .save-button:hover {
+        transform:
+            translateY(-1px);
 
-            min-width: 0;
-        }
+        filter:
+            brightness(1.06);
 
-        .section-eyebrow {
-            display: block;
+        box-shadow:
+            0 16px 34px rgba(139, 200, 63, 0.20);
+    }
 
-            font-size: 10px;
-            font-weight: 800;
+    .save-button:active {
+        transform:
+            translateY(0);
+    }
 
-            letter-spacing: .16em;
+    .save-button svg {
+        width: 16px;
+        height: 16px;
+    }
 
-            color: #8bc83f;
+    .button-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-            margin-bottom: 5px;
-        }
 
-        .section-heading h2 {
-            margin: 0;
+    /* =========================================================
+       EXTRA WIDTH PROTECTION
+    ========================================================= */
 
-            font-size: 22px;
+    .profile-summary,
+    .detail-value,
+    .form-field {
+        overflow-wrap: anywhere;
+    }
 
-            font-weight: 800;
 
-            color: #ffffff;
-        }
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
 
-        .heading-line {
-            height: 1px;
-
-            flex: 1;
-
-            min-width: 20px;
-
-            background:
-                linear-gradient(
-                    90deg,
-                    rgba(255,255,255,.10),
-                    transparent
-                );
-        }
-
-
-        /* =========================================================
-           PROFILE HERO
-        ========================================================= */
-
-        .profile-card {
-            position: relative;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 28px;
-
-            padding: 26px;
-
-            margin-bottom: 24px;
-
-            border-radius: 24px;
-
-            background:
-                radial-gradient(
-                    circle at top right,
-                    rgba(139, 200, 63, 0.09),
-                    transparent 35%
-                ),
-                linear-gradient(
-                    145deg,
-                    rgba(37, 15, 30, 0.82),
-                    rgba(20, 10, 17, 0.82)
-                );
-
-            border:
-                1px solid rgba(255, 255, 255, 0.08);
-
-            box-shadow:
-                0 18px 45px rgba(0, 0, 0, 0.28);
-
-            min-width: 0;
-        }
-
-
-        /* =========================================================
-           PROFILE IMAGE
-        ========================================================= */
-
-        .profile-image-wrapper {
-            position: relative;
-
-            width: 138px;
-            height: 138px;
-
-            flex-shrink: 0;
-
-            cursor: pointer;
-        }
-
-        .profile-image-ring {
-            width: 138px;
-            height: 138px;
-
-            padding: 4px;
-
-            border-radius: 50%;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(139, 200, 63, 0.95),
-                    rgba(139, 200, 63, 0.25)
-                );
-
-            box-shadow:
-                0 16px 40px rgba(139, 200, 63, 0.10);
-        }
-
-        #profile-display {
-            width: 130px;
-            height: 130px;
-
-            display: block;
-
-            border-radius: 50%;
-
-            object-fit: cover;
-
-            border:
-                3px solid #111111;
-
-            transition:
-                transform .25s ease,
-                filter .25s ease;
-        }
-
-        .profile-image-wrapper:hover #profile-display {
-            transform: scale(1.025);
-
-            filter: brightness(1.08);
-        }
-
-        .profile-edit-badge {
-            position: absolute;
-
-            right: 0;
-            bottom: 2px;
-
-            width: 38px;
-            height: 38px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 50%;
-
-            color: #ffffff;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #8bc83f,
-                    #6da52e
-                );
-
-            border:
-                3px solid #111111;
-
-            box-shadow:
-                0 8px 20px rgba(0, 0, 0, 0.35);
-
-            pointer-events: none;
-        }
-
-        .profile-edit-badge svg {
-            width: 17px;
-            height: 17px;
-        }
-
-        .profile-status-dot {
-            position: absolute;
-
-            right: 9px;
-            bottom: 38px;
-
-            width: 17px;
-            height: 17px;
-
-            border-radius: 50%;
-
-            background: #22c55e;
-
-            border:
-                3px solid #111111;
-
-            box-shadow:
-                0 0 0 3px rgba(34, 197, 94, 0.12);
-        }
-
-
-        /* =========================================================
-           PROFILE SUMMARY
-        ========================================================= */
-
-        .profile-summary {
-            min-width: 0;
-
-            flex: 1;
-        }
-
-        .profile-summary-label {
-            color: #8bc83f;
-
-            font-size: 10px;
-            font-weight: 800;
-
-            letter-spacing: .16em;
-
-            text-transform: uppercase;
-
-            margin-bottom: 7px;
-        }
-
-        .profile-summary h2 {
-            margin: 0;
-
-            font-size: 26px;
-
-            line-height: 1.15;
-
-            font-weight: 850;
-
-            letter-spacing: -.03em;
-
-            color: #ffffff;
-
-            overflow-wrap: anywhere;
-        }
-
-        .profile-summary-role {
-            margin-top: 7px;
-
-            color: #a1a1aa;
-
-            font-size: 13px;
-        }
-
-        .profile-summary-id {
-            display: inline-flex;
-
-            align-items: center;
-
-            gap: 7px;
-
-            margin-top: 15px;
-
-            padding: 7px 10px;
-
-            border-radius: 10px;
-
-            color: #d4d4d8;
-
-            background:
-                rgba(255, 255, 255, 0.04);
-
-            border:
-                1px solid rgba(255, 255, 255, 0.06);
-
-            font-size: 11px;
-            font-weight: 600;
-
-            max-width: 100%;
-        }
-
-        .profile-summary-id svg {
-            width: 14px;
-            height: 14px;
-
-            color: #8bc83f;
-
-            flex-shrink: 0;
-        }
-
-
-        /* =========================================================
-           PROFILE DETAILS CARD
-        ========================================================= */
-
-        .profile-details-card,
-        .edit-profile-card {
-            min-width: 0;
-
-            border-radius: 22px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(37, 15, 30, 0.78),
-                    rgba(20, 10, 17, 0.78)
-                );
-
-            border:
-                1px solid rgba(255, 255, 255, 0.07);
-
-            box-shadow:
-                0 15px 40px rgba(0, 0, 0, 0.20);
-        }
-
-        .profile-details-card {
-            padding: 24px;
-
-            margin-bottom: 22px;
-        }
-
-
-        /* =========================================================
-           CARD HEADING
-        ========================================================= */
-
-        .card-heading {
-            display: flex;
-
-            align-items: center;
-
-            gap: 14px;
-
-            margin-bottom: 20px;
-
-            min-width: 0;
-        }
-
-        .card-icon {
-            width: 48px;
-            height: 48px;
-
-            min-width: 48px;
-
-            border-radius: 15px;
-
-            background:
-                rgba(139, 200, 63, 0.10);
-
-            border:
-                1px solid rgba(139, 200, 63, 0.14);
-
-            color: #8bc83f;
-        }
-
-        .card-icon svg {
-            width: 24px;
-            height: 24px;
-
-            stroke-width: 1.7;
-        }
-
-        .card-heading h3 {
-            margin: 0;
-
-            font-size: 17px;
-
-            font-weight: 800;
-
-            color: #ffffff;
-
-            min-width: 0;
-        }
-
-        .card-heading p {
-            margin: 4px 0 0;
-
-            font-size: 12px;
-
-            color: #a1a1aa;
-
-            line-height: 1.5;
-        }
-
-
-        /* =========================================================
-           INFORMATION GRID
-        ========================================================= */
+    @media (min-width: 901px) and (max-width: 1200px) {
 
         .details-grid {
-            display: grid;
-
-            grid-template-columns:
-                repeat(2, minmax(0, 1fr));
-
-            gap: 12px;
-
-            width: 100%;
-
-            min-width: 0;
-        }
-
-        .detail-item {
-            min-width: 0;
-
-            padding: 15px;
-
-            border-radius: 16px;
-
-            background:
-                rgba(0, 0, 0, 0.25);
-
-            border:
-                1px solid rgba(255, 255, 255, 0.06);
-
-            transition:
-                background .2s ease,
-                border-color .2s ease;
-        }
-
-        .detail-item:hover {
-            background:
-                rgba(255, 255, 255, 0.035);
-
-            border-color:
-                rgba(139, 200, 63, 0.16);
-        }
-
-        .detail-label {
-            display: flex;
-
-            align-items: center;
-
-            gap: 7px;
-
-            margin-bottom: 7px;
-
-            color: #71717a;
-
-            font-size: 10px;
-
-            font-weight: 700;
-
-            text-transform: uppercase;
-
-            letter-spacing: .07em;
-        }
-
-        .detail-label svg {
-            width: 14px;
-            height: 14px;
-
-            color: #8bc83f;
-
-            flex-shrink: 0;
-        }
-
-        .detail-value {
-            color: #f4f4f5;
-
-            font-size: 13px;
-
-            font-weight: 600;
-
-            line-height: 1.5;
-
-            overflow-wrap: anywhere;
-
-            word-break: break-word;
-        }
-
-
-        /* =========================================================
-           EDIT PROFILE
-        ========================================================= */
-
-        .edit-profile-card {
-            padding: 24px;
+            grid-template-columns: 1fr;
         }
 
         .edit-form {
-            display: grid;
-
             grid-template-columns:
                 repeat(2, minmax(0, 1fr));
+        }
+    }
 
-            gap: 18px;
 
-            min-width: 0;
+    @media (max-width: 900px) {
+
+        .profile-card {
+            gap: 22px;
         }
 
-        .form-field {
-            min-width: 0;
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .edit-form {
+            grid-template-columns: 1fr;
         }
 
         .form-field.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .form-field label {
-            display: flex;
-
-            align-items: center;
-
-            gap: 7px;
-
-            margin-bottom: 8px;
-
-            color: #d4d4d8;
-
-            font-size: 12px;
-
-            font-weight: 700;
-        }
-
-        .form-field label svg {
-            width: 14px;
-            height: 14px;
-
-            color: #8bc83f;
-
-            flex-shrink: 0;
-        }
-
-        .form-input {
-            width: 100%;
-
-            min-height: 46px;
-
-            padding: 11px 13px;
-
-            border-radius: 13px;
-
-            background:
-                rgba(0, 0, 0, 0.55);
-
-            border:
-                1px solid rgba(255, 255, 255, 0.09);
-
-            color: #ffffff;
-
-            outline: none;
-
-            font-size: 13px;
-
-            transition:
-                border-color .2s ease,
-                box-shadow .2s ease,
-                background .2s ease;
-        }
-
-        .form-input::placeholder {
-            color: #52525b;
-        }
-
-        .form-input:hover {
-            border-color:
-                rgba(255, 255, 255, 0.15);
-        }
-
-        .form-input:focus {
-            background:
-                rgba(0, 0, 0, 0.72);
-
-            border-color:
-                rgba(139, 200, 63, 0.55);
-
-            box-shadow:
-                0 0 0 3px rgba(139, 200, 63, 0.08);
-        }
-
-        .form-input:disabled {
-            cursor: not-allowed;
-
-            opacity: .65;
+            grid-column: auto;
         }
 
         .form-actions {
-            grid-column: 1 / -1;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: flex-end;
-
-            padding-top: 4px;
+            grid-column: auto;
+            justify-content: stretch;
         }
 
         .save-button {
-            display: inline-flex;
+            width: 100%;
+        }
+    }
 
-            align-items: center;
-            justify-content: center;
 
-            gap: 8px;
+    @media (max-width: 600px) {
 
-            min-height: 45px;
-
-            padding:
-                0 18px;
-
-            border: 0;
-
-            border-radius: 13px;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #8bc83f,
-                    #6da52e
-                );
-
-            color: #ffffff;
-
-            font-size: 12px;
-
-            font-weight: 800;
-
-            cursor: pointer;
-
-            box-shadow:
-                0 12px 28px rgba(139, 200, 63, 0.14);
-
-            transition:
-                transform .2s ease,
-                box-shadow .2s ease,
-                filter .2s ease;
+        .section-heading {
+            gap: 12px;
         }
 
-        .save-button:hover {
-            transform:
-                translateY(-1px);
-
-            filter:
-                brightness(1.06);
-
-            box-shadow:
-                0 16px 34px rgba(139, 200, 63, 0.20);
+        .heading-line {
+            display: none;
         }
 
-        .save-button:active {
-            transform:
-                translateY(0);
-        }
-
-        .save-button svg {
-            width: 16px;
-            height: 16px;
-        }
-
-
-        /* =========================================================
-           TOAST
-        ========================================================= */
-
-        .toast-container {
-            position: fixed;
-
-            bottom: 20px;
-            right: 20px;
-
-            z-index: 9999;
-
-            display: flex;
-
+        .profile-card {
             flex-direction: column;
 
-            gap: 12px;
-
-            width: 350px;
-
-            max-width:
-                calc(100% - 40px);
-        }
-
-        .toast-message {
-            display: flex;
-
             align-items: center;
 
-            gap: 12px;
+            text-align: center;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(37, 15, 30, 0.98),
-                    rgba(20, 10, 17, 0.98)
-                );
-
-            color: #ffffff;
-
-            border:
-                1px solid rgba(139, 200, 63, 0.30);
-
-            padding: 15px 17px;
-
-            border-radius: 16px;
-
-            box-shadow:
-                0 20px 45px rgba(0, 0, 0, 0.45);
-
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-
-            animation:
-                toastSlideIn .35s ease-out;
+            padding: 20px 17px;
         }
 
-        .toast-message.toast-hide {
-            animation:
-                toastSlideOut .35s ease-in forwards;
+        .profile-image-wrapper,
+        .profile-image-ring {
+            width: 118px;
+            height: 118px;
         }
 
-        .toast-icon {
-            width: 24px;
-            height: 24px;
-
-            flex-shrink: 0;
+        #profile-display {
+            width: 110px;
+            height: 110px;
         }
 
-        .toast-text {
-            flex: 1;
-
-            font-size: 12px;
-
-            font-weight: 600;
-
-            line-height: 1.5;
+        .profile-summary {
+            width: 100%;
         }
 
-        .toast-close {
-            background:
-                transparent;
+        .profile-summary h2 {
+            font-size: 22px;
+        }
 
-            border: 0;
+        .profile-summary-id {
+            justify-content: center;
+        }
 
-            color: #a1a1aa;
+        .profile-details-card,
+        .edit-profile-card {
+            padding: 18px 16px;
+            border-radius: 18px;
+        }
 
+        .detail-item {
+            padding: 13px;
+        }
+
+        .card-heading {
+            align-items: flex-start;
+        }
+
+        .card-icon {
+            width: 43px;
+            height: 43px;
+            min-width: 43px;
+        }
+    }
+
+
+    @media (max-width: 400px) {
+
+        .profile-card {
+            padding: 18px 14px;
+        }
+
+        .profile-summary h2 {
             font-size: 20px;
-
-            line-height: 1;
-
-            cursor: pointer;
-
-            flex-shrink: 0;
         }
 
-        .toast-close:hover {
-            color: #ffffff;
+        .card-heading h3 {
+            font-size: 15px;
         }
 
-        @keyframes toastSlideIn {
-
-            from {
-                opacity: 0;
-
-                transform:
-                    translateX(100%);
-            }
-
-            to {
-                opacity: 1;
-
-                transform:
-                    translateX(0);
-            }
+        .card-heading p {
+            font-size: 11px;
         }
 
-        @keyframes toastSlideOut {
-
-            from {
-                opacity: 1;
-
-                transform:
-                    translateX(0);
-            }
-
-            to {
-                opacity: 0;
-
-                transform:
-                    translateX(100%);
-            }
+        .detail-item {
+            padding: 12px;
         }
+    }
 
+</style>
 
-        /* =========================================================
-           LAPTOP / DESKTOP
-           1201px+
-        ========================================================= */
+{% endblock %}
 
-        @media (min-width: 1201px) {
 
-            .glass-sidebar {
-                top: 20px;
-                left: 20px;
 
-                width: 250px;
+{% block content %}
 
-                height:
-                    calc(100vh - 40px);
+<!-- =========================================================
+     HEADER
+========================================================= -->
 
-                padding: 22px;
-            }
+<header class="dashboard-header">
 
-            .main-area {
-                position: fixed;
+    <div class="dashboard-header-content">
 
-                top: 0;
-                left: 334px;
-                right: 20px;
-                bottom: 0;
+        <div>
 
-                width: auto;
-
-                margin: 0;
-
-                padding: 20px 0;
-
-                height: 100vh;
-
-                box-sizing: border-box;
-
-                min-width: 0;
-
-                overflow: hidden;
-            }
-
-            .dashboard-box {
-                width: 100%;
-
-                height:
-                    calc(100vh - 40px);
-
-                max-height:
-                    calc(100vh - 40px);
-            }
-
-            .details-grid {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
-            }
-        }
-
-
-        /* =========================================================
-           LAPTOP
-           901px - 1200px
-        ========================================================= */
-
-        @media (min-width: 901px) and (max-width: 1200px) {
-
-            .glass-sidebar {
-                top: 20px;
-                left: 20px;
-
-                width: 250px;
-
-                height:
-                    calc(100vh - 40px);
-
-                padding: 22px;
-            }
-
-            .main-area {
-                position: fixed;
-
-                top: 0;
-                left: 334px;
-                right: 20px;
-                bottom: 0;
-
-                width: auto;
-
-                margin: 0;
-
-                padding: 20px 0;
-
-                height: 100vh;
-
-                box-sizing: border-box;
-
-                min-width: 0;
-
-                overflow: hidden;
-            }
-
-            .dashboard-box {
-                width: 100%;
-
-                height:
-                    calc(100vh - 40px);
-
-                max-height:
-                    calc(100vh - 40px);
-            }
-
-            .details-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .edit-form {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
-            }
-        }
-
-
-        /* =========================================================
-           RESPONSIVE
-        ========================================================= */
-
-        @media (max-width: 900px) {
-
-            .glass-sidebar {
-                position: fixed;
-
-                top: 0;
-                left: 0;
-                bottom: 0;
-
-                width: 280px;
-
-                height: 100vh;
-
-                padding: 22px;
-
-                transform:
-                    translateX(-115%);
-            }
-
-            .glass-sidebar.open {
-                transform:
-                    translateX(0);
-            }
-
-            .mobile-menu-button {
-                display: flex;
-            }
-
-            /*
-                Reset desktop fixed geometry completely.
-            */
-
-            .main-area {
-                position: relative;
-
-                top: auto;
-                left: auto;
-                right: auto;
-                bottom: auto;
-
-                width: 100% !important;
-
-                margin-left: 0 !important;
-                margin-right: 0 !important;
-
-                padding: 12px !important;
-
-                height: 100vh;
-
-                min-height: 100vh;
-
-                box-sizing: border-box;
-
-                overflow: hidden;
-            }
-
-            .dashboard-box {
-                width: 100%;
-
-                height:
-                    calc(100vh - 24px) !important;
-
-                max-height:
-                    calc(100vh - 24px) !important;
-
-                border-radius:
-                    24px !important;
-
-                box-sizing: border-box;
-            }
-
-            .dashboard-header {
-                padding:
-                    28px 22px !important;
-
-                padding-top:
-                    30px !important;
-            }
-
-            .dashboard-header-content {
-                flex-direction: column;
-
-                align-items:
-                    flex-start !important;
-
-                gap: 18px;
-            }
-
-            .system-status {
-                align-self:
-                    flex-start;
-            }
-
-            .dashboard-content {
-                padding:
-                    22px !important;
-            }
-
-            .profile-card {
-                gap: 22px;
-            }
-
-            .details-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .edit-form {
-                grid-template-columns: 1fr;
-            }
-
-            .form-field.full-width {
-                grid-column: auto;
-            }
-
-            .form-actions {
-                grid-column: auto;
-
-                justify-content:
-                    stretch;
-            }
-
-            .save-button {
-                width: 100%;
-            }
-        }
-
-
-        /* =========================================================
-           MOBILE 600px
-        ========================================================= */
-
-        @media (max-width: 600px) {
-
-            .main-area {
-                padding: 8px !important;
-            }
-
-            .dashboard-box {
-                height:
-                    calc(100vh - 16px) !important;
-
-                max-height:
-                    calc(100vh - 16px) !important;
-
-                border-radius:
-                    20px !important;
-            }
-
-            .dashboard-header {
-                padding:
-                    24px 17px !important;
-            }
-
-            .dashboard-content {
-                padding:
-                    17px !important;
-            }
-
-            .dashboard-header h1 {
-                font-size:
-                    clamp(
-                        1.55rem,
-                        8vw,
-                        2.1rem
-                    ) !important;
-
-                line-height:
-                    1.05;
-            }
-
-            .dashboard-header p {
-                font-size:
-                    .85rem !important;
-            }
-
-            .section-heading {
-                gap: 12px;
-            }
-
-            .heading-line {
-                display: none;
-            }
-
-            .profile-card {
-                flex-direction: column;
-
-                align-items:
-                    center;
-
-                text-align:
-                    center;
-
-                padding:
-                    20px 17px;
-            }
-
-            .profile-image-wrapper,
-            .profile-image-ring {
-                width: 118px;
-                height: 118px;
-            }
-
-            #profile-display {
-                width: 110px;
-                height: 110px;
-            }
-
-            .profile-summary {
-                width: 100%;
-            }
-
-            .profile-summary h2 {
-                font-size:
-                    22px;
-            }
-
-            .profile-summary-id {
-                justify-content:
-                    center;
-            }
-
-            .profile-details-card,
-            .edit-profile-card {
-                padding:
-                    18px 16px;
-
-                border-radius:
-                    18px;
-            }
-
-            .detail-item {
-                padding:
-                    13px;
-            }
-
-            .card-heading {
-                align-items:
-                    flex-start;
-            }
-
-            .card-icon {
-                width: 43px;
-                height: 43px;
-
-                min-width: 43px;
-            }
-
-            .toast-container {
-                right: 10px;
-
-                bottom: 10px;
-
-                width:
-                    calc(100% - 20px);
-
-                max-width: none;
-            }
-        }
-
-
-        /* =========================================================
-           VERY SMALL MOBILE
-        ========================================================= */
-
-        @media (max-width: 400px) {
-
-            .dashboard-header h1 {
-                font-size:
-                    1.55rem !important;
-            }
-
-            .profile-card {
-                padding:
-                    18px 14px;
-            }
-
-            .profile-summary h2 {
-                font-size:
-                    20px;
-            }
-
-            .card-heading h3 {
-                font-size:
-                    15px;
-            }
-
-            .card-heading p {
-                font-size:
-                    11px;
-            }
-
-            .detail-item {
-                padding:
-                    12px;
-            }
-        }
-
-
-        /* =========================================================
-           EXTRA WIDTH PROTECTION
-        ========================================================= */
-
-        .dashboard-header-content > div:first-child {
-            min-width: 0;
-        }
-
-        .dashboard-header h1,
-        .dashboard-header p {
-            overflow-wrap:
-                anywhere;
-        }
-
-        .card-heading > div:last-child {
-            min-width: 0;
-        }
-
-        .profile-summary,
-        .detail-value,
-        .form-field {
-            overflow-wrap:
-                anywhere;
-        }
-
-    </style>
-</head>
-
-
-<body class="select-none">
-
-
-    <!-- =========================================================
-         SIDEBAR OVERLAY
-    ========================================================= -->
-
-    <div
-        id="sidebar-overlay"
-        class="sidebar-overlay"
-    ></div>
-
-
-    <!-- =========================================================
-         SIDEBAR
-    ========================================================= -->
-
-    <aside
-        id="sidebar"
-        class="glass-sidebar"
-    >
-
-        <!-- SIDEBAR PROFILE -->
-
-        <div class="sidebar-profile">
-
-            <div class="sidebar-logo">
-
-                <img
-                    src="{% static 'images/logo.png' %}"
-                    alt="Cybexel Logo"
-                >
-
+            <div class="dashboard-eyebrow">
+                TEAM MEMBER • PROFILE
             </div>
 
-            <div class="sidebar-profile-text">
+            <h1>
+                My Profile
+            </h1>
 
-                <h3>
-                    CYBEXEL
-                </h3>
-
-                <span>
-                    TEAM MEMBER
-                </span>
-
-            </div>
+            <p>
+                Manage your personal information,
+                profile image, and team member
+                account details.
+            </p>
 
         </div>
 
+        <div class="system-status">
 
-        <!-- SIDEBAR NAV -->
+            <span class="status-dot"></span>
 
-        <nav class="sidebar-nav">
+            <span>
+                Workspace Active
+            </span>
 
+        </div>
 
-            <!-- Dashboard -->
+    </div>
 
-            <a
-                href="{% url 'teammember_dashboard' %}"
-                class="sidebar-item"
-            >
-
-                <span class="sidebar-icon">
-                    <i data-lucide="layout-dashboard"></i>
-                </span>
-
-                <span>
-                    Dashboard
-                </span>
-
-            </a>
+</header>
 
 
-            <!-- Project -->
 
-            <a
-                href="{% url 'teammember_project' %}"
-                class="sidebar-item"
-            >
+<!-- =========================================================
+     CONTENT
+========================================================= -->
 
-                <span class="sidebar-icon">
-                    <i data-lucide="folder-kanban"></i>
-                </span>
-
-                <span>
-                    My Project
-                </span>
-
-            </a>
+<section class="dashboard-content">
 
 
-            <!-- Notepad -->
+    <!-- SECTION HEADING -->
 
-            <a
-                href="{% url 'teammember_notepad' %}"
-                class="sidebar-item"
-            >
+    <div class="section-heading">
 
-                <span class="sidebar-icon">
-                    <i data-lucide="notebook-pen"></i>
-                </span>
+        <div>
 
-                <span>
-                    Notepad
-                </span>
-
-            </a>
-
-
-            <!-- Knowledge Repository -->
-
-            <a
-                href="{% url 'teammember_repository' %}"
-                class="sidebar-item"
-            >
-
-                <span class="sidebar-icon">
-                    <i data-lucide="library"></i>
-                </span>
-
-                <span>
-                    Knowledge Repository
-                </span>
-
-            </a>
-
-
-            <!-- Profile -->
-
-            <a
-                href="{% url 'teammember_profile' %}"
-                class="sidebar-item active"
-            >
-
-                <span class="sidebar-icon">
-                    <i data-lucide="user-round"></i>
-                </span>
-
-                <span>
-                    Profile
-                </span>
-
-            </a>
-
-
-            <!-- My Task -->
-
-            <a
-                href="{% url 'teammember_task' %}"
-                class="sidebar-item"
-            >
-
-                <span class="sidebar-icon">
-                    <i data-lucide="list-checks"></i>
-                </span>
-
-                <span>
-                    My Task
-                </span>
-
-            </a>
-
-
-            <!-- Chat -->
-
-            <a
-                href="{% url 'teammember_chat' %}"
-                class="sidebar-item"
-            >
-
-                <span class="sidebar-icon">
-                    <i data-lucide="message-circle"></i>
-                </span>
-
-                <span>
-                    Chat
-                </span>
-
-            </a>
-
-
-            <!-- Google Meet -->
-
-            <a
-                href="https://meet.google.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="sidebar-item"
-            >
-
-                <span class="sidebar-icon">
-                    <i data-lucide="video"></i>
-                </span>
-
-                <span>
-                    Google Meet
-                </span>
-
-                <span class="sidebar-external">
-
-                    <i data-lucide="external-link"></i>
-
-                </span>
-
-            </a>
-
-
-            <!-- Logout -->
-
-            <div class="sidebar-bottom">
-
-                <a
-                    href="{% url 'teammember_logout' %}"
-                    class="sidebar-logout"
-                >
-
-                    <span class="sidebar-icon">
-                        <i data-lucide="log-out"></i>
-                    </span>
-
-                    <span>
-                        Logout
-                    </span>
-
-                </a>
-
+            <div class="section-eyebrow">
+                ACCOUNT OVERVIEW
             </div>
 
+            <h2>
+                Your Profile
+            </h2>
 
-        </nav>
+        </div>
 
-    </aside>
-
-
-    <!-- =========================================================
-         MOBILE MENU BUTTON
-    ========================================================= -->
-
-    <button
-        type="button"
-        id="mobile-menu-button"
-        class="mobile-menu-button"
-        aria-label="Open menu"
-    >
-
-        <i data-lucide="menu"></i>
-
-    </button>
-
-
-    <!-- =========================================================
-         TOAST CONTAINER
-    ========================================================= -->
-
-    <div class="toast-container" id="toast-container">
-
-        {% if messages %}
-
-            {% for message in messages %}
-
-                <div class="toast-message">
-
-                    {% if message.tags == "error" %}
-
-                        <i
-                            data-lucide="circle-alert"
-                            class="toast-icon"
-                        ></i>
-
-                    {% else %}
-
-                        <i
-                            data-lucide="circle-check"
-                            class="toast-icon"
-                        ></i>
-
-                    {% endif %}
-
-                    <span class="toast-text">
-                        {{ message }}
-                    </span>
-
-                    <button
-                        type="button"
-                        class="toast-close"
-                        onclick="removeToast(this.parentElement)"
-                        aria-label="Close notification"
-                    >
-                        ×
-                    </button>
-
-                </div>
-
-            {% endfor %}
-
-        {% endif %}
+        <div class="heading-line"></div>
 
     </div>
 
 
-    <!-- =========================================================
-         MAIN AREA
-    ========================================================= -->
 
-    <main class="main-area">
+    <!-- =====================================================
+         PROFILE HERO
+    ===================================================== -->
 
-        <div class="dashboard-box">
-
-
-            <!-- =====================================================
-                 HEADER
-            ===================================================== -->
-
-            <header class="dashboard-header">
-
-                <div class="dashboard-header-content">
-
-                    <div>
-
-                        <div class="dashboard-eyebrow">
-                            TEAM MEMBER • PROFILE
-                        </div>
-
-                        <h1>
-                            My Profile
-                        </h1>
-
-                        <p>
-                            Manage your personal information,
-                            profile image, and team member
-                            account details.
-                        </p>
-
-                    </div>
+    <div class="profile-card">
 
 
-                    <!-- SYSTEM STATUS -->
+        <!-- PROFILE IMAGE -->
 
-                    <div class="system-status">
+        <div
+            class="profile-image-wrapper"
+            id="profile-container"
+            title="Click to change profile image"
+        >
 
-                        <span class="status-dot"></span>
+            <div class="profile-image-ring">
 
-                        <span>
-                            Workspace Active
-                        </span>
+                {% if user.profile_image %}
 
-                    </div>
-
-                </div>
-
-            </header>
-
-
-            <!-- =====================================================
-                 CONTENT
-            ===================================================== -->
-
-            <section class="dashboard-content">
-
-
-                <!-- SECTION HEADING -->
-
-                <div class="section-heading">
-
-                    <div>
-
-                        <div class="section-eyebrow">
-                            ACCOUNT OVERVIEW
-                        </div>
-
-                        <h2>
-                            Your Profile
-                        </h2>
-
-                    </div>
-
-                    <div class="heading-line"></div>
-
-                </div>
-
-
-                <!-- =================================================
-                     PROFILE HERO
-                ================================================= -->
-
-                <div class="profile-card">
-
-
-                    <!-- PROFILE IMAGE -->
-
-                    <div
-                        class="profile-image-wrapper"
-                        id="profile-container"
-                        title="Click to change profile image"
+                    <img
+                        id="profile-display"
+                        src="{{ user.profile_image.url }}"
+                        alt="Profile Image"
                     >
 
-                        <div class="profile-image-ring">
-
-                            {% if user.profile_image %}
-
-                                <img
-                                    id="profile-display"
-                                    src="{{ user.profile_image.url }}"
-                                    alt="Profile Image"
-                                >
-
-                            {% else %}
-
-                                <img
-                                    id="profile-display"
-                                    src="{% static 'images/default-user.png' %}"
-                                    alt="Default Profile Image"
-                                >
-
-                            {% endif %}
-
-                        </div>
-
-
-                        <!-- Hidden File Input -->
-
-                        <input
-                            type="file"
-                            id="profile-input"
-                            class="hidden"
-                            name="profile_image"
-                            accept="image/*"
-                        >
-
-
-                        <!-- Active Status -->
-
-                        <span
-                            id="profile-status-dot"
-                            class="profile-status-dot user-status-dot"
-                            data-user-id="{{ user.id }}"
-                            title="Active"
-                        ></span>
-
-
-                        <!-- Edit Badge -->
-
-                        <span class="profile-edit-badge">
-
-                            <i data-lucide="camera"></i>
-
-                        </span>
-
-                    </div>
-
-
-                    <!-- PROFILE SUMMARY -->
-
-                    <div class="profile-summary">
-
-                        <div class="profile-summary-label">
-                            Team Member
-                        </div>
-
-                        <h2>
-                            {{ user.name }}
-                        </h2>
-
-                        <p class="profile-summary-role">
-                            {{ user.designation|default:user.job_Position }}
-                        </p>
-
-                        <div class="profile-summary-id">
-
-                            <i data-lucide="badge-id-card"></i>
-
-                            <span>
-                                Employee ID:
-                                {{ user.employee_id }}
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <!-- =================================================
-                     PROFILE DETAILS
-                ================================================= -->
-
-                <div class="profile-details-card">
-
-
-                    <!-- CARD HEADING -->
-
-                    <div class="card-heading">
-
-                        <div class="card-icon">
-
-                            <i data-lucide="contact"></i>
-
-                        </div>
-
-                        <div>
-
-                            <h3>
-                                Personal & Work Information
-                            </h3>
-
-                            <p>
-                                Your current information
-                                registered in Cybexel.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- DETAILS GRID -->
-
-                    <div class="details-grid">
-
-
-                        <!-- Full Name -->
-
-                        <div class="detail-item">
-
-                            <div class="detail-label">
-
-                                <i data-lucide="user"></i>
-
-                                <span>
-                                    Full Name
-                                </span>
-
-                            </div>
-
-                            <div class="detail-value">
-                                {{ user.name|default:"Not provided" }}
-                            </div>
-
-                        </div>
-
-
-                        <!-- Employee ID -->
-
-                        <div class="detail-item">
-
-                            <div class="detail-label">
-
-                                <i data-lucide="badge-id-card"></i>
-
-                                <span>
-                                    Employee ID
-                                </span>
-
-                            </div>
-
-                            <div class="detail-value">
-                                {{ user.employee_id|default:"Not provided" }}
-                            </div>
-
-                        </div>
-
-
-                        <!-- Email -->
-
-                        <div class="detail-item">
-
-                            <div class="detail-label">
-
-                                <i data-lucide="mail"></i>
-
-                                <span>
-                                    Email
-                                </span>
-
-                            </div>
-
-                            <div class="detail-value">
-                                {{ user.email|default:"Not provided" }}
-                            </div>
-
-                        </div>
-
-
-                        <!-- Phone -->
-
-                        <div class="detail-item">
-
-                            <div class="detail-label">
-
-                                <i data-lucide="phone"></i>
-
-                                <span>
-                                    Phone
-                                </span>
-
-                            </div>
-
-                            <div class="detail-value">
-                                {{ user.phone|default:"Not provided" }}
-                            </div>
-
-                        </div>
-
-
-                        <!-- Department -->
-
-                        <div class="detail-item">
-
-                            <div class="detail-label">
-
-                                <i data-lucide="building-2"></i>
-
-                                <span>
-                                    Department
-                                </span>
-
-                            </div>
-
-                            <div class="detail-value">
-                                {{ user.department.name|default:"Not assigned" }}
-                            </div>
-
-                        </div>
-
-
-                        <!-- Team -->
-
-                        <div class="detail-item">
-
-                            <div class="detail-label">
-
-                                <i data-lucide="users"></i>
-
-                                <span>
-                                    Team
-                                </span>
-
-                            </div>
-
-                            <div class="detail-value">
-                                {{ user.team.name|default:"Not assigned" }}
-                            </div>
-
-                        </div>
-
-
-                        <!-- Job Position -->
-
-                        <div class="detail-item">
-
-                            <div class="detail-label">
-
-                                <i data-lucide="briefcase-business"></i>
-
-                                <span>
-                                    Job Position
-                                </span>
-
-                            </div>
-
-                            <div class="detail-value">
-                                {{ user.job_Position|default:"Not provided" }}
-                            </div>
-
-                        </div>
-
-
-                        <!-- Designation -->
-
-                        <div class="detail-item">
-
-                            <div class="detail-label">
-
-                                <i data-lucide="award"></i>
-
-                                <span>
-                                    Designation
-                                </span>
-
-                            </div>
-
-                            <div class="detail-value">
-                                {{ user.designation|default:"Not provided" }}
-                            </div>
-
-                        </div>
-
-
-                        <!-- Work Location -->
-
-                        <div class="detail-item">
-
-                            <div class="detail-label">
-
-                                <i data-lucide="map-pin"></i>
-
-                                <span>
-                                    Work Location
-                                </span>
-
-                            </div>
-
-                            <div class="detail-value">
-                                {{ user.work_location|default:"Not provided" }}
-                            </div>
-
-                        </div>
-
-
-                        <!-- Joining Date -->
-
-                        <div class="detail-item">
-
-                            <div class="detail-label">
-
-                                <i data-lucide="calendar-days"></i>
-
-                                <span>
-                                    Joining Date
-                                </span>
-
-                            </div>
-
-                            <div class="detail-value">
-                                {{ user.joining_date|default:"Not provided" }}
-                            </div>
-
-                        </div>
-
-
-                        <!-- Username -->
-
-                        <div class="detail-item">
-
-                            <div class="detail-label">
-
-                                <i data-lucide="at-sign"></i>
-
-                                <span>
-                                    Username
-                                </span>
-
-                            </div>
-
-                            <div class="detail-value">
-                                {{ user.username|default:"Not provided" }}
-                            </div>
-
-                        </div>
-
-
-                    </div>
-
-                </div>
-
-
-                <!-- =================================================
-                     EDIT PROFILE
-                ================================================= -->
-
-                <div class="edit-profile-card">
-
-
-                    <!-- CARD HEADING -->
-
-                    <div class="card-heading">
-
-                        <div class="card-icon">
-
-                            <i data-lucide="user-pen"></i>
-
-                        </div>
-
-                        <div>
-
-                            <h3>
-                                Edit Profile
-                            </h3>
-
-                            <p>
-                                Update the information you
-                                want to change.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- EDIT FORM -->
-
-                    <form
-                        method="POST"
-                        enctype="multipart/form-data"
-                        class="edit-form"
+                {% else %}
+
+                    <img
+                        id="profile-display"
+                        src="{% static 'images/default-user.png' %}"
+                        alt="Default Profile Image"
                     >
 
-                        {% csrf_token %}
+                {% endif %}
 
-                        <input
-                            type="hidden"
-                            name="action"
-                            value="edit_profile"
-                        >
+            </div>
 
 
-                        <!-- Full Name -->
+            <!-- Hidden File Input -->
 
-                        <div class="form-field">
-
-                            <label for="profile-name">
-
-                                <i data-lucide="user"></i>
-
-                                <span>
-                                    Full Name
-                                </span>
-
-                            </label>
-
-                            <input
-                                id="profile-name"
-                                type="text"
-                                name="name"
-                                value="{{ user.name }}"
-                                class="form-input"
-                                autocomplete="name"
-                            >
-
-                        </div>
+            <input
+                type="file"
+                id="profile-input"
+                class="hidden"
+                name="profile_image"
+                accept="image/*"
+            >
 
 
-                        <!-- Email -->
+            <!-- Active Status -->
 
-                        <div class="form-field">
-
-                            <label for="profile-email">
-
-                                <i data-lucide="mail"></i>
-
-                                <span>
-                                    Email
-                                </span>
-
-                            </label>
-
-                            <input
-                                id="profile-email"
-                                type="email"
-                                name="email"
-                                value="{{ user.email }}"
-                                class="form-input"
-                                autocomplete="email"
-                            >
-
-                        </div>
+            <span
+                id="profile-status-dot"
+                class="profile-status-dot user-status-dot"
+                data-user-id="{{ user.id }}"
+                title="Active"
+            ></span>
 
 
-                        <!-- Phone -->
+            <!-- Edit Badge -->
 
-                        <div class="form-field">
+            <span class="profile-edit-badge">
 
-                            <label for="profile-phone">
+                <i data-lucide="camera"></i>
 
-                                <i data-lucide="phone"></i>
-
-                                <span>
-                                    Phone
-                                </span>
-
-                            </label>
-
-                            <input
-                                id="profile-phone"
-                                type="text"
-                                name="phone"
-                                value="{{ user.phone }}"
-                                class="form-input"
-                                autocomplete="tel"
-                            >
-
-                        </div>
-
-
-                        <!-- Username -->
-
-                        <div class="form-field">
-
-                            <label for="profile-username">
-
-                                <i data-lucide="at-sign"></i>
-
-                                <span>
-                                    Username
-                                </span>
-
-                            </label>
-
-                            <input
-                                id="profile-username"
-                                type="text"
-                                value="{{ user.username }}"
-                                class="form-input"
-                                disabled
-                            >
-
-                        </div>
-
-
-                        <!-- SAVE -->
-
-                        <div class="form-actions">
-
-                            <button
-                                type="submit"
-                                class="save-button"
-                            >
-
-                                <span class="button-icon">
-
-                                    <i data-lucide="save"></i>
-
-                                </span>
-
-                                <span>
-                                    Save Changes
-                                </span>
-
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
-
-            </section>
+            </span>
 
         </div>
 
-    </main>
 
 
-    <!-- =========================================================
-         JAVASCRIPT
-    ========================================================= -->
+        <!-- PROFILE SUMMARY -->
 
-    <script>
+        <div class="profile-summary">
 
-        /* =========================================================
-           LUCIDE ICONS
-        ========================================================= */
+            <div class="profile-summary-label">
+                Team Member
+            </div>
 
-        document.addEventListener(
-            "DOMContentLoaded",
-            function () {
+            <h2>
+                {{ user.name }}
+            </h2>
 
-                if (window.lucide) {
+            <p class="profile-summary-role">
+                {{ user.designation|default:user.job_Position }}
+            </p>
 
-                    lucide.createIcons();
+            <div class="profile-summary-id">
 
-                }
+                <i data-lucide="badge-id-card"></i>
 
-            }
-        );
+                <span>
+                    Employee ID:
+                    {{ user.employee_id }}
+                </span>
 
+            </div>
 
-        /* =========================================================
-           MOBILE SIDEBAR
-        ========================================================= */
+        </div>
 
-        document.addEventListener(
-            "DOMContentLoaded",
-            function () {
-
-                const sidebar =
-                    document.getElementById(
-                        "sidebar"
-                    );
-
-                const menuButton =
-                    document.getElementById(
-                        "mobile-menu-button"
-                    );
-
-                const overlay =
-                    document.getElementById(
-                        "sidebar-overlay"
-                    );
+    </div>
 
 
-                function openSidebar() {
 
-                    sidebar.classList.add(
-                        "open"
-                    );
+    <!-- =====================================================
+         PROFILE DETAILS
+    ===================================================== -->
 
-                    overlay.classList.add(
-                        "active"
-                    );
-
-                    document.body.style.overflow =
-                        "hidden";
-                }
+    <div class="profile-details-card">
 
 
-                function closeSidebar() {
+        <!-- CARD HEADING -->
 
-                    sidebar.classList.remove(
-                        "open"
-                    );
+        <div class="card-heading">
 
-                    overlay.classList.remove(
-                        "active"
-                    );
+            <div class="card-icon">
 
-                    document.body.style.overflow =
-                        "";
-                }
+                <i data-lucide="contact"></i>
 
+            </div>
 
-                if (menuButton) {
+            <div>
 
-                    menuButton.addEventListener(
-                        "click",
-                        openSidebar
-                    );
+                <h3>
+                    Personal & Work Information
+                </h3>
 
-                }
+                <p>
+                    Your current information
+                    registered in Cybexel.
+                </p>
 
+            </div>
 
-                if (overlay) {
-
-                    overlay.addEventListener(
-                        "click",
-                        closeSidebar
-                    );
-
-                }
+        </div>
 
 
-                sidebar
-                    .querySelectorAll("a")
-                    .forEach(
-                        function (link) {
 
-                            link.addEventListener(
-                                "click",
-                                function () {
+        <!-- DETAILS GRID -->
 
-                                    if (
-                                        window.innerWidth <= 900
-                                    ) {
-
-                                        closeSidebar();
-
-                                    }
-
-                                }
-                            );
-
-                        }
-                    );
+        <div class="details-grid">
 
 
-                window.addEventListener(
-                    "resize",
-                    function () {
+            <!-- Full Name -->
 
-                        if (
-                            window.innerWidth > 900
-                        ) {
+            <div class="detail-item">
 
-                            closeSidebar();
+                <div class="detail-label">
 
-                        }
+                    <i data-lucide="user"></i>
 
-                    }
+                    <span>
+                        Full Name
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.name|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Employee ID -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="badge-id-card"></i>
+
+                    <span>
+                        Employee ID
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.employee_id|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Email -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="mail"></i>
+
+                    <span>
+                        Email
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.email|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Phone -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="phone"></i>
+
+                    <span>
+                        Phone
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.phone|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Department -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="building-2"></i>
+
+                    <span>
+                        Department
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.department.name|default:"Not assigned" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Team -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="users"></i>
+
+                    <span>
+                        Team
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.team.name|default:"Not assigned" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Job Position -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="briefcase-business"></i>
+
+                    <span>
+                        Job Position
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.job_Position|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Designation -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="award"></i>
+
+                    <span>
+                        Designation
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.designation|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Work Location -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="map-pin"></i>
+
+                    <span>
+                        Work Location
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.work_location|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Joining Date -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="calendar-days"></i>
+
+                    <span>
+                        Joining Date
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.joining_date|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Username -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="at-sign"></i>
+
+                    <span>
+                        Username
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.username|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         EDIT PROFILE
+    ===================================================== -->
+
+    <div class="edit-profile-card">
+
+
+        <!-- CARD HEADING -->
+
+        <div class="card-heading">
+
+            <div class="card-icon">
+
+                <i data-lucide="user-pen"></i>
+
+            </div>
+
+            <div>
+
+                <h3>
+                    Edit Profile
+                </h3>
+
+                <p>
+                    Update the information you
+                    want to change.
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- EDIT FORM -->
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            class="edit-form"
+        >
+
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="action"
+                value="edit_profile"
+            >
+
+
+            <!-- Full Name -->
+
+            <div class="form-field">
+
+                <label for="profile-name">
+
+                    <i data-lucide="user"></i>
+
+                    <span>
+                        Full Name
+                    </span>
+
+                </label>
+
+                <input
+                    id="profile-name"
+                    type="text"
+                    name="name"
+                    value="{{ user.name }}"
+                    class="form-input"
+                    autocomplete="name"
+                >
+
+            </div>
+
+
+
+            <!-- Email -->
+
+            <div class="form-field">
+
+                <label for="profile-email">
+
+                    <i data-lucide="mail"></i>
+
+                    <span>
+                        Email
+                    </span>
+
+                </label>
+
+                <input
+                    id="profile-email"
+                    type="email"
+                    name="email"
+                    value="{{ user.email }}"
+                    class="form-input"
+                    autocomplete="email"
+                >
+
+            </div>
+
+
+
+            <!-- Phone -->
+
+            <div class="form-field">
+
+                <label for="profile-phone">
+
+                    <i data-lucide="phone"></i>
+
+                    <span>
+                        Phone
+                    </span>
+
+                </label>
+
+                <input
+                    id="profile-phone"
+                    type="text"
+                    name="phone"
+                    value="{{ user.phone }}"
+                    class="form-input"
+                    autocomplete="tel"
+                >
+
+            </div>
+
+
+
+            <!-- Username -->
+
+            <div class="form-field">
+
+                <label for="profile-username">
+
+                    <i data-lucide="at-sign"></i>
+
+                    <span>
+                        Username
+                    </span>
+
+                </label>
+
+                <input
+                    id="profile-username"
+                    type="text"
+                    value="{{ user.username }}"
+                    class="form-input"
+                    disabled
+                >
+
+            </div>
+
+
+
+            <!-- SAVE -->
+
+            <div class="form-actions">
+
+                <button
+                    type="submit"
+                    class="save-button"
+                >
+
+                    <span class="button-icon">
+
+                        <i data-lucide="save"></i>
+
+                    </span>
+
+                    <span>
+                        Save Changes
+                    </span>
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+</section>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script>
+
+    /* =========================================================
+       PROFILE IMAGE UPLOAD
+    ========================================================= */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const profileDisplay =
+                document.getElementById(
+                    "profile-display"
                 );
 
+            const profileInput =
+                document.getElementById(
+                    "profile-input"
+                );
+
+            const profileContainer =
+                document.getElementById(
+                    "profile-container"
+                );
+
+
+            if (
+                !profileDisplay ||
+                !profileInput ||
+                !profileContainer
+            ) {
+
+                return;
+
             }
-        );
 
 
-        /* =========================================================
-           PROFILE IMAGE UPLOAD
-        ========================================================= */
+            /* =================================================
+               OPEN FILE SELECTOR
+            ================================================= */
 
-        const profileDisplay =
-            document.getElementById(
-                "profile-display"
-            );
-
-        const profileInput =
-            document.getElementById(
-                "profile-input"
-            );
-
-        const profileContainer =
-            document.getElementById(
-                "profile-container"
-            );
-
-
-        if (
-            profileDisplay &&
-            profileInput
-        ) {
-
-
-            profileDisplay.addEventListener(
+            profileContainer.addEventListener(
                 "click",
-                function () {
+                function (event) {
+
+                    /*
+                     * Prevent duplicate click handling.
+                     */
+
+                    if (
+                        event.target.closest(
+                            "#profile-input"
+                        )
+                    ) {
+
+                        return;
+
+                    }
 
                     profileInput.click();
 
@@ -3042,29 +1526,9 @@
             );
 
 
-            if (profileContainer) {
-
-                profileContainer.addEventListener(
-                    "click",
-                    function (event) {
-
-                        if (
-                            event.target ===
-                                profileContainer ||
-
-                            event.target ===
-                                profileDisplay
-                        ) {
-
-                            profileInput.click();
-
-                        }
-
-                    }
-                );
-
-            }
-
+            /* =================================================
+               FILE CHANGE
+            ================================================= */
 
             profileInput.addEventListener(
                 "change",
@@ -3110,12 +1574,10 @@
                         file
                     );
 
-
                     formData.append(
                         "action",
                         "edit_profile"
                     );
-
 
                     formData.append(
                         "csrfmiddlewaretoken",
@@ -3126,6 +1588,10 @@
                     profileContainer.style.opacity =
                         "0.65";
 
+
+                    /* =================================================
+                       UPLOAD
+                    ================================================= */
 
                     fetch(
                         "{% url 'teammember_profile' %}",
@@ -3142,9 +1608,17 @@
                     )
 
                     .then(
-                        function (res) {
+                        function (response) {
 
-                            return res.json();
+                            if (!response.ok) {
+
+                                throw new Error(
+                                    "Upload request failed."
+                                );
+
+                            }
+
+                            return response.json();
 
                         }
                     )
@@ -3155,16 +1629,16 @@
                             if (data.success) {
 
                                 profileDisplay.src =
-                                    data.image_url;
+                                    data.image_url +
+                                    "?t=" +
+                                    Date.now();
 
                                 showProfileToast(
                                     "Profile image updated successfully.",
                                     false
                                 );
 
-                            }
-
-                            else {
+                            } else {
 
                                 showProfileToast(
                                     data.error ||
@@ -3178,11 +1652,11 @@
                     )
 
                     .catch(
-                        function (err) {
+                        function (error) {
 
                             console.error(
                                 "Profile image upload error:",
-                                err
+                                error
                             );
 
                             showProfileToast(
@@ -3199,8 +1673,7 @@
                             profileContainer.style.opacity =
                                 "1";
 
-                            profileInput.value =
-                                "";
+                            profileInput.value = "";
 
                         }
                     );
@@ -3209,218 +1682,132 @@
             );
 
         }
+    );
 
 
-        /* =========================================================
-           PROFILE TOAST
-        ========================================================= */
+    /* =========================================================
+       PROFILE TOAST
+       Uses the common toast container from base.html
+    ========================================================= */
 
-        function showProfileToast(
-            message,
+    function showProfileToast(
+        message,
+        isError
+    ) {
+
+        const container =
+            document.getElementById(
+                "toast-container"
+            );
+
+
+        if (!container) {
+
+            return;
+
+        }
+
+
+        const toast =
+            document.createElement(
+                "div"
+            );
+
+        toast.className =
+            "toast-message";
+
+
+        const icon =
+            document.createElement(
+                "i"
+            );
+
+        icon.setAttribute(
+            "data-lucide",
             isError
-        ) {
+                ? "circle-alert"
+                : "circle-check"
+        );
 
-            const container =
-                document.getElementById(
-                    "toast-container"
-                );
-
-
-            if (!container) {
-
-                return;
-
-            }
+        icon.className =
+            "toast-icon";
 
 
-            const toast =
-                document.createElement(
-                    "div"
-                );
-
-            toast.className =
-                "toast-message";
-
-
-            const icon =
-                document.createElement(
-                    "i"
-                );
-
-            icon.setAttribute(
-                "data-lucide",
-                isError
-                    ? "circle-alert"
-                    : "circle-check"
+        const text =
+            document.createElement(
+                "span"
             );
 
-            icon.className =
-                "toast-icon";
+        text.className =
+            "toast-text";
+
+        text.textContent =
+            message;
 
 
-            const text =
-                document.createElement(
-                    "span"
-                );
-
-            text.className =
-                "toast-text";
-
-            text.textContent =
-                message;
-
-
-            const close =
-                document.createElement(
-                    "button"
-                );
-
-            close.type =
-                "button";
-
-            close.className =
-                "toast-close";
-
-            close.innerHTML =
-                "×";
-
-            close.setAttribute(
-                "aria-label",
-                "Close notification"
+        const close =
+            document.createElement(
+                "button"
             );
 
+        close.type =
+            "button";
 
-            close.addEventListener(
-                "click",
-                function () {
+        close.className =
+            "toast-close";
 
-                    removeToast(toast);
+        close.innerHTML =
+            "×";
 
-                }
-            );
-
-
-            toast.appendChild(icon);
-
-            toast.appendChild(text);
-
-            toast.appendChild(close);
-
-            container.appendChild(toast);
+        close.setAttribute(
+            "aria-label",
+            "Close notification"
+        );
 
 
-            if (window.lucide) {
-
-                lucide.createIcons({
-                    attrs: {
-                        "stroke-width": 2
-                    }
-                });
-
-            }
-
-
-            setTimeout(
-                function () {
-
-                    removeToast(toast);
-
-                },
-                4000
-            );
-
-        }
-
-
-        /* =========================================================
-           REMOVE TOAST
-        ========================================================= */
-
-        function removeToast(toast) {
-
-            if (!toast) {
-
-                return;
-
-            }
-
-
-            toast.classList.add(
-                "toast-hide"
-            );
-
-
-            setTimeout(
-                function () {
-
-                    if (
-                        toast.parentElement
-                    ) {
-
-                        toast.remove();
-
-                    }
-
-                },
-                350
-            );
-
-        }
-
-
-        /* =========================================================
-           DJANGO MESSAGE AUTO HIDE
-        ========================================================= */
-
-        document.addEventListener(
-            "DOMContentLoaded",
+        close.addEventListener(
+            "click",
             function () {
 
-                const toasts =
-                    document.querySelectorAll(
-                        ".toast-message"
-                    );
-
-
-                toasts.forEach(
-                    function (toast) {
-
-                        setTimeout(
-                            function () {
-
-                                if (
-                                    toast.parentElement
-                                ) {
-
-                                    removeToast(
-                                        toast
-                                    );
-
-                                }
-
-                            },
-                            4000
-                        );
-
-                    }
-                );
+                removeToast(toast);
 
             }
         );
 
-    </script>
+
+        toast.appendChild(icon);
+        toast.appendChild(text);
+        toast.appendChild(close);
+
+        container.appendChild(toast);
 
 
-    <!-- Existing Team Member JS -->
+        /* Refresh Lucide icon */
 
-    <script src="{% static 'js/team_member.js' %}"></script>
+        if (window.lucide) {
+
+            lucide.createIcons({
+                attrs: {
+                    "stroke-width": 2
+                }
+            });
+
+        }
 
 
-    <!-- Existing Activity JS -->
+        /* Auto hide */
 
-    <script src="{% static 'js/activity.js' %}"></script>
+        setTimeout(
+            function () {
 
+                removeToast(toast);
 
-</body>
+            },
+            4000
+        );
 
-</html>
+    }
+
+</script>
+
+{% endblock %}
