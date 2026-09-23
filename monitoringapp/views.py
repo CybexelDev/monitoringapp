@@ -103,6 +103,12 @@ def delete_team(request, pk):
 @csrf_exempt
 def admin_usermanagement(request):
     users = User.objects.all()
+
+    # Hide currently logged-in management/admin user
+    current_user_id = request.session.get("user_id")
+
+    if current_user_id:
+        users = users.exclude(id=current_user_id)
     departments = Department.objects.all()
     teams = Team.objects.all()
     job_positions = (
@@ -356,11 +362,15 @@ def delete_user(request, id):
 
 
 
+
 @never_cache
 def admin_reports(request):
     show_all = request.GET.get('all')
     export = request.GET.get('export')
     filter_date = request.GET.get('date')
+
+    if filter_date in (None, "", "None"):
+        filter_date = None
 
     # Determine report queryset
     if show_all:
@@ -711,7 +721,14 @@ def teamlead_dashboard(request):
     # ------------------------------
     # 🧩 Team Member Filters
     # ------------------------------
-    team_members_qs = User.objects.filter(team=team_lead.team).exclude(id=team_lead.id)
+    # team_members_qs = User.objects.filter(team=team_lead.team).exclude(id=team_lead.id)
+    team_members_qs = User.objects.filter(
+    department=team_lead.department,
+    designation=team_lead.designation,
+    job_Position__iexact="Team Member"
+).exclude(
+    id=team_lead.id
+)
 
     # Get filters from GET request
     search = request.GET.get("search", "").strip()
