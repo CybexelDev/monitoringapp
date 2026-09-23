@@ -1,511 +1,1385 @@
 {% load static %}
-{% load tz %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Team Lead Dashboard - Cybexel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
-  <style>
-.toast-message {
-    animation: toastSlideIn 0.35s ease-out;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-.toast-message.toast-hide {
-    animation: toastSlideOut 0.35s ease-in forwards;
-}
+    <title>Team Lead Profile - Cybexel</title>
 
-@keyframes toastSlideIn {
-    from {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
+    <script src="https://cdn.tailwindcss.com"></script>
 
-@keyframes toastSlideOut {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(100%);
-    }
-}
-</style>
-</head>
-<body class="bg-black text-white font-sans select-none">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-<div id="sidebar" 
-     class="fixed top-0 left-0 h-full w-64 bg-[#250f1e] overflow-y-auto text-white p-6 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-  
-  <div class="flex items-center justify-between mb-6">
-    <div class="w-full flex justify-center select-none">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 object-contain">
-    </div>
-    <button class="menu-toggle md:hidden text-white text-2xl max-md:mt-[-9rem]">&times;</button>
-  </div>
-  
-  <nav class="select-none">
-    <ul class="space-y-8 text-sm">
-      <li><a href="{% url 'teamlead_dashboard' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Team Lead Dashboard</a></li>
-      <li><a href="{% url 'teamlead_reports' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Reports</a></li>
-      <li><a href="{% url 'teamlead_project_assigning' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">Project Assigning</a></li>
-      <li><a href="{% url 'teamlead_notepad' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Notepad</a></li>
-      <li><a href="{% url 'teamlead_repository' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Knowledge Repository</a></li>
-      <li><a href="{% url 'teamlead_profile' %}" class="block py-2 px-4 rounded bg-white text-black">Profile</a></li>
-      <li><a href="{% url 'teamlead_task' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">My task</a></li>
-      
-      <li><a href="{% url 'teamlead_chat' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Chat</a></li>
-      <li>
-      <a href="https://meet.google.com/" target="_blank" class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-    </li>
-      <li>
-        <a href="{% url 'teamlead_logout' %}" class="block py-2 px-4 rounded bg-[red] text-white">Logout</a>
-      </li>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 
-    </ul>
-  </nav>
-</div>
+    <style>
+
+        /* =========================================================
+           PROFILE PAGE
+           SAME DASHBOARD UI
+        ========================================================= */
+
+        .profile-content {
+            padding: 38px 0 35px;
+        }
+
+        /* ---------------------------------------------------------
+           PROFILE TOP CARD
+        --------------------------------------------------------- */
+
+        .profile-main-card {
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr);
+            gap: 28px;
+
+            padding: 28px;
+
+            border-radius: 23px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.20),
+                inset 0 1px 0 rgba(255,255,255,0.035);
+
+            transition:
+                border-color 0.25s ease,
+                transform 0.25s ease;
+        }
+
+        .profile-main-card:hover {
+            border-color:
+                rgba(139, 92, 246, 0.23);
+
+            transform: translateY(-2px);
+        }
 
 
-<button class="menu-toggle md:hidden fixed top-8 left-4 z-50 text-white p-2 rounded shadow-lg">
-  &#9776;
-</button>
+        /* ---------------------------------------------------------
+           PROFILE IMAGE AREA
+        --------------------------------------------------------- */
 
+        .profile-image-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
 
+            padding: 8px;
+        }
 
+        .profile-image-wrapper {
+            position: relative;
 
+            width: 150px;
+            height: 150px;
 
+            cursor: pointer;
+        }
 
+        .profile-image-wrapper::before {
+            content: "";
 
+            position: absolute;
 
-<div class="ml-0 md:ml-64 p-6 max-md:mt-20">
-  <h1 class="text-2xl font-bold mb-6">My Profile</h1>
+            inset: -8px;
 
-  <!-- Profile Display Section -->
-  <div class="bg-[#250f1e]/70 rounded-2xl p-6 shadow-lg flex flex-col md:flex-row gap-6 items-center">
+            border-radius: 50%;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(139, 92, 246, 0.45),
+                    rgba(56, 189, 248, 0.25)
+                );
+
+            filter: blur(12px);
+
+            opacity: 0.45;
+
+            pointer-events: none;
+        }
+
+        .profile-image-wrapper img {
+            position: relative;
+            z-index: 2;
+
+            width: 150px;
+            height: 150px;
+
+            object-fit: cover;
+
+            border-radius: 50%;
+
+            border:
+                4px solid rgba(139, 92, 246, 0.85);
+
+            box-shadow:
+                0 15px 40px rgba(0, 0, 0, 0.40),
+                0 0 0 1px rgba(255,255,255,0.08);
+        }
+
+/* ---------------------------------------------------------
+   PROFILE STATUS — GREEN DOT
+--------------------------------------------------------- */
+
+.profile-status {
+    position: absolute;
+
     
-<!-- Clickable Profile Image -->
-<div class="flex-shrink-0 relative cursor-pointer" id="profile-container">
-  {% if user.profile_image %}
-    <img id="profile-display" src="{{ user.profile_image.url }}" class="w-32 h-32 rounded-full object-cover border-4 border-purple-600">
-  {% else %}
-    <img id="profile-display" src="{% static 'images/default-user.png' %}" class="w-32 h-32 rounded-full object-cover border-4 border-purple-600">
-  {% endif %}
-  
-  <input type="file" id="profile-input" class="hidden" name="profile_image">
-  <!-- Active / Inactive Status Dot -->
-<span
-  id="profile-status-dot"
-  class="user-status-dot absolute bottom-2 right-2 w-4 h-4 rounded-full border-2 border-white bg-green-500"
-  data-user-id="{{ user.id }}"
-  title="Active">
-</span>
-  
-  <!-- SVG icon instead of "Edit" -->
-  <span class="absolute bottom-0 right-0 bg-purple-600 text-white p-2 rounded-full pointer-events-none">
-    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-      <path fill-rule="evenodd" d="M7.598 4.487c.267-1.31 1.433-2.237 2.768-2.237h3.268c1.335 0 2.5.927 2.768 2.237a.656.656 0 0 0 .62.524h.033c1.403.062 2.481.234 3.381.825c.567.372 1.055.85 1.435 1.409c.473.694.681 1.492.781 2.456c.098.943.098 2.124.098 3.62v.085c0 1.496 0 2.678-.098 3.62c-.1.964-.308 1.762-.781 2.457a5.2 5.2 0 0 1-1.435 1.409c-.703.461-1.51.665-2.488.762c-.958.096-2.159.096-3.685.096H9.737c-1.526 0-2.727 0-3.685-.096c-.978-.097-1.785-.3-2.488-.762a5.2 5.2 0 0 1-1.435-1.41c-.473-.694-.681-1.492-.781-2.456c-.098-.942-.098-2.124-.098-3.62v-.085c0-1.496 0-2.677.098-3.62c.1-.964.308-1.762.781-2.456a5.2 5.2 0 0 1 1.435-1.41c.9-.59 1.978-.762 3.381-.823l.017-.001h.016a.656.656 0 0 0 .62-.524m2.768-.737c-.64 0-1.177.443-1.298 1.036c-.195.96-1.047 1.716-2.072 1.725c-1.348.06-2.07.225-2.61.579a3.7 3.7 0 0 0-1.017.999c-.276.405-.442.924-.53 1.767c-.088.856-.089 1.96-.089 3.508s0 2.651.09 3.507c.087.843.253 1.362.53 1.768c.268.394.613.734 1.017.999c.417.273.951.438 1.814.524c.874.087 2 .088 3.577.088h4.444c1.576 0 2.702 0 3.577-.088c.863-.086 1.397-.25 1.814-.524c.404-.265.75-.605 1.018-1c.276-.405.442-.924.53-1.767c.088-.856.089-1.96.089-3.507s0-2.652-.09-3.508c-.087-.843-.253-1.362-.53-1.767a3.7 3.7 0 0 0-1.017-1c-.538-.353-1.26-.518-2.61-.578c-1.024-.01-1.876-.764-2.071-1.725a1.314 1.314 0 0 0-1.298-1.036zm1.634 7a2.25 2.25 0 1 0 0 4.5a2.25 2.25 0 0 0 0-4.5M8.25 13a3.75 3.75 0 1 1 7.5 0a3.75 3.75 0 0 1-7.5 0m9-3a.75.75 0 0 1 .75-.75h1a.75.75 0 0 1 0 1.5h-1a.75.75 0 0 1-.75-.75" clip-rule="evenodd"/>
-    </svg>
-  </span>
-</div>
+    left: 20px;
+    bottom: 9px;
+
+    z-index: 10;
+
+    width: 18px;
+    height: 18px;
+
+    border-radius: 50%;
+
+    background: #4ade80;
+
+    border: 3px solid #17151e;
+
+    box-shadow:
+        0 0 14px rgba(74, 222, 128, 0.9);
+}
+
+/* ---------------------------------------------------------
+   EDIT CAMERA BUTTON
+--------------------------------------------------------- */
+
+.profile-camera {
+    position: absolute;
+
+    right: -2px;
+    bottom: 12px;
+
+    z-index: 6;
+
+    width: 39px;
+    height: 39px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    color: #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7c4bd4,
+            #5b32a7
+        );
+
+    border:
+        2px solid #181620;
+
+    box-shadow:
+        0 8px 22px rgba(124,75,212,0.35);
+
+    pointer-events: none;
+}
+
+.profile-camera svg {
+    width: 18px;
+    height: 18px;
+}
 
 
+        /* ---------------------------------------------------------
+           PROFILE IMAGE TEXT
+        --------------------------------------------------------- */
 
-    <!-- Profile Details -->
-    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-      <p><span class="font-semibold">Full Name:</span> {{ user.name }}</p>
-      <p><span class="font-semibold">Employee ID:</span> {{ user.employee_id }}</p>
-      <p><span class="font-semibold">Email:</span> {{ user.email }}</p>
-      <p><span class="font-semibold">Phone:</span> {{ user.phone }}</p>
-      <p><span class="font-semibold">Department:</span> {{ user.department.name }}</p>
-      <p><span class="font-semibold">Team:</span> {{ user.team.name }}</p>
-      <p><span class="font-semibold">Job Position:</span> {{ user.job_Position }}</p>
-      <p><span class="font-semibold">Designation:</span> {{ user.designation }}</p>
-      <p><span class="font-semibold">Work Location:</span> {{ user.work_location }}</p>
-      <p><span class="font-semibold">Joining Date:</span> {{ user.joining_date }}</p>
-      <p><span class="font-semibold">Username:</span> {{ user.username }}</p>
-    </div>
-  </div>
+        .profile-image-hint {
+            margin-top: 18px;
 
-  <!-- Edit Profile Form (other details) -->
-  <div class="mt-8 bg-[#250f1e]/70 rounded-2xl p-6 shadow-lg">
-    <h2 class="text-xl font-semibold mb-4">Edit Profile</h2>
-    <form method="POST" class="space-y-4">
-      {% csrf_token %}
-      <input type="hidden" name="action" value="edit_profile">
+            color: #77727f;
 
-      <div>
-        <label class="block mb-1">Full Name</label>
-        <input type="text" name="name" value="{{ user.name }}" class="w-full p-2 rounded bg-black border border-gray-600 text-white">
-      </div>
-      <div>
-        <label class="block mb-1">Email</label>
-        <input type="email" name="email" value="{{ user.email }}" class="w-full p-2 rounded bg-black border border-gray-600 text-white">
-      </div>
-      <div>
-        <label class="block mb-1">Phone</label>
-        <input type="text" name="phone" value="{{ user.phone }}" class="w-full p-2 rounded bg-black border border-gray-600 text-white">
-      </div>
+            font-size: 10px;
 
-      <button type="submit" class="px-4 py-2 bg-purple-600 rounded hover:bg-purple-700">Save Changes</button>
-    </form>
-  </div>
-</div>
+            text-align: center;
+
+            line-height: 1.5;
+        }
 
 
-<!-- <script>
-  const profileDisplay = document.getElementById("profile-display");
-const profileInput = document.getElementById("profile-input");
+        /* ---------------------------------------------------------
+           PROFILE DETAILS
+        --------------------------------------------------------- */
 
-// Click image (or container) to open file input
-document.getElementById("profile-container").addEventListener("click", () => {
-  profileInput.click();
-});
+        .profile-details {
+            min-width: 0;
+        }
 
-// AJAX upload
-profileInput.addEventListener("change", () => {
-  const file = profileInput.files[0];
-  if (!file) return;
+        .profile-details-heading {
+            display: flex;
+            align-items: center;
+            gap: 14px;
 
-  const formData = new FormData();
-  formData.append("profile_image", file);
-  formData.append("action", "edit_profile");
-  formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+            margin-bottom: 24px;
+        }
 
-  fetch("{% url 'teamlead_profile' %}", {
-    method: "POST",
-    body: formData,
-    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      profileDisplay.src = data.image_url;
-    } else {
-      alert(data.error || "Failed to update image.");
-    }
-  })
-  .catch(err => console.error(err));
-});
+        .profile-details-icon {
+            width: 52px;
+            height: 52px;
 
-</script> -->
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 16px;
+
+            color: #c4b5fd;
+
+            background:
+                rgba(139, 92, 246, 0.11);
+
+            border:
+                1px solid rgba(139, 92, 246, 0.30);
+        }
+
+        .profile-details-icon svg {
+            width: 23px;
+            height: 23px;
+        }
+
+        .profile-details-heading h3 {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 18px;
+
+            font-weight: 800;
+        }
+
+        .profile-details-heading p {
+            margin: 5px 0 0;
+
+            color: #8f8c96;
+
+            font-size: 11px;
+        }
+
+
+        /* ---------------------------------------------------------
+           DETAILS GRID
+        --------------------------------------------------------- */
+
+        .profile-info-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 12px;
+        }
+
+        .profile-info-item {
+            min-width: 0;
+
+            padding: 15px 16px;
+
+            border-radius: 14px;
+
+            background:
+                rgba(7, 7, 11, 0.42);
+
+            border:
+                1px solid rgba(255,255,255,0.07);
+        }
+
+        .profile-info-label {
+            display: block;
+
+            margin-bottom: 6px;
+
+            color: #77727f;
+
+            font-size: 9px;
+
+            font-weight: 800;
+
+            letter-spacing: 1.4px;
+
+            text-transform: uppercase;
+        }
+
+        .profile-info-value {
+            display: block;
+
+            color: #dedbe2;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+
+        /* ---------------------------------------------------------
+           EDIT PROFILE CARD
+        --------------------------------------------------------- */
+
+        .profile-edit-card {
+            margin-top: 22px;
+
+            padding: 26px;
+
+            border-radius: 23px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+
+            border:
+                1px solid rgba(255,255,255,0.09);
+
+            box-shadow:
+                0 20px 50px rgba(0,0,0,0.20),
+                inset 0 1px 0 rgba(255,255,255,0.035);
+        }
+
+        .profile-edit-heading {
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+
+            margin-bottom: 24px;
+        }
+
+        .profile-edit-icon {
+            width: 52px;
+            height: 52px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 16px;
+
+            color: #67d5ff;
+
+            background:
+                rgba(56,189,248,0.09);
+
+            border:
+                1px solid rgba(56,189,248,0.25);
+        }
+
+        .profile-edit-icon svg {
+            width: 23px;
+            height: 23px;
+        }
+
+        .profile-edit-heading h3 {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 18px;
+
+            font-weight: 800;
+        }
+
+        .profile-edit-heading p {
+            margin: 5px 0 0;
+
+            color: #8f8c96;
+
+            font-size: 11px;
+        }
+
+
+        /* ---------------------------------------------------------
+           EDIT FORM
+        --------------------------------------------------------- */
+
+        .profile-form-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 17px;
+        }
+
+        .profile-form-group {
+            min-width: 0;
+        }
+
+        .profile-form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .profile-form-group label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            color: #8f8c96;
+
+            font-size: 10px;
+
+            font-weight: 700;
+        }
+
+        .profile-form-input {
+            width: 100%;
+
+            height: 52px;
+
+            padding:
+                0 15px;
+
+            border-radius: 14px;
+
+            outline: none;
+
+            color: #ffffff;
+
+            background:
+                rgba(7,7,11,0.50);
+
+            border:
+                1px solid rgba(255,255,255,0.10);
+
+            font-size: 12px;
+
+            transition:
+                border-color .25s ease,
+                box-shadow .25s ease;
+        }
+
+        .profile-form-input::placeholder {
+            color: #77737e;
+        }
+
+        .profile-form-input:focus {
+            border-color:
+                rgba(139,92,246,0.55);
+
+            box-shadow:
+                0 0 0 3px rgba(139,92,246,0.08);
+        }
+
+
+        /* ---------------------------------------------------------
+           SAVE BUTTON
+        --------------------------------------------------------- */
+
+        .profile-save-wrapper {
+            display: flex;
+
+            justify-content: flex-end;
+
+            margin-top: 22px;
+        }
+
+        .profile-save-button {
+            min-height: 50px;
+
+            padding:
+                0 24px;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            border: none;
+
+            border-radius: 14px;
+
+            cursor: pointer;
+
+            color: #ffffff;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #7c4bd4,
+                    #5b32a7
+                );
+
+            box-shadow:
+                0 10px 25px rgba(124,75,212,0.18),
+                inset 0 1px 0 rgba(255,255,255,0.16);
+
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease;
+        }
+
+        .profile-save-button:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 14px 30px rgba(124,75,212,0.28),
+                inset 0 1px 0 rgba(255,255,255,0.16);
+        }
+
+        .profile-save-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+
+        /* ---------------------------------------------------------
+           RESPONSIVE
+        --------------------------------------------------------- */
+
+        @media (max-width: 1100px) {
+
+            .profile-main-card {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-image-section {
+                padding-bottom: 10px;
+            }
+
+        }
+
+
+        @media (max-width: 768px) {
+
+            .profile-content {
+                padding:
+                    28px 2px;
+            }
+
+            .profile-main-card {
+                padding: 18px;
+
+                border-radius: 20px;
+
+                gap: 20px;
+            }
+
+            .profile-edit-card {
+                padding: 18px;
+
+                border-radius: 20px;
+            }
+
+            .profile-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-form-group.full-width {
+                grid-column: auto;
+            }
+
+            .profile-save-wrapper {
+                justify-content: stretch;
+            }
+
+            .profile-save-button {
+                width: 100%;
+            }
+
+        }
+
+
+        @media (max-width: 480px) {
+
+            .profile-main-card {
+                padding: 15px;
+            }
+
+            .profile-edit-card {
+                padding: 15px;
+            }
+
+            .profile-image-wrapper,
+            .profile-image-wrapper img {
+                width: 130px;
+                height: 130px;
+            }
+
+            .profile-image-wrapper {
+                margin: 0 auto;
+            }
+
+            .profile-info-item {
+                padding: 13px 14px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
 <!-- =========================================================
-     TOAST CONTAINER
+     MOBILE MENU BUTTON
 ========================================================= -->
 
-<div id="toast-container"
-     class="fixed bottom-5 right-5 z-[9999] space-y-3 w-[350px] max-w-[calc(100%-2rem)]">
 
-    {% if messages %}
 
-        {% for message in messages %}
 
-            <div class="toast-message flex items-center gap-3
-                        bg-[#250f1e] text-white
-                        border border-purple-600
-                        px-5 py-4 rounded-lg
-                        shadow-2xl">
+<!-- =========================================================
+     LEFT SIDEBAR
+========================================================= -->
 
-                {% if message.tags == "error" %}
 
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-6 h-6 flex-shrink-0 text-red-400"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
 
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M6 18L18 6M6 6l12 12"/>
 
-                    </svg>
 
-                {% else %}
 
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-6 h-6 flex-shrink-0 text-green-400"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
+<button class="menu-toggle mobile-menu-button" type="button">☰</button>
 
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M5 13l4 4L19 7"/>
+  {% include "components/teamlead_sidebar.html" %}
 
-                    </svg>
+<!-- =========================================================
+     MAIN AREA
+========================================================= -->
 
-                {% endif %}
+<main class="main-area">
 
-                <span class="flex-1 text-sm font-medium">
-                    {{ message }}
-                </span>
 
-                <button type="button"
-                        onclick="removeToast(this.parentElement)"
-                        class="text-gray-300 hover:text-white text-xl leading-none">
+    <!-- =====================================================
+         SAME BIG DASHBOARD BOX
+         ONLY THIS BOX SCROLLS
+    ====================================================== -->
 
-                    &times;
+    <div class="dashboard-box">
 
-                </button>
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <section class="dashboard-header">
+
+            <div class="dashboard-header-content">
+
+                <div>
+
+                    <div class="dashboard-eyebrow">
+                        CYBEXEL TEAM LEAD PANEL
+                    </div>
+
+                    <h1>
+                        TEAM LEAD PROFILE
+                    </h1>
+
+                    <p>
+                        Manage your profile information and account details.
+                    </p>
+
+                </div>
+
+
+                <!-- System Status -->
+
+                <div class="system-status">
+
+                    <span class="status-dot"></span>
+
+                    <span>
+                        System Online
+                    </span>
+
+                </div>
 
             </div>
 
-        {% endfor %}
+        </section>
 
-    {% endif %}
 
-</div>
+
+        <!-- =================================================
+             PROFILE CONTENT
+        ================================================== -->
+
+        <section class="profile-content">
+
+
+            <!-- =================================================
+                 SECTION HEADING
+            ================================================== -->
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-eyebrow">
+                        ACCOUNT
+                    </span>
+
+                    <h2>
+                        My Profile
+                    </h2>
+
+                </div>
+
+                <div class="heading-line"></div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 PROFILE MAIN CARD
+            ================================================== -->
+
+            <div class="profile-main-card">
+
+
+                <!-- PROFILE IMAGE -->
+
+                <div class="profile-image-section">
+
+                    <div
+                        class="profile-image-wrapper"
+                        id="profile-container"
+                    >
+
+                        {% if user.profile_image %}
+
+                            <img
+                                id="profile-display"
+                                src="{{ user.profile_image.url }}"
+                                alt="Profile Image"
+                            >
+
+                        {% else %}
+
+                            <img
+                                id="profile-display"
+                                src="{% static 'images/default-user.png' %}"
+                                alt="Profile Image"
+                            >
+
+                        {% endif %}
+
+
+                        <input
+                            type="file"
+                            id="profile-input"
+                            class="hidden"
+                            name="profile_image"
+                            accept="image/*"
+                        >
+
+
+                        <!-- Status -->
+
+                        <span
+                            id="profile-status-dot"
+                            class="profile-status"
+                            data-user-id="{{ user.id }}"
+                            title="Active"
+                        ></span>
+
+
+                        <!-- Camera -->
+
+                        <span class="profile-camera">
+
+                            <i data-lucide="camera"></i>
+
+                        </span>
+
+                    </div>
+
+
+                    <div class="profile-image-hint">
+                        Click the image to change your profile photo
+                    </div>
+
+                </div>
+
+
+
+                <!-- PROFILE DETAILS -->
+
+                <div class="profile-details">
+
+
+                    <div class="profile-details-heading">
+
+                        <div class="profile-details-icon">
+
+                            <i data-lucide="circle-user-round"></i>
+
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Personal Information
+                            </h3>
+
+                            <p>
+                                Your current account information
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="profile-info-grid">
+
+
+                        <!-- Full Name -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Full Name
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.name|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Employee ID -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Employee ID
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.employee_id|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Email -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Email
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.email|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Phone -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Phone
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.phone|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Department -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Department
+                            </span>
+
+                            <span class="profile-info-value">
+
+                                {% if user.department %}
+                                    {{ user.department.name }}
+                                {% else %}
+                                    Not assigned
+                                {% endif %}
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- Team -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Team
+                            </span>
+
+                            <span class="profile-info-value">
+
+                                {% if user.team %}
+                                    {{ user.team.name }}
+                                {% else %}
+                                    Not assigned
+                                {% endif %}
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- Job Position -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Job Position
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.job_Position|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Designation -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Designation
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.designation|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Work Location -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Work Location
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.work_location|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Joining Date -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Joining Date
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.joining_date|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Username -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Username
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.username|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 EDIT PROFILE
+            ================================================== -->
+
+            <div class="profile-edit-card">
+
+
+                <div class="profile-edit-heading">
+
+                    <div class="profile-edit-icon">
+
+                        <i data-lucide="user-pen"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h3>
+                            Edit Profile
+                        </h3>
+
+                        <p>
+                            Update your basic profile information
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+
+                <form
+                    method="POST"
+                    class="profile-form"
+                >
+
+                    {% csrf_token %}
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="edit_profile"
+                    >
+
+
+                    <div class="profile-form-grid">
+
+
+                        <!-- Full Name -->
+
+                        <div class="profile-form-group">
+
+                            <label>
+                                Full Name
+                            </label>
+
+                            <input
+                                type="text"
+                                name="name"
+                                value="{{ user.name }}"
+                                class="profile-form-input"
+                                placeholder="Enter full name"
+                            >
+
+                        </div>
+
+
+                        <!-- Email -->
+
+                        <div class="profile-form-group">
+
+                            <label>
+                                Email
+                            </label>
+
+                            <input
+                                type="email"
+                                name="email"
+                                value="{{ user.email }}"
+                                class="profile-form-input"
+                                placeholder="Enter email"
+                            >
+
+                        </div>
+
+
+                        <!-- Phone -->
+
+                        <div class="profile-form-group">
+
+                            <label>
+                                Phone
+                            </label>
+
+                            <input
+                                type="text"
+                                name="phone"
+                                value="{{ user.phone }}"
+                                class="profile-form-input"
+                                placeholder="Enter phone number"
+                            >
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <!-- Save -->
+
+                    <div class="profile-save-wrapper">
+
+                        <button
+                            type="submit"
+                            class="profile-save-button"
+                        >
+
+                            <i data-lucide="save"></i>
+
+                            <span>
+                                Save Changes
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+
+        </section>
+
+    </div>
+
+</main>
+
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script src="{% static 'js/admin.js' %}"></script>
+<script src="{% static 'js/activity.js' %}"></script>
+
+
 <script>
-
-const profileDisplay = document.getElementById("profile-display");
-const profileInput = document.getElementById("profile-input");
-const profileContainer = document.getElementById("profile-container");
-
-
-/* =========================================================
-   TOAST FUNCTION
-========================================================= */
-
-function showToast(message, type = "success") {
-
-    const container = document.getElementById("toast-container");
-
-    if (!container) {
-        return;
-    }
-
-    const toast = document.createElement("div");
-
-    toast.className =
-        "toast-message flex items-center gap-3 " +
-        "bg-[#250f1e] text-white " +
-        "border border-purple-600 " +
-        "px-5 py-4 rounded-lg " +
-        "shadow-2xl";
-
-
-    let icon = "";
-
-    if (type === "error") {
-
-        icon = `
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 class="w-6 h-6 flex-shrink-0 text-red-400"
-                 fill="none"
-                 viewBox="0 0 24 24"
-                 stroke="currentColor">
-
-                <path stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"/>
-
-            </svg>
-        `;
-
-    } else {
-
-        icon = `
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 class="w-6 h-6 flex-shrink-0 text-green-400"
-                 fill="none"
-                 viewBox="0 0 24 24"
-                 stroke="currentColor">
-
-                <path stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"/>
-
-            </svg>
-        `;
-    }
-
-
-    toast.innerHTML = `
-        ${icon}
-
-        <span class="flex-1 text-sm font-medium">
-            ${message}
-        </span>
-
-        <button type="button"
-                class="text-gray-300 hover:text-white text-xl leading-none"
-                onclick="removeToast(this.parentElement)">
-
-            &times;
-
-        </button>
-    `;
-
-
-    container.appendChild(toast);
-
-
-    setTimeout(function () {
-        removeToast(toast);
-    }, 4000);
-}
-
-
-/* =========================================================
-   REMOVE TOAST
-========================================================= */
-
-function removeToast(toast) {
-
-    if (!toast) {
-        return;
-    }
-
-    toast.classList.add("toast-hide");
-
-    setTimeout(function () {
-
-        if (toast.parentElement) {
-            toast.remove();
-        }
-
-    }, 350);
-}
-
-
-/* =========================================================
-   DJANGO MESSAGE TOAST AUTO CLOSE
-========================================================= */
 
 document.addEventListener("DOMContentLoaded", function () {
 
-    const toasts = document.querySelectorAll(".toast-message");
+    /* ---------------------------------------------------------
+       SIDEBAR
+    --------------------------------------------------------- */
 
-    toasts.forEach(function (toast) {
+    const sidebar =
+        document.getElementById("sidebar");
 
-        setTimeout(function () {
+    const menuButtons =
+        document.querySelectorAll(".menu-toggle");
 
-            removeToast(toast);
 
-        }, 4000);
+    menuButtons.forEach(function(button) {
+
+        button.addEventListener("click", function() {
+
+            sidebar.classList.toggle("open");
+
+        });
 
     });
 
-});
 
+    /* ---------------------------------------------------------
+       LUCIDE ICONS
+    --------------------------------------------------------- */
 
-/* =========================================================
-   PROFILE IMAGE CLICK
-========================================================= */
+    if (window.lucide) {
 
-profileContainer.addEventListener("click", function () {
+        lucide.createIcons();
 
-    profileInput.click();
-
-});
-
-
-/* =========================================================
-   PROFILE IMAGE AJAX UPLOAD
-========================================================= */
-
-profileInput.addEventListener("change", function () {
-
-    const file = profileInput.files[0];
-
-    if (!file) {
-        return;
     }
 
 
-    const formData = new FormData();
+    /* ---------------------------------------------------------
+       PROFILE IMAGE
+    --------------------------------------------------------- */
 
-    formData.append(
-        "profile_image",
-        file
-    );
+    const profileContainer =
+        document.getElementById("profile-container");
 
-    formData.append(
-        "action",
-        "edit_profile"
-    );
+    const profileDisplay =
+        document.getElementById("profile-display");
 
-    formData.append(
-        "csrfmiddlewaretoken",
-        "{{ csrf_token }}"
-    );
+    const profileInput =
+        document.getElementById("profile-input");
 
 
-    fetch(
-        "{% url 'teamlead_profile' %}",
-        {
-            method: "POST",
-            body: formData,
-            headers: {
-                "X-Requested-With": "XMLHttpRequest"
+    if (
+        profileContainer &&
+        profileInput &&
+        profileDisplay
+    ) {
+
+        profileContainer.addEventListener(
+            "click",
+            function () {
+
+                profileInput.click();
+
             }
-        }
-    )
-
-    .then(function (response) {
-
-        return response.json();
-
-    })
-
-    .then(function (data) {
-
-        if (data.success) {
-
-            profileDisplay.src =
-                data.image_url + "?t=" + new Date().getTime();
-
-            showToast(
-                "Profile image updated successfully!",
-                "success"
-            );
-
-        } else {
-
-            showToast(
-                data.error || "Failed to update profile image.",
-                "error"
-            );
-
-        }
-
-    })
-
-    .catch(function (error) {
-
-        console.error(error);
-
-        showToast(
-            "Something went wrong while updating the profile image.",
-            "error"
         );
 
-    });
+
+        profileInput.addEventListener(
+            "change",
+            function () {
+
+                const file =
+                    profileInput.files[0];
+
+                if (!file) {
+                    return;
+                }
+
+
+                /* Instant preview */
+
+                const reader =
+                    new FileReader();
+
+
+                reader.onload =
+                    function(event) {
+
+                        profileDisplay.src =
+                            event.target.result;
+
+                    };
+
+
+                reader.readAsDataURL(file);
+
+
+                /* AJAX upload */
+
+                const formData =
+                    new FormData();
+
+
+                formData.append(
+                    "profile_image",
+                    file
+                );
+
+
+                formData.append(
+                    "action",
+                    "edit_profile"
+                );
+
+
+                formData.append(
+                    "csrfmiddlewaretoken",
+                    "{{ csrf_token }}"
+                );
+
+
+                fetch(
+                    "{% url 'teamlead_profile' %}",
+                    {
+                        method: "POST",
+                        body: formData,
+                        headers: {
+                            "X-Requested-With":
+                                "XMLHttpRequest"
+                        }
+                    }
+                )
+
+                .then(function(response) {
+
+                    return response.json();
+
+                })
+
+                .then(function(data) {
+
+                    if (data.success) {
+
+                        profileDisplay.src =
+                            data.image_url;
+
+                    } else {
+
+                        alert(
+                            data.error ||
+                            "Failed to update image."
+                        );
+
+                    }
+
+                })
+
+                .catch(function(error) {
+
+                    console.error(
+                        "Profile image upload error:",
+                        error
+                    );
+
+                });
+
+            }
+        );
+
+    }
 
 });
 
 </script>
 
 
-
-
-
-
-
-<script src="{% static 'js/admin.js' %}"></script>
-<script src="{% static 'js/activity.js' %}"></script>
 </body>
 </html>

@@ -1,0 +1,153 @@
+{% load static %}
+
+<aside id="sidebar" class="glass-sidebar">
+
+    <!-- TEAM LEAD PROFILE -->
+    <div class="sidebar-profile">
+        <div class="sidebar-logo">
+            <img src="{% static 'images/logo.png' %}" alt="Team Lead Logo">
+        </div>
+
+        <div class="sidebar-profile-text">
+            <h3>TEAM LEAD</h3>
+            <span>TAGGING HERE</span>
+        </div>
+    </div>
+
+
+    <!-- NAVIGATION -->
+    <nav class="sidebar-nav">
+
+        <!-- Dashboard -->
+        <a href="{% url 'teamlead_dashboard' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_dashboard' %}active{% endif %}">
+
+            <span class="sidebar-icon">
+                <i data-lucide="layout-dashboard"></i>
+            </span>
+
+            <span>Dashboard</span>
+        </a>
+
+
+        <!-- Reports -->
+        <a href="{% url 'teamlead_reports' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_reports' %}active{% endif %}">
+
+            <span class="sidebar-icon">
+                <i data-lucide="chart-no-axes-combined"></i>
+            </span>
+
+            <span>Reports</span>
+        </a>
+
+
+        <!-- Project Assigning -->
+        <a href="{% url 'teamlead_project_assigning' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_project_assigning' %}active{% endif %}">
+
+            <span class="sidebar-icon">
+                <i data-lucide="clipboard-list"></i>
+            </span>
+
+            <span>Project Assigning</span>
+        </a>
+
+
+        <!-- Notepad -->
+        <a href="{% url 'teamlead_notepad' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_notepad' %}active{% endif %}">
+
+            <span class="sidebar-icon">
+                <i data-lucide="notebook-pen"></i>
+            </span>
+
+            <span>Notepad</span>
+        </a>
+
+
+        <!-- Knowledge Repository -->
+        <a href="{% url 'teamlead_repository' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_repository' %}active{% endif %}">
+
+            <span class="sidebar-icon">
+                <i data-lucide="book-open"></i>
+            </span>
+
+            <span>Knowledge Repository</span>
+        </a>
+
+
+        <!-- Profile -->
+        <a href="{% url 'teamlead_profile' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_profile' %}active{% endif %}">
+
+            <span class="sidebar-icon">
+                <i data-lucide="circle-user-round"></i>
+            </span>
+
+            <span>Profile</span>
+        </a>
+
+
+        <!-- My Task -->
+        <a href="{% url 'teamlead_task' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_task' %}active{% endif %}">
+
+            <span class="sidebar-icon">
+                <i data-lucide="list-checks"></i>
+            </span>
+
+            <span>My Task</span>
+        </a>
+
+
+        <!-- Chat -->
+        <a href="{% url 'teamlead_chat' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_chat' %}active{% endif %}">
+
+            <span class="sidebar-icon">
+                <i data-lucide="message-circle"></i>
+            </span>
+
+            <span>Chat</span>
+        </a>
+
+
+        <!-- Google Meet -->
+        <a href="https://meet.google.com/"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="sidebar-item">
+
+            <span class="sidebar-icon">
+                <i data-lucide="video"></i>
+            </span>
+
+            <span>Google Meet</span>
+
+            <span class="sidebar-external">
+                <i data-lucide="arrow-up-right"></i>
+            </span>
+        </a>
+
+    </nav>
+
+
+    <!-- LOGOUT -->
+    <div class="sidebar-bottom">
+
+        <a href="{% url 'teamlead_logout' %}"
+           class="sidebar-logout">
+
+            <span class="sidebar-icon">
+                <i data-lucide="log-out"></i>
+            </span>
+
+            <span>Logout</span>
+
+        </a>
+
+    </div>
+
+</aside>

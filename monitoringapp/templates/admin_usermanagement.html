@@ -1531,6 +1531,267 @@ body {
     .dashboard-header h1 { font-size: 28px; }
     .dashboard-card { padding: 15px; }
 }
+
+
+        /* =========================================================
+           JOINING DATE CUSTOM DATE PICKER
+           Same calendar UI as Team Reports
+        ========================================================= */
+
+        .joining-date-picker {
+            position: relative;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .joining-date-picker .custom-date-input {
+            width: 100%;
+            min-height: 0;
+            height: auto;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 11px 13px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 12px;
+            background: rgba(5, 5, 11, 0.78);
+            color: #f7f3ff;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+            transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        .joining-date-picker .custom-date-input:hover,
+        .joining-date-picker .custom-date-input:focus {
+            outline: none;
+            border-color: rgba(139, 92, 246, .70);
+            background: rgba(11, 9, 19, .95);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, .10);
+        }
+
+        .joining-date-picker .custom-date-input span {
+            color: #f2effa;
+            white-space: nowrap;
+        }
+
+        .joining-date-picker .custom-date-input span.is-placeholder {
+            color: rgba(255,255,255,.36);
+        }
+
+        .joining-date-picker .custom-date-input svg {
+            width: 17px;
+            height: 17px;
+            flex: 0 0 auto;
+            color: #c4b5fd;
+            pointer-events: none;
+        }
+
+        .joining-date-picker .custom-calendar {
+            position: absolute;
+            z-index: 9999;
+            top: calc(100% + 9px);
+            left: 0;
+            width: 300px;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid rgba(255,255,255,.13);
+            border-radius: 17px;
+            background:
+                radial-gradient(circle at 90% 0%, rgba(96,165,250,.13), transparent 32%),
+                radial-gradient(circle at 0% 0%, rgba(139,92,246,.20), transparent 38%),
+                rgba(12, 11, 20, .97);
+            box-shadow:
+                0 28px 65px rgba(0,0,0,.58),
+                inset 0 1px 0 rgba(255,255,255,.06);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            display: none;
+        }
+
+        .joining-date-picker.open .custom-calendar {
+            display: block;
+            animation: teamReportCalendarIn .16s ease-out;
+        }
+
+        @keyframes teamReportCalendarIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px) scale(.985);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .joining-date-picker .calendar-header {
+            display: grid;
+            grid-template-columns: 34px 1fr 34px;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 11px;
+        }
+
+        .joining-date-picker .calendar-month-title {
+            border: 0;
+            background: transparent;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 800;
+            text-align: center;
+            cursor: default;
+        }
+
+        .joining-date-picker .calendar-nav {
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 9px;
+            background: rgba(255,255,255,.045);
+            color: #ddd6fe;
+            cursor: pointer;
+        }
+
+        .joining-date-picker .calendar-nav:hover {
+            background: rgba(139,92,246,.18);
+            border-color: rgba(139,92,246,.45);
+        }
+
+        .joining-date-picker .calendar-nav svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .joining-date-picker .calendar-weekdays,
+        .joining-date-picker .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .joining-date-picker .calendar-weekdays {
+            margin-bottom: 5px;
+        }
+
+        .joining-date-picker .calendar-weekdays span {
+            height: 28px;
+            display: grid;
+            place-items: center;
+            color: rgba(255,255,255,.45);
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .joining-date-picker .calendar-day {
+            width: 100%;
+            aspect-ratio: 1;
+            min-height: 30px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            background: transparent;
+            color: rgba(255,255,255,.86);
+            font-size: 12px;
+            cursor: pointer;
+            transition: .15s ease;
+        }
+
+        .joining-date-picker .calendar-day:hover {
+            background: rgba(139,92,246,.18);
+            border-color: rgba(139,92,246,.36);
+        }
+
+        .joining-date-picker .calendar-day.is-muted {
+            color: rgba(255,255,255,.22);
+        }
+
+        .joining-date-picker .calendar-day.is-today {
+            border-color: rgba(96,165,250,.55);
+            color: #bfdbfe;
+        }
+
+        .joining-date-picker .calendar-day.is-selected {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            border-color: rgba(196,181,253,.80);
+            color: #fff;
+            font-weight: 800;
+            box-shadow: 0 7px 18px rgba(124,58,237,.28);
+        }
+
+        .joining-date-picker .calendar-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,.08);
+        }
+
+        .joining-date-picker .calendar-footer-btn {
+            border: 0;
+            background: transparent;
+            color: #c4b5fd;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 5px 7px;
+            border-radius: 7px;
+        }
+
+        .joining-date-picker .calendar-footer-btn:hover {
+            color: #fff;
+            background: rgba(139,92,246,.14);
+        }
+
+        @media (max-width: 768px) {
+            .joining-date-picker {
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .joining-date-picker {
+                width: 100%;
+                max-width: 100%;
+                flex-basis: 100%;
+            }
+
+            .joining-date-picker .custom-calendar {
+                width: min(300px, calc(100vw - 28px));
+            }
+        }
+
+        @media (max-width: 430px) {
+            .joining-date-picker .custom-calendar {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            .joining-date-picker.open .custom-calendar {
+                animation: teamReportCalendarInMobile .16s ease-out;
+            }
+        }
+
+        @keyframes teamReportCalendarInMobile {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-5px) scale(.985);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0) scale(1);
+            }
+        }
+
+    
 </style>
 </head>
 
@@ -1733,7 +1994,56 @@ body {
 
                     <div class="form-group">
                         <label for="joining_date" class="form-label">Joining Date</label>
-                        <input type="date" id="joining_date" name="joining_date" class="glass-input" required>
+                        <div class="joining-date-picker custom-date-picker" data-date-picker>
+                            <input type="hidden" id="joining_date" name="joining_date" required>
+
+                            <button
+                                type="button"
+                                class="custom-date-input"
+                                data-date-toggle
+                                aria-haspopup="dialog"
+                                aria-expanded="false"
+                            >
+                                <span data-date-display>dd-mm-yyyy</span>
+                                <i data-lucide="calendar-days"></i>
+                            </button>
+
+                            <div
+                                class="custom-calendar"
+                                data-calendar
+                                role="dialog"
+                                aria-label="Choose joining date"
+                            >
+                                <div class="calendar-header">
+                                    <button type="button" class="calendar-nav" data-prev-month aria-label="Previous month">
+                                        <i data-lucide="chevron-left"></i>
+                                    </button>
+
+                                    <button type="button" class="calendar-month-title" data-month-title></button>
+
+                                    <button type="button" class="calendar-nav" data-next-month aria-label="Next month">
+                                        <i data-lucide="chevron-right"></i>
+                                    </button>
+                                </div>
+
+                                <div class="calendar-weekdays">
+                                    <span>Su</span>
+                                    <span>Mo</span>
+                                    <span>Tu</span>
+                                    <span>We</span>
+                                    <span>Th</span>
+                                    <span>Fr</span>
+                                    <span>Sa</span>
+                                </div>
+
+                                <div class="calendar-days" data-calendar-days></div>
+
+                                <div class="calendar-footer">
+                                    <button type="button" class="calendar-footer-btn" data-clear-date>Clear</button>
+                                    <button type="button" class="calendar-footer-btn" data-today-date>Today</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
@@ -2261,5 +2571,322 @@ document.addEventListener("keydown", function (event) {
 });
 </script>
 
+
+<script>
+/* =========================================================
+   JOINING DATE CUSTOM DATE PICKER
+   Same behavior/UI as Project Assigning
+========================================================= */
+document.addEventListener("DOMContentLoaded", function () {
+    const monthFormatter = new Intl.DateTimeFormat("en-US", {
+        month: "long",
+        year: "numeric"
+    });
+
+    const pad = n => String(n).padStart(2, "0");
+
+    function toISO(date) {
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function fromISO(value) {
+        if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            return null;
+        }
+
+        const [year, month, day] = value.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
+
+        if (
+            date.getFullYear() !== year ||
+            date.getMonth() !== month - 1 ||
+            date.getDate() !== day
+        ) {
+            return null;
+        }
+
+        return date;
+    }
+
+    function sameDate(a, b) {
+        return !!(
+            a &&
+            b &&
+            a.getFullYear() === b.getFullYear() &&
+            a.getMonth() === b.getMonth() &&
+            a.getDate() === b.getDate()
+        );
+    }
+
+    document.querySelectorAll(".joining-date-picker[data-date-picker]").forEach(function (picker) {
+        const hiddenInput = picker.querySelector('input[type="hidden"]');
+        const toggle = picker.querySelector("[data-date-toggle]");
+        const display = picker.querySelector("[data-date-display]");
+        const daysWrap = picker.querySelector("[data-calendar-days]");
+        const monthTitle = picker.querySelector("[data-month-title]");
+        const prevBtn = picker.querySelector("[data-prev-month]");
+        const nextBtn = picker.querySelector("[data-next-month]");
+        const clearBtn = picker.querySelector("[data-clear-date]");
+        const todayBtn = picker.querySelector("[data-today-date]");
+
+        if (!hiddenInput || !toggle || !display || !daysWrap || !monthTitle) {
+            return;
+        }
+
+        let selectedDate = fromISO(hiddenInput.value);
+        let viewDate = selectedDate
+            ? new Date(selectedDate)
+            : new Date();
+
+        viewDate = new Date(
+            viewDate.getFullYear(),
+            viewDate.getMonth(),
+            1
+        );
+
+        function updateDisplay() {
+            if (selectedDate) {
+                display.textContent =
+                    `${pad(selectedDate.getDate())}-${pad(selectedDate.getMonth() + 1)}-${selectedDate.getFullYear()}`;
+                display.classList.remove("is-placeholder");
+            } else {
+                display.textContent = "dd-mm-yyyy";
+                display.classList.add("is-placeholder");
+            }
+        }
+
+        function renderCalendar() {
+            monthTitle.textContent = monthFormatter.format(viewDate);
+            daysWrap.innerHTML = "";
+
+            const year = viewDate.getFullYear();
+            const month = viewDate.getMonth();
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            for (let i = firstDay - 1; i >= 0; i--) {
+                addDay(
+                    new Date(year, month - 1, daysInPrevMonth - i),
+                    true
+                );
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                addDay(
+                    new Date(year, month, day),
+                    false
+                );
+            }
+
+            const totalCells = firstDay + daysInMonth;
+            const remaining = (7 - (totalCells % 7)) % 7;
+
+            for (let day = 1; day <= remaining; day++) {
+                addDay(
+                    new Date(year, month + 1, day),
+                    true
+                );
+            }
+        }
+
+        function addDay(date, muted) {
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.className = "calendar-day";
+            button.textContent = date.getDate();
+
+            if (muted) {
+                button.classList.add("is-muted");
+            }
+
+            if (sameDate(date, new Date())) {
+                button.classList.add("is-today");
+            }
+
+            if (sameDate(date, selectedDate)) {
+                button.classList.add("is-selected");
+            }
+
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                selectedDate = new Date(
+                    date.getFullYear(),
+                    date.getMonth(),
+                    date.getDate()
+                );
+
+                hiddenInput.value = toISO(selectedDate);
+
+                viewDate = new Date(
+                    selectedDate.getFullYear(),
+                    selectedDate.getMonth(),
+                    1
+                );
+
+                updateDisplay();
+                renderCalendar();
+                closeCalendar();
+            });
+
+            daysWrap.appendChild(button);
+        }
+
+        function openCalendar(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            document.querySelectorAll(".joining-date-picker.open").forEach(function (other) {
+                if (other !== picker) {
+                    other.classList.remove("open");
+
+                    const otherToggle = other.querySelector("[data-date-toggle]");
+
+                    if (otherToggle) {
+                        otherToggle.setAttribute("aria-expanded", "false");
+                    }
+                }
+            });
+
+            picker.classList.add("open");
+            toggle.setAttribute("aria-expanded", "true");
+            renderCalendar();
+        }
+
+        function closeCalendar() {
+            picker.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+        }
+
+        /*
+         * The whole date field is the trigger.
+         * The calendar icon is inside this same button, so clicking either
+         * the date text or the icon opens the exact same calendar.
+         */
+        toggle.addEventListener("click", openCalendar);
+
+        toggle.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+                openCalendar(event);
+            }
+
+            if (event.key === "Escape") {
+                closeCalendar();
+            }
+        });
+
+        if (prevBtn) {
+            prevBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                viewDate = new Date(
+                    viewDate.getFullYear(),
+                    viewDate.getMonth() - 1,
+                    1
+                );
+
+                renderCalendar();
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                viewDate = new Date(
+                    viewDate.getFullYear(),
+                    viewDate.getMonth() + 1,
+                    1
+                );
+
+                renderCalendar();
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                selectedDate = null;
+                hiddenInput.value = "";
+
+                const today = new Date();
+
+                viewDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    1
+                );
+
+                updateDisplay();
+                renderCalendar();
+                closeCalendar();
+            });
+        }
+
+        if (todayBtn) {
+            todayBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const today = new Date();
+
+                selectedDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    today.getDate()
+                );
+
+                hiddenInput.value = toISO(selectedDate);
+
+                viewDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    1
+                );
+
+                updateDisplay();
+                renderCalendar();
+                closeCalendar();
+            });
+        }
+
+        updateDisplay();
+        renderCalendar();
+    });
+
+    /*
+     * Close only when clicking outside the date-picker.
+     * Calendar buttons stop propagation, so they remain clickable.
+     */
+    document.addEventListener("click", function (event) {
+        document.querySelectorAll(".joining-date-picker.open").forEach(function (picker) {
+            if (!picker.contains(event.target)) {
+                picker.classList.remove("open");
+
+                const toggle = picker.querySelector("[data-date-toggle]");
+
+                if (toggle) {
+                    toggle.setAttribute("aria-expanded", "false");
+                }
+            }
+        });
+    });
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+});
+
+</script>
 </body>
 </html>

@@ -2,184 +2,2112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Team Lead Reports - Cybexel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Lead Reports - Cybexel</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+<style>
+        /* =========================================================
+           TEAM LEAD REPORT PAGE — SAME GLASS UI AS ADMIN REPORTS
+        ========================================================= */
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden !important;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    circle at 15% 10%,
+                    rgba(92, 47, 145, 0.16),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 85% 15%,
+                    rgba(40, 88, 160, 0.12),
+                    transparent 30%
+                ),
+                #08080d;
+
+            color: #ffffff;
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        /* =========================================================
+           SIDEBAR
+        ========================================================= */
+
+        .glass-sidebar {
+            position: fixed;
+            top: 18px;
+            left: 16px;
+            bottom: 18px;
+
+            width: 242px;
+
+            z-index: 100;
+
+            display: flex;
+            flex-direction: column;
+
+            padding: 18px 14px;
+
+            border-radius: 27px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(38, 24, 49, 0.96),
+                    rgba(14, 14, 21, 0.96)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.12);
+
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+
+            box-shadow:
+                0 25px 70px rgba(0, 0, 0, 0.42),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+            overflow: hidden;
+        }
+
+        .glass-sidebar::before {
+            content: "";
+
+            position: absolute;
+
+            width: 190px;
+            height: 190px;
+
+            top: -85px;
+            left: -65px;
+
+            background: rgba(139, 92, 246, 0.20);
+
+            filter: blur(70px);
+
+            pointer-events: none;
+        }
+
+        /* =========================================================
+           SIDEBAR PROFILE
+        ========================================================= */
+
+        .sidebar-profile {
+            position: relative;
+            z-index: 2;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            padding: 2px 5px 20px;
+
+            margin-bottom: 8px;
+
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .sidebar-logo {
+            width: 86px;
+            height: 86px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 8px;
+
+            border-radius: 23px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255, 255, 255, 0.08),
+                    rgba(255, 255, 255, 0.025)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.08);
+
+            box-shadow:
+                0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .sidebar-logo img {
+            width: 68px;
+            height: 68px;
+            object-fit: contain;
+        }
+
+        .sidebar-profile-text {
+            text-align: center;
+        }
+
+        .sidebar-profile-text h3 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-profile-text span {
+            display: block;
+            margin-top: 3px;
+            color: #898592;
+            font-size: 7px;
+            letter-spacing: 1.7px;
+            font-weight: 600;
+        }
+
+        /* =========================================================
+           NAVIGATION
+        ========================================================= */
+
+        .sidebar-nav {
+            position: relative;
+            z-index: 2;
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .sidebar-item {
+            position: relative;
+
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            min-height: 44px;
+
+            padding: 0 14px;
+
+            border-radius: 13px;
+
+            color: #aaa6b2;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            border: 1px solid transparent;
+
+            transition:
+                background 0.25s ease,
+                color 0.25s ease,
+                transform 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+        .sidebar-item:hover {
+            color: #ffffff;
+
+            background: rgba(255, 255, 255, 0.055);
+
+            border-color: rgba(255, 255, 255, 0.06);
+
+            transform: translateX(3px);
+        }
+
+        .sidebar-item.active {
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(111, 76, 190, 0.82),
+                    rgba(63, 79, 153, 0.72)
+                );
+
+            border: 1px solid rgba(154, 122, 255, 0.38);
+
+            box-shadow:
+                0 10px 28px rgba(99, 102, 241, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+            transform: translateX(2px);
+        }
+
+        .sidebar-item.active::before {
+            content: "";
+
+            position: absolute;
+
+            left: -14px;
+            top: 9px;
+
+            width: 3px;
+            height: 26px;
+
+            border-radius: 0 5px 5px 0;
+
+            background: #b99cff;
+
+            box-shadow:
+                0 0 12px rgba(185, 156, 255, 0.8);
+        }
+
+        .sidebar-icon {
+            width: 20px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            color: #8d8995;
+        }
+
+        .sidebar-icon svg {
+            width: 19px;
+            height: 19px;
+            stroke-width: 1.8;
+        }
+
+        .sidebar-item.active .sidebar-icon {
+            color: #ffffff;
+        }
+
+        .sidebar-external {
+            margin-left: auto;
+            color: #77727f;
+        }
+
+        .sidebar-external svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* =========================================================
+           LOGOUT
+        ========================================================= */
+
+        .sidebar-bottom {
+            position: relative;
+            z-index: 2;
+
+            margin-top: auto;
+            padding-top: 14px;
+        }
+
+        .sidebar-logout {
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            min-height: 43px;
+
+            padding: 0 14px;
+
+            border-radius: 13px;
+
+            color: #ff9ba4;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            background: rgba(255, 70, 85, 0.055);
+
+            border: 1px solid rgba(255, 70, 85, 0.13);
+
+            transition: all 0.25s ease;
+        }
+
+        .sidebar-logout:hover {
+            color: #ffffff;
+            background: rgba(255, 70, 85, 0.13);
+            transform: translateY(-2px);
+        }
+
+        /* =========================================================
+           MAIN AREA
+        ========================================================= */
+
+        .main-area {
+            position: fixed;
+
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 275px;
+
+            padding: 18px 20px;
+
+            overflow: hidden;
+        }
+
+        /* =========================================================
+           BIG GLASS BOX
+        ========================================================= */
+
+        .dashboard-box {
+            position: relative;
+
+            width: 100%;
+            height: 100%;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            padding: 16px;
+
+            border-radius: 28px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(17, 16, 24, 0.94),
+                    rgba(8, 9, 14, 0.96)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.10);
+
+            box-shadow:
+                0 25px 80px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+
+            scrollbar-width: thin;
+            scrollbar-color:
+                rgba(151, 112, 235, 0.65)
+                transparent;
+        }
+
+        .dashboard-box::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        .dashboard-box::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .dashboard-box::-webkit-scrollbar-thumb {
+            background:
+                linear-gradient(
+                    180deg,
+                    #8b5cf6,
+                    #4f46e5
+                );
+
+            border-radius: 20px;
+        }
+
+        /* =========================================================
+           HEADER
+        ========================================================= */
+
+        .dashboard-header {
+            position: relative;
+
+            min-height: 168px;
+
+            display: flex;
+            align-items: center;
+
+            padding: 30px 32px;
+
+            border-radius: 25px;
+
+            overflow: hidden;
+
+            background:
+                linear-gradient(
+                    110deg,
+                    rgba(44, 32, 55, 0.62),
+                    rgba(18, 23, 31, 0.72),
+                    rgba(30, 31, 59, 0.62)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.10);
+
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .dashboard-header::before {
+            content: "";
+
+            position: absolute;
+
+            width: 260px;
+            height: 260px;
+
+            right: -100px;
+            top: -130px;
+
+            background: rgba(99, 102, 241, 0.13);
+
+            filter: blur(80px);
+
+            pointer-events: none;
+        }
+
+        .dashboard-header-content {
+            position: relative;
+            z-index: 2;
+
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 25px;
+        }
+
+        .dashboard-eyebrow {
+            margin-bottom: 15px;
+
+            color: #a78bfa;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            letter-spacing: 3px;
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+
+            font-size: clamp(34px, 4vw, 52px);
+
+            line-height: 1;
+            font-weight: 900;
+
+            letter-spacing: -2px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #ffffff 0%,
+                    #c4b5fd 45%,
+                    #67c8ff 100%
+                );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard-header p {
+            margin: 18px 0 0;
+
+            color: #96939e;
+
+            font-size: 14px;
+        }
+
+        /* =========================================================
+           SYSTEM STATUS
+        ========================================================= */
+
+        .system-status {
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+
+            gap: 9px;
+
+            padding: 10px 18px;
+
+            border-radius: 30px;
+
+            color: #9ee7ba;
+
+            font-size: 12px;
+
+            background: rgba(52, 211, 153, 0.055);
+
+            border: 1px solid rgba(52, 211, 153, 0.17);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: #4ade80;
+
+            box-shadow:
+                0 0 12px rgba(74, 222, 128, 0.75);
+        }
+
+        /* =========================================================
+           CONTENT
+        ========================================================= */
+
+        .dashboard-content {
+            padding: 32px 0 35px;
+        }
+
+        /* =========================================================
+           REPORT TOOLBAR
+        ========================================================= */
+
+        .report-toolbar {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-bottom: 25px;
+
+            padding: 18px;
+
+            border-radius: 20px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.09);
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+
+        .report-actions {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-wrap: wrap;
+        }
+
+        .glass-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 8px;
+
+            min-height: 42px;
+
+            padding: 0 15px;
+
+            border-radius: 12px;
+
+            color: #ffffff;
+
+            text-decoration: none;
+
+            font-size: 11px;
+            font-weight: 700;
+
+            border: 1px solid rgba(255, 255, 255, 0.09);
+
+            background:
+                rgba(255, 255, 255, 0.045);
+
+            transition: all 0.22s ease;
+        }
+
+        .glass-button:hover {
+            transform: translateY(-2px);
+
+            background:
+                rgba(139, 92, 246, 0.15);
+
+            border-color:
+                rgba(139, 92, 246, 0.35);
+        }
+
+        .glass-button.primary {
+            background:
+                linear-gradient(
+                    135deg,
+                    #7c4bd4,
+                    #5b32a7
+                );
+
+            border-color:
+                rgba(167, 139, 250, 0.35);
+
+            box-shadow:
+                0 10px 25px rgba(124, 75, 212, 0.18);
+        }
+
+        .glass-button.export {
+            background:
+                rgba(52, 211, 153, 0.07);
+
+            border-color:
+                rgba(52, 211, 153, 0.20);
+
+            color: #9ee7ba;
+        }
+
+        .glass-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* =========================================================
+           FILTER
+        ========================================================= */
+
+        .filter-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .date-input {
+            height: 42px;
+
+            padding: 0 13px;
+
+            border-radius: 12px;
+
+            outline: none;
+
+            color: #ffffff;
+
+            background:
+                rgba(7, 7, 11, 0.60);
+
+            border:
+                1px solid rgba(255, 255, 255, 0.10);
+
+            font-size: 11px;
+        }
+
+        .date-input:focus {
+            border-color:
+                rgba(139, 92, 246, 0.55);
+
+            box-shadow:
+                0 0 0 3px rgba(139, 92, 246, 0.08);
+        }
+
+        /* =========================================================
+           REPORT SECTIONS
+        ========================================================= */
+
+        .report-section {
+            margin-bottom: 25px;
+        }
+
+        .section-heading {
+            display: flex;
+
+            align-items: center;
+
+            gap: 18px;
+
+            margin-bottom: 15px;
+        }
+
+        .section-title-block {
+            flex-shrink: 0;
+        }
+
+        .section-eyebrow {
+            display: block;
+
+            margin-bottom: 6px;
+
+            color: #a78bfa;
+
+            font-size: 9px;
+
+            font-weight: 800;
+
+            letter-spacing: 2.5px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 20px;
+
+            font-weight: 800;
+        }
+
+        .heading-line {
+            flex: 1;
+
+            height: 1px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0.12),
+                    transparent
+                );
+        }
+
+        /* =========================================================
+           REPORT CARD
+        ========================================================= */
+
+        .report-card {
+            width: 100%;
+
+            padding: 0;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.20),
+                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+
+        .table-wrapper {
+            width: 100%;
+
+            overflow-x: auto;
+
+            scrollbar-width: thin;
+
+            scrollbar-color:
+                rgba(139, 92, 246, 0.45)
+                transparent;
+        }
+
+        .table-wrapper::-webkit-scrollbar {
+            height: 5px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background:
+                rgba(139, 92, 246, 0.45);
+
+            border-radius: 20px;
+        }
+
+        .report-table {
+            width: 100%;
+
+            min-width: 900px;
+
+            border-collapse: collapse;
+        }
+
+        .report-table thead {
+            background:
+                rgba(255, 255, 255, 0.035);
+        }
+
+        .report-table th {
+            height: 47px;
+
+            padding: 0 16px;
+
+            color: #85818d;
+
+            text-align: left;
+
+            font-size: 9px;
+
+            font-weight: 800;
+
+            letter-spacing: 1px;
+
+            text-transform: uppercase;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .report-table td {
+            min-height: 58px;
+
+            padding: 14px 16px;
+
+            color: #dedbe2;
+
+            font-size: 12px;
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.055);
+
+            vertical-align: middle;
+        }
+
+        .report-table tbody tr {
+            transition:
+                background 0.2s ease;
+        }
+
+        .report-table tbody tr:hover {
+            background:
+                rgba(255, 255, 255, 0.025);
+        }
+
+        .report-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* =========================================================
+           NAME
+        ========================================================= */
+
+        .user-name {
+            display: flex;
+
+            align-items: center;
+
+            gap: 9px;
+
+            white-space: nowrap;
+
+            font-weight: 700;
+
+            color: #ffffff;
+        }
+
+        .user-dot {
+            width: 7px;
+            height: 7px;
+
+            flex-shrink: 0;
+
+            border-radius: 50%;
+
+            background: #a78bfa;
+
+            box-shadow:
+                0 0 9px rgba(167, 139, 250, 0.65);
+        }
+
+        /* =========================================================
+           STATUS
+        ========================================================= */
+
+        .status-badge {
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            min-width: 70px;
+
+            padding: 6px 10px;
+
+            border-radius: 9px;
+
+            color: #9ee7ba;
+
+            font-size: 10px;
+
+            font-weight: 700;
+
+            background:
+                rgba(52, 211, 153, 0.07);
+
+            border:
+                1px solid rgba(52, 211, 153, 0.18);
+        }
+
+        /* =========================================================
+           REPORT TEXT
+        ========================================================= */
+
+        .report-text {
+            max-width: 420px;
+
+            line-height: 1.6;
+
+            color: #b8b4be;
+        }
+
+        /* =========================================================
+           EMPTY
+        ========================================================= */
+
+        .empty-row {
+            height: 100px;
+
+            text-align: center;
+
+            color: #77727e !important;
+
+            font-size: 11px !important;
+        }
+
+        /* =========================================================
+           MOBILE MENU
+        ========================================================= */
+
+        .mobile-menu-button {
+            display: none;
+
+            position: fixed;
+
+            top: 18px;
+            left: 18px;
+
+            z-index: 200;
+
+            width: 42px;
+            height: 42px;
+
+            border:
+                1px solid rgba(255,255,255,0.10);
+
+            border-radius: 13px;
+
+            color: #ffffff;
+
+            background:
+                rgba(25, 20, 32, 0.88);
+
+            backdrop-filter: blur(15px);
+
+            cursor: pointer;
+        }
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1100px) {
+
+            .glass-sidebar {
+                width: 220px;
+            }
+
+            .main-area {
+                left: 250px;
+                padding: 14px;
+            }
+
+            .dashboard-header {
+                padding: 26px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 42px;
+            }
+
+            .report-toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            body {
+                overflow: hidden;
+            }
+
+            .glass-sidebar {
+                top: 10px;
+                left: 10px;
+                bottom: 10px;
+
+                width: 250px;
+
+                transform:
+                    translateX(-120%);
+
+                transition:
+                    transform 0.3s ease;
+            }
+
+            .glass-sidebar.open {
+                transform:
+                    translateX(0);
+            }
+
+            .mobile-menu-button {
+                display: flex;
+
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-area {
+                left: 0;
+
+                top: 0;
+                right: 0;
+                bottom: 0;
+
+                padding: 10px;
+            }
+
+            .dashboard-box {
+                padding: 12px;
+                border-radius: 22px;
+            }
+
+            .dashboard-header {
+                min-height: auto;
+
+                padding: 25px 20px;
+
+                border-radius: 20px;
+            }
+
+            .dashboard-header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .dashboard-header h1 {
+                font-size: 34px;
+                letter-spacing: -1px;
+            }
+
+            .dashboard-header p {
+                font-size: 12px;
+                line-height: 1.6;
+            }
+
+            .system-status {
+                align-self: flex-start;
+            }
+
+            .dashboard-content {
+                padding: 25px 2px;
+            }
+
+            .report-toolbar {
+                padding: 15px;
+            }
+
+            .report-actions {
+                width: 100%;
+            }
+
+            .glass-button {
+                flex: 1;
+            }
+
+            .filter-area {
+                width: 100%;
+            }
+
+            .date-input {
+                flex: 1;
+            }
+
+            .section-heading {
+                gap: 10px;
+            }
+
+            .section-heading h2 {
+                font-size: 18px;
+            }
+
+            .heading-line {
+                display: none;
+            }
+
+            .report-card {
+                border-radius: 17px;
+            }
+        }
+
+        @media (max-width: 480px) {
+
+            .dashboard-header h1 {
+                font-size: 28px;
+            }
+
+            .dashboard-header {
+                padding: 22px 17px;
+            }
+
+            .report-toolbar {
+                padding: 13px;
+            }
+
+            .report-actions {
+                flex-direction: column;
+            }
+
+            .glass-button {
+                width: 100%;
+            }
+
+            .filter-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .date-input {
+                width: 100%;
+            }
+
+            .section-heading h2 {
+                font-size: 17px;
+            }
+        }
+
+        /* =========================================================
+           TEAM REPORTS CUSTOM DATE PICKER
+           Same calendar UI as Team Lead Project Assigning
+        ========================================================= */
+
+        .report-date-picker {
+            position: relative;
+            width: 230px;
+            min-width: 230px;
+            flex: 0 0 230px;
+        }
+
+        .report-date-picker .custom-date-input {
+            width: 100%;
+            min-height: 42px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 0 13px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 12px;
+            background: rgba(5, 5, 11, 0.78);
+            color: #f7f3ff;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+            transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+        .report-date-picker .custom-date-input:hover,
+        .report-date-picker .custom-date-input:focus {
+            outline: none;
+            border-color: rgba(139, 92, 246, .70);
+            background: rgba(11, 9, 19, .95);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, .10);
+        }
+
+        .report-date-picker .custom-date-input span {
+            color: #f2effa;
+            white-space: nowrap;
+        }
+
+        .report-date-picker .custom-date-input span.is-placeholder {
+            color: rgba(255,255,255,.36);
+        }
+
+        .report-date-picker .custom-date-input svg {
+            width: 17px;
+            height: 17px;
+            flex: 0 0 auto;
+            color: #c4b5fd;
+            pointer-events: none;
+        }
+
+        .report-date-picker .custom-calendar {
+            position: absolute;
+            z-index: 9999;
+            top: calc(100% + 9px);
+            left: 0;
+            width: 300px;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid rgba(255,255,255,.13);
+            border-radius: 17px;
+            background:
+                radial-gradient(circle at 90% 0%, rgba(96,165,250,.13), transparent 32%),
+                radial-gradient(circle at 0% 0%, rgba(139,92,246,.20), transparent 38%),
+                rgba(12, 11, 20, .97);
+            box-shadow:
+                0 28px 65px rgba(0,0,0,.58),
+                inset 0 1px 0 rgba(255,255,255,.06);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            display: none;
+        }
+
+        .report-date-picker.open .custom-calendar {
+            display: block;
+            animation: teamReportCalendarIn .16s ease-out;
+        }
+
+        @keyframes teamReportCalendarIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px) scale(.985);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .report-date-picker .calendar-header {
+            display: grid;
+            grid-template-columns: 34px 1fr 34px;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 11px;
+        }
+
+        .report-date-picker .calendar-month-title {
+            border: 0;
+            background: transparent;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 800;
+            text-align: center;
+            cursor: default;
+        }
+
+        .report-date-picker .calendar-nav {
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 9px;
+            background: rgba(255,255,255,.045);
+            color: #ddd6fe;
+            cursor: pointer;
+        }
+
+        .report-date-picker .calendar-nav:hover {
+            background: rgba(139,92,246,.18);
+            border-color: rgba(139,92,246,.45);
+        }
+
+        .report-date-picker .calendar-nav svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .report-date-picker .calendar-weekdays,
+        .report-date-picker .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .report-date-picker .calendar-weekdays {
+            margin-bottom: 5px;
+        }
+
+        .report-date-picker .calendar-weekdays span {
+            height: 28px;
+            display: grid;
+            place-items: center;
+            color: rgba(255,255,255,.45);
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .report-date-picker .calendar-day {
+            width: 100%;
+            aspect-ratio: 1;
+            min-height: 30px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            background: transparent;
+            color: rgba(255,255,255,.86);
+            font-size: 12px;
+            cursor: pointer;
+            transition: .15s ease;
+        }
+
+        .report-date-picker .calendar-day:hover {
+            background: rgba(139,92,246,.18);
+            border-color: rgba(139,92,246,.36);
+        }
+
+        .report-date-picker .calendar-day.is-muted {
+            color: rgba(255,255,255,.22);
+        }
+
+        .report-date-picker .calendar-day.is-today {
+            border-color: rgba(96,165,250,.55);
+            color: #bfdbfe;
+        }
+
+        .report-date-picker .calendar-day.is-selected {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            border-color: rgba(196,181,253,.80);
+            color: #fff;
+            font-weight: 800;
+            box-shadow: 0 7px 18px rgba(124,58,237,.28);
+        }
+
+        .report-date-picker .calendar-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,.08);
+        }
+
+        .report-date-picker .calendar-footer-btn {
+            border: 0;
+            background: transparent;
+            color: #c4b5fd;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 5px 7px;
+            border-radius: 7px;
+        }
+
+        .report-date-picker .calendar-footer-btn:hover {
+            color: #fff;
+            background: rgba(139,92,246,.14);
+        }
+
+        @media (max-width: 768px) {
+            .report-date-picker {
+                flex: 1 1 230px;
+                min-width: 0;
+                width: 230px;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .report-date-picker {
+                width: 100%;
+                max-width: 100%;
+                flex-basis: 100%;
+            }
+
+            .report-date-picker .custom-calendar {
+                width: min(300px, calc(100vw - 28px));
+            }
+        }
+
+        @media (max-width: 430px) {
+            .report-date-picker .custom-calendar {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            .report-date-picker.open .custom-calendar {
+                animation: teamReportCalendarInMobile .16s ease-out;
+            }
+        }
+
+        @keyframes teamReportCalendarInMobile {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-5px) scale(.985);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0) scale(1);
+            }
+        }
+
+    </style>
 </head>
-<body class="bg-black text-white font-sans select-none">
 
-<div id="sidebar" 
-     class="fixed top-0 left-0 h-full w-64 bg-[#250f1e] overflow-y-auto text-white p-6 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">  <div class="flex items-center justify-between mb-6">
-    <div class="w-full flex justify-center select-none">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 object-contain">
+<body>
+
+<button class="menu-toggle mobile-menu-button" type="button" aria-label="Open menu">☰</button>
+
+{% include "components/teamlead_sidebar.html" %}
+
+<main class="main-area">
+
+    <div class="dashboard-box">
+
+        <section class="dashboard-header">
+            <div class="dashboard-header-content">
+
+                <div>
+                    <div class="dashboard-eyebrow">CYBEXEL TEAM LEAD PANEL</div>
+
+                    <h1>TEAM REPORTS</h1>
+
+                    <p>Review and manage daily team reports from one place.</p>
+                </div>
+
+                <div class="system-status">
+                    <span class="status-dot"></span>
+                    <span>System Online</span>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="dashboard-content">
+
+            <div class="report-toolbar">
+
+                <div class="report-actions">
+
+                    {% if show_all %}
+                    <a href="{% url 'teamlead_reports' %}" class="glass-button primary">
+                        <i data-lucide="calendar-days"></i>
+                        Today's Reports
+                    </a>
+                    {% else %}
+                    <a href="{% url 'teamlead_reports' %}?all=1" class="glass-button primary">
+                        <i data-lucide="files"></i>
+                        All Reports
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'teamlead_reports' %}{% if show_all %}?all=1&export=1{% else %}?export=1{% endif %}"
+                       class="glass-button export">
+                        <i data-lucide="file-spreadsheet"></i>
+                        Export to Excel
+                    </a>
+
+                </div>
+
+                <form method="GET" class="filter-area">
+
+                    <div class="custom-date-picker report-date-picker" data-date-picker>
+                        <input
+                            type="hidden"
+                            id="report-date"
+                            name="date"
+                            value="{{ filter_date|default_if_none:'' }}"
+                        >
+
+                        <button
+                            type="button"
+                            class="custom-date-input"
+                            data-date-toggle
+                            aria-haspopup="dialog"
+                            aria-expanded="false"
+                        >
+                            <span data-date-display>dd-mm-yyyy</span>
+                            <i data-lucide="calendar-days"></i>
+                        </button>
+
+                        <div
+                            class="custom-calendar"
+                            data-calendar
+                            role="dialog"
+                            aria-label="Choose report date"
+                        >
+                            <div class="calendar-header">
+                                <button
+                                    type="button"
+                                    class="calendar-nav"
+                                    data-prev-month
+                                    aria-label="Previous month"
+                                >
+                                    <i data-lucide="chevron-left"></i>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="calendar-month-title"
+                                    data-month-title
+                                ></button>
+
+                                <button
+                                    type="button"
+                                    class="calendar-nav"
+                                    data-next-month
+                                    aria-label="Next month"
+                                >
+                                    <i data-lucide="chevron-right"></i>
+                                </button>
+                            </div>
+
+                            <div class="calendar-weekdays">
+                                <span>Su</span>
+                                <span>Mo</span>
+                                <span>Tu</span>
+                                <span>We</span>
+                                <span>Th</span>
+                                <span>Fr</span>
+                                <span>Sa</span>
+                            </div>
+
+                            <div class="calendar-days" data-calendar-days></div>
+
+                            <div class="calendar-footer">
+                                <button
+                                    type="button"
+                                    class="calendar-footer-btn"
+                                    data-clear-date
+                                >
+                                    Clear
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="calendar-footer-btn"
+                                    data-today-date
+                                >
+                                    Today
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if show_all %}
+                    <input type="hidden" name="all" value="1">
+                    {% endif %}
+
+                    <button type="submit" class="glass-button primary">
+                        <i data-lucide="filter"></i>
+                        Filter
+                    </button>
+
+                    <a href="{% url 'teamlead_reports' %}{% if show_all %}?all=1{% endif %}"
+                       class="glass-button">
+                        <i data-lucide="rotate-ccw"></i>
+                        Reset
+                    </a>
+
+                </form>
+
+            </div>
+
+            <div class="report-section">
+
+                <div class="section-heading">
+                    <div class="section-title-block">
+                        <span class="section-eyebrow">DAILY REPORTS</span>
+                        <h2>Morning Reports</h2>
+                    </div>
+                    <div class="heading-line"></div>
+                </div>
+
+                <div class="report-card">
+                    <div class="table-wrapper">
+
+                        <table class="report-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Name</th>
+                                    <th>Team</th>
+                                    <th>Department</th>
+                                    <th>Report</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for report in morning_reports %}
+                                <tr>
+                                    <td>{{ report.created_at|date:"Y-m-d" }}</td>
+
+                                    <td>{{ report.created_at|time:"h:i A" }}</td>
+
+                                    <td>
+                                        <div class="user-name">
+                                            <span class="user-dot"></span>
+                                            {{ report.user.name }}
+                                        </div>
+                                    </td>
+
+                                    <td>{{ report.team }}</td>
+                                    <td>{{ report.department }}</td>
+
+                                    <td>
+                                        <div class="report-text">
+                                            {{ report.report_text }}
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="status-badge">
+                                            {{ report.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="empty-row">
+                                        No morning reports found
+                                    </td>
+                                </tr>
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="report-section">
+
+                <div class="section-heading">
+                    <div class="section-title-block">
+                        <span class="section-eyebrow">DAILY REPORTS</span>
+                        <h2>Evening Reports</h2>
+                    </div>
+                    <div class="heading-line"></div>
+                </div>
+
+                <div class="report-card">
+                    <div class="table-wrapper">
+
+                        <table class="report-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Name</th>
+                                    <th>Team</th>
+                                    <th>Department</th>
+                                    <th>Report</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                {% for report in evening_reports %}
+                                <tr>
+                                    <td>{{ report.created_at|date:"Y-m-d" }}</td>
+
+                                    <td>{{ report.created_at|time:"h:i A" }}</td>
+
+                                    <td>
+                                        <div class="user-name">
+                                            <span class="user-dot"></span>
+                                            {{ report.user.name }}
+                                        </div>
+                                    </td>
+
+                                    <td>{{ report.team }}</td>
+                                    <td>{{ report.department }}</td>
+
+                                    <td>
+                                        <div class="report-text">
+                                            {{ report.report_text }}
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <span class="status-badge">
+                                            {{ report.status|default:"Submitted" }}
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="empty-row">
+                                        No evening reports found
+                                    </td>
+                                </tr>
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
     </div>
-    <button class="menu-toggle md:hidden text-white text-2xl max-md:mt-[-9rem]">&times;</button>
-  </div>
-  <nav class="select-none">
-    <ul class="space-y-8 text-sm">
-      <li>
-        <a href="{% url 'teamlead_dashboard' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">
-          Team Lead Dashboard
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_reports' %}" class="block py-2 px-4 rounded bg-white text-[#151a37]">
-          Reports
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_project_assigning' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">
-          Project Assigning
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_notepad' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Notepad</a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_repository' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Knowledge Repository</a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_profile' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Profile</a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_task' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">My task</a>
-      </li>
-      
-      <li><a href="{% url 'teamlead_chat' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Chat</a></li>
-      <li>
-      <a href="https://meet.google.com/" target="_blank" class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-    </li>
-      <li>
-        <a href="{% url 'teamlead_logout' %}" class="block py-2 px-4 rounded bg-[red] text-white">Logout</a>
-      </li>
-    </ul>
-  </nav>
-</div>
 
-<button class="menu-toggle md:hidden fixed top-8 left-4 z-50 text-white p-2 rounded shadow-lg">
-  &#9776;
-</button>
-
-<div class="ml-0 md:ml-64 p-4 md:p-6 max-md:mt-[5rem]">
-  <!-- Header -->
-  <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-2 md:gap-0">
-    <h1 class="text-2xl md:text-3xl font-bold">Team Reports</h1>
-    <div class="flex flex-wrap gap-2">
-      {% if show_all %}
-        <a href="{% url 'teamlead_reports' %}"
-           class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm md:text-base">
-          Today’s Reports
-        </a>
-      {% else %}
-        <a href="{% url 'teamlead_reports' %}?all=1"
-           class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm md:text-base">
-          All Reports
-        </a>
-      {% endif %}
-      <a href="{% url 'teamlead_reports' %}{% if show_all %}?all=1&export=1{% else %}?export=1{% endif %}"
-         class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm md:text-base">
-        Export to Excel
-      </a>
-    </div>
-  </div>
-
-
-
-<form method="GET" class="mb-4 flex flex-wrap gap-2 items-center">
-  <input type="date" name="date" value="{{ filter_date|default_if_none:'' }}"
-         class="px-2 py-1 border border-gray-300 rounded">
-  {% if show_all %}
-    <input type="hidden" name="all" value="1">
-  {% endif %}
-  <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded">Filter</button>
-  <a href="{% url 'admin_reports' %}{% if show_all %}?all=1{% endif %}"
-     class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded">Reset</a>
-</form>
-
-
-<!-- Morning Reports -->
-<div class="mb-10">
-  <h2 class="text-xl md:text-2xl font-semibold mb-4">Morning Reports</h2>
-  <div class="overflow-x-auto bg-white rounded-lg shadow">
-    <table class="min-w-full divide-y divide-gray-200 text-sm md:text-base text-black">
-      <thead class="bg-[#250f1e] text-white">
-        <tr>
-          <th class="px-2 md:px-4 py-2 text-left">Date</th>
-          <th class="px-2 md:px-4 py-2 text-left">Time</th>
-          <th class="px-2 md:px-4 py-2 text-left">Name</th>
-          <th class="px-2 md:px-4 py-2 text-left">Team</th>
-          <th class="px-2 md:px-4 py-2 text-left">Department</th>
-          <th class="px-2 md:px-4 py-2 text-left">Report</th>
-          <th class="px-2 md:px-4 py-2 text-left">Status</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y divide-gray-200">
-        {% for report in morning_reports %}
-        <tr class="hover:bg-gray-50">
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.created_at|date:"Y-m-d" }}</td>
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.created_at|time:"h:i A" }}</td>
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.user.name }}</td>
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.team }}</td>
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.department }}</td>
-          <td class="px-2 md:px-4 py-2">{{ report.report_text }}</td>
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap font-medium">{{ report.status }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6" class="px-2 md:px-4 py-3 text-center text-gray-500">
-            No morning reports found
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
-  <!-- Evening Reports -->
-  <div>
-    <h2 class="text-xl md:text-2xl font-semibold mb-4">Evening Reports</h2>
-    <div class="overflow-x-auto bg-white rounded-lg shadow">
-      <table class="min-w-full divide-y divide-gray-200 text-sm md:text-base text-black">
-        <thead class="bg-[#250f1e] text-white">
-          <tr>
-            <th class="px-2 md:px-4 py-2 text-left">Date</th>
-            <th class="px-2 md:px-4 py-2 text-left">Time</th>
-            <th class="px-2 md:px-4 py-2 text-left">Name</th>
-            <th class="px-2 md:px-4 py-2 text-left">Team</th>
-            <th class="px-2 md:px-4 py-2 text-left">Department</th>
-            <th class="px-2 md:px-4 py-2 text-left">Report</th>
-            <th class="px-2 md:px-4 py-2 text-left">Status</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
-          {% for report in evening_reports %}
-          <tr class="hover:bg-gray-50">
-            <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.created_at|date:"Y-m-d" }}</td>
-          <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.created_at|time:"h:i A" }}</td>
-            <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.user.name }}</td>
-            <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.team }}</td>
-            <td class="px-2 md:px-4 py-2 whitespace-nowrap">{{ report.department }}</td>
-            <td class="px-2 md:px-4 py-2">{{ report.report_text }}</td>
-            <td class="px-2 md:px-4 py-2 whitespace-nowrap font-medium">{{ report.status }}</td>
-
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="5" class="px-2 md:px-4 py-3 text-center text-gray-500">No evening reports found</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
+</main>
 
 <script src="{% static 'js/admin.js' %}"></script>
 <script src="{% static 'js/activity.js' %}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const sidebar = document.getElementById("sidebar");
+    const menuButtons = document.querySelectorAll(".menu-toggle");
+
+    menuButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            sidebar.classList.toggle("open");
+        });
+    });
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+
+});
+</script>
+
+
+<script>
+/* =========================================================
+   TEAM REPORTS CUSTOM DATE PICKER
+   Same behavior/UI as Project Assigning
+========================================================= */
+document.addEventListener("DOMContentLoaded", function () {
+    const monthFormatter = new Intl.DateTimeFormat("en-US", {
+        month: "long",
+        year: "numeric"
+    });
+
+    const pad = n => String(n).padStart(2, "0");
+
+    function toISO(date) {
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function fromISO(value) {
+        if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            return null;
+        }
+
+        const [year, month, day] = value.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
+
+        if (
+            date.getFullYear() !== year ||
+            date.getMonth() !== month - 1 ||
+            date.getDate() !== day
+        ) {
+            return null;
+        }
+
+        return date;
+    }
+
+    function sameDate(a, b) {
+        return !!(
+            a &&
+            b &&
+            a.getFullYear() === b.getFullYear() &&
+            a.getMonth() === b.getMonth() &&
+            a.getDate() === b.getDate()
+        );
+    }
+
+    document.querySelectorAll(".report-date-picker[data-date-picker]").forEach(function (picker) {
+        const hiddenInput = picker.querySelector('input[type="hidden"]');
+        const toggle = picker.querySelector("[data-date-toggle]");
+        const display = picker.querySelector("[data-date-display]");
+        const daysWrap = picker.querySelector("[data-calendar-days]");
+        const monthTitle = picker.querySelector("[data-month-title]");
+        const prevBtn = picker.querySelector("[data-prev-month]");
+        const nextBtn = picker.querySelector("[data-next-month]");
+        const clearBtn = picker.querySelector("[data-clear-date]");
+        const todayBtn = picker.querySelector("[data-today-date]");
+
+        if (!hiddenInput || !toggle || !display || !daysWrap || !monthTitle) {
+            return;
+        }
+
+        let selectedDate = fromISO(hiddenInput.value);
+        let viewDate = selectedDate
+            ? new Date(selectedDate)
+            : new Date();
+
+        viewDate = new Date(
+            viewDate.getFullYear(),
+            viewDate.getMonth(),
+            1
+        );
+
+        function updateDisplay() {
+            if (selectedDate) {
+                display.textContent =
+                    `${pad(selectedDate.getDate())}-${pad(selectedDate.getMonth() + 1)}-${selectedDate.getFullYear()}`;
+                display.classList.remove("is-placeholder");
+            } else {
+                display.textContent = "dd-mm-yyyy";
+                display.classList.add("is-placeholder");
+            }
+        }
+
+        function renderCalendar() {
+            monthTitle.textContent = monthFormatter.format(viewDate);
+            daysWrap.innerHTML = "";
+
+            const year = viewDate.getFullYear();
+            const month = viewDate.getMonth();
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            for (let i = firstDay - 1; i >= 0; i--) {
+                addDay(
+                    new Date(year, month - 1, daysInPrevMonth - i),
+                    true
+                );
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                addDay(
+                    new Date(year, month, day),
+                    false
+                );
+            }
+
+            const totalCells = firstDay + daysInMonth;
+            const remaining = (7 - (totalCells % 7)) % 7;
+
+            for (let day = 1; day <= remaining; day++) {
+                addDay(
+                    new Date(year, month + 1, day),
+                    true
+                );
+            }
+        }
+
+        function addDay(date, muted) {
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.className = "calendar-day";
+            button.textContent = date.getDate();
+
+            if (muted) {
+                button.classList.add("is-muted");
+            }
+
+            if (sameDate(date, new Date())) {
+                button.classList.add("is-today");
+            }
+
+            if (sameDate(date, selectedDate)) {
+                button.classList.add("is-selected");
+            }
+
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                selectedDate = new Date(
+                    date.getFullYear(),
+                    date.getMonth(),
+                    date.getDate()
+                );
+
+                hiddenInput.value = toISO(selectedDate);
+
+                viewDate = new Date(
+                    selectedDate.getFullYear(),
+                    selectedDate.getMonth(),
+                    1
+                );
+
+                updateDisplay();
+                renderCalendar();
+                closeCalendar();
+            });
+
+            daysWrap.appendChild(button);
+        }
+
+        function openCalendar(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            document.querySelectorAll(".report-date-picker.open").forEach(function (other) {
+                if (other !== picker) {
+                    other.classList.remove("open");
+
+                    const otherToggle = other.querySelector("[data-date-toggle]");
+
+                    if (otherToggle) {
+                        otherToggle.setAttribute("aria-expanded", "false");
+                    }
+                }
+            });
+
+            picker.classList.add("open");
+            toggle.setAttribute("aria-expanded", "true");
+            renderCalendar();
+        }
+
+        function closeCalendar() {
+            picker.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+        }
+
+        /*
+         * The whole date field is the trigger.
+         * The calendar icon is inside this same button, so clicking either
+         * the date text or the icon opens the exact same calendar.
+         */
+        toggle.addEventListener("click", openCalendar);
+
+        toggle.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+                openCalendar(event);
+            }
+
+            if (event.key === "Escape") {
+                closeCalendar();
+            }
+        });
+
+        if (prevBtn) {
+            prevBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                viewDate = new Date(
+                    viewDate.getFullYear(),
+                    viewDate.getMonth() - 1,
+                    1
+                );
+
+                renderCalendar();
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                viewDate = new Date(
+                    viewDate.getFullYear(),
+                    viewDate.getMonth() + 1,
+                    1
+                );
+
+                renderCalendar();
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                selectedDate = null;
+                hiddenInput.value = "";
+
+                const today = new Date();
+
+                viewDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    1
+                );
+
+                updateDisplay();
+                renderCalendar();
+                closeCalendar();
+            });
+        }
+
+        if (todayBtn) {
+            todayBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const today = new Date();
+
+                selectedDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    today.getDate()
+                );
+
+                hiddenInput.value = toISO(selectedDate);
+
+                viewDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    1
+                );
+
+                updateDisplay();
+                renderCalendar();
+                closeCalendar();
+            });
+        }
+
+        updateDisplay();
+        renderCalendar();
+    });
+
+    /*
+     * Close only when clicking outside the date-picker.
+     * Calendar buttons stop propagation, so they remain clickable.
+     */
+    document.addEventListener("click", function (event) {
+        document.querySelectorAll(".report-date-picker.open").forEach(function (picker) {
+            if (!picker.contains(event.target)) {
+                picker.classList.remove("open");
+
+                const toggle = picker.querySelector("[data-date-toggle]");
+
+                if (toggle) {
+                    toggle.setAttribute("aria-expanded", "false");
+                }
+            }
+        });
+    });
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+});
+</script>
+
 </body>
 </html>

@@ -1,0 +1,97 @@
+{% load static %}
+
+<button class="menu-toggle mobile-menu-button" type="button">
+    ☰
+</button>
+
+<aside id="sidebar" class="glass-sidebar">
+
+    <div class="sidebar-profile">
+
+        <div class="sidebar-logo">
+            <img src="{% static 'images/logo.png' %}" alt="Developer Logo">
+        </div>
+
+        <div class="sidebar-profile-text">
+            <h3>DEVELOPER</h3>
+            <span>TAGGING HERE</span>
+        </div>
+
+    </div>
+
+    <nav class="sidebar-nav">
+
+        <a href="{% url 'admin_dashboard' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+            <span class="sidebar-icon">
+                <i data-lucide="layout-dashboard"></i>
+            </span>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="{% url 'admin_usermanagement' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'admin_usermanagement' %}active{% endif %}">
+            <span class="sidebar-icon">
+                <i data-lucide="users"></i>
+            </span>
+            <span>User Management</span>
+        </a>
+
+        <a href="{% url 'admin_reports' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">
+            <span class="sidebar-icon">
+                <i data-lucide="chart-no-axes-combined"></i>
+            </span>
+            <span>Reports</span>
+        </a>
+
+        <a href="{% url 'admin_chat' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'admin_chat' %}active{% endif %}">
+            <span class="sidebar-icon">
+                <i data-lucide="message-circle"></i>
+            </span>
+            <span>Chat</span>
+        </a>
+
+        <a href="{% url 'admin_profile' %}"
+           class="sidebar-item {% if request.resolver_match.url_name == 'admin_profile' %}active{% endif %}">
+            <span class="sidebar-icon">
+                <i data-lucide="circle-user-round"></i>
+            </span>
+            <span>Profile</span>
+        </a>
+
+        <a href="https://meet.google.com/"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="sidebar-item">
+
+            <span class="sidebar-icon">
+                <i data-lucide="video"></i>
+            </span>
+
+            <span>Google Meet</span>
+
+            <span class="sidebar-external">
+                <i data-lucide="arrow-up-right"></i>
+            </span>
+
+        </a>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+
+        <a href="{% url 'admin_logout' %}" class="sidebar-logout">
+
+            <span class="sidebar-icon">
+                <i data-lucide="log-out"></i>
+            </span>
+
+            <span>Logout</span>
+
+        </a>
+
+    </div>
+
+</aside>

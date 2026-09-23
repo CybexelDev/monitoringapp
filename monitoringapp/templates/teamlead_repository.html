@@ -6,259 +6,1945 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Team Lead Dashboard - Cybexel</title>
+
+  <title>Team Lead Knowledge Repository - Cybexel</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <style>
-.toast-message {
-    animation: toastSlideIn 0.35s ease-out;
-}
 
-.toast-message.toast-hide {
-    animation: toastSlideOut 0.35s ease-in forwards;
-}
+    /* =========================================================
+       TEAM LEAD KNOWLEDGE REPOSITORY
+       SAME TEAM LEAD GLASS THEME
+    ========================================================= */
 
-@keyframes toastSlideIn {
-    from {
+    .repository-page {
+      width: 100%;
+    }
+
+    .repository-hero {
+      margin-bottom: 28px;
+    }
+
+    .repository-hero p {
+      max-width: 760px;
+    }
+
+
+    /* =========================================================
+       ADD RESOURCE FORM
+    ========================================================= */
+
+    .repository-form-card {
+      position: relative;
+      overflow: hidden;
+
+      margin-bottom: 28px;
+      padding: 28px;
+
+      border-radius: 22px;
+
+      background:
+        radial-gradient(
+          circle at 92% 0%,
+          rgba(113,72,190,.13),
+          transparent 34%
+        ),
+        linear-gradient(
+          145deg,
+          rgba(24,22,35,.92),
+          rgba(11,11,17,.96)
+        );
+
+      border: 1px solid rgba(255,255,255,.09);
+
+      box-shadow:
+        0 20px 55px rgba(0,0,0,.28),
+        inset 0 1px 0 rgba(255,255,255,.025);
+    }
+
+    .repository-form-card::before {
+      content: "";
+
+      position: absolute;
+      inset: 0;
+
+      pointer-events: none;
+
+      background:
+        linear-gradient(
+          120deg,
+          rgba(124,58,237,.05),
+          transparent 35%,
+          rgba(59,130,246,.035)
+        );
+    }
+
+    .repository-form-header {
+      position: relative;
+      z-index: 1;
+
+      display: flex;
+      align-items: center;
+      gap: 14px;
+
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+
+    .repository-form-icon {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 14px;
+
+      color: #ddd0ff;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(124,75,212,.30),
+          rgba(79,70,229,.18)
+        );
+
+      border: 1px solid rgba(167,139,250,.24);
+
+      box-shadow:
+        0 12px 28px rgba(99,102,241,.12);
+    }
+
+    .repository-form-icon svg {
+      width: 21px;
+      height: 21px;
+    }
+
+    .repository-form-header h2 {
+      margin: 0;
+
+      color: #fff;
+
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .repository-form-header p {
+      margin: 5px 0 0;
+
+      color: #85818d;
+
+      font-size: 12px;
+    }
+
+
+    /* =========================================================
+       FORM FIELDS
+    ========================================================= */
+
+    .repository-field {
+      position: relative;
+      z-index: 1;
+
+      margin-bottom: 15px;
+    }
+
+    .repository-field label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      color: #a78bfa;
+
+      font-size: 9px;
+      font-weight: 800;
+
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .repository-input,
+    .repository-textarea,
+    .repository-file {
+      width: 100%;
+      box-sizing: border-box;
+
+      color: #f7f3ff;
+
+      background: rgba(5,5,11,.68);
+
+      border: 1px solid rgba(255,255,255,.10);
+
+      border-radius: 12px;
+
+      outline: none;
+
+      font-size: 12px;
+
+      transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        background .2s ease;
+    }
+
+    .repository-input {
+      min-height: 44px;
+      padding: 0 13px;
+    }
+
+    .repository-textarea {
+      min-height: 100px;
+
+      padding: 12px 13px;
+
+      resize: vertical;
+    }
+
+    .repository-file {
+      min-height: 44px;
+
+      padding: 9px 12px;
+    }
+
+    .repository-input::placeholder,
+    .repository-textarea::placeholder {
+      color: rgba(255,255,255,.34);
+    }
+
+    .repository-input:focus,
+    .repository-textarea:focus,
+    .repository-file:focus {
+      border-color: rgba(139,92,246,.65);
+
+      box-shadow:
+        0 0 0 3px rgba(139,92,246,.09);
+
+      background: rgba(11,9,19,.90);
+    }
+
+
+    /* =========================================================
+       SUBMIT BUTTON
+    ========================================================= */
+
+    .repository-submit {
+      position: relative;
+      z-index: 1;
+
+      min-height: 42px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+
+      padding: 0 17px;
+
+      border-radius: 12px;
+
+      color: #fff;
+
+      background:
+        linear-gradient(
+          135deg,
+          #7c4bd4,
+          #5b32a7
+        );
+
+      border: 1px solid rgba(167,139,250,.35);
+
+      box-shadow:
+        0 10px 25px rgba(124,75,212,.18);
+
+      font-size: 11px;
+      font-weight: 700;
+
+      cursor: pointer;
+
+      transition: all .22s ease;
+    }
+
+    .repository-submit:hover {
+      transform: translateY(-2px);
+
+      box-shadow:
+        0 14px 30px rgba(124,75,212,.25);
+    }
+
+
+    /* =========================================================
+       SECTION HEADING
+    ========================================================= */
+
+    .repository-section-heading {
+      margin-bottom: 15px;
+    }
+
+
+    /* =========================================================
+       RESOURCE GRID
+    ========================================================= */
+
+    .repository-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, minmax(0,1fr));
+
+      gap: 16px;
+    }
+
+
+    /* =========================================================
+       RESOURCE CARD
+    ========================================================= */
+
+    .repository-card {
+      position: relative;
+
+      min-width: 0;
+
+      overflow: hidden;
+
+      padding: 22px;
+
+      border-radius: 20px;
+
+      background:
+        radial-gradient(
+          circle at 92% 0%,
+          rgba(113,72,190,.12),
+          transparent 35%
+        ),
+        linear-gradient(
+          145deg,
+          rgba(27,26,34,.90),
+          rgba(16,16,22,.92)
+        );
+
+      border: 1px solid rgba(255,255,255,.09);
+
+      box-shadow:
+        0 20px 50px rgba(0,0,0,.20),
+        inset 0 1px 0 rgba(255,255,255,.035);
+
+      transition:
+        transform .22s ease,
+        border-color .22s ease;
+    }
+
+    .repository-card::before {
+      content: "";
+
+      position: absolute;
+      inset: 0;
+
+      pointer-events: none;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(139,92,246,.045),
+          transparent 42%
+        );
+    }
+
+    .repository-card:hover {
+      transform: translateY(-3px);
+
+      border-color:
+        rgba(139,92,246,.28);
+    }
+
+    .repository-card-content {
+      position: relative;
+      z-index: 1;
+
+      padding-right: 28px;
+    }
+
+    .repository-card h3 {
+      margin: 0 0 9px;
+
+      color: #fff;
+
+      font-size: 17px;
+      line-height: 1.35;
+      font-weight: 800;
+
+      overflow-wrap: anywhere;
+    }
+
+    .repository-description {
+      margin: 0;
+
+      color: #92909b;
+
+      font-size: 12px;
+      line-height: 1.65;
+
+      overflow-wrap: anywhere;
+
+      display: -webkit-box;
+
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+
+      overflow: hidden;
+    }
+
+    .repository-meta {
+      margin-top: 15px;
+
+      color: #66636e;
+
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .repository-view-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+
+      margin-top: 15px;
+      padding: 0;
+
+      color: #bca7ff;
+
+      background: transparent;
+
+      border: 0;
+
+      font-size: 11px;
+      font-weight: 700;
+
+      cursor: pointer;
+    }
+
+    .repository-view-button:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    .repository-view-button svg {
+      width: 15px;
+      height: 15px;
+    }
+
+
+    /* =========================================================
+       DELETE BUTTON
+    ========================================================= */
+
+    .repository-delete {
+      position: absolute;
+      z-index: 3;
+
+      top: 14px;
+      right: 14px;
+
+      width: 32px;
+      height: 32px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 10px;
+
+      color: #ff9ba4;
+
+      background:
+        rgba(255,70,85,.055);
+
+      border:
+        1px solid rgba(255,70,85,.13);
+
+      cursor: pointer;
+
+      transition: all .2s ease;
+    }
+
+    .repository-delete:hover {
+      color: #fff;
+
+      background:
+        rgba(255,70,85,.14);
+
+      transform:
+        translateY(-1px);
+    }
+
+    .repository-delete svg {
+      width: 16px;
+      height: 16px;
+
+      stroke: currentColor;
+    }
+
+
+    /* =========================================================
+       EMPTY STATE
+    ========================================================= */
+
+    .repository-empty {
+      grid-column: 1 / -1;
+
+      padding: 35px 20px;
+
+      text-align: center;
+
+      border-radius: 20px;
+
+      color: #77737f;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(27,26,34,.75),
+          rgba(16,16,22,.80)
+        );
+
+      border:
+        1px solid rgba(255,255,255,.08);
+    }
+
+
+    /* =========================================================
+       UNIQUE VIEW MORE MODAL
+    ========================================================= */
+
+    .repository-modal {
+      position: fixed;
+      inset: 0;
+
+      z-index: 1000;
+
+      display: none;
+
+      align-items: center;
+      justify-content: center;
+
+      padding: 28px;
+
+      background:
+        radial-gradient(
+          circle at 50% 35%,
+          rgba(124,75,212,.10),
+          transparent 42%
+        ),
+        rgba(0,0,0,.76);
+
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .repository-modal.open {
+      display: flex;
+
+      animation:
+        repositoryModalFade .22s ease;
+    }
+
+    @keyframes repositoryModalFade {
+
+      from {
         opacity: 0;
-        transform: translateX(100%);
-    }
+      }
 
-    to {
+      to {
         opacity: 1;
-        transform: translateX(0);
-    }
-}
+      }
 
-@keyframes toastSlideOut {
-    from {
-        opacity: 1;
-        transform: translateX(0);
     }
 
-    to {
+
+    /* =========================================================
+       MODAL CARD
+    ========================================================= */
+
+    .repository-modal-card {
+      position: relative;
+
+      width: min(760px, 94vw);
+
+      max-height: 84vh;
+
+      overflow-y: auto;
+      overflow-x: hidden;
+
+      box-sizing: border-box;
+
+      padding: 32px;
+
+      border-radius: 26px;
+
+      color: #fff;
+
+      background:
+        radial-gradient(
+          circle at 100% 0%,
+          rgba(96,165,250,.13),
+          transparent 30%
+        ),
+        radial-gradient(
+          circle at 0% 0%,
+          rgba(139,92,246,.20),
+          transparent 38%
+        ),
+        linear-gradient(
+          145deg,
+          rgba(28,25,40,.98),
+          rgba(10,10,17,.98)
+        );
+
+      border:
+        1px solid rgba(255,255,255,.13);
+
+      box-shadow:
+        0 35px 90px rgba(0,0,0,.68),
+        0 0 70px rgba(124,75,212,.10),
+        inset 0 1px 0 rgba(255,255,255,.07);
+
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+
+      animation:
+        repositoryModalOpen .25s
+        cubic-bezier(.2,.8,.2,1);
+    }
+
+    @keyframes repositoryModalOpen {
+
+      from {
         opacity: 0;
-        transform: translateX(100%);
+
+        transform:
+          translateY(18px)
+          scale(.97);
+      }
+
+      to {
+        opacity: 1;
+
+        transform:
+          translateY(0)
+          scale(1);
+      }
+
     }
-}
-</style>
+
+
+    /* Top glow */
+
+    .repository-modal-card::before {
+      content: "";
+
+      position: absolute;
+
+      top: -80px;
+      left: 50%;
+
+      transform:
+        translateX(-50%);
+
+      width: 360px;
+      height: 150px;
+
+      background:
+        rgba(124,75,212,.13);
+
+      filter:
+        blur(55px);
+
+      pointer-events: none;
+    }
+
+
+    /* Top highlight */
+
+    .repository-modal-card::after {
+      content: "";
+
+      position: absolute;
+
+      top: 0;
+      left: 12%;
+      right: 12%;
+
+      height: 1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(167,139,250,.55),
+          rgba(96,165,250,.45),
+          transparent
+        );
+
+      pointer-events: none;
+    }
+
+
+    /* =========================================================
+       MODAL HEADER
+    ========================================================= */
+
+    .repository-modal-header {
+      position: relative;
+      z-index: 2;
+
+      display: flex;
+
+      align-items: flex-start;
+      justify-content: space-between;
+
+      gap: 18px;
+
+      padding-bottom: 22px;
+      margin-bottom: 24px;
+
+      border-bottom:
+        1px solid rgba(255,255,255,.08);
+    }
+
+    .repository-modal-title-wrap {
+      display: flex;
+
+      align-items: flex-start;
+
+      gap: 15px;
+
+      min-width: 0;
+    }
+
+    .repository-modal-icon {
+      width: 48px;
+      height: 48px;
+
+      flex: 0 0 48px;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 15px;
+
+      color: #d9ccff;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(124,75,212,.32),
+          rgba(79,70,229,.14)
+        );
+
+      border:
+        1px solid rgba(167,139,250,.25);
+
+      box-shadow:
+        0 12px 30px rgba(99,102,241,.12),
+        inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    .repository-modal-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .repository-modal-card h2 {
+      position: relative;
+      z-index: 2;
+
+      margin: 0;
+
+      color: #fff;
+
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 800;
+
+      overflow-wrap: anywhere;
+    }
+
+    .repository-modal-subtitle {
+      margin-top: 6px;
+
+      color: #77737f;
+
+      font-size: 10px;
+      font-weight: 700;
+
+      letter-spacing: 1.8px;
+
+      text-transform: uppercase;
+    }
+
+
+    /* =========================================================
+       TOP RIGHT X
+    ========================================================= */
+
+    .repository-modal-x {
+      position: relative;
+      z-index: 5;
+
+      width: 38px;
+      height: 38px;
+
+      flex: 0 0 38px;
+
+      display: inline-flex;
+
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 12px;
+
+      color: #aaa5b5;
+
+      background:
+        rgba(255,255,255,.035);
+
+      border:
+        1px solid rgba(255,255,255,.08);
+
+      cursor: pointer;
+
+      transition:
+        color .2s ease,
+        background .2s ease,
+        border-color .2s ease,
+        transform .2s ease;
+    }
+
+    .repository-modal-x svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    .repository-modal-x:hover {
+      color: #fff;
+
+      background:
+        rgba(255,70,85,.12);
+
+      border-color:
+        rgba(255,70,85,.22);
+
+      transform:
+        rotate(90deg);
+    }
+
+
+    /* =========================================================
+       DESCRIPTION
+    ========================================================= */
+
+    .repository-modal-description {
+      position: relative;
+      z-index: 2;
+
+      margin-bottom: 24px;
+
+      padding: 19px 20px;
+
+      border-radius: 16px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,.035),
+          rgba(255,255,255,.015)
+        );
+
+      border:
+        1px solid rgba(255,255,255,.065);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.025);
+    }
+
+    .repository-modal-description-label {
+      margin-bottom: 8px;
+
+      color: #a78bfa;
+
+      font-size: 9px;
+      font-weight: 800;
+
+      letter-spacing: 2px;
+
+      text-transform: uppercase;
+    }
+
+    .repository-modal-card p {
+      position: relative;
+      z-index: 2;
+
+      color: #aaa6b2;
+
+      font-size: 13px;
+
+      line-height: 1.8;
+
+      overflow-wrap: anywhere;
+    }
+
+    .repository-modal-description p {
+      margin: 0;
+    }
+
+
+    /* =========================================================
+       FILE / LINK ACTION CARDS
+    ========================================================= */
+
+    .repository-modal-actions {
+      position: relative;
+      z-index: 2;
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, minmax(0,1fr));
+
+      gap: 13px;
+
+      margin-bottom: 22px;
+    }
+
+    .repository-modal-action {
+      min-height: 58px;
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 13px;
+
+      padding: 0 16px;
+
+      border-radius: 15px;
+
+      color: #ddd8e8;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,.045),
+          rgba(255,255,255,.018)
+        );
+
+      border:
+        1px solid rgba(255,255,255,.075);
+
+      text-decoration: none;
+
+      transition:
+        transform .2s ease,
+        border-color .2s ease,
+        background .2s ease;
+    }
+
+    .repository-modal-action:hover {
+      transform:
+        translateY(-2px);
+
+      color: #fff;
+
+      border-color:
+        rgba(139,92,246,.30);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(124,75,212,.12),
+          rgba(79,70,229,.045)
+        );
+    }
+
+    .repository-modal-action-icon {
+      width: 38px;
+      height: 38px;
+
+      flex: 0 0 38px;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 11px;
+
+      color: #c8b8ff;
+
+      background:
+        rgba(124,75,212,.12);
+
+      border:
+        1px solid rgba(167,139,250,.15);
+    }
+
+    .repository-modal-action-icon svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    .repository-modal-action-content {
+      min-width: 0;
+    }
+
+    .repository-modal-action-title {
+      display: block;
+
+      color: #f4f1fa;
+
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .repository-modal-action-subtitle {
+      display: block;
+
+      margin-top: 3px;
+
+      color: #6f6b77;
+
+      font-size: 9px;
+
+      overflow: hidden;
+
+      text-overflow: ellipsis;
+
+      white-space: nowrap;
+    }
+
+
+    /* =========================================================
+       META
+    ========================================================= */
+
+    .repository-modal-meta {
+      position: relative;
+      z-index: 2;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 12px;
+
+      padding-top: 18px;
+
+      border-top:
+        1px solid rgba(255,255,255,.07);
+    }
+
+    .repository-modal-meta-label {
+      color: #62606a;
+
+      font-size: 9px;
+      font-weight: 800;
+
+      letter-spacing: 1.4px;
+
+      text-transform: uppercase;
+    }
+
+    .repository-modal-meta-value {
+      color: #a8a3b0;
+
+      font-size: 10px;
+    }
+
+
+    /* =========================================================
+       CLOSE RESOURCE BUTTON
+    ========================================================= */
+
+    .repository-close {
+      position: relative;
+      z-index: 2;
+
+      min-height: 42px;
+
+      margin-top: 22px;
+
+      padding: 0 18px;
+
+      display: inline-flex;
+
+      align-items: center;
+      justify-content: center;
+
+      gap: 7px;
+
+      border-radius: 12px;
+
+      color: #cfc9d8;
+
+      background:
+        rgba(255,255,255,.035);
+
+      border:
+        1px solid rgba(255,255,255,.08);
+
+      font-size: 10px;
+      font-weight: 800;
+
+      letter-spacing: .5px;
+
+      cursor: pointer;
+
+      transition: all .2s ease;
+    }
+
+    .repository-close:hover {
+      color: #fff;
+
+      background:
+        rgba(255,70,85,.11);
+
+      border-color:
+        rgba(255,70,85,.22);
+
+      transform:
+        translateY(-1px);
+    }
+
+    .repository-close svg {
+      width: 15px;
+      height: 15px;
+    }
+
+
+    /* =========================================================
+       MODAL SCROLLBAR
+    ========================================================= */
+
+    .repository-modal-card::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .repository-modal-card::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .repository-modal-card::-webkit-scrollbar-thumb {
+      background:
+        rgba(139,92,246,.28);
+
+      border-radius: 20px;
+    }
+
+    .repository-modal-card::-webkit-scrollbar-thumb:hover {
+      background:
+        rgba(139,92,246,.45);
+    }
+
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
+
+    @media (max-width: 900px) {
+
+      .repository-grid {
+        grid-template-columns:
+          repeat(2, minmax(0,1fr));
+      }
+
+      .repository-form-card {
+        padding: 22px;
+      }
+
+    }
+
+
+    @media (max-width: 640px) {
+
+      .repository-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .repository-form-card {
+        padding: 18px;
+      }
+
+      .repository-form-header {
+        align-items: flex-start;
+      }
+
+      .repository-submit {
+        width: 100%;
+      }
+
+      .repository-card {
+        padding: 18px;
+      }
+
+      .repository-modal {
+        padding: 12px;
+      }
+
+      .repository-modal-card {
+        width: 100%;
+        max-height: 88vh;
+
+        padding: 21px;
+
+        border-radius: 22px;
+      }
+
+      .repository-modal-header {
+        gap: 10px;
+      }
+
+      .repository-modal-icon {
+        width: 42px;
+        height: 42px;
+
+        flex-basis: 42px;
+
+        border-radius: 13px;
+      }
+
+      .repository-modal-card h2 {
+        font-size: 19px;
+      }
+
+      .repository-modal-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .repository-modal-description {
+        padding: 16px;
+      }
+
+      .repository-modal-meta {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .repository-close {
+        width: 100%;
+      }
+
+    }
+
+  h1 {
+      font-size: 42px;
+            }
+
+  </style>
 </head>
-<body class="bg-black text-white font-sans select-none">
-
-<div id="sidebar" 
-     class="fixed top-0 left-0 h-full w-64 bg-[#250f1e] overflow-y-auto text-white p-6 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">  <div class="flex items-center justify-between mb-6">
-    <div class="w-full flex justify-center select-none">
-      <img src="{% static 'images/logo.png' %}" alt="Logo" class="w-32 h-32 object-contain">
-    </div>
-    <button class="menu-toggle md:hidden text-white text-2xl max-md:mt-[-9rem]">&times;</button>
-  </div>
-  <nav class="select-none"> 
-    <ul class="space-y-8 text-sm">
-      <li>
-        <a href="{% url 'teamlead_dashboard' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">
-          Team Lead Dashboard
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_reports' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">
-          Reports
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_project_assigning' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-[#151a37]">
-          Project Assigning
-        </a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_notepad' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Notepad</a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_repository' %}" class="block py-2 px-4 rounded bg-white text-black">Knowledge Repository</a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_profile' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Profile</a>
-      </li>
-      <li>
-        <a href="{% url 'teamlead_task' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">My task</a>
-      </li>
-     
-
-      <li><a href="{% url 'teamlead_chat' %}" class="block py-2 px-4 rounded hover:bg-white hover:text-black">Chat</a></li>
-            <li>
-      <a href="https://meet.google.com/" target="_blank" class="block py-2 px-4 rounded hover:bg-white hover:text-black border border-white">Google Meet</a>
-    </li>
-       <li>
-        <a href="{% url 'teamlead_logout' %}" class="block py-2 px-4 rounded bg-[red] text-white">Logout</a>
-      </li>
-    </ul>
-  </nav>
-</div>
-
-<button class="menu-toggle md:hidden fixed top-8 left-4 z-50 text-white p-2 rounded shadow-lg">
-  &#9776;
-</button>
 
 
+<body>
+  {% include "components/teamlead_sidebar.html" %}
 
 
+  <!-- =========================================================
+       MAIN CONTENT
+  ========================================================= -->
 
-<div class="ml-0 md:ml-64 p-4 md:p-6 max-md:mt-[5rem]">
-  <h1 class="text-2xl font-bold mb-4">
-    Team Lead Knowledge Repository - {{ request.user.department.name }}
-  </h1>
+  <main class="main-area">
 
-  <form method="POST" enctype="multipart/form-data" class="space-y-3 mb-6">
-    {% csrf_token %}
-    <input type="text" name="title" placeholder="Title" class="w-full border p-2 rounded" required>
-    <textarea name="description" rows="3" placeholder="Description" class="w-full border p-2 rounded"></textarea>
-    <input type="url" name="link" placeholder="Reference Link (optional)" class="w-full border p-2 rounded">
-    <input type="file" name="file" class="w-full border p-2 rounded">
-    <button type="submit" class="px-4 py-2 bg-[#250f1e] text-white rounded">Add Resource</button>
-  </form>
+    <div class="dashboard-box">
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    {% for item in knowledge_items %}
-      <div class="relative p-4 rounded-lg shadow border-2 border-[#250f1e] bg-transparent text-white">
-        
-        <form method="POST" action="{% url 'teamlead_repository_delete' item.id %}" class="absolute top-2 right-2">
+
+      <!-- =====================================================
+           PAGE HEADER
+      ===================================================== -->
+
+      <section class="dashboard-header repository-hero">
+
+        <div class="dashboard-header-content">
+
+          <div>
+
+            <div class="dashboard-eyebrow">
+              CYBEXEL TEAM LEAD PANEL
+            </div>
+
+            <h1>
+              KNOWLEDGE REPOSITORY
+            </h1>
+
+            <p>
+              Store and manage useful files, reference links and
+              knowledge resources for
+              {{ request.user.department.name }}.
+            </p>
+
+          </div>
+
+
+          <div class="system-status">
+
+            <span class="status-dot"></span>
+
+            <span>
+              System Online
+            </span>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           REPOSITORY CONTENT
+      ===================================================== -->
+
+      <section class="dashboard-content repository-page">
+
+
+        <!-- ===================================================
+             ADD RESOURCE HEADING
+        =================================================== -->
+
+        <div class="section-heading repository-section-heading">
+
+          <div>
+
+            <span class="section-eyebrow">
+              RESOURCE MANAGEMENT
+            </span>
+
+            <h2>
+              Add Knowledge Resource
+            </h2>
+
+          </div>
+
+          <div class="heading-line"></div>
+
+        </div>
+
+
+        <!-- ===================================================
+             ADD RESOURCE FORM
+        =================================================== -->
+
+        <form
+          method="POST"
+          enctype="multipart/form-data"
+          class="repository-form-card"
+        >
+
           {% csrf_token %}
-          <button type="submit" class="text-red-500 hover:text-red-700" title="Delete">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#fff" d="M7.616 20q-.672 0-1.144-.472T6 18.385V6H5V5h4v-.77h6V5h4v1h-1v12.385q0 .69-.462 1.153T16.384 20zM17 6H7v12.385q0 .269.173.442t.443.173h8.769q.23 0 .423-.192t.192-.424zM9.808 17h1V8h-1zm3.384 0h1V8h-1zM7 6v13z"/></svg>
+
+
+          <div class="repository-form-header">
+
+            <div class="repository-form-icon">
+              <i data-lucide="book-open"></i>
+            </div>
+
+            <div>
+
+              <h2>
+                Add New Resource
+              </h2>
+
+              <p>
+                Add a document, description or reference link
+                to the repository.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <!-- TITLE -->
+
+          <div class="repository-field">
+
+            <label for="repository-title">
+              Title
+            </label>
+
+            <input
+              id="repository-title"
+              type="text"
+              name="title"
+              placeholder="Enter resource title"
+              class="repository-input"
+              required
+            >
+
+          </div>
+
+
+          <!-- DESCRIPTION -->
+
+          <div class="repository-field">
+
+            <label for="repository-description">
+              Description
+            </label>
+
+            <textarea
+              id="repository-description"
+              name="description"
+              rows="3"
+              placeholder="Enter a short description"
+              class="repository-textarea"
+            ></textarea>
+
+          </div>
+
+
+          <!-- LINK -->
+
+          <div class="repository-field">
+
+            <label for="repository-link">
+              Reference Link
+            </label>
+
+            <input
+              id="repository-link"
+              type="url"
+              name="link"
+              placeholder="https://example.com"
+              class="repository-input"
+            >
+
+          </div>
+
+
+          <!-- FILE -->
+
+          <div class="repository-field">
+
+            <label for="repository-file">
+              File
+            </label>
+
+            <input
+              id="repository-file"
+              type="file"
+              name="file"
+              class="repository-file"
+            >
+
+          </div>
+
+
+          <!-- SUBMIT -->
+
+          <button
+            type="submit"
+            class="repository-submit"
+          >
+
+            <i data-lucide="plus"></i>
+
+            <span>
+              Add Resource
+            </span>
+
           </button>
+
         </form>
 
-        <h2 class="font-semibold text-lg">{{ item.title }}</h2>
-        <p class="text-gray-300 text-sm mb-2 line-clamp-3">{{ item.description }}</p>
 
-        <button type="button" onclick="openTeamleadRepositoryModal('{{ item.id }}')" 
-                class="mt-2 text-blue-400 hover:underline text-sm">
-          View More
-        </button>
+        <!-- ===================================================
+             AVAILABLE RESOURCES HEADING
+        =================================================== -->
 
-        <p class="text-xs text-gray-400 mt-2">
-          Added by {{ item.user.username }} on {{ item.created_at|date:"d M Y" }}
-        </p>
-      </div>
+        <div class="section-heading repository-section-heading">
 
-      <div id="modal-{{ item.id }}" 
-           class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-lg p-6 w-11/12 max-w-lg max-h-[80vh] overflow-y-auto overflow-x-hidden break-words">
-          <h2 class="text-xl font-bold mb-2">{{ item.title }}</h2>
-          <p class="text-gray-700 mb-4">{{ item.description }}</p>
+          <div>
 
-          {% if item.file %}
-            <a href="{{ item.file.url }}" target="_blank" class="text-blue-600 underline mb-2 block">Download File</a>
-          {% endif %}
-          {% if item.link %}
-            <a href="{{ item.link }}" target="_blank" class="text-blue-600 underline mb-2 block">Open Link</a>
-          {% endif %}
+            <span class="section-eyebrow">
+              KNOWLEDGE BASE
+            </span>
 
-          <p class="text-xs text-gray-500 mt-2">
-            Added by {{ item.user.username }} on {{ item.created_at|date:"d M Y" }}
-          </p>
+            <h2>
+              Available Resources
+            </h2>
 
-          <button type="button" onclick="closeTeamleadRepositoryModal('{{ item.id }}')" 
-                  class="mt-4 bg-red-500 text-white px-4 py-2 rounded">
-            Close
-          </button>
+          </div>
+
+          <div class="heading-line"></div>
+
         </div>
-      </div>
-    {% empty %}
-      <p class="col-span-3 text-gray-500">No resources available yet.</p>
-    {% endfor %}
-  </div>
-</div>
 
-<!-- Toast Messages -->
-<div id="toast-container"
-     class="fixed bottom-5 right-5 z-[9999] space-y-3 w-[350px] max-w-[calc(100%-2rem)]">
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="toast-message flex items-center gap-3
-                        bg-[#250f1e] text-white
-                        border border-purple-600
-                        px-5 py-4 rounded-lg
-                        shadow-2xl">
+        <!-- ===================================================
+             RESOURCE GRID
+        =================================================== -->
 
-                {% if message.tags == "error" %}
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-6 h-6 flex-shrink-0 text-red-400"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                {% else %}
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-6 h-6 flex-shrink-0 text-green-400"
-                         fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M5 13l4 4L19 7"/>
-                    </svg>
+        <div class="repository-grid">
+
+
+          {% for item in knowledge_items %}
+
+
+            <!-- ===============================================
+                 RESOURCE CARD
+            =============================================== -->
+
+            <article class="repository-card">
+
+
+              <!-- DELETE -->
+
+              <form
+                method="POST"
+                action="{% url 'teamlead_repository_delete' item.id %}"
+              >
+
+                {% csrf_token %}
+
+                <button
+                  type="submit"
+                  class="repository-delete"
+                  title="Delete"
+                  aria-label="Delete {{ item.title }}"
+                  onclick="return confirm('Delete this resource?');"
+                >
+
+                  <i data-lucide="trash-2"></i>
+
+                </button>
+
+              </form>
+
+
+              <!-- CARD CONTENT -->
+
+              <div class="repository-card-content">
+
+                <h3>
+                  {{ item.title }}
+                </h3>
+
+
+                <p class="repository-description">
+                  {{ item.description }}
+                </p>
+
+
+                <!-- VIEW MORE -->
+
+                <button
+                  type="button"
+                  onclick="openTeamleadRepositoryModal('{{ item.id }}')"
+                  class="repository-view-button"
+                >
+
+                  <i data-lucide="eye"></i>
+
+                  <span>
+                    View More
+                  </span>
+
+                </button>
+
+
+                <!-- META -->
+
+                <p class="repository-meta">
+
+                  Added by
+                  {{ item.user.username }}
+
+                  on
+
+                  {{ item.created_at|date:"d M Y" }}
+
+                </p>
+
+              </div>
+
+            </article>
+
+
+            <!-- ===============================================
+                 UNIQUE VIEW MORE MODAL
+            =============================================== -->
+
+            <div
+              id="modal-{{ item.id }}"
+              class="repository-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="repository-modal-title-{{ item.id }}"
+              onclick="handleTeamleadRepositoryModalBackdrop(event, '{{ item.id }}')"
+            >
+
+
+              <div class="repository-modal-card">
+
+
+                <!-- =========================================
+                     MODAL HEADER
+                ========================================= -->
+
+                <div class="repository-modal-header">
+
+
+                  <div class="repository-modal-title-wrap">
+
+
+                    <div class="repository-modal-icon">
+
+                      <i data-lucide="book-open"></i>
+
+                    </div>
+
+
+                    <div>
+
+                      <h2
+                        id="repository-modal-title-{{ item.id }}"
+                      >
+                        {{ item.title }}
+                      </h2>
+
+                      <div class="repository-modal-subtitle">
+                        Knowledge Repository Resource
+                      </div>
+
+                    </div>
+
+
+                  </div>
+
+
+                  <!-- TOP RIGHT CLOSE -->
+
+                  <button
+                    type="button"
+                    class="repository-modal-x"
+                    onclick="closeTeamleadRepositoryModal('{{ item.id }}')"
+                    aria-label="Close"
+                  >
+
+                    <i data-lucide="x"></i>
+
+                  </button>
+
+
+                </div>
+
+
+                <!-- =========================================
+                     DESCRIPTION
+                ========================================= -->
+
+                <div class="repository-modal-description">
+
+
+                  <div class="repository-modal-description-label">
+                    Description
+                  </div>
+
+
+                  <p>
+                    {{ item.description }}
+                  </p>
+
+
+                </div>
+
+
+                <!-- =========================================
+                     FILE / LINK ACTIONS
+                ========================================= -->
+
+                {% if item.file or item.link %}
+
+                  <div class="repository-modal-actions">
+
+
+                    {% if item.file %}
+
+                      <a
+                        href="{{ item.file.url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="repository-modal-action"
+                      >
+
+
+                        <div class="repository-modal-action-icon">
+
+                          <i data-lucide="download"></i>
+
+                        </div>
+
+
+                        <div class="repository-modal-action-content">
+
+                          <span class="repository-modal-action-title">
+                            Download File
+                          </span>
+
+                          <span class="repository-modal-action-subtitle">
+                            Open attached resource
+                          </span>
+
+                        </div>
+
+
+                      </a>
+
+                    {% endif %}
+
+
+                    {% if item.link %}
+
+                      <a
+                        href="{{ item.link }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="repository-modal-action"
+                      >
+
+
+                        <div class="repository-modal-action-icon">
+
+                          <i data-lucide="external-link"></i>
+
+                        </div>
+
+
+                        <div class="repository-modal-action-content">
+
+                          <span class="repository-modal-action-title">
+                            Open Reference Link
+                          </span>
+
+                          <span class="repository-modal-action-subtitle">
+                            Visit external resource
+                          </span>
+
+                        </div>
+
+
+                      </a>
+
+                    {% endif %}
+
+
+                  </div>
+
                 {% endif %}
 
-                <span class="flex-1 text-sm font-medium">
-                    {{ message }}
-                </span>
 
-                <button type="button"
-                        class="text-gray-300 hover:text-white text-xl leading-none"
-                        onclick="removeToast(this.parentElement)">
-                    &times;
+                <!-- =========================================
+                     META INFORMATION
+                ========================================= -->
+
+                <div class="repository-modal-meta">
+
+                  <span class="repository-modal-meta-label">
+                    Added By
+                  </span>
+
+                  <span class="repository-modal-meta-value">
+
+                    {{ item.user.username }}
+
+                    &nbsp;•&nbsp;
+
+                    {{ item.created_at|date:"d M Y" }}
+
+                  </span>
+
+                </div>
+
+
+                <!-- =========================================
+                     CLOSE BUTTON
+                ========================================= -->
+
+                <button
+                  type="button"
+                  onclick="closeTeamleadRepositoryModal('{{ item.id }}')"
+                  class="repository-close"
+                >
+
+                  <i data-lucide="x"></i>
+
+                  <span>
+                    Close Resource
+                  </span>
+
                 </button>
+
+
+              </div>
+
             </div>
-        {% endfor %}
-    {% endif %}
-</div>
 
-<script>
-function openTeamleadRepositoryModal(id) {
-  document.getElementById('modal-' + id).classList.remove('hidden');
-}
-function closeTeamleadRepositoryModal(id) {
-  document.getElementById('modal-' + id).classList.add('hidden');
-}
 
-function removeToast(toast) {
-    if (!toast) return;
+          {% empty %}
 
-    toast.classList.add("toast-hide");
 
-    setTimeout(function () {
-        if (toast.parentElement) {
-            toast.remove();
+            <!-- EMPTY -->
+
+            <p class="repository-empty">
+
+              No resources available yet.
+
+            </p>
+
+
+          {% endfor %}
+
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+
+  <!-- =========================================================
+       EXISTING JS
+  ========================================================= -->
+
+  <script src="{% static 'js/admin.js' %}"></script>
+
+  <script src="{% static 'js/activity.js' %}"></script>
+
+
+  <script>
+
+    /* =========================================================
+       OPEN MODAL
+    ========================================================= */
+
+    function openTeamleadRepositoryModal(id) {
+
+      const modal =
+        document.getElementById('modal-' + id);
+
+      if (!modal) return;
+
+      modal.classList.add('open');
+
+      document.body.style.overflow = 'hidden';
+
+    }
+
+
+    /* =========================================================
+       CLOSE MODAL
+    ========================================================= */
+
+    function closeTeamleadRepositoryModal(id) {
+
+      const modal =
+        document.getElementById('modal-' + id);
+
+      if (!modal) return;
+
+      modal.classList.remove('open');
+
+      document.body.style.overflow = '';
+
+    }
+
+
+    /* =========================================================
+       BACKDROP CLICK
+    ========================================================= */
+
+    function handleTeamleadRepositoryModalBackdrop(
+      event,
+      id
+    ) {
+
+      if (
+        event.target.id ===
+        'modal-' + id
+      ) {
+
+        closeTeamleadRepositoryModal(id);
+
+      }
+
+    }
+
+
+    /* =========================================================
+       ESCAPE KEY
+    ========================================================= */
+
+    document.addEventListener(
+      'keydown',
+      function(event) {
+
+        if (event.key === 'Escape') {
+
+          document
+            .querySelectorAll(
+              '.repository-modal.open'
+            )
+            .forEach(
+              function(modal) {
+
+                modal.classList.remove('open');
+
+              }
+            );
+
+          document.body.style.overflow = '';
+
         }
-    }, 350);
-}
 
-document.addEventListener("DOMContentLoaded", function () {
-
-    const toasts = document.querySelectorAll(".toast-message");
-
-    toasts.forEach(function (toast) {
-
-        setTimeout(function () {
-            removeToast(toast);
-        }, 4000);
-
-    });
-
-});
-</script>
+      }
+    );
 
 
+    /* =========================================================
+       LUCIDE ICONS
+    ========================================================= */
 
+    document.addEventListener(
+      "DOMContentLoaded",
+      function() {
 
+        /* Lucide icons */
 
-<script src="{% static 'js/admin.js' %}"></script>
-<script src="{% static 'js/activity.js' %}"></script>
+        if (window.lucide) {
+
+          lucide.createIcons();
+
+        }
+
+      }
+    );
+
+  </script>
+
 </body>
-</html> 
+</html>
