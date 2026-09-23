@@ -920,6 +920,97 @@ body {
 
 /* ---------------- EDIT MODAL ---------------- */
 
+
+/* ADD EMPLOYEE BUTTON + MODAL */
+.employee-list-heading {
+    align-items: center;
+}
+
+.employee-list-heading-actions {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.employee-list-heading-actions .heading-line {
+    flex: 1 1 auto;
+}
+
+.add-employee-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 1px solid rgba(139,112,255,.28);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(117,89,220,.24), rgba(82,66,170,.16));
+    color: #dcd7ff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s ease;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 8px 20px rgba(72,52,160,.14);
+}
+
+.add-employee-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(157,137,255,.50);
+    background: linear-gradient(135deg, rgba(117,89,220,.34), rgba(82,66,170,.24));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 24px rgba(72,52,160,.22);
+}
+
+.add-employee-btn svg {
+    width: 17px;
+    height: 17px;
+}
+
+.add-employee-modal-box {
+    max-width: 900px;
+}
+
+.add-employee-modal-box .user-form {
+    margin-top: 4px;
+}
+
+.modal-actions.full {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+    .employee-list-heading {
+        align-items: flex-start;
+    }
+
+    .employee-list-heading-actions {
+        width: auto;
+        flex: 0 0 auto;
+    }
+
+    .employee-list-heading-actions .heading-line {
+        display: none;
+    }
+
+    .add-employee-btn {
+        min-height: 38px;
+        padding: 0 12px;
+        border-radius: 10px;
+    }
+
+    .add-employee-btn span {
+        display: none;
+    }
+
+    .add-employee-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
 .edit-modal {
     position: fixed;
     inset: 0;
@@ -1790,7 +1881,77 @@ body {
                 transform: translateX(-50%) translateY(0) scale(1);
             }
         }
+/* =========================================================
+   ADD EMPLOYEE MODAL - CUSTOM SCROLLBAR
+   Same purple/blue dashboard theme
+========================================================= */
 
+.add-employee-modal-box {
+    scrollbar-width: thin;
+    scrollbar-color: #7c3aed rgba(255, 255, 255, 0.06);
+}
+
+/* Chrome / Edge / Safari */
+.add-employee-modal-box::-webkit-scrollbar {
+    width: 8px;
+}
+
+.add-employee-modal-box::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+}
+
+.add-employee-modal-box::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+        180deg,
+        #8b5cf6,
+        #6366f1
+    );
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.add-employee-modal-box::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+        180deg,
+        #a78bfa,
+        #818cf8
+    );
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+/* Main page scrollbar */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #7c3aed rgba(255, 255, 255, 0.06);
+}
+
+html::-webkit-scrollbar {
+    width: 8px;
+}
+
+html::-webkit-scrollbar-track {
+    background: #0b0b12;
+}
+
+html::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+        180deg,
+        #8b5cf6,
+        #6366f1
+    );
+    border-radius: 10px;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+        180deg,
+        #a78bfa,
+        #818cf8
+    );
+}
     
 </style>
 </head>
@@ -1883,210 +2044,18 @@ body {
             </div>
             {% endif %}
 
-            <div class="section-heading">
-                <div>
-                    <span class="section-eyebrow">USER ADMINISTRATION</span>
-                    <h2>Create New User</h2>
-                </div>
-                <div class="heading-line"></div>
-            </div>
-
-            <div class="dashboard-card create-user-card">
-                <div class="card-heading">
-                    <div class="card-icon"><i data-lucide="user-plus"></i></div>
-                    <div>
-                        <h3>Add Employee</h3>
-                        <p>Enter the employee information below</p>
-                    </div>
-                </div>
-
-                <form method="POST" enctype="multipart/form-data" class="user-form">
-                    {% csrf_token %}
-
-                    <div class="form-group full">
-                        <label for="profile_image" class="form-label">Profile Picture</label>
-                        <input type="file" id="profile_image" name="profile_image" accept="image/*" class="glass-file">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="name" class="form-label">Full Name</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon"><i data-lucide="user"></i></span>
-                            <input type="text" id="name" name="name" class="glass-input" placeholder="Enter full name" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="employee_id" class="form-label">Employee ID</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon"><i data-lucide="badge"></i></span>
-                            <input type="text" id="employee_id" name="employee_id" class="glass-input" placeholder="Employee ID" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email" class="form-label">Email</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon"><i data-lucide="mail"></i></span>
-                            <input type="email" id="email" name="email" class="glass-input" placeholder="employee@company.com" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phone" class="form-label">Phone</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon"><i data-lucide="phone"></i></span>
-                            <input type="text" id="phone" name="phone" class="glass-input" placeholder="Phone number">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="department" class="form-label">Department</label>
-                        <div class="select-wrapper">
-                            <select id="department" name="department" class="glass-select" required>
-                                <option value="">Select Department</option>
-                                {% for dept in departments %}
-                                <option value="{{ dept.id }}">{{ dept.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="team" class="form-label">Team</label>
-                        <div class="select-wrapper">
-                            <select id="team" name="team" class="glass-select">
-                                <option value="">Select Team</option>
-                                {% for team in teams %}
-                                <option value="{{ team.id }}">{{ team.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="job_Position" class="form-label">Job Position</label>
-                        <div class="select-wrapper">
-                            <select id="job_Position" name="job_Position" class="glass-select" required>
-                                <option value="">Select Job Position</option>
-                                <option value="Team Lead">Team Lead</option>
-                                <option value="Team Member">Team Member</option>
-                                <option value="Management">Management</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="designation" class="form-label">Designation</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon"><i data-lucide="briefcase-business"></i></span>
-                            <input type="text" id="designation" name="designation" class="glass-input" placeholder="Designation" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="work_location" class="form-label">Work Location</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon"><i data-lucide="map-pin"></i></span>
-                            <input type="text" id="work_location" name="work_location" class="glass-input" placeholder="Work location">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="joining_date" class="form-label">Joining Date</label>
-                        <div class="joining-date-picker custom-date-picker" data-date-picker>
-                            <input type="hidden" id="joining_date" name="joining_date" required>
-
-                            <button
-                                type="button"
-                                class="custom-date-input"
-                                data-date-toggle
-                                aria-haspopup="dialog"
-                                aria-expanded="false"
-                            >
-                                <span data-date-display>dd-mm-yyyy</span>
-                                <i data-lucide="calendar-days"></i>
-                            </button>
-
-                            <div
-                                class="custom-calendar"
-                                data-calendar
-                                role="dialog"
-                                aria-label="Choose joining date"
-                            >
-                                <div class="calendar-header">
-                                    <button type="button" class="calendar-nav" data-prev-month aria-label="Previous month">
-                                        <i data-lucide="chevron-left"></i>
-                                    </button>
-
-                                    <button type="button" class="calendar-month-title" data-month-title></button>
-
-                                    <button type="button" class="calendar-nav" data-next-month aria-label="Next month">
-                                        <i data-lucide="chevron-right"></i>
-                                    </button>
-                                </div>
-
-                                <div class="calendar-weekdays">
-                                    <span>Su</span>
-                                    <span>Mo</span>
-                                    <span>Tu</span>
-                                    <span>We</span>
-                                    <span>Th</span>
-                                    <span>Fr</span>
-                                    <span>Sa</span>
-                                </div>
-
-                                <div class="calendar-days" data-calendar-days></div>
-
-                                <div class="calendar-footer">
-                                    <button type="button" class="calendar-footer-btn" data-clear-date>Clear</button>
-                                    <button type="button" class="calendar-footer-btn" data-today-date>Today</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="username" class="form-label">Username</label>
-                        <div class="input-wrapper">
-                            <span class="input-icon"><i data-lucide="at-sign"></i></span>
-                            <input type="text" id="username" name="username" class="glass-input" placeholder="Enter username" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password" class="form-label">Password</label>
-                        <div class="password-wrapper">
-                            <input type="password" id="password" name="password" class="glass-input" placeholder="Enter password" required>
-                            <button type="button" id="togglePassword" class="password-toggle" aria-label="Show password">
-                                <i data-lucide="eye" id="eyeIcon"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="status" class="form-label">Status</label>
-                        <div class="select-wrapper">
-                            <select id="status" name="status" class="glass-select">
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="create-button">
-                        <i data-lucide="user-plus"></i>
-                        Create User
-                    </button>
-                </form>
-            </div>
-
-            <div class="section-heading">
+            <div class="section-heading employee-list-heading">
                 <div>
                     <span class="section-eyebrow">USER DIRECTORY</span>
                     <h2>Employee List</h2>
                 </div>
-                <div class="heading-line"></div>
+                <div class="employee-list-heading-actions">
+                    <div class="heading-line"></div>
+                    <button type="button" class="add-employee-btn" onclick="openAddEmployeeModal()" aria-label="Add Employee">
+                        <i data-lucide="user-plus"></i>
+                        <span>Add Employee</span>
+                    </button>
+                </div>
             </div>
 
             <div class="dashboard-card employee-card">
@@ -2238,6 +2207,181 @@ body {
         </section>
     </div>
 </main>
+
+<!-- ADD EMPLOYEE MODAL -->
+<div id="addEmployeeModal" class="edit-modal hidden">
+    <div class="edit-modal-box add-employee-modal-box">
+        <div class="modal-header">
+            <div class="modal-title-wrap">
+                <div class="modal-icon"><i data-lucide="user-plus"></i></div>
+                <div>
+                    <h2 class="modal-title">Add Employee</h2>
+                    <p class="modal-subtitle">Enter the employee information below</p>
+                </div>
+            </div>
+
+            <button type="button" class="close-modal" onclick="closeAddEmployeeModal()" aria-label="Close">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="user-form">
+            {% csrf_token %}
+
+            <div class="form-group full">
+                <label for="profile_image" class="form-label">Profile Picture</label>
+                <input type="file" id="profile_image" name="profile_image" accept="image/*" class="glass-file">
+            </div>
+
+            <div class="form-group">
+                <label for="name" class="form-label">Full Name</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="user"></i></span>
+                    <input type="text" id="name" name="name" class="glass-input" placeholder="Enter full name" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="employee_id" class="form-label">Employee ID</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="badge"></i></span>
+                    <input type="text" id="employee_id" name="employee_id" class="glass-input" placeholder="Employee ID" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="mail"></i></span>
+                    <input type="email" id="email" name="email" class="glass-input" placeholder="employee@company.com" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone" class="form-label">Phone</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="phone"></i></span>
+                    <input type="text" id="phone" name="phone" class="glass-input" placeholder="Phone number">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="department" class="form-label">Department</label>
+                <div class="select-wrapper">
+                    <select id="department" name="department" class="glass-select" required>
+                        <option value="">Select Department</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="team" class="form-label">Team</label>
+                <div class="select-wrapper">
+                    <select id="team" name="team" class="glass-select">
+                        <option value="">Select Team</option>
+                        {% for team in teams %}
+                        <option value="{{ team.id }}">{{ team.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="job_Position" class="form-label">Job Position</label>
+                <div class="select-wrapper">
+                    <select id="job_Position" name="job_Position" class="glass-select" required>
+                        <option value="">Select Job Position</option>
+                        <option value="Team Lead">Team Lead</option>
+                        <option value="Team Member">Team Member</option>
+                        <option value="Management">Management</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="designation" class="form-label">Designation</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="briefcase-business"></i></span>
+                    <input type="text" id="designation" name="designation" class="glass-input" placeholder="Designation" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="work_location" class="form-label">Work Location</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="map-pin"></i></span>
+                    <input type="text" id="work_location" name="work_location" class="glass-input" placeholder="Work location">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="joining_date" class="form-label">Joining Date</label>
+                <div class="joining-date-picker custom-date-picker" data-date-picker>
+                    <input type="hidden" id="joining_date" name="joining_date" required>
+                    <button type="button" class="custom-date-input" data-date-toggle aria-haspopup="dialog" aria-expanded="false">
+                        <span data-date-display>dd-mm-yyyy</span>
+                        <i data-lucide="calendar-days"></i>
+                    </button>
+                    <div class="custom-calendar" data-calendar role="dialog" aria-label="Choose joining date">
+                        <div class="calendar-header">
+                            <button type="button" class="calendar-nav" data-prev-month aria-label="Previous month"><i data-lucide="chevron-left"></i></button>
+                            <button type="button" class="calendar-month-title" data-month-title></button>
+                            <button type="button" class="calendar-nav" data-next-month aria-label="Next month"><i data-lucide="chevron-right"></i></button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                        </div>
+                        <div class="calendar-days" data-calendar-days></div>
+                        <div class="calendar-footer">
+                            <button type="button" class="calendar-footer-btn" data-clear-date>Clear</button>
+                            <button type="button" class="calendar-footer-btn" data-today-date>Today</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="at-sign"></i></span>
+                    <input type="text" id="username" name="username" class="glass-input" placeholder="Enter username" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" class="glass-input" placeholder="Enter password" required>
+                    <button type="button" id="togglePassword" class="password-toggle" aria-label="Show password"><i data-lucide="eye" id="eyeIcon"></i></button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="status" class="form-label">Status</label>
+                <div class="select-wrapper">
+                    <select id="status" name="status" class="glass-select">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-actions full">
+                <button type="button" onclick="closeAddEmployeeModal()" class="modal-cancel">
+                    <i data-lucide="x"></i>
+                    Cancel
+                </button>
+                <button type="submit" class="modal-save">
+                    <i data-lucide="user-plus"></i>
+                    Add Employee
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- EDIT MODAL -->
 <div id="editModal" class="edit-modal hidden">
@@ -2494,6 +2638,38 @@ function setSelectValueOrText(selectId, value) {
     }
 }
 
+/* ADD EMPLOYEE MODAL */
+function openAddEmployeeModal() {
+    const modal = document.getElementById("addEmployeeModal");
+    if (!modal) return;
+
+    modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+}
+
+function closeAddEmployeeModal() {
+    const modal = document.getElementById("addEmployeeModal");
+    if (modal) {
+        modal.classList.add("hidden");
+    }
+
+    document.body.style.overflow = "";
+}
+
+const addEmployeeModal = document.getElementById("addEmployeeModal");
+
+if (addEmployeeModal) {
+    addEmployeeModal.addEventListener("click", function (event) {
+        if (event.target === this) {
+            closeAddEmployeeModal();
+        }
+    });
+}
+
 /* EDIT MODAL */
 function openEditModal(button) {
     document.getElementById("edit_id").value = button.dataset.id || "";
@@ -2561,12 +2737,17 @@ document.getElementById("editModal").addEventListener("click", function (event) 
 
 /* ESCAPE KEY */
 document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") {
-        const modal = document.getElementById("editModal");
+    if (event.key !== "Escape") return;
 
-        if (modal && !modal.classList.contains("hidden")) {
-            closeEditModal();
-        }
+    const addModal = document.getElementById("addEmployeeModal");
+    if (addModal && !addModal.classList.contains("hidden")) {
+        closeAddEmployeeModal();
+        return;
+    }
+
+    const editModal = document.getElementById("editModal");
+    if (editModal && !editModal.classList.contains("hidden")) {
+        closeEditModal();
     }
 });
 </script>
