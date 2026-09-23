@@ -717,17 +717,6 @@ def teamlead_dashboard(request):
     # --- existing code for login_time, report times, etc. ---
 
     # ------------------------------
-    # 🧩 Team Member Filters
-    # ------------------------------
-    # team_members_qs = User.objects.filter(team=team_lead.team).exclude(id=team_lead.id)
-#     team_members_qs = User.objects.filter(
-#     department=team_lead.department,
-#     designation=team_lead.designation,
-#     job_Position__iexact="Team Member"
-# ).exclude(
-#     id=team_lead.id
-# )
-    # ------------------------------
     # 🧩 Team Members
     # ------------------------------
 
@@ -914,7 +903,7 @@ def teammember_chat(request):
         "role": "teammember",
     }
 
-    return render(request, "teammember_chat.html", context)
+    return render(request, "team_member/teammember_chat.html", context)
 
 
 
@@ -1160,7 +1149,7 @@ def teammember_dashboard(request):
     ).order_by('-created_at')
 
     # 🧭 Render dashboard
-    return render(request, 'teammember_dashboard.html', {
+    return render(request, 'team_member/teammember_dashboard.html', {
         'announcements': announcements,
         'morning_allowed': is_within_time_range(morning_start, morning_end),
         'evening_allowed': is_within_time_range(evening_start, evening_end),
@@ -1365,7 +1354,7 @@ def teammember_project(request):
         project.save()
         return redirect("teammember_project")
 
-    return render(request, "teammember_project.html", {"projects": projects})
+    return render(request, "team_member/teammember_project.html", {"projects": projects})
 def update_project_status(request, pk):
     user_id = request.session.get("user_id")  
     if not user_id:
@@ -1495,7 +1484,7 @@ def teammember_notepad(request):
 
         return redirect(f"{request.path}?note_id={note.id}")
 
-    return render(request, "teammember_notepad.html", {"note": note, "page_obj": page_obj})
+    return render(request, "team_member/teammember_notepad.html", {"note": note, "page_obj": page_obj})
 
 
 
@@ -1566,7 +1555,7 @@ def teammember_repository(request):
 
         # ✅ Make sure department is not None before saving
         if not department:
-            return render(request, "teammember_repository.html", {
+            return render(request, "team_member/teammember_repository.html", {
                 "error": "No department found for this user or in database."
             })
 
@@ -1584,7 +1573,7 @@ def teammember_repository(request):
     # ✅ Fetch repository items department-wise
     knowledge_items = Knowledge.objects.filter(department=department).order_by("-created_at")
 
-    return render(request, "teammember_repository.html", {
+    return render(request, "team_member/teammember_repository.html", {
         "knowledge_items": knowledge_items
     })
 
@@ -1680,7 +1669,7 @@ def teammember_profile(request):
             messages.success(request, "Profile updated successfully!")
             return redirect("teammember_profile")
 
-    return render(request, "teammember_profile.html", {"user": user})
+    return render(request, "team_member/teammember_profile.html", {"user": user})
 @never_cache
 def teammember_task(request):
     user_id = request.session.get("user_id")
@@ -1704,7 +1693,7 @@ def teammember_task(request):
             )
         return redirect("teammember_task")
 
-    return render(request, "teammember_task.html", {"tasks": tasks})
+    return render(request, "team_member/teammember_task.html", {"tasks": tasks})
 
 
 # TEAM MEMBER UPDATE TASK

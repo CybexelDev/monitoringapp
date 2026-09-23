@@ -1,0 +1,1813 @@
+{% extends "team_member/base3.html" %}{% load static %}
+
+{% block title %}Team Member Profile - Cybexel{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+    /* =========================================================
+       PROFILE PAGE
+    ========================================================= */
+
+    .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 22px;
+        min-width: 0;
+    }
+
+    .section-eyebrow {
+        display: block;
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .16em;
+        color: #8bc83f;
+        margin-bottom: 5px;
+    }
+
+    .section-heading h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 800;
+        color: #ffffff;
+    }
+
+    .heading-line {
+        height: 1px;
+        flex: 1;
+        min-width: 20px;
+        background: linear-gradient(
+            90deg,
+            rgba(255,255,255,.10),
+            transparent
+        );
+    }
+
+
+    /* =========================================================
+       PROFILE HERO
+    ========================================================= */
+
+    .profile-card {
+        position: relative;
+
+        display: flex;
+        align-items: center;
+
+        gap: 28px;
+
+        padding: 26px;
+        margin-bottom: 24px;
+
+        border-radius: 24px;
+
+        background:
+            radial-gradient(
+                circle at top right,
+                rgba(139, 200, 63, 0.09),
+                transparent 35%
+            ),
+            linear-gradient(
+                145deg,
+                rgba(37, 15, 30, 0.82),
+                rgba(20, 10, 17, 0.82)
+            );
+
+        border: 1px solid rgba(255, 255, 255, 0.08);
+
+        box-shadow:
+            0 18px 45px rgba(0, 0, 0, 0.28);
+
+        min-width: 0;
+    }
+
+
+    /* =========================================================
+       PROFILE IMAGE
+    ========================================================= */
+
+    .profile-image-wrapper {
+        position: relative;
+
+        width: 138px;
+        height: 138px;
+
+        flex-shrink: 0;
+
+        cursor: pointer;
+    }
+
+    .profile-image-ring {
+        width: 138px;
+        height: 138px;
+
+        padding: 4px;
+
+        border-radius: 50%;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(139, 200, 63, 0.95),
+                rgba(139, 200, 63, 0.25)
+            );
+
+        box-shadow:
+            0 16px 40px rgba(139, 200, 63, 0.10);
+    }
+
+    #profile-display {
+        width: 130px;
+        height: 130px;
+
+        display: block;
+
+        border-radius: 50%;
+
+        object-fit: cover;
+
+        border: 3px solid #111111;
+
+        transition:
+            transform .25s ease,
+            filter .25s ease;
+    }
+
+    .profile-image-wrapper:hover #profile-display {
+        transform: scale(1.025);
+        filter: brightness(1.08);
+    }
+
+    .profile-edit-badge {
+        position: absolute;
+
+        right: 0;
+        bottom: 2px;
+
+        width: 38px;
+        height: 38px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 50%;
+
+        color: #ffffff;
+
+        background:
+            linear-gradient(
+                135deg,
+                #8bc83f,
+                #6da52e
+            );
+
+        border: 3px solid #111111;
+
+        box-shadow:
+            0 8px 20px rgba(0, 0, 0, 0.35);
+
+        pointer-events: none;
+    }
+
+    .profile-edit-badge svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    .profile-status-dot {
+        position: absolute;
+
+        right: 9px;
+        bottom: 38px;
+
+        width: 17px;
+        height: 17px;
+
+        border-radius: 50%;
+
+        background: #22c55e;
+
+        border: 3px solid #111111;
+
+        box-shadow:
+            0 0 0 3px rgba(34, 197, 94, 0.12);
+    }
+
+
+    /* =========================================================
+       PROFILE SUMMARY
+    ========================================================= */
+
+    .profile-summary {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .profile-summary-label {
+        color: #8bc83f;
+
+        font-size: 10px;
+        font-weight: 800;
+
+        letter-spacing: .16em;
+
+        text-transform: uppercase;
+
+        margin-bottom: 7px;
+    }
+
+    .profile-summary h2 {
+        margin: 0;
+
+        font-size: 26px;
+
+        line-height: 1.15;
+
+        font-weight: 850;
+
+        letter-spacing: -.03em;
+
+        color: #ffffff;
+
+        overflow-wrap: anywhere;
+    }
+
+    .profile-summary-role {
+        margin-top: 7px;
+
+        color: #a1a1aa;
+
+        font-size: 13px;
+    }
+
+    .profile-summary-id {
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 7px;
+
+        margin-top: 15px;
+
+        padding: 7px 10px;
+
+        border-radius: 10px;
+
+        color: #d4d4d8;
+
+        background:
+            rgba(255, 255, 255, 0.04);
+
+        border:
+            1px solid rgba(255, 255, 255, 0.06);
+
+        font-size: 11px;
+        font-weight: 600;
+
+        max-width: 100%;
+    }
+
+    .profile-summary-id svg {
+        width: 14px;
+        height: 14px;
+
+        color: #8bc83f;
+
+        flex-shrink: 0;
+    }
+
+
+    /* =========================================================
+       PROFILE DETAILS CARD
+    ========================================================= */
+
+    .profile-details-card,
+    .edit-profile-card {
+        min-width: 0;
+
+        border-radius: 22px;
+
+        background:
+            linear-gradient(
+                145deg,
+                rgba(37, 15, 30, 0.78),
+                rgba(20, 10, 17, 0.78)
+            );
+
+        border:
+            1px solid rgba(255, 255, 255, 0.07);
+
+        box-shadow:
+            0 15px 40px rgba(0, 0, 0, 0.20);
+    }
+
+    .profile-details-card {
+        padding: 24px;
+        margin-bottom: 22px;
+    }
+
+
+    /* =========================================================
+       CARD HEADING
+    ========================================================= */
+
+    .card-heading {
+        display: flex;
+
+        align-items: center;
+
+        gap: 14px;
+
+        margin-bottom: 20px;
+
+        min-width: 0;
+    }
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+
+        min-width: 48px;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 15px;
+
+        background:
+            rgba(139, 200, 63, 0.10);
+
+        border:
+            1px solid rgba(139, 200, 63, 0.14);
+
+        color: #8bc83f;
+    }
+
+    .card-icon svg {
+        width: 24px;
+        height: 24px;
+
+        stroke-width: 1.7;
+    }
+
+    .card-heading > div:last-child {
+        min-width: 0;
+    }
+
+    .card-heading h3 {
+        margin: 0;
+
+        font-size: 17px;
+
+        font-weight: 800;
+
+        color: #ffffff;
+
+        min-width: 0;
+    }
+
+    .card-heading p {
+        margin: 4px 0 0;
+
+        font-size: 12px;
+
+        color: #a1a1aa;
+
+        line-height: 1.5;
+    }
+
+
+    /* =========================================================
+       INFORMATION GRID
+    ========================================================= */
+
+    .details-grid {
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 12px;
+
+        width: 100%;
+
+        min-width: 0;
+    }
+
+    .detail-item {
+        min-width: 0;
+
+        padding: 15px;
+
+        border-radius: 16px;
+
+        background:
+            rgba(0, 0, 0, 0.25);
+
+        border:
+            1px solid rgba(255, 255, 255, 0.06);
+
+        transition:
+            background .2s ease,
+            border-color .2s ease;
+    }
+
+    .detail-item:hover {
+        background:
+            rgba(255, 255, 255, 0.035);
+
+        border-color:
+            rgba(139, 200, 63, 0.16);
+    }
+
+    .detail-label {
+        display: flex;
+
+        align-items: center;
+
+        gap: 7px;
+
+        margin-bottom: 7px;
+
+        color: #71717a;
+
+        font-size: 10px;
+
+        font-weight: 700;
+
+        text-transform: uppercase;
+
+        letter-spacing: .07em;
+    }
+
+    .detail-label svg {
+        width: 14px;
+        height: 14px;
+
+        color: #8bc83f;
+
+        flex-shrink: 0;
+    }
+
+    .detail-value {
+        color: #f4f4f5;
+
+        font-size: 13px;
+
+        font-weight: 600;
+
+        line-height: 1.5;
+
+        overflow-wrap: anywhere;
+
+        word-break: break-word;
+    }
+
+
+    /* =========================================================
+       EDIT PROFILE
+    ========================================================= */
+
+    .edit-profile-card {
+        padding: 24px;
+    }
+
+    .edit-form {
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 18px;
+
+        min-width: 0;
+    }
+
+    .form-field {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .form-field.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-field label {
+        display: flex;
+
+        align-items: center;
+
+        gap: 7px;
+
+        margin-bottom: 8px;
+
+        color: #d4d4d8;
+
+        font-size: 12px;
+
+        font-weight: 700;
+    }
+
+    .form-field label svg {
+        width: 14px;
+        height: 14px;
+
+        color: #8bc83f;
+
+        flex-shrink: 0;
+    }
+
+    .form-input {
+        width: 100%;
+
+        min-height: 46px;
+
+        padding: 11px 13px;
+
+        border-radius: 13px;
+
+        background:
+            rgba(0, 0, 0, 0.55);
+
+        border:
+            1px solid rgba(255, 255, 255, 0.09);
+
+        color: #ffffff;
+
+        outline: none;
+
+        font-size: 13px;
+
+        transition:
+            border-color .2s ease,
+            box-shadow .2s ease,
+            background .2s ease;
+    }
+
+    .form-input::placeholder {
+        color: #52525b;
+    }
+
+    .form-input:hover {
+        border-color:
+            rgba(255, 255, 255, 0.15);
+    }
+
+    .form-input:focus {
+        background:
+            rgba(0, 0, 0, 0.72);
+
+        border-color:
+            rgba(139, 200, 63, 0.55);
+
+        box-shadow:
+            0 0 0 3px rgba(139, 200, 63, 0.08);
+    }
+
+    .form-input:disabled {
+        cursor: not-allowed;
+        opacity: .65;
+    }
+
+    .form-actions {
+        grid-column: 1 / -1;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: flex-end;
+
+        padding-top: 4px;
+    }
+
+    .save-button {
+        display: inline-flex;
+
+        align-items: center;
+        justify-content: center;
+
+        gap: 8px;
+
+        min-height: 45px;
+
+        padding: 0 18px;
+
+        border: 0;
+
+        border-radius: 13px;
+
+        background:
+            linear-gradient(
+                135deg,
+                #8bc83f,
+                #6da52e
+            );
+
+        color: #ffffff;
+
+        font-size: 12px;
+
+        font-weight: 800;
+
+        cursor: pointer;
+
+        box-shadow:
+            0 12px 28px rgba(139, 200, 63, 0.14);
+
+        transition:
+            transform .2s ease,
+            box-shadow .2s ease,
+            filter .2s ease;
+    }
+
+    .save-button:hover {
+        transform:
+            translateY(-1px);
+
+        filter:
+            brightness(1.06);
+
+        box-shadow:
+            0 16px 34px rgba(139, 200, 63, 0.20);
+    }
+
+    .save-button:active {
+        transform:
+            translateY(0);
+    }
+
+    .save-button svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .button-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+
+    /* =========================================================
+       EXTRA WIDTH PROTECTION
+    ========================================================= */
+
+    .profile-summary,
+    .detail-value,
+    .form-field {
+        overflow-wrap: anywhere;
+    }
+
+
+    /* =========================================================
+       RESPONSIVE
+    ========================================================= */
+
+    @media (min-width: 901px) and (max-width: 1200px) {
+
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .edit-form {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+    }
+
+
+    @media (max-width: 900px) {
+
+        .profile-card {
+            gap: 22px;
+        }
+
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .edit-form {
+            grid-template-columns: 1fr;
+        }
+
+        .form-field.full-width {
+            grid-column: auto;
+        }
+
+        .form-actions {
+            grid-column: auto;
+            justify-content: stretch;
+        }
+
+        .save-button {
+            width: 100%;
+        }
+    }
+
+
+    @media (max-width: 600px) {
+
+        .section-heading {
+            gap: 12px;
+        }
+
+        .heading-line {
+            display: none;
+        }
+
+        .profile-card {
+            flex-direction: column;
+
+            align-items: center;
+
+            text-align: center;
+
+            padding: 20px 17px;
+        }
+
+        .profile-image-wrapper,
+        .profile-image-ring {
+            width: 118px;
+            height: 118px;
+        }
+
+        #profile-display {
+            width: 110px;
+            height: 110px;
+        }
+
+        .profile-summary {
+            width: 100%;
+        }
+
+        .profile-summary h2 {
+            font-size: 22px;
+        }
+
+        .profile-summary-id {
+            justify-content: center;
+        }
+
+        .profile-details-card,
+        .edit-profile-card {
+            padding: 18px 16px;
+            border-radius: 18px;
+        }
+
+        .detail-item {
+            padding: 13px;
+        }
+
+        .card-heading {
+            align-items: flex-start;
+        }
+
+        .card-icon {
+            width: 43px;
+            height: 43px;
+            min-width: 43px;
+        }
+    }
+
+
+    @media (max-width: 400px) {
+
+        .profile-card {
+            padding: 18px 14px;
+        }
+
+        .profile-summary h2 {
+            font-size: 20px;
+        }
+
+        .card-heading h3 {
+            font-size: 15px;
+        }
+
+        .card-heading p {
+            font-size: 11px;
+        }
+
+        .detail-item {
+            padding: 12px;
+        }
+    }
+
+</style>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header class="dashboard-header">
+
+    <div class="dashboard-header-content">
+
+        <div>
+
+            <div class="dashboard-eyebrow">
+                TEAM MEMBER • PROFILE
+            </div>
+
+            <h1>
+                My Profile
+            </h1>
+
+            <p>
+                Manage your personal information,
+                profile image, and team member
+                account details.
+            </p>
+
+        </div>
+
+        <div class="system-status">
+
+            <span class="status-dot"></span>
+
+            <span>
+                Workspace Active
+            </span>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+
+<!-- =========================================================
+     CONTENT
+========================================================= -->
+
+<section class="dashboard-content">
+
+
+    <!-- SECTION HEADING -->
+
+    <div class="section-heading">
+
+        <div>
+
+            <div class="section-eyebrow">
+                ACCOUNT OVERVIEW
+            </div>
+
+            <h2>
+                Your Profile
+            </h2>
+
+        </div>
+
+        <div class="heading-line"></div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         PROFILE HERO
+    ===================================================== -->
+
+    <div class="profile-card">
+
+
+        <!-- PROFILE IMAGE -->
+
+        <div
+            class="profile-image-wrapper"
+            id="profile-container"
+            title="Click to change profile image"
+        >
+
+            <div class="profile-image-ring">
+
+                {% if user.profile_image %}
+
+                    <img
+                        id="profile-display"
+                        src="{{ user.profile_image.url }}"
+                        alt="Profile Image"
+                    >
+
+                {% else %}
+
+                    <img
+                        id="profile-display"
+                        src="{% static 'images/default-user.png' %}"
+                        alt="Default Profile Image"
+                    >
+
+                {% endif %}
+
+            </div>
+
+
+            <!-- Hidden File Input -->
+
+            <input
+                type="file"
+                id="profile-input"
+                class="hidden"
+                name="profile_image"
+                accept="image/*"
+            >
+
+
+            <!-- Active Status -->
+
+            <span
+                id="profile-status-dot"
+                class="profile-status-dot user-status-dot"
+                data-user-id="{{ user.id }}"
+                title="Active"
+            ></span>
+
+
+            <!-- Edit Badge -->
+
+            <span class="profile-edit-badge">
+
+                <i data-lucide="camera"></i>
+
+            </span>
+
+        </div>
+
+
+
+        <!-- PROFILE SUMMARY -->
+
+        <div class="profile-summary">
+
+            <div class="profile-summary-label">
+                Team Member
+            </div>
+
+            <h2>
+                {{ user.name }}
+            </h2>
+
+            <p class="profile-summary-role">
+                {{ user.designation|default:user.job_Position }}
+            </p>
+
+            <div class="profile-summary-id">
+
+                <i data-lucide="badge-id-card"></i>
+
+                <span>
+                    Employee ID:
+                    {{ user.employee_id }}
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         PROFILE DETAILS
+    ===================================================== -->
+
+    <div class="profile-details-card">
+
+
+        <!-- CARD HEADING -->
+
+        <div class="card-heading">
+
+            <div class="card-icon">
+
+                <i data-lucide="contact"></i>
+
+            </div>
+
+            <div>
+
+                <h3>
+                    Personal & Work Information
+                </h3>
+
+                <p>
+                    Your current information
+                    registered in Cybexel.
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- DETAILS GRID -->
+
+        <div class="details-grid">
+
+
+            <!-- Full Name -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="user"></i>
+
+                    <span>
+                        Full Name
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.name|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Employee ID -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="badge-id-card"></i>
+
+                    <span>
+                        Employee ID
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.employee_id|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Email -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="mail"></i>
+
+                    <span>
+                        Email
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.email|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Phone -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="phone"></i>
+
+                    <span>
+                        Phone
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.phone|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Department -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="building-2"></i>
+
+                    <span>
+                        Department
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.department.name|default:"Not assigned" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Team -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="users"></i>
+
+                    <span>
+                        Team
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.team.name|default:"Not assigned" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Job Position -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="briefcase-business"></i>
+
+                    <span>
+                        Job Position
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.job_Position|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Designation -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="award"></i>
+
+                    <span>
+                        Designation
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.designation|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Work Location -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="map-pin"></i>
+
+                    <span>
+                        Work Location
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.work_location|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Joining Date -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="calendar-days"></i>
+
+                    <span>
+                        Joining Date
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.joining_date|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+
+            <!-- Username -->
+
+            <div class="detail-item">
+
+                <div class="detail-label">
+
+                    <i data-lucide="at-sign"></i>
+
+                    <span>
+                        Username
+                    </span>
+
+                </div>
+
+                <div class="detail-value">
+                    {{ user.username|default:"Not provided" }}
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         EDIT PROFILE
+    ===================================================== -->
+
+    <div class="edit-profile-card">
+
+
+        <!-- CARD HEADING -->
+
+        <div class="card-heading">
+
+            <div class="card-icon">
+
+                <i data-lucide="user-pen"></i>
+
+            </div>
+
+            <div>
+
+                <h3>
+                    Edit Profile
+                </h3>
+
+                <p>
+                    Update the information you
+                    want to change.
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- EDIT FORM -->
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            class="edit-form"
+        >
+
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="action"
+                value="edit_profile"
+            >
+
+
+            <!-- Full Name -->
+
+            <div class="form-field">
+
+                <label for="profile-name">
+
+                    <i data-lucide="user"></i>
+
+                    <span>
+                        Full Name
+                    </span>
+
+                </label>
+
+                <input
+                    id="profile-name"
+                    type="text"
+                    name="name"
+                    value="{{ user.name }}"
+                    class="form-input"
+                    autocomplete="name"
+                >
+
+            </div>
+
+
+
+            <!-- Email -->
+
+            <div class="form-field">
+
+                <label for="profile-email">
+
+                    <i data-lucide="mail"></i>
+
+                    <span>
+                        Email
+                    </span>
+
+                </label>
+
+                <input
+                    id="profile-email"
+                    type="email"
+                    name="email"
+                    value="{{ user.email }}"
+                    class="form-input"
+                    autocomplete="email"
+                >
+
+            </div>
+
+
+
+            <!-- Phone -->
+
+            <div class="form-field">
+
+                <label for="profile-phone">
+
+                    <i data-lucide="phone"></i>
+
+                    <span>
+                        Phone
+                    </span>
+
+                </label>
+
+                <input
+                    id="profile-phone"
+                    type="text"
+                    name="phone"
+                    value="{{ user.phone }}"
+                    class="form-input"
+                    autocomplete="tel"
+                >
+
+            </div>
+
+
+
+            <!-- Username -->
+
+            <div class="form-field">
+
+                <label for="profile-username">
+
+                    <i data-lucide="at-sign"></i>
+
+                    <span>
+                        Username
+                    </span>
+
+                </label>
+
+                <input
+                    id="profile-username"
+                    type="text"
+                    value="{{ user.username }}"
+                    class="form-input"
+                    disabled
+                >
+
+            </div>
+
+
+
+            <!-- SAVE -->
+
+            <div class="form-actions">
+
+                <button
+                    type="submit"
+                    class="save-button"
+                >
+
+                    <span class="button-icon">
+
+                        <i data-lucide="save"></i>
+
+                    </span>
+
+                    <span>
+                        Save Changes
+                    </span>
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+</section>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script>
+
+    /* =========================================================
+       PROFILE IMAGE UPLOAD
+    ========================================================= */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const profileDisplay =
+                document.getElementById(
+                    "profile-display"
+                );
+
+            const profileInput =
+                document.getElementById(
+                    "profile-input"
+                );
+
+            const profileContainer =
+                document.getElementById(
+                    "profile-container"
+                );
+
+
+            if (
+                !profileDisplay ||
+                !profileInput ||
+                !profileContainer
+            ) {
+
+                return;
+
+            }
+
+
+            /* =================================================
+               OPEN FILE SELECTOR
+            ================================================= */
+
+            profileContainer.addEventListener(
+                "click",
+                function (event) {
+
+                    /*
+                     * Prevent duplicate click handling.
+                     */
+
+                    if (
+                        event.target.closest(
+                            "#profile-input"
+                        )
+                    ) {
+
+                        return;
+
+                    }
+
+                    profileInput.click();
+
+                }
+            );
+
+
+            /* =================================================
+               FILE CHANGE
+            ================================================= */
+
+            profileInput.addEventListener(
+                "change",
+                function () {
+
+                    const file =
+                        profileInput.files[0];
+
+
+                    if (!file) {
+
+                        return;
+
+                    }
+
+
+                    /* Validate image */
+
+                    if (
+                        !file.type.startsWith(
+                            "image/"
+                        )
+                    ) {
+
+                        showProfileToast(
+                            "Please select a valid image file.",
+                            true
+                        );
+
+                        profileInput.value = "";
+
+                        return;
+
+                    }
+
+
+                    const formData =
+                        new FormData();
+
+
+                    formData.append(
+                        "profile_image",
+                        file
+                    );
+
+                    formData.append(
+                        "action",
+                        "edit_profile"
+                    );
+
+                    formData.append(
+                        "csrfmiddlewaretoken",
+                        "{{ csrf_token }}"
+                    );
+
+
+                    profileContainer.style.opacity =
+                        "0.65";
+
+
+                    /* =================================================
+                       UPLOAD
+                    ================================================= */
+
+                    fetch(
+                        "{% url 'teammember_profile' %}",
+                        {
+                            method: "POST",
+
+                            body: formData,
+
+                            headers: {
+                                "X-Requested-With":
+                                    "XMLHttpRequest"
+                            }
+                        }
+                    )
+
+                    .then(
+                        function (response) {
+
+                            if (!response.ok) {
+
+                                throw new Error(
+                                    "Upload request failed."
+                                );
+
+                            }
+
+                            return response.json();
+
+                        }
+                    )
+
+                    .then(
+                        function (data) {
+
+                            if (data.success) {
+
+                                profileDisplay.src =
+                                    data.image_url +
+                                    "?t=" +
+                                    Date.now();
+
+                                showProfileToast(
+                                    "Profile image updated successfully.",
+                                    false
+                                );
+
+                            } else {
+
+                                showProfileToast(
+                                    data.error ||
+                                        "Failed to update image.",
+                                    true
+                                );
+
+                            }
+
+                        }
+                    )
+
+                    .catch(
+                        function (error) {
+
+                            console.error(
+                                "Profile image upload error:",
+                                error
+                            );
+
+                            showProfileToast(
+                                "Failed to update profile image.",
+                                true
+                            );
+
+                        }
+                    )
+
+                    .finally(
+                        function () {
+
+                            profileContainer.style.opacity =
+                                "1";
+
+                            profileInput.value = "";
+
+                        }
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+    /* =========================================================
+       PROFILE TOAST
+       Uses the common toast container from base.html
+    ========================================================= */
+
+    function showProfileToast(
+        message,
+        isError
+    ) {
+
+        const container =
+            document.getElementById(
+                "toast-container"
+            );
+
+
+        if (!container) {
+
+            return;
+
+        }
+
+
+        const toast =
+            document.createElement(
+                "div"
+            );
+
+        toast.className =
+            "toast-message";
+
+
+        const icon =
+            document.createElement(
+                "i"
+            );
+
+        icon.setAttribute(
+            "data-lucide",
+            isError
+                ? "circle-alert"
+                : "circle-check"
+        );
+
+        icon.className =
+            "toast-icon";
+
+
+        const text =
+            document.createElement(
+                "span"
+            );
+
+        text.className =
+            "toast-text";
+
+        text.textContent =
+            message;
+
+
+        const close =
+            document.createElement(
+                "button"
+            );
+
+        close.type =
+            "button";
+
+        close.className =
+            "toast-close";
+
+        close.innerHTML =
+            "×";
+
+        close.setAttribute(
+            "aria-label",
+            "Close notification"
+        );
+
+
+        close.addEventListener(
+            "click",
+            function () {
+
+                removeToast(toast);
+
+            }
+        );
+
+
+        toast.appendChild(icon);
+        toast.appendChild(text);
+        toast.appendChild(close);
+
+        container.appendChild(toast);
+
+
+        /* Refresh Lucide icon */
+
+        if (window.lucide) {
+
+            lucide.createIcons({
+                attrs: {
+                    "stroke-width": 2
+                }
+            });
+
+        }
+
+
+        /* Auto hide */
+
+        setTimeout(
+            function () {
+
+                removeToast(toast);
+
+            },
+            4000
+        );
+
+    }
+
+</script>
+
+{% endblock %}

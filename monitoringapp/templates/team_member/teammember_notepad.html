@@ -1,0 +1,923 @@
+{% extends "team_member/base3.html" %}
+{% load tz %}
+
+{% block title %}Notepad | Cybexel{% endblock %}
+
+{% block extra_css %}
+
+<style>
+    /* =========================================================
+       NOTEPAD LAYOUT
+       ========================================================= */
+
+    .notepad-page-content {
+        width: 100%;
+    }
+
+    .section-heading {
+        display: flex;
+        align-items: flex-end;
+        gap: 18px;
+        margin-bottom: 20px;
+    }
+
+    .section-heading-text {
+        flex-shrink: 0;
+    }
+
+    .section-eyebrow {
+        margin: 0 0 6px;
+        color: #8bc83f;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+    }
+
+    .section-heading h2 {
+        margin: 0;
+        color: #fff;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+    }
+
+    .section-line {
+        flex: 1;
+        height: 1px;
+        margin-bottom: 7px;
+        background:
+            linear-gradient(
+                90deg,
+                rgba(139, 200, 63, 0.28),
+                rgba(255, 255, 255, 0.03)
+            );
+    }
+
+    /* =========================================================
+       NOTEPAD GRID
+       ========================================================= */
+
+    .notepad-grid {
+        display: grid;
+        grid-template-columns:
+            minmax(0, 1.45fr)
+            minmax(300px, 0.75fr);
+        gap: 20px;
+        align-items: start;
+    }
+
+    .dashboard-card {
+        min-width: 0;
+        padding: 22px;
+        border-radius: 22px;
+        background:
+            linear-gradient(
+                145deg,
+                rgba(37, 15, 30, 0.78),
+                rgba(20, 10, 17, 0.78)
+            );
+        border: 1px solid rgba(255, 255, 255, 0.075);
+        box-shadow:
+            0 16px 40px rgba(0, 0, 0, 0.20);
+        transition:
+            transform 0.25s ease,
+            border-color 0.25s ease,
+            box-shadow 0.25s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(139, 200, 63, 0.20);
+        box-shadow:
+            0 20px 45px rgba(0, 0, 0, 0.28);
+    }
+
+    .card-heading {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        margin-bottom: 20px;
+    }
+
+    .card-icon {
+        width: 48px;
+        height: 48px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        color: #c084fc;
+        background: rgba(192, 132, 252, 0.10);
+        border: 1px solid rgba(192, 132, 252, 0.15);
+    }
+
+    .card-icon svg {
+        width: 23px;
+        height: 23px;
+    }
+
+    .card-heading-text {
+        min-width: 0;
+    }
+
+    .card-heading-text h3 {
+        margin: 0;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 800;
+    }
+
+    .card-heading-text p {
+        margin: 4px 0 0;
+        color: #71717a;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+    /* =========================================================
+       FORM
+       ========================================================= */
+
+    .note-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .field-label {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 7px;
+        color: #d4d4d8;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+    }
+
+    .field-label svg {
+        width: 14px;
+        height: 14px;
+        color: #8bc83f;
+    }
+
+    .note-input,
+    .note-textarea {
+        width: 100%;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 14px;
+        outline: none;
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            background 0.2s ease;
+    }
+
+    .note-input {
+        height: 50px;
+        padding: 0 15px;
+        font-size: 14px;
+    }
+
+    .note-textarea {
+        min-height: 280px;
+        padding: 15px;
+        resize: vertical;
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    .note-input::placeholder,
+    .note-textarea::placeholder {
+        color: #52525b;
+    }
+
+    .note-input:focus,
+    .note-textarea:focus {
+        background: rgba(0, 0, 0, 0.48);
+        border-color: rgba(139, 200, 63, 0.55);
+        box-shadow:
+            0 0 0 3px rgba(139, 200, 63, 0.08);
+    }
+
+    .editor-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 3px;
+    }
+
+    .save-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 0 18px;
+        color: #071000;
+        background:
+            linear-gradient(
+                135deg,
+                #8bc83f,
+                #6da52e
+            );
+        border: 1px solid rgba(139, 200, 63, 0.45);
+        border-radius: 13px;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow:
+            0 10px 25px rgba(139, 200, 63, 0.10);
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .save-button:hover {
+        transform: translateY(-1px);
+        box-shadow:
+            0 14px 30px rgba(139, 200, 63, 0.18);
+    }
+
+    .save-button svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .new-note-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 44px;
+        padding: 0 16px;
+        color: #d4d4d8;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 13px;
+        font-size: 12px;
+        font-weight: 700;
+        transition:
+            background 0.2s ease,
+            color 0.2s ease,
+            border-color 0.2s ease;
+    }
+
+    .new-note-button:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(139, 200, 63, 0.24);
+    }
+
+    .new-note-button svg {
+        width: 16px;
+        height: 16px;
+        color: #8bc83f;
+    }
+
+    /* =========================================================
+       SAVED NOTES
+       ========================================================= */
+
+    .saved-notes-card {
+        min-height: 100%;
+    }
+
+    .saved-notes-list {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        max-height: 455px;
+        overflow-y: auto;
+        padding-right: 3px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(139, 200, 63, 0.30) transparent;
+    }
+
+    .saved-notes-list::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .saved-notes-list::-webkit-scrollbar-thumb {
+        background: rgba(139, 200, 63, 0.25);
+        border-radius: 20px;
+    }
+
+    .note-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        width: 100%;
+        padding: 13px 14px;
+        color: #d4d4d8;
+        background: rgba(0, 0, 0, 0.24);
+        border: 1px solid rgba(255, 255, 255, 0.065);
+        border-radius: 14px;
+        transition:
+            background 0.2s ease,
+            border-color 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .note-item:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.045);
+        border-color: rgba(139, 200, 63, 0.24);
+        transform: translateX(2px);
+    }
+
+    .note-item.active {
+        color: #fff;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(139, 200, 63, 0.16),
+                rgba(139, 200, 63, 0.05)
+            );
+        border-color: rgba(139, 200, 63, 0.30);
+    }
+
+    .note-item-icon {
+        width: 34px;
+        height: 34px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #c084fc;
+        background: rgba(192, 132, 252, 0.09);
+        border-radius: 10px;
+    }
+
+    .note-item.active .note-item-icon {
+        color: #8bc83f;
+        background: rgba(139, 200, 63, 0.10);
+    }
+
+    .note-item-icon svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .note-item-title {
+        min-width: 0;
+        overflow: hidden;
+        color: inherit;
+        font-size: 12px;
+        font-weight: 700;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .empty-notes {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 220px;
+        padding: 20px;
+        color: #71717a;
+        text-align: center;
+    }
+
+    .empty-notes-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 12px;
+        color: #8bc83f;
+        background: rgba(139, 200, 63, 0.08);
+        border: 1px solid rgba(139, 200, 63, 0.14);
+        border-radius: 15px;
+    }
+
+    .empty-notes-icon svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .empty-notes strong {
+        color: #d4d4d8;
+        font-size: 13px;
+    }
+
+    .empty-notes span {
+        margin-top: 5px;
+        max-width: 230px;
+        font-size: 11px;
+        line-height: 1.6;
+    }
+
+    /* =========================================================
+       PAGINATION
+       ========================================================= */
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 18px;
+    }
+
+    .pagination-button,
+    .pagination-current {
+        min-width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 11px;
+        border-radius: 11px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .pagination-button {
+        color: #d4d4d8;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        transition:
+            background 0.2s ease,
+            border-color 0.2s ease,
+            color 0.2s ease;
+    }
+
+    .pagination-button:hover {
+        color: #fff;
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(139, 200, 63, 0.25);
+    }
+
+    .pagination-current {
+        color: #071000;
+        background:
+            linear-gradient(
+                135deg,
+                #8bc83f,
+                #6da52e
+            );
+    }
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+
+    @media (max-width: 1200px) {
+        .notepad-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .saved-notes-list {
+            display: grid;
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+            max-height: none;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .dashboard-content {
+            padding: 24px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .dashboard-content {
+            padding: 20px 15px 30px;
+        }
+
+        .section-heading {
+            gap: 10px;
+        }
+
+        .section-heading h2 {
+            font-size: 18px;
+        }
+
+        .section-line {
+            display: none;
+        }
+
+        .dashboard-card {
+            padding: 17px;
+            border-radius: 18px;
+        }
+
+        .card-heading {
+            margin-bottom: 16px;
+        }
+
+        .card-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 13px;
+        }
+
+        .note-textarea {
+            min-height: 220px;
+        }
+
+        .editor-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .save-button,
+        .new-note-button {
+            width: 100%;
+        }
+
+        .saved-notes-list {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .dashboard-content {
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<!-- =====================================================
+     HEADER
+     ===================================================== -->
+
+<header class="dashboard-header">
+    <div class="dashboard-header-content">
+
+    <div>
+        <div class="dashboard-eyebrow">
+            TEAM MEMBER / PERSONAL WORKSPACE
+        </div>
+
+        <div class="dashboard-title-row">
+
+            <div class="dashboard-title-icon">
+                <i data-lucide="notebook-pen"></i>
+            </div>
+
+            <div>
+                <h1>My Notepad</h1>
+
+                <p>
+                    Create, edit, and manage your personal notes
+                    from your Cybexel workspace.
+                </p>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="system-status">
+
+        <span class="system-status-dot"></span>
+
+        <i
+            data-lucide="log-in"
+            style="width:14px;height:14px;">
+        </i>
+
+        Workspace Active
+
+    </div>
+
+</div>
+
+
+</header>
+
+<!-- =====================================================
+     CONTENT
+     ===================================================== -->
+
+<div class="dashboard-content">
+
+<!-- Section Heading -->
+
+<div class="section-heading">
+
+    <div class="section-heading-text">
+
+        <div class="section-eyebrow">
+            NOTES
+        </div>
+
+        <h2>
+            Personal Notepad
+        </h2>
+
+    </div>
+
+    <div class="section-line"></div>
+
+</div>
+
+
+<!-- =================================================
+     NOTEPAD GRID
+     ================================================= -->
+
+<div class="notepad-grid">
+
+
+    <!-- =============================================
+         EDITOR CARD
+         ============================================= -->
+
+    <div class="dashboard-card">
+
+        <div class="card-heading">
+
+            <div class="card-icon">
+
+                <i data-lucide="file-pen-line"></i>
+
+            </div>
+
+            <div class="card-heading-text">
+
+                <h3>
+
+                    {% if note %}
+                        Edit Note
+                    {% else %}
+                        Create New Note
+                    {% endif %}
+
+                </h3>
+
+                <p>
+
+                    {% if note %}
+                        Update your selected note and save your changes.
+                    {% else %}
+                        Write down your ideas, reminders, or important information.
+                    {% endif %}
+
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- Editor -->
+
+        <form method="POST" class="note-form">
+
+            {% csrf_token %}
+
+
+            {% if note %}
+
+                <input
+                    type="hidden"
+                    name="note_id"
+                    value="{{ note.id }}">
+
+            {% endif %}
+
+
+            <!-- Title -->
+
+            <div>
+
+                <label
+                    for="note-title"
+                    class="field-label">
+
+                    <i data-lucide="heading"></i>
+
+                    Note Title
+
+                </label>
+
+
+                <input
+                    id="note-title"
+                    type="text"
+                    name="title"
+                    value="{% if note %}{{ note.title }}{% endif %}"
+                    placeholder="Enter note title..."
+                    class="note-input"
+                    autocomplete="off">
+
+            </div>
+
+
+            <!-- Content -->
+
+            <div>
+
+                <label
+                    for="note-content"
+                    class="field-label">
+
+                    <i data-lucide="align-left"></i>
+
+                    Note Content
+
+                </label>
+
+
+                <textarea
+                    id="note-content"
+                    name="content"
+                    rows="10"
+                    class="note-textarea"
+                    placeholder="Write your note here...">{% if note %}{{ note.content }}{% endif %}</textarea>
+
+            </div>
+
+
+            <!-- Actions -->
+
+            <div class="editor-actions">
+
+                <button
+                    type="submit"
+                    class="save-button">
+
+                    <i data-lucide="save"></i>
+
+                    {% if note %}
+                        Save Changes
+                    {% else %}
+                        Save Note
+                    {% endif %}
+
+                </button>
+
+
+                <a
+                    href="{% url 'teammember_notepad' %}"
+                    class="new-note-button">
+
+                    <i data-lucide="plus"></i>
+
+                    New Note
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =============================================
+         SAVED NOTES CARD
+         ============================================= -->
+
+    <div class="dashboard-card saved-notes-card">
+
+        <div class="card-heading">
+
+            <div class="card-icon">
+
+                <i data-lucide="notebook-tabs"></i>
+
+            </div>
+
+            <div class="card-heading-text">
+
+                <h3>
+                    Your Saved Notes
+                </h3>
+
+                <p>
+                    Select a note to continue editing.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="saved-notes-list">
+
+            {% for n in page_obj %}
+
+                <a
+                    href="?note_id={{ n.id }}"
+                    class="note-item {% if note and note.id == n.id %}active{% endif %}">
+
+                    <div class="note-item-icon">
+
+                        <i data-lucide="file-text"></i>
+
+                    </div>
+
+                    <span class="note-item-title">
+
+                        {{ n.title }}
+
+                    </span>
+
+                </a>
+
+            {% empty %}
+
+                <div class="empty-notes">
+
+                    <div class="empty-notes-icon">
+
+                        <i data-lucide="notebook-pen"></i>
+
+                    </div>
+
+                    <strong>
+                        No saved notes yet
+                    </strong>
+
+                    <span>
+                        Create your first note using the editor.
+                    </span>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        <!-- Pagination -->
+
+        {% if page_obj.paginator.num_pages > 1 %}
+
+            <div class="pagination">
+
+                {% if page_obj.has_previous %}
+
+                    <a
+                        href="?page={{ page_obj.previous_page_number }}"
+                        class="pagination-button">
+
+                        <i
+                            data-lucide="chevron-left"
+                            style="width:15px;height:15px;">
+                        </i>
+
+                        Previous
+
+                    </a>
+
+                {% endif %}
+
+
+                <span class="pagination-current">
+
+                    {{ page_obj.number }}
+
+                    /
+
+                    {{ page_obj.paginator.num_pages }}
+
+                </span>
+
+
+                {% if page_obj.has_next %}
+
+                    <a
+                        href="?page={{ page_obj.next_page_number }}"
+                        class="pagination-button">
+
+                        Next
+
+                        <i
+                            data-lucide="chevron-right"
+                            style="width:15px;height:15px;">
+                        </i>
+
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+</div>
+
+{% endblock %}

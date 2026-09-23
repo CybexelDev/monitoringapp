@@ -1,0 +1,1823 @@
+{% extends "team_member/base3.html" %}
+{% load tz %}
+
+{% block title %}
+My Tasks - Cybexel
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+/* =========================================================
+   TASK PAGE - SECTION HEADING
+   ========================================================= */
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 22px;
+    min-width: 0;
+}
+
+.section-heading > div:first-child {
+    min-width: 0;
+}
+
+.section-eyebrow {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    color: #8bc83f;
+    margin-bottom: 5px;
+}
+
+.section-heading h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.section-description {
+    margin: 5px 0 0;
+    color: #71717a;
+    font-size: 12px;
+}
+
+.heading-line {
+    height: 1px;
+    flex: 1;
+    min-width: 20px;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.10),
+        transparent
+    );
+}
+
+
+/* =========================================================
+   ADD TASK CARD
+   ========================================================= */
+
+.task-form-card {
+    min-width: 0;
+    padding: 22px;
+    margin-bottom: 28px;
+
+    border-radius: 22px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 15, 30, 0.78),
+            rgba(20, 10, 17, 0.78)
+        );
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.07);
+
+    box-shadow:
+        0 15px 40px
+        rgba(0, 0, 0, 0.20);
+
+    transition:
+        transform 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.task-form-card:hover {
+    transform: translateY(-2px);
+
+    border-color:
+        rgba(139, 200, 63, 0.16);
+
+    box-shadow:
+        0 20px 45px
+        rgba(0, 0, 0, 0.28);
+}
+
+
+/* =========================================================
+   CARD HEADING
+   ========================================================= */
+
+.card-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    min-width: 0;
+}
+
+.card-heading-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 15px;
+
+    background:
+        rgba(139, 200, 63, 0.10);
+
+    border:
+        1px solid
+        rgba(139, 200, 63, 0.14);
+
+    color: #8bc83f;
+}
+
+.card-heading-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 1.7;
+}
+
+.card-heading > div:last-child {
+    min-width: 0;
+}
+
+.card-heading h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 800;
+    color: #ffffff;
+    min-width: 0;
+}
+
+.card-heading p {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #a1a1aa;
+}
+
+
+/* =========================================================
+   TASK FORM
+   ========================================================= */
+
+.task-form {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
+
+    gap: 16px;
+    min-width: 0;
+}
+
+.form-field {
+    min-width: 0;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    margin-bottom: 8px;
+
+    color: #d4d4d8;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.form-label svg {
+    width: 14px;
+    height: 14px;
+    color: #8bc83f;
+}
+
+.task-input,
+.task-textarea {
+    width: 100%;
+
+    color: #ffffff;
+
+    background:
+        #050505;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.10);
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
+}
+
+.task-input {
+    min-height: 46px;
+    padding: 11px 13px;
+    border-radius: 13px;
+}
+
+.task-textarea {
+    min-height: 110px;
+    padding: 12px 13px;
+    border-radius: 13px;
+    resize: vertical;
+}
+
+.task-input::placeholder,
+.task-textarea::placeholder {
+    color: #52525b;
+}
+
+.task-input:focus,
+.task-textarea:focus {
+    background:
+        rgba(0, 0, 0, 0.72);
+
+    border-color:
+        rgba(139, 200, 63, 0.55);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(139, 200, 63, 0.08);
+}
+
+.form-actions {
+    grid-column: 1 / -1;
+
+    display: flex;
+    justify-content: flex-end;
+
+    padding-top: 3px;
+}
+
+
+/* =========================================================
+   ADD TASK BUTTON
+   ========================================================= */
+
+.add-task-button {
+    min-height: 45px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    padding: 0 18px;
+
+    border: 0;
+    border-radius: 13px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #8bc83f,
+            #6da52e
+        );
+
+    color: #ffffff;
+
+    font-size: 12px;
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 12px 28px
+        rgba(139, 200, 63, 0.14);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        filter 0.2s ease;
+}
+
+.add-task-button:hover {
+    transform: translateY(-1px);
+
+    filter: brightness(1.06);
+
+    box-shadow:
+        0 16px 34px
+        rgba(139, 200, 63, 0.20);
+}
+
+.add-task-button:active {
+    transform: translateY(0);
+}
+
+.add-task-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+
+/* =========================================================
+   TASK LIST
+   ========================================================= */
+
+.tasks-section {
+    margin-top: 4px;
+    min-width: 0;
+}
+
+.tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+
+
+/* =========================================================
+   TASK ITEM
+   ========================================================= */
+
+.task-item {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+    padding: 20px;
+
+    min-width: 0;
+
+    border-radius: 20px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 15, 30, 0.78),
+            rgba(20, 10, 17, 0.78)
+        );
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+    box-shadow:
+        0 14px 36px
+        rgba(0, 0, 0, 0.22);
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        background 0.2s ease;
+}
+
+.task-item:hover {
+    transform: translateY(-2px);
+
+    border-color:
+        rgba(139, 200, 63, 0.20);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(42, 19, 35, 0.82),
+            rgba(22, 11, 18, 0.82)
+        );
+}
+
+.task-item.completed {
+    border-color:
+        rgba(74, 222, 128, 0.16);
+}
+
+
+/* =========================================================
+   TASK MAIN
+   ========================================================= */
+
+.task-main {
+    min-width: 0;
+    flex: 1;
+}
+
+.task-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.task-icon {
+    width: 40px;
+    height: 40px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    color: #8bc83f;
+
+    background:
+        rgba(139, 200, 63, 0.10);
+
+    border:
+        1px solid
+        rgba(139, 200, 63, 0.14);
+}
+
+.task-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.task-title {
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 15px;
+    font-weight: 750;
+    line-height: 1.4;
+
+    overflow-wrap: anywhere;
+    min-width: 0;
+}
+
+.task-description {
+    margin:
+        10px
+        0
+        0
+        50px;
+
+    color: #a1a1aa;
+
+    font-size: 12px;
+    line-height: 1.65;
+
+    overflow-wrap: anywhere;
+}
+
+.task-status-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    margin:
+        12px
+        0
+        0
+        50px;
+}
+
+.status-label {
+    color: #71717a;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.task-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.task-status::before {
+    content: "";
+
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+
+    background:
+        currentColor;
+}
+
+.task-status.pending {
+    color: #f87171;
+}
+
+.task-status.in-progress {
+    color: #fbbf24;
+}
+
+.task-status.completed {
+    color: #4ade80;
+}
+
+
+/* =========================================================
+   TASK ACTIONS
+   ========================================================= */
+
+.task-actions {
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+}
+
+
+/* =========================================================
+   STATUS SELECT
+   ========================================================= */
+
+.status-form {
+    position: relative;
+    width: 150px;
+}
+
+select.status-select {
+    width: 100%;
+    min-height: 42px;
+
+    padding:
+        9px
+        38px
+        9px
+        12px;
+
+    color: #ffffff;
+
+    background-color: #090909;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.11);
+
+    border-radius: 12px;
+
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    cursor: pointer;
+    outline: none;
+
+    font-size: 11px;
+    font-weight: 650;
+
+    background-image:
+        url("data:image/svg+xml,%3Csvg fill='white' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+
+    background-repeat: no-repeat;
+
+    background-position:
+        right 10px center;
+
+    background-size: 16px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+select.status-select:hover {
+    border-color:
+        rgba(139, 200, 63, 0.30);
+}
+
+select.status-select:focus {
+    border-color:
+        rgba(139, 200, 63, 0.55);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(139, 200, 63, 0.07);
+
+    outline: none;
+}
+
+select.status-select option {
+    color: #ffffff;
+    background-color: #090909;
+}
+
+
+/* =========================================================
+   DELETE BUTTON
+   ========================================================= */
+
+.delete-task-button {
+    width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    color: #f87171;
+
+    background:
+        rgba(239, 68, 68, 0.08);
+
+    border:
+        1px solid
+        rgba(239, 68, 68, 0.16);
+
+    border-radius: 12px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.delete-task-button:hover {
+    color: #fecaca;
+
+    background:
+        rgba(239, 68, 68, 0.17);
+
+    border-color:
+        rgba(239, 68, 68, 0.30);
+
+    transform: translateY(-1px);
+}
+
+.delete-task-button svg {
+    width: 17px;
+    height: 17px;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.empty-state {
+    padding: 25px;
+    min-height: 200px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 16px;
+
+    background:
+        rgba(0, 0, 0, 0.22);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.06);
+
+    color: #71717a;
+
+    font-size: 13px;
+    text-align: center;
+}
+
+.empty-state-icon {
+    width: 58px;
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 15px;
+
+    border-radius: 18px;
+
+    color: #8bc83f;
+
+    background:
+        rgba(139, 200, 63, 0.09);
+
+    border:
+        1px solid
+        rgba(139, 200, 63, 0.14);
+}
+
+.empty-state-icon svg {
+    width: 25px;
+    height: 25px;
+}
+
+.empty-state h3 {
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.empty-state p {
+    max-width: 400px;
+
+    margin:
+        7px
+        0
+        0;
+
+    color: #71717a;
+
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   PAGE-SPECIFIC RESPONSIVE STYLES
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .task-form {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        grid-column: auto;
+        justify-content: stretch;
+    }
+
+    .add-task-button {
+        width: 100%;
+    }
+
+    .task-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .task-actions {
+        width: 100%;
+    }
+
+    .status-form {
+        flex: 1;
+        width: auto;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .section-heading {
+        gap: 12px;
+    }
+
+    .heading-line {
+        display: none;
+    }
+
+    .task-form-card {
+        padding: 17px !important;
+        border-radius: 18px !important;
+    }
+
+    .card-heading {
+        align-items: flex-start;
+    }
+
+    .card-heading-icon {
+        width: 43px;
+        height: 43px;
+        min-width: 43px;
+    }
+
+    .task-item {
+        padding: 17px;
+        border-radius: 18px;
+    }
+
+    .task-description {
+        margin-left: 0;
+    }
+
+    .task-status-line {
+        margin-left: 0;
+    }
+}
+
+
+@media (max-width: 400px) {
+
+    .task-form-card {
+        padding: 15px !important;
+    }
+
+    .card-heading h3 {
+        font-size: 15px;
+    }
+
+    .card-heading p {
+        font-size: 11px;
+    }
+}
+/* =========================================================
+   DELETE TASK MODAL
+========================================================= */
+
+.delete-task-modal {
+    position: fixed;
+    inset: 0;
+
+    z-index: 10000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+
+.delete-task-modal.hidden {
+    display: none;
+}
+
+
+/* Overlay */
+
+.delete-task-modal-overlay {
+    position: absolute;
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.72);
+
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+
+/* Modal box */
+
+.delete-task-modal-box {
+    position: relative;
+
+    width: 100%;
+    max-width: 430px;
+
+    padding: 28px;
+
+    border-radius: 24px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 15, 30, 0.98),
+            rgba(15, 8, 13, 0.98)
+        );
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    animation: deleteModalIn 0.22s ease-out;
+}
+
+
+/* Icon */
+
+.delete-task-modal-icon {
+    width: 52px;
+    height: 52px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 18px;
+
+    border-radius: 16px;
+
+    background: rgba(220, 38, 38, 0.12);
+
+    border: 1px solid rgba(220, 38, 38, 0.20);
+
+    color: #f87171;
+}
+
+
+.delete-task-modal-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+
+/* Content */
+
+.delete-task-modal-content h3 {
+    margin: 0;
+
+    font-size: 20px;
+    font-weight: 800;
+
+    color: #ffffff;
+}
+
+
+.delete-task-modal-content p {
+    margin: 10px 0 0;
+
+    font-size: 13px;
+    line-height: 1.6;
+
+    color: #a1a1aa;
+}
+
+
+.delete-task-modal-content strong {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+
+.delete-task-warning {
+    display: block;
+
+    margin-top: 8px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    color: #f87171;
+}
+
+
+/* Actions */
+
+.delete-task-modal-actions {
+    display: flex;
+
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 26px;
+}
+
+
+/* Cancel */
+
+.delete-task-cancel {
+    padding: 10px 16px;
+
+    border-radius: 12px;
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+
+    background: rgba(255, 255, 255, 0.05);
+
+    color: #d4d4d8;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+
+.delete-task-cancel:hover {
+    background: rgba(255, 255, 255, 0.09);
+
+    color: #ffffff;
+}
+
+
+/* Confirm */
+
+.delete-task-confirm {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 10px 16px;
+
+    border-radius: 12px;
+
+    border: 1px solid rgba(220, 38, 38, 0.25);
+
+    background: rgba(220, 38, 38, 0.16);
+
+    color: #fca5a5;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.delete-task-confirm:hover {
+    background: rgba(220, 38, 38, 0.28);
+
+    color: #ffffff;
+
+    transform: translateY(-1px);
+}
+
+
+.delete-task-confirm svg {
+    width: 16px;
+    height: 16px;
+}
+
+
+/* Animation */
+
+@keyframes deleteModalIn {
+
+    from {
+        opacity: 0;
+
+        transform: scale(0.94) translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform: scale(1) translateY(0);
+    }
+}
+
+
+/* Mobile */
+
+@media (max-width: 480px) {
+
+    .delete-task-modal {
+        padding: 16px;
+    }
+
+
+    .delete-task-modal-box {
+        padding: 22px;
+
+        border-radius: 20px;
+    }
+
+
+    .delete-task-modal-actions {
+        flex-direction: column-reverse;
+
+        align-items: stretch;
+    }
+
+
+    .delete-task-cancel,
+    .delete-task-confirm {
+        width: 100%;
+    }
+}
+</style>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<!-- =========================================================
+     HEADER
+     ========================================================= -->
+
+<header class="dashboard-header">
+
+    <div class="dashboard-header-content">
+
+        <div>
+
+            <div class="dashboard-eyebrow">
+                TEAM MEMBER • TASKS
+            </div>
+
+            <h1>
+                My Tasks
+            </h1>
+
+            <p>
+                Create, manage, and track your assigned tasks
+                from your team workspace.
+            </p>
+
+        </div>
+
+        <div class="system-status">
+
+            <span class="status-dot"></span>
+
+            <span>
+                Task Workspace
+            </span>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+
+<!-- =========================================================
+     CONTENT
+     ========================================================= -->
+
+<section class="dashboard-content">
+
+
+    <!-- =====================================================
+         TASK MANAGEMENT HEADING
+         ===================================================== -->
+
+    <div class="section-heading">
+
+        <div>
+
+            <div class="section-eyebrow">
+                TASK MANAGEMENT
+            </div>
+
+            <h2>
+                Manage Your Work
+            </h2>
+
+            <p class="section-description">
+                Add new tasks and keep track of their current status.
+            </p>
+
+        </div>
+
+        <div class="heading-line"></div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         ADD TASK CARD
+         ===================================================== -->
+
+    <div class="task-form-card">
+
+        <div class="card-heading">
+
+            <div class="card-heading-icon">
+
+                <i data-lucide="square-plus"></i>
+
+            </div>
+
+            <div>
+
+                <h3>
+                    Add New Task
+                </h3>
+
+                <p>
+                    Create a task for yourself and track its progress.
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <form
+            method="POST"
+            class="task-form"
+        >
+
+            {% csrf_token %}
+
+
+            <!-- Task Title -->
+
+            <div class="form-field">
+
+                <label
+                    class="form-label"
+                    for="task-title"
+                >
+
+                    <i data-lucide="type"></i>
+
+                    <span>
+                        Task Title
+                    </span>
+
+                </label>
+
+
+                <input
+                    id="task-title"
+                    type="text"
+                    name="title"
+                    placeholder="Enter task title"
+                    class="task-input"
+                    required
+                >
+
+            </div>
+
+
+
+            <!-- Task Description -->
+
+            <div class="form-field">
+
+                <label
+                    class="form-label"
+                    for="task-description"
+                >
+
+                    <i data-lucide="align-left"></i>
+
+                    <span>
+                        Task Description
+                    </span>
+
+                </label>
+
+
+                <input
+                    id="task-description"
+                    type="text"
+                    name="description"
+                    placeholder="Enter a short description"
+                    class="task-input"
+                >
+
+            </div>
+
+
+
+            <!-- Add Button -->
+
+            <div class="form-actions">
+
+                <button
+                    type="submit"
+                    class="add-task-button"
+                >
+
+                    <i data-lucide="plus"></i>
+
+                    <span>
+                        Add Task
+                    </span>
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         TASK LIST
+         ===================================================== -->
+
+    <div class="tasks-section">
+
+
+        <div class="section-heading">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    YOUR TASK LIST
+                </div>
+
+                <h2>
+                    Current Tasks
+                </h2>
+
+            </div>
+
+            <div class="heading-line"></div>
+
+        </div>
+
+
+
+        <div class="tasks-list">
+
+
+            {% for task in tasks %}
+
+
+                <!-- =================================================
+                     TASK ITEM
+                     ================================================= -->
+
+                <div
+                    class="
+                        task-item
+                        {% if task.status == 'completed' %}
+                            completed
+                        {% endif %}
+                    "
+                >
+
+
+                    <!-- Task Information -->
+
+                    <div class="task-main">
+
+
+                        <div class="task-title-row">
+
+
+                            <div class="task-icon">
+
+
+                                {% if task.status == "completed" %}
+
+                                    <i data-lucide="circle-check"></i>
+
+                                {% elif task.status == "in_progress" %}
+
+                                    <i data-lucide="loader-circle"></i>
+
+                                {% else %}
+
+                                    <i data-lucide="circle-dot"></i>
+
+                                {% endif %}
+
+
+                            </div>
+
+
+                            <h2 class="task-title">
+                                {{ task.title }}
+                            </h2>
+
+
+                        </div>
+
+
+
+                        {% if task.description %}
+
+                            <p class="task-description">
+                                {{ task.description }}
+                            </p>
+
+                        {% else %}
+
+                            <p class="task-description">
+                                No description provided.
+                            </p>
+
+                        {% endif %}
+
+
+
+                        <!-- Status -->
+
+                        <div class="task-status-line">
+
+                            <span class="status-label">
+                                Status
+                            </span>
+
+
+                            {% if task.status == "completed" %}
+
+                                <span class="task-status completed">
+                                    {{ task.get_status_display }}
+                                </span>
+
+                            {% elif task.status == "in_progress" %}
+
+                                <span class="task-status in-progress">
+                                    {{ task.get_status_display }}
+                                </span>
+
+                            {% else %}
+
+                                <span class="task-status pending">
+                                    {{ task.get_status_display }}
+                                </span>
+
+                            {% endif %}
+
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <!-- =================================================
+                         TASK ACTIONS
+                         ================================================= -->
+
+                    <div class="task-actions">
+
+
+                        <!-- Update Status -->
+
+                        <form
+                            method="POST"
+                            action="{% url 'update_task' task.id %}"
+                            class="status-form"
+                        >
+
+                            {% csrf_token %}
+
+
+                            <select
+                                name="status"
+                                class="status-select"
+                                onchange="this.form.submit()"
+                                aria-label="Update task status"
+                            >
+
+                                <option
+                                    value="pending"
+                                    {% if task.status == 'pending' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Pending
+                                </option>
+
+
+                                <option
+                                    value="in_progress"
+                                    {% if task.status == 'in_progress' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    In Progress
+                                </option>
+
+
+                                <option
+                                    value="completed"
+                                    {% if task.status == 'completed' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Completed
+                                </option>
+
+                            </select>
+
+                        </form>
+
+
+
+                        <!-- Delete -->
+
+                        <button
+                          type="button"
+                          class="delete-task-button"
+                          title="Delete Task"
+                          aria-label="Delete Task"
+                          onclick="openDeleteTaskModal(
+                              '{{ task.id }}',
+                              '{{ task.title|escapejs }}'
+                          )"
+                      >
+
+                          <i data-lucide="trash-2"></i>
+
+                      </button>
+
+
+                    </div>
+
+
+                </div>
+
+
+            {% empty %}
+
+
+                <!-- =================================================
+                     EMPTY STATE
+                     ================================================= -->
+
+                <div class="empty-state">
+
+                    <div class="empty-state-icon">
+
+                        <i data-lucide="clipboard-list"></i>
+
+                    </div>
+
+
+                    <h3>
+                        No Tasks Yet
+                    </h3>
+
+
+                    <p>
+                        You don't have any tasks yet.
+                        Use the form above to create your first task.
+                    </p>
+
+                </div>
+
+
+            {% endfor %}
+
+
+        </div>
+
+    </div>
+
+
+</section>
+
+
+
+<!-- =========================================================
+     DELETE TASK CONFIRMATION MODAL
+========================================================= -->
+
+<div
+    id="deleteTaskModal"
+    class="delete-task-modal hidden"
+>
+
+    <div
+        class="delete-task-modal-overlay"
+        onclick="closeDeleteTaskModal()"
+    ></div>
+
+
+    <div
+        class="delete-task-modal-box"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deleteTaskModalTitle"
+    >
+
+        <!-- Icon -->
+
+        <div class="delete-task-modal-icon">
+
+            <i data-lucide="trash-2"></i>
+
+        </div>
+
+
+        <!-- Content -->
+
+        <div class="delete-task-modal-content">
+
+            <h3 id="deleteTaskModalTitle">
+                Delete Task?
+            </h3>
+
+            <p>
+                Are you sure you want to delete
+                <strong id="deleteTaskName"></strong>?
+            </p>
+
+            <span class="delete-task-warning">
+                This action cannot be undone.
+            </span>
+
+        </div>
+
+
+        <!-- Actions -->
+
+        <div class="delete-task-modal-actions">
+
+            <button
+                type="button"
+                class="delete-task-cancel"
+                onclick="closeDeleteTaskModal()"
+            >
+                Cancel
+            </button>
+
+
+            <form
+                id="deleteTaskForm"
+                method="POST"
+            >
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    class="delete-task-confirm"
+                >
+
+                    <i data-lucide="trash-2"></i>
+
+                    <span>
+                        Delete Task
+                    </span>
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+    }
+);
+
+
+    /* =========================================================
+       DELETE TASK MODAL
+    ========================================================= */
+
+    function openDeleteTaskModal(taskId, taskName) {
+
+        const modal =
+            document.getElementById("deleteTaskModal");
+
+        const taskNameElement =
+            document.getElementById("deleteTaskName");
+
+        const deleteForm =
+            document.getElementById("deleteTaskForm");
+
+
+        if (!modal || !deleteForm) {
+            return;
+        }
+
+
+        /* Set task name */
+
+        if (taskNameElement) {
+
+            taskNameElement.textContent =
+                '"' + taskName + '"';
+
+        }
+
+
+        /* Set delete URL */
+
+        deleteForm.action =
+            "{% url 'delete_task' 0 %}"
+                .replace("/0/", "/" + taskId + "/");
+
+
+        /* Show modal */
+
+        modal.classList.remove("hidden");
+
+
+        /* Prevent background scrolling */
+
+        document.body.style.overflow = "hidden";
+
+
+        /* Refresh Lucide icons */
+
+        if (window.lucide) {
+
+            lucide.createIcons();
+
+        }
+
+    }
+
+
+    /* =========================================================
+       CLOSE DELETE MODAL
+    ========================================================= */
+
+    function closeDeleteTaskModal() {
+
+        const modal =
+            document.getElementById("deleteTaskModal");
+
+
+        if (!modal) {
+            return;
+        }
+
+
+        modal.classList.add("hidden");
+
+
+        /* Restore scrolling */
+
+        document.body.style.overflow = "";
+
+    }
+
+
+    /* =========================================================
+       ESCAPE KEY
+    ========================================================= */
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Escape") {
+
+                closeDeleteTaskModal();
+
+            }
+
+        }
+    );
+
+
+    /* =========================================================
+       LUCIDE
+    ========================================================= */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            if (window.lucide) {
+
+                lucide.createIcons();
+
+            }
+
+        }
+    );
+
+
+
+</script>
+
+{% endblock %}

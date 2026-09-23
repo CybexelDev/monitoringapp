@@ -1,0 +1,2439 @@
+{% extends "team_member/base3.html" %}
+
+{% load static %}
+
+
+{% block title %}
+Knowledge Repository | Cybexel
+{% endblock %}
+
+
+{% block extra_css %}
+
+<style>
+
+/* =========================================================
+   REPOSITORY PAGE
+   ========================================================= */
+
+.section-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.section-heading-text {
+    min-width: 0;
+}
+
+.section-eyebrow {
+    display: block;
+    margin-bottom: 6px;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.section-heading h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.section-line {
+    flex: 1;
+    height: 1px;
+    margin-bottom: 6px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+
+/* =========================================================
+   CREATE RESOURCE CARD
+   ========================================================= */
+
+.repository-create-card {
+    padding: 26px;
+    margin-bottom: 36px;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 22px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.055),
+            rgba(255, 255, 255, 0.025)
+        );
+
+    box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.18);
+}
+
+.repository-create-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.card-icon {
+    width: 48px;
+    height: 48px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px;
+
+    color: #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #250f1e,
+            #3b182f
+        );
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.card-heading-text {
+    min-width: 0;
+}
+
+.card-heading-text h3 {
+    margin: 0 0 4px;
+
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.card-heading-text p {
+    margin: 0;
+
+    color: rgba(255, 255, 255, 0.5);
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   REPOSITORY FORM
+   ========================================================= */
+
+.repository-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.repository-field {
+    min-width: 0;
+}
+
+.repository-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.field-label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    margin-bottom: 8px;
+
+    color: rgba(255, 255, 255, 0.72);
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.field-label svg {
+    width: 14px;
+    height: 14px;
+}
+
+.repository-input,
+.repository-textarea,
+.repository-file {
+    width: 100%;
+    box-sizing: border-box;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+
+    outline: none;
+
+    color: #ffffff;
+
+    background: rgba(0, 0, 0, 0.25);
+
+    font-family: inherit;
+    font-size: 13px;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.repository-input {
+    height: 46px;
+    padding: 0 14px;
+}
+
+.repository-textarea {
+    min-height: 110px;
+    padding: 13px 14px;
+    resize: vertical;
+}
+
+.repository-file {
+    min-height: 46px;
+    padding: 8px 10px;
+}
+
+.repository-input::placeholder,
+.repository-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.repository-input:focus,
+.repository-textarea:focus,
+.repository-file:focus {
+    border-color: rgba(139, 200, 63, 0.65);
+
+    background: rgba(0, 0, 0, 0.35);
+
+    box-shadow:
+        0 0 0 3px rgba(139, 200, 63, 0.08);
+}
+
+.repository-file::file-selector-button {
+    margin-right: 10px;
+
+    padding: 8px 12px;
+
+    border: 0;
+    border-radius: 8px;
+
+    color: #ffffff;
+
+    background: #250f1e;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   SUBMIT BUTTON
+   ========================================================= */
+
+.repository-submit-row {
+    grid-column: 1 / -1;
+
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: 4px;
+}
+
+.add-resource-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-height: 44px;
+
+    padding: 0 18px;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+
+    color: #ffffff;
+
+    background: #250f1e;
+
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.add-resource-button:hover {
+    background: #35172b;
+
+    border-color: rgba(255, 255, 255, 0.2);
+
+    transform: translateY(-1px);
+}
+
+.add-resource-button svg {
+    width: 17px;
+    height: 17px;
+}
+
+
+/* =========================================================
+   REPOSITORY SECTION
+   ========================================================= */
+
+.repository-section {
+    width: 100%;
+}
+
+.repository-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 18px;
+}
+
+
+/* =========================================================
+   RESOURCE CARD
+   ========================================================= */
+
+.resource-card {
+    position: relative;
+
+    min-width: 0;
+    min-height: 230px;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 20px;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.05),
+            rgba(255, 255, 255, 0.02)
+        );
+
+    box-shadow:
+        0 14px 35px rgba(0, 0, 0, 0.14);
+
+    overflow: hidden;
+
+    transition:
+        transform 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.resource-card:hover {
+    transform: translateY(-3px);
+
+    border-color: rgba(139, 200, 63, 0.25);
+
+    box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.22);
+}
+
+.resource-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 18px;
+}
+
+.resource-type-icon {
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 13px;
+
+    color: #ffffff;
+
+    background:
+        rgba(37, 15, 30, 0.85);
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.resource-type-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+
+/* =========================================================
+   DELETE BUTTON
+   ========================================================= */
+
+.delete-form {
+    margin: 0;
+}
+
+.delete-button {
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+
+    color: rgba(255, 255, 255, 0.5);
+
+    background: rgba(255, 255, 255, 0.03);
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.delete-button:hover {
+    color: #f87171;
+
+    background: rgba(220, 38, 38, 0.1);
+
+    border-color: rgba(239, 68, 68, 0.25);
+}
+
+.delete-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+
+/* =========================================================
+   RESOURCE TEXT
+   ========================================================= */
+
+.resource-title {
+    margin: 0 0 8px;
+
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 700;
+
+    line-height: 1.4;
+
+    overflow-wrap: anywhere;
+}
+
+.resource-description {
+    display: -webkit-box;
+
+    margin: 0;
+
+    color: rgba(255, 255, 255, 0.52);
+
+    font-size: 13px;
+    line-height: 1.6;
+
+    overflow: hidden;
+
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
+
+.resource-meta {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 12px;
+
+    margin-top: 16px;
+}
+
+.resource-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    color: rgba(255, 255, 255, 0.4);
+
+    font-size: 11px;
+}
+
+.resource-meta svg {
+    width: 13px;
+    height: 13px;
+}
+
+
+/* =========================================================
+   RESOURCE ACTION
+   ========================================================= */
+
+.resource-actions {
+    margin-top: auto;
+    padding-top: 20px;
+}
+
+.view-resource-button {
+    width: 100%;
+    min-height: 40px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+
+    color: rgba(255, 255, 255, 0.8);
+
+    background: rgba(255, 255, 255, 0.035);
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.view-resource-button:hover {
+    color: #ffffff;
+
+    background: rgba(37, 15, 30, 0.8);
+
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.view-resource-button svg {
+    width: 15px;
+    height: 15px;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.empty-repository {
+    min-height: 260px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    padding: 30px;
+
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+
+    background: rgba(255, 255, 255, 0.02);
+
+    text-align: center;
+}
+
+.empty-repository-icon {
+    width: 58px;
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin-bottom: 14px;
+
+    border-radius: 16px;
+
+    color: rgba(255, 255, 255, 0.55);
+
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.empty-repository-icon svg {
+    width: 26px;
+    height: 26px;
+}
+
+.empty-repository strong {
+    color: #ffffff;
+
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.empty-repository span {
+    max-width: 360px;
+
+    margin-top: 6px;
+
+    color: rgba(255, 255, 255, 0.42);
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   REPOSITORY VIEW MODAL
+   ========================================================= */
+
+.repository-modal {
+    position: fixed;
+    inset: 0;
+
+    z-index: 9998;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.72);
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.repository-modal.hidden {
+    display: none;
+}
+
+.repository-modal-panel {
+    width: 100%;
+    max-width: 620px;
+    max-height: calc(100vh - 40px);
+
+    overflow-y: auto;
+
+    padding: 26px;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 22px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 15, 30, 0.98),
+            rgba(15, 8, 14, 0.98)
+        );
+
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.55);
+}
+
+.repository-modal-panel::-webkit-scrollbar {
+    width: 5px;
+}
+
+.repository-modal-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.repository-modal-panel::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   MODAL HEADER
+   ========================================================= */
+
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    padding-bottom: 20px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-title-group {
+    display: flex;
+    align-items: center;
+
+    gap: 13px;
+
+    min-width: 0;
+}
+
+.modal-title-icon {
+    width: 44px;
+    height: 44px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    color: #ffffff;
+
+    background: rgba(255, 255, 255, 0.05);
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-title-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.modal-title-text {
+    min-width: 0;
+}
+
+.modal-title-text h2 {
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    overflow-wrap: anywhere;
+}
+
+.modal-title-text p {
+    margin: 4px 0 0;
+
+    color: rgba(255, 255, 255, 0.42);
+
+    font-size: 11px;
+}
+
+.modal-close {
+    width: 36px;
+    height: 36px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+
+    color: rgba(255, 255, 255, 0.55);
+
+    background: rgba(255, 255, 255, 0.03);
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease;
+}
+
+.modal-close:hover {
+    color: #ffffff;
+
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.modal-close svg {
+    width: 17px;
+    height: 17px;
+}
+
+
+/* =========================================================
+   MODAL DESCRIPTION
+   ========================================================= */
+
+.modal-description {
+    margin-top: 20px;
+
+    color: rgba(255, 255, 255, 0.68);
+
+    font-size: 13px;
+    line-height: 1.8;
+
+    white-space: pre-wrap;
+}
+
+
+/* =========================================================
+   MODAL LINKS
+   ========================================================= */
+
+.modal-links {
+    display: flex;
+    flex-direction: column;
+
+    gap: 10px;
+
+    margin-top: 22px;
+}
+
+.modal-resource-link {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    padding: 12px 14px;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 11px;
+
+    color: rgba(255, 255, 255, 0.78);
+
+    background: rgba(255, 255, 255, 0.03);
+
+    text-decoration: none;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.modal-resource-link:hover {
+    color: #ffffff;
+
+    background: rgba(255, 255, 255, 0.07);
+
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+.modal-resource-link svg {
+    width: 16px;
+    height: 16px;
+}
+
+
+/* =========================================================
+   MODAL META
+   ========================================================= */
+
+.modal-meta {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 16px;
+
+    margin-top: 22px;
+    padding-top: 18px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    color: rgba(255, 255, 255, 0.42);
+
+    font-size: 11px;
+}
+
+.modal-meta svg {
+    width: 14px;
+    height: 14px;
+}
+
+
+/* =========================================================
+   MODAL FOOTER
+   ========================================================= */
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: 22px;
+}
+
+.modal-close-button {
+    min-height: 40px;
+
+    padding: 0 18px;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+
+    color: rgba(255, 255, 255, 0.75);
+
+    background: rgba(255, 255, 255, 0.04);
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease;
+}
+
+.modal-close-button:hover {
+    color: #ffffff;
+
+    background: rgba(255, 255, 255, 0.09);
+}
+
+
+/* =========================================================
+   DELETE CONFIRMATION MODAL
+   ========================================================= */
+
+.delete-modal {
+    position: fixed;
+    inset: 0;
+
+    z-index: 10000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.75);
+
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    opacity: 1;
+    visibility: visible;
+
+    transition:
+        opacity 0.2s ease,
+        visibility 0.2s ease;
+}
+
+.delete-modal.hidden {
+    opacity: 0;
+    visibility: hidden;
+
+    pointer-events: none;
+}
+
+.delete-modal-card {
+    width: 100%;
+    max-width: 430px;
+
+    padding: 30px;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 22px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(37, 15, 30, 0.99),
+            rgba(15, 8, 14, 0.99)
+        );
+
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.55);
+
+    text-align: center;
+
+    animation: deleteModalShow 0.2s ease;
+}
+
+@keyframes deleteModalShow {
+
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+
+}
+
+.delete-modal-icon {
+    width: 60px;
+    height: 60px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto 18px;
+
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    border-radius: 17px;
+
+    color: #f87171;
+
+    background: rgba(220, 38, 38, 0.1);
+}
+
+.delete-modal-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.delete-modal-card h2 {
+    margin: 0 0 9px;
+
+    color: #ffffff;
+
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.delete-modal-card p {
+    margin: 0;
+
+    color: rgba(255, 255, 255, 0.62);
+
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.delete-modal-card p strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.delete-modal-warning {
+    display: block;
+
+    margin-top: 10px;
+
+    color: #fca5a5;
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.delete-modal-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    margin-top: 24px;
+}
+
+.delete-modal-cancel,
+.delete-modal-confirm {
+    min-height: 42px;
+
+    padding: 0 18px;
+
+    border-radius: 10px;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.delete-modal-cancel {
+    color: rgba(255, 255, 255, 0.75);
+
+    background: rgba(255, 255, 255, 0.05);
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.delete-modal-cancel:hover {
+    color: #ffffff;
+
+    background: rgba(255, 255, 255, 0.09);
+}
+
+.delete-modal-confirm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    color: #ffffff;
+
+    background: #dc2626;
+
+    border: 1px solid #dc2626;
+}
+
+.delete-modal-confirm:hover {
+    background: #b91c1c;
+
+    border-color: #b91c1c;
+
+    transform: translateY(-1px);
+}
+
+.delete-modal-confirm svg {
+    width: 15px;
+    height: 15px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+    .repository-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 900px) {
+
+    .repository-form {
+        grid-template-columns: 1fr;
+    }
+
+    .repository-field.full-width {
+        grid-column: auto;
+    }
+
+    .repository-submit-row {
+        grid-column: auto;
+        justify-content: stretch;
+    }
+
+    .add-resource-button {
+        width: 100%;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .section-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .section-line {
+        width: 100%;
+        flex: none;
+    }
+
+    .repository-create-card {
+        padding: 20px;
+        border-radius: 18px;
+    }
+
+    .repository-create-header {
+        align-items: flex-start;
+    }
+
+    .repository-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .resource-card {
+        min-height: 220px;
+        padding: 18px;
+    }
+
+    .repository-modal {
+        padding: 12px;
+    }
+
+    .repository-modal-panel {
+        max-height: calc(100vh - 24px);
+        padding: 20px;
+        border-radius: 18px;
+    }
+
+    .delete-modal {
+        padding: 14px;
+    }
+
+    .delete-modal-card {
+        padding: 24px 18px;
+        border-radius: 18px;
+    }
+
+    .delete-modal-actions {
+        flex-direction: column;
+    }
+
+    .delete-modal-cancel,
+    .delete-modal-confirm {
+        width: 100%;
+    }
+
+}
+
+
+@media (max-width: 400px) {
+
+    .resource-card {
+        padding: 16px;
+    }
+
+    .repository-create-card {
+        padding: 16px;
+    }
+
+    .card-icon {
+        width: 42px;
+        height: 42px;
+    }
+
+    .card-heading-text h3 {
+        font-size: 14px;
+    }
+
+    .card-heading-text p {
+        font-size: 12px;
+    }
+
+}
+
+</style>
+
+{% endblock %}
+
+
+
+{% block content %}
+
+<!-- =========================================================
+     PAGE HEADER
+     ========================================================= -->
+
+<div class="dashboard-header">
+
+    <div class="dashboard-header-content">
+
+        <div>
+
+            <span class="dashboard-eyebrow">
+                TEAM MEMBER / KNOWLEDGE CENTER
+            </span>
+
+            <div class="dashboard-title-row">
+
+                <div class="dashboard-title-icon">
+                    <i data-lucide="book-open"></i>
+                </div>
+
+                <h1>
+                    Knowledge Repository
+                </h1>
+
+            </div>
+
+            <p>
+                Discover, organize, and share useful resources
+                with your {{ request.user.department.name }} department.
+            </p>
+
+        </div>
+
+
+        <div class="system-status">
+
+            <span class="system-status-dot"></span>
+
+            <span>
+                Workspace Active
+            </span>
+
+            <i data-lucide="log-in"></i>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     DASHBOARD CONTENT
+     ========================================================= -->
+
+<div class="dashboard-content">
+
+
+    <!-- =====================================================
+         RESOURCE MANAGEMENT
+         ===================================================== -->
+
+    <div class="section-heading">
+
+        <div class="section-heading-text">
+
+            <span class="section-eyebrow">
+                RESOURCE MANAGEMENT
+            </span>
+
+            <h2>
+                Add Knowledge Resource
+            </h2>
+
+        </div>
+
+        <div class="section-line"></div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         CREATE RESOURCE
+         ===================================================== -->
+
+    <div class="repository-create-card">
+
+        <div class="repository-create-header">
+
+            <div class="card-icon">
+
+                <i data-lucide="plus"></i>
+
+            </div>
+
+            <div class="card-heading-text">
+
+                <h3>
+                    Add Knowledge Resource
+                </h3>
+
+                <p>
+                    Share documents, links, and useful information
+                    with your department.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <form
+            method="POST"
+            enctype="multipart/form-data"
+            class="repository-form">
+
+            {% csrf_token %}
+
+
+            <!-- TITLE -->
+
+            <div class="repository-field">
+
+                <label
+                    for="resource-title"
+                    class="field-label">
+
+                    <i data-lucide="type"></i>
+
+                    Resource Title
+
+                </label>
+
+                <input
+                    id="resource-title"
+                    type="text"
+                    name="title"
+                    class="repository-input"
+                    placeholder="Enter resource title"
+                    required>
+
+            </div>
+
+
+            <!-- DESCRIPTION -->
+
+            <div class="repository-field">
+
+                <label
+                    for="resource-description"
+                    class="field-label">
+
+                    <i data-lucide="align-left"></i>
+
+                    Description
+
+                </label>
+
+                <textarea
+                    id="resource-description"
+                    name="description"
+                    class="repository-textarea"
+                    placeholder="Describe this resource"></textarea>
+
+            </div>
+
+
+            <!-- LINK -->
+
+            <div class="repository-field">
+
+                <label
+                    for="resource-link"
+                    class="field-label">
+
+                    <i data-lucide="link"></i>
+
+                    Reference Link
+
+                </label>
+
+                <input
+                    id="resource-link"
+                    type="url"
+                    name="link"
+                    class="repository-input"
+                    placeholder="https://example.com">
+
+            </div>
+
+
+            <!-- FILE -->
+
+            <div class="repository-field">
+
+                <label
+                    for="resource-file"
+                    class="field-label">
+
+                    <i data-lucide="paperclip"></i>
+
+                    Upload File
+
+                </label>
+
+                <input
+                    id="resource-file"
+                    type="file"
+                    name="file"
+                    class="repository-file">
+
+            </div>
+
+
+            <!-- SUBMIT -->
+
+            <div class="repository-submit-row">
+
+                <button
+                    type="submit"
+                    class="add-resource-button">
+
+                    <i data-lucide="plus"></i>
+
+                    Add Resource
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         AVAILABLE RESOURCES
+         ===================================================== -->
+
+    <div class="repository-section">
+
+        <div class="section-heading">
+
+            <div class="section-heading-text">
+
+                <span class="section-eyebrow">
+                    AVAILABLE RESOURCES
+                </span>
+
+                <h2>
+                    Knowledge Repository
+                </h2>
+
+            </div>
+
+            <div class="section-line"></div>
+
+        </div>
+
+
+        {% if knowledge_items %}
+
+            <div class="repository-grid">
+
+                {% for item in knowledge_items %}
+
+
+                    <!-- =====================================
+                         RESOURCE CARD
+                         ===================================== -->
+
+                    <article class="resource-card">
+
+
+                        <div class="resource-card-top">
+
+
+                            <!-- RESOURCE TYPE -->
+
+                            <div class="resource-type-icon">
+
+                                {% if item.file %}
+
+                                    <i data-lucide="file-text"></i>
+
+                                {% elif item.link %}
+
+                                    <i data-lucide="link"></i>
+
+                                {% else %}
+
+                                    <i data-lucide="book-open"></i>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <!-- DELETE -->
+
+                            <form
+                                method="POST"
+                                action="{% url 'teammember_repository_delete' item.id %}"
+                                class="delete-form"
+                                id="delete-form-{{ item.id }}">
+
+                                {% csrf_token %}
+
+                                <button
+                                    type="button"
+                                    class="delete-button"
+                                    title="Delete Resource"
+                                    aria-label="Delete Resource"
+                                    onclick="openDeleteModal('{{ item.id }}', '{{ item.title|escapejs }}')">
+
+                                    <i data-lucide="trash-2"></i>
+
+                                </button>
+
+                            </form>
+
+                        </div>
+
+
+
+                        <!-- RESOURCE DETAILS -->
+
+                        <h3 class="resource-title">
+
+                            {{ item.title }}
+
+                        </h3>
+
+
+                        {% if item.description %}
+
+                            <p class="resource-description">
+
+                                {{ item.description }}
+
+                            </p>
+
+                        {% else %}
+
+                            <p class="resource-description">
+
+                                No description available.
+
+                            </p>
+
+                        {% endif %}
+
+
+
+                        <!-- RESOURCE META -->
+
+                        <div class="resource-meta">
+
+                            <span>
+
+                                <i data-lucide="user"></i>
+
+                                {{ item.user.username }}
+
+                            </span>
+
+
+                            <span>
+
+                                <i data-lucide="calendar-days"></i>
+
+                                {{ item.created_at|date:"d M Y" }}
+
+                            </span>
+
+                        </div>
+
+
+
+                        <!-- VIEW BUTTON -->
+
+                        <div class="resource-actions">
+
+                            <button
+                                type="button"
+                                onclick="openTeamMemberRepositoryModal('{{ item.id }}')"
+                                class="view-resource-button">
+
+                                <i data-lucide="eye"></i>
+
+                                View More
+
+                            </button>
+
+                        </div>
+
+
+                    </article>
+
+
+
+                    <!-- =====================================
+                         RESOURCE VIEW MODAL
+                         ===================================== -->
+
+                    <div
+                        id="modal-{{ item.id }}"
+                        class="repository-modal hidden">
+
+                        <div class="repository-modal-panel">
+
+
+                            <!-- MODAL HEADER -->
+
+                            <div class="modal-header">
+
+                                <div class="modal-title-group">
+
+                                    <div class="modal-title-icon">
+
+                                        {% if item.file %}
+
+                                            <i data-lucide="file-text"></i>
+
+                                        {% elif item.link %}
+
+                                            <i data-lucide="link"></i>
+
+                                        {% else %}
+
+                                            <i data-lucide="book-open"></i>
+
+                                        {% endif %}
+
+                                    </div>
+
+
+                                    <div class="modal-title-text">
+
+                                        <h2>
+                                            {{ item.title }}
+                                        </h2>
+
+                                        <p>
+                                            Knowledge Resource
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+
+                                <button
+                                    type="button"
+                                    class="modal-close"
+                                    onclick="closeTeamMemberRepositoryModal('{{ item.id }}')"
+                                    aria-label="Close">
+
+                                    <i data-lucide="x"></i>
+
+                                </button>
+
+                            </div>
+
+
+
+                            <!-- DESCRIPTION -->
+
+                            {% if item.description %}
+
+                                <div class="modal-description">
+
+                                    {{ item.description }}
+
+                                </div>
+
+                            {% endif %}
+
+
+
+                            <!-- RESOURCE LINKS -->
+
+                            <div class="modal-links">
+
+
+                                {% if item.file %}
+
+                                    <a
+                                        href="{{ item.file.url }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="modal-resource-link">
+
+                                        <i data-lucide="download"></i>
+
+                                        Download File
+
+                                    </a>
+
+                                {% endif %}
+
+
+                                {% if item.link %}
+
+                                    <a
+                                        href="{{ item.link }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="modal-resource-link">
+
+                                        <i data-lucide="external-link"></i>
+
+                                        Open Reference Link
+
+                                    </a>
+
+                                {% endif %}
+
+
+                            </div>
+
+
+
+                            <!-- MODAL META -->
+
+                            <div class="modal-meta">
+
+                                <span>
+
+                                    <i data-lucide="user"></i>
+
+                                    {{ item.user.username }}
+
+                                </span>
+
+
+                                <span>
+
+                                    <i data-lucide="calendar-days"></i>
+
+                                    {{ item.created_at|date:"d M Y" }}
+
+                                </span>
+
+                            </div>
+
+
+
+                            <!-- MODAL FOOTER -->
+
+                            <div class="modal-footer">
+
+                                <button
+                                    type="button"
+                                    class="modal-close-button"
+                                    onclick="closeTeamMemberRepositoryModal('{{ item.id }}')">
+
+                                    Close
+
+                                </button>
+
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+
+                {% endfor %}
+
+            </div>
+
+
+        {% else %}
+
+
+            <!-- =============================================
+                 EMPTY REPOSITORY
+                 ============================================= -->
+
+            <div class="empty-repository">
+
+                <div class="empty-repository-icon">
+
+                    <i data-lucide="folder-open"></i>
+
+                </div>
+
+                <strong>
+                    No Resources Available
+                </strong>
+
+                <span>
+                    Add your first knowledge resource to
+                    get started.
+                </span>
+
+            </div>
+
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     TOAST CONTAINER
+     
+     Kept here because you specifically provided this remaining
+     repository code. If your base.html already has this exact
+     toast container, REMOVE this section from this page.
+     ========================================================= -->
+
+<div id="toast-container">
+
+    {% if messages %}
+
+        {% for message in messages %}
+
+            <div
+                class="toast-message {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+
+                {% if message.tags == "error" %}
+
+                    <i
+                        data-lucide="circle-x"
+                        class="toast-icon">
+                    </i>
+
+                {% else %}
+
+                    <i
+                        data-lucide="circle-check"
+                        class="toast-icon">
+                    </i>
+
+                {% endif %}
+
+
+                <span class="toast-text">
+                    {{ message }}
+                </span>
+
+
+                <button
+                    type="button"
+                    onclick="removeToast(this.parentElement)"
+                    class="toast-close"
+                    aria-label="Close notification">
+
+                    <i data-lucide="x"></i>
+
+                </button>
+
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+</div>
+
+
+
+<!-- =========================================================
+     DELETE CONFIRMATION MODAL
+     ========================================================= -->
+
+<div
+    id="deleteModal"
+    class="delete-modal hidden">
+
+    <div
+        class="delete-modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="deleteModalTitle">
+
+
+        <!-- ICON -->
+
+        <div class="delete-modal-icon">
+
+            <i data-lucide="trash-2"></i>
+
+        </div>
+
+
+        <!-- CONTENT -->
+
+        <h2 id="deleteModalTitle">
+            Delete Resource?
+        </h2>
+
+
+        <p>
+            Are you sure you want to delete
+            <strong id="deleteResourceName"></strong>?
+        </p>
+
+
+        <span class="delete-modal-warning">
+            This action cannot be undone.
+        </span>
+
+
+        <!-- BUTTONS -->
+
+        <div class="delete-modal-actions">
+
+            <button
+                type="button"
+                class="delete-modal-cancel"
+                onclick="closeDeleteModal()">
+
+                Cancel
+
+            </button>
+
+
+            <button
+                type="button"
+                class="delete-modal-confirm"
+                onclick="confirmDelete()">
+
+                <i data-lucide="trash-2"></i>
+
+                Delete
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block extra_js %}
+
+<script>
+
+/* =========================================================
+   LUCIDE ICONS
+   ========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        if (window.lucide) {
+
+            lucide.createIcons();
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   REPOSITORY VIEW MODAL
+   ========================================================= */
+
+function openTeamMemberRepositoryModal(id) {
+
+    const modal =
+        document.getElementById(
+            "modal-" + id
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.remove("hidden");
+
+
+    document.body.style.overflow = "hidden";
+
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+
+}
+
+
+
+/* =========================================================
+   CLOSE REPOSITORY VIEW MODAL
+   ========================================================= */
+
+function closeTeamMemberRepositoryModal(id) {
+
+    const modal =
+        document.getElementById(
+            "modal-" + id
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add("hidden");
+
+
+    document.body.style.overflow = "";
+
+}
+
+
+
+/* =========================================================
+   CLOSE REPOSITORY MODAL BY BACKDROP
+   ========================================================= */
+
+document.addEventListener(
+    "click",
+    function (event) {
+
+        if (
+            event.target.classList.contains(
+                "repository-modal"
+            )
+        ) {
+
+            event.target.classList.add(
+                "hidden"
+            );
+
+            document.body.style.overflow = "";
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   ESCAPE TO CLOSE REPOSITORY MODAL
+   ========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (event.key !== "Escape") {
+            return;
+        }
+
+
+        const openModal =
+            document.querySelector(
+                ".repository-modal:not(.hidden)"
+            );
+
+
+        if (openModal) {
+
+            openModal.classList.add(
+                "hidden"
+            );
+
+            document.body.style.overflow = "";
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+function removeToast(toast) {
+
+    if (!toast) {
+        return;
+    }
+
+
+    toast.classList.add(
+        "toast-hide"
+    );
+
+
+    setTimeout(
+        function () {
+
+            if (
+                toast &&
+                toast.parentElement
+            ) {
+
+                toast.remove();
+
+            }
+
+        },
+        350
+    );
+
+}
+
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        const toasts =
+            document.querySelectorAll(
+                ".toast-message"
+            );
+
+
+        toasts.forEach(
+            function (toast) {
+
+                setTimeout(
+                    function () {
+
+                        if (
+                            toast &&
+                            toast.parentElement
+                        ) {
+
+                            toast.classList.add(
+                                "toast-hide"
+                            );
+
+
+                            setTimeout(
+                                function () {
+
+                                    if (
+                                        toast &&
+                                        toast.parentElement
+                                    ) {
+
+                                        toast.remove();
+
+                                    }
+
+                                },
+                                350
+                            );
+
+                        }
+
+                    },
+                    4000
+                );
+
+            }
+        );
+
+    }
+);
+
+
+
+/* =========================================================
+   DELETE CONFIRMATION
+   ========================================================= */
+
+let deleteResourceId = null;
+
+
+
+/* =========================================================
+   OPEN DELETE MODAL
+   ========================================================= */
+
+function openDeleteModal(id, title) {
+
+    const modal =
+        document.getElementById(
+            "deleteModal"
+        );
+
+
+    const resourceName =
+        document.getElementById(
+            "deleteResourceName"
+        );
+
+
+    if (
+        !modal ||
+        !resourceName
+    ) {
+
+        return;
+
+    }
+
+
+    deleteResourceId = id;
+
+
+    resourceName.textContent = title;
+
+
+    modal.classList.remove(
+        "hidden"
+    );
+
+
+    document.body.style.overflow =
+        "hidden";
+
+
+    if (window.lucide) {
+
+        lucide.createIcons();
+
+    }
+
+}
+
+
+
+/* =========================================================
+   CLOSE DELETE MODAL
+   ========================================================= */
+
+function closeDeleteModal() {
+
+    const modal =
+        document.getElementById(
+            "deleteModal"
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add(
+        "hidden"
+    );
+
+
+    document.body.style.overflow =
+        "";
+
+
+    deleteResourceId = null;
+
+}
+
+
+
+/* =========================================================
+   CONFIRM DELETE
+   ========================================================= */
+
+function confirmDelete() {
+
+    if (!deleteResourceId) {
+        return;
+    }
+
+
+    const form =
+        document.getElementById(
+            "delete-form-" +
+            deleteResourceId
+        );
+
+
+    if (!form) {
+        return;
+    }
+
+
+    form.submit();
+
+}
+
+
+
+/* =========================================================
+   CLOSE DELETE MODAL BY BACKDROP
+   ========================================================= */
+
+document.addEventListener(
+    "click",
+    function (event) {
+
+        const modal =
+            document.getElementById(
+                "deleteModal"
+            );
+
+
+        if (
+            modal &&
+            event.target === modal
+        ) {
+
+            closeDeleteModal();
+
+        }
+
+    }
+);
+
+
+
+/* =========================================================
+   ESCAPE TO CLOSE DELETE MODAL
+   ========================================================= */
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (event.key !== "Escape") {
+            return;
+        }
+
+
+        const modal =
+            document.getElementById(
+                "deleteModal"
+            );
+
+
+        if (
+            modal &&
+            !modal.classList.contains(
+                "hidden"
+            )
+        ) {
+
+            closeDeleteModal();
+
+        }
+
+    }
+);
+
+</script>
+
+
+
+<!-- =========================================================
+     EXISTING TEAM MEMBER JAVASCRIPT
+     ========================================================= -->
+
+<script src="{% static 'js/team_member.js' %}"></script>
+
+<script src="{% static 'js/activity.js' %}"></script>
+
+{% endblock %}
