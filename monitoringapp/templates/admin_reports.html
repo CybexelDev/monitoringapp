@@ -1452,6 +1452,59 @@
             }
         }
 
+        /* REPORT RESET BUTTON — SAME AS USER MANAGEMENT RESET */
+
+.report-reset-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 8px !important;
+
+    height: 42px !important;
+    min-height: 42px !important;
+
+    padding: 0 15px !important;
+
+    border: 1px solid rgba(139, 92, 246, 0.45) !important;
+    border-radius: 12px !important;
+
+    background: rgba(124, 58, 237, 0.08) !important;
+
+    color: #c4b5fd !important;
+
+    font-size: 13px !important;
+    font-weight: 700 !important;
+
+    text-decoration: none !important;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease !important;
+}
+
+.report-reset-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+
+    min-width: 16px !important;
+    min-height: 16px !important;
+
+    max-width: 16px !important;
+    max-height: 16px !important;
+
+    stroke-width: 2 !important;
+}
+
+.report-reset-btn:hover {
+    background: rgba(124, 58, 237, 0.15) !important;
+    border-color: rgba(139, 92, 246, 0.65) !important;
+
+    color: #ffffff !important;
+
+    transform: translateY(-1px);
+}
+
 
     </style>
 </head>
@@ -1687,13 +1740,20 @@
                     {% endif %}
 
 
-                    <a
+                    <!-- <a
                         href="{% url 'admin_reports' %}?date={{ filter_date }}&export=1"
                         class="glass-button export"
                     >
                         <i data-lucide="file-spreadsheet"></i>
                         Export to Excel
-                    </a>
+                    </a> -->
+                    <a
+    href="{% url 'admin_reports' %}{% if show_all %}?all=1&export=1{% elif filter_date %}?date={{ filter_date }}&export=1{% else %}?export=1{% endif %}"
+    class="glass-button export"
+>
+    <i data-lucide="file-spreadsheet"></i>
+    Export to Excel
+</a>
 
                 </div>
 
@@ -1779,7 +1839,7 @@
 
                     <a
                         href="{% url 'admin_reports' %}{% if show_all %}?all=1{% endif %}"
-                        class="glass-button"
+                        class="glass-button report-reset-btn"
                     >
                         <i data-lucide="rotate-ccw"></i>
                         Reset
