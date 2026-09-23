@@ -1335,6 +1335,7 @@
         }
 
 
+
         .saved-note:hover {
 
             transform:
@@ -1885,6 +1886,69 @@
             }
         }
 
+        .saved-note {
+    position: relative;
+    min-width: 0;
+}
+
+.saved-note-main {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.saved-note-delete-form {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+.saved-note-delete {
+    width: 38px;
+    height: 38px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 11px;
+
+    color: #f87171;
+
+    background: rgba(239, 68, 68, 0.06);
+
+    border: 1px solid rgba(239, 68, 68, 0.18);
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.saved-note-delete svg {
+    width: 17px;
+    height: 17px;
+}
+
+.saved-note-delete:hover {
+    color: #ffffff;
+
+    background: rgba(239, 68, 68, 0.18);
+
+    border-color: rgba(248, 113, 113, 0.45);
+
+    transform: scale(1.05);
+}
+
+.saved-note-delete:active {
+    transform: scale(0.96);
+}
+
     </style>
 </head>
 
@@ -2396,7 +2460,7 @@
 
                         {% for n in page_obj %}
 
-
+<!-- 
                             <a
                                 href="?note_id={{ n.id }}"
                                 class="saved-note {% if note and note.id == n.id %}active{% endif %}"
@@ -2427,9 +2491,53 @@
 
                                 </div>
 
-                            </a>
+                            </a> -->
 
 
+                            <div
+    class="saved-note {% if note and note.id == n.id %}active{% endif %}"
+>
+    <a
+        href="?note_id={{ n.id }}"
+        class="saved-note-main"
+    >
+        <div class="saved-note-icon">
+            <i data-lucide="file-text"></i>
+        </div>
+
+        <div class="saved-note-content">
+            <div class="saved-note-title">
+                {{ n.title }}
+            </div>
+
+            <div class="saved-note-label">
+                {% if note and note.id == n.id %}
+                    Currently Open
+                {% else %}
+                    Saved Note
+                {% endif %}
+            </div>
+        </div>
+    </a>
+
+    <form
+        method="POST"
+        action="{% url 'teamlead_notepad_delete' n.id %}"
+        class="saved-note-delete-form"
+        onsubmit="return confirm('Are you sure you want to delete this note?');"
+    >
+        {% csrf_token %}
+
+        <button
+            type="submit"
+            class="saved-note-delete"
+            title="Delete note"
+            aria-label="Delete {{ n.title }}"
+        >
+            <i data-lucide="trash-2"></i>
+        </button>
+    </form>
+</div>
                         {% empty %}
 
 

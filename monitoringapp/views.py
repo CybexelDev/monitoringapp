@@ -361,8 +361,6 @@ def delete_user(request, id):
     return redirect('admin_usermanagement') 
 
 
-
-
 @never_cache
 def admin_reports(request):
     show_all = request.GET.get('all')
@@ -722,13 +720,23 @@ def teamlead_dashboard(request):
     # 🧩 Team Member Filters
     # ------------------------------
     # team_members_qs = User.objects.filter(team=team_lead.team).exclude(id=team_lead.id)
+#     team_members_qs = User.objects.filter(
+#     department=team_lead.department,
+#     designation=team_lead.designation,
+#     job_Position__iexact="Team Member"
+# ).exclude(
+#     id=team_lead.id
+# )
+    # ------------------------------
+    # 🧩 Team Members
+    # ------------------------------
+
     team_members_qs = User.objects.filter(
-    department=team_lead.department,
-    designation=team_lead.designation,
-    job_Position__iexact="Team Member"
-).exclude(
-    id=team_lead.id
-)
+        department=team_lead.department,
+        job_Position__iexact="Team Member"
+    ).exclude(
+        id=team_lead.id
+    )
 
     # Get filters from GET request
     search = request.GET.get("search", "").strip()
@@ -1238,10 +1246,11 @@ def teamlead_reports(request):
         return response
 
     return render(request, "teamlead_reports.html", {
-        "morning_reports": morning_reports,
-        "evening_reports": evening_reports,
-        "show_all": show_all,
-    })
+    "morning_reports": morning_reports,
+    "evening_reports": evening_reports,
+    "show_all": show_all,
+    "filter_date": filter_date,
+})
 
 @never_cache
 def teamlead_project_assigning(request):
@@ -1422,7 +1431,26 @@ def teamlead_notepad(request):
         {"note": note, "page_obj": page_obj},
     )
 
+# notepad delte fun 
+@never_cache
+def teamlead_notepad_delete(request, pk):
+    user_id = request.session.get("user_id")
 
+    if not user_id or request.session.get("position") != "team_lead":
+        return redirect("index")
+
+    user = get_object_or_404(User, id=user_id)
+
+    note = get_object_or_404(
+        Notepad,
+        id=pk,
+        user=user
+    )
+
+    if request.method == "POST":
+        note.delete()
+
+    return redirect("teamlead_notepad")
 
 
 @never_cache
@@ -1716,37 +1744,226 @@ def delete_task(request, task_id):
 
     return redirect("teammember_task")
 
-
-
 @never_cache
 def teamlead_task(request):
+
     user_id = request.session.get("user_id")
+
     if not user_id:
-        return redirect("index")  # Redirect to index if not logged in
+        return redirect("index")
 
     user = get_object_or_404(User, id=user_id)
 
-    # Only show tasks created by this logged-in user
-    tasks = Task.objects.filter(created_by=user).order_by('-created_at')
+
+    # =========================================================
+    # TEAM MEMBERS
+    # =========================================================
+
+    team_members = User.objects.filter(
+        team=user.team
+    ).exclude(
+        id=user.id
+    ).order_by("name")
+
+
+    # =========================================================
+    # MY TASKS
+    # =========================================================
+
+    my_tasks = Task.objects.filter(
+        created_by=user,
+        assigned_to=user
+    ).order_by("-created_at")
+
+
+    # =========================================================
+    # ASSIGNED TASKS
+    # =========================================================
+
+    assigned_tasks = Task.objects.filter(
+        created_by=user
+    ).exclude(
+        assigned_to=user
+    ).select_related(
+        "assigned_to"
+    ).order_by("-created_at")
+
+
+    # =========================================================
+    # ALL TASKS
+    # Used for summary cards
+    # =========================================================
+
+    all_tasks = Task.objects.filter(
+        created_by=user
+    )
+
+
+    total_tasks = all_tasks.count()
+
+
+    pending_tasks = all_tasks.filter(
+        status="pending"
+    ).count()
+
+
+    completed_tasks = all_tasks.filter(
+        status="completed"
+    ).count()
+
+
+    # =========================================================
+    # CREATE / ASSIGN TASK
+    # =========================================================
 
     if request.method == "POST":
-        title = request.POST.get("title")
-        description = request.POST.get("description")
-        if title:  # prevent creating empty tasks
+
+        title = request.POST.get(
+            "title",
+            ""
+        ).strip()
+
+        description = request.POST.get(
+            "description",
+            ""
+        ).strip()
+
+        task_mode = request.POST.get(
+            "task_mode",
+            "personal"
+        )
+
+        assigned_to_id = request.POST.get(
+            "assigned_to"
+        )
+
+
+        # =====================================================
+        # TITLE VALIDATION
+        # =====================================================
+
+        if not title:
+
+            messages.error(
+                request,
+                "Please enter a task title."
+            )
+
+            return redirect("teamlead_task")
+
+
+        # =====================================================
+        # MY TASK
+        # =====================================================
+
+        if task_mode == "personal":
+
             Task.objects.create(
                 title=title,
                 description=description,
                 assigned_to=user,
-                created_by=user
+                created_by=user,
+                status="pending",
+                progress=0
             )
+
+            messages.success(
+                request,
+                "Your task has been created successfully."
+            )
+
+            return redirect("teamlead_task")
+
+
+        # =====================================================
+        # ASSIGN TASK
+        # =====================================================
+
+        if task_mode == "assign":
+
+            if not assigned_to_id:
+
+                messages.error(
+                    request,
+                    "Please select a team member."
+                )
+
+                return redirect("teamlead_task")
+
+
+            # -------------------------------------------------
+            # ONLY CURRENT TEAM MEMBERS ARE ALLOWED
+            # -------------------------------------------------
+
+            assigned_user = get_object_or_404(
+                User,
+                id=assigned_to_id,
+                team=user.team
+            )
+
+
+            Task.objects.create(
+                title=title,
+                description=description,
+                assigned_to=assigned_user,
+                created_by=user,
+                status="pending",
+                progress=0
+            )
+
+
+            messages.success(
+                request,
+                f"Task assigned to {assigned_user.name} successfully."
+            )
+
+            return redirect("teamlead_task")
+
+
+        # =====================================================
+        # INVALID TASK MODE
+        # =====================================================
+
+        messages.error(
+            request,
+            "Invalid task request."
+        )
+
         return redirect("teamlead_task")
 
-    response = render(request, 'teamlead_task.html', {"tasks": tasks})
-    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = '0'
-    return response
 
+    # =========================================================
+    # PAGE
+    # =========================================================
+
+    response = render(
+        request,
+        "teamlead_task.html",
+        {
+            "my_tasks": my_tasks,
+            "assigned_tasks": assigned_tasks,
+            "team_members": team_members,
+            "team_lead": user,
+
+            # Summary cards
+            "total_tasks": total_tasks,
+            "pending_tasks": pending_tasks,
+            "completed_tasks": completed_tasks,
+        }
+    )
+
+
+    response["Cache-Control"] = (
+        "no-store, no-cache, "
+        "must-revalidate, max-age=0"
+    )
+
+    response["Pragma"] = "no-cache"
+
+    response["Expires"] = "0"
+
+
+    return response
 
 def update_task_teamlead(request, task_id):
     user_id = request.session.get("user_id")

@@ -2155,7 +2155,7 @@ select.status-select option {
                             </div>
 
                             <div class="summary-number">
-                                {{ tasks|length }}
+                                {{ total_tasks }}
                             </div>
 
                             <div class="summary-description">
@@ -2172,7 +2172,7 @@ select.status-select option {
                             </div>
 
                             <div class="summary-number">
-                                {{ pending_tasks_count|default:"0" }}
+                                {{ pending_tasks }}
                             </div>
 
                             <div class="summary-description">
@@ -2189,7 +2189,7 @@ select.status-select option {
                             </div>
 
                             <div class="summary-number">
-                                {{ completed_tasks_count|default:"0" }}
+                               {{ completed_tasks }}
                             </div>
 
                             <div class="summary-description">
@@ -2201,357 +2201,1832 @@ select.status-select option {
                     </section>
 
 
-                    <!-- =================================================
-                         CREATE TASK
-                    ================================================= -->
+<!-- =========================================================
+     TASK ACTIONS
+========================================================= -->
 
-                    <section class="task-create-card">
+<section class="task-action-card">
 
-                        <div class="task-form-header">
+    <div class="task-action-header">
 
-                            <div class="task-form-header-left">
+        <div>
+            <span class="task-action-eyebrow">
+                TASK MANAGEMENT
+            </span>
 
-                                <div class="task-form-icon">
+            <h3>
+                Manage Your Tasks
+            </h3>
 
-                                    <i data-lucide="plus"></i>
+            <p>
+                Create your own task or assign work to a team member.
+            </p>
+        </div>
 
-                                </div>
+    </div>
 
-                                <div>
 
-                                    <h3>
-                                        Create New Task
-                                    </h3>
+    <div class="task-action-buttons">
 
-                                    <p>
-                                        Add a new task to your personal workspace.
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        <form method="POST">
-
-                            {% csrf_token %}
-
-                            <div class="task-form-grid">
-
-                                <div class="task-field">
-
-                                    <label for="task-title">
-                                        Task Title
-                                    </label>
-
-                                    <input
-                                        id="task-title"
-                                        type="text"
-                                        name="title"
-                                        placeholder="Enter task title"
-                                        class="task-input"
-                                        required
-                                    >
-
-                                </div>
-
-
-                                <div class="task-field">
-
-                                    <label for="task-description">
-                                        Task Description
-                                    </label>
-
-                                    <textarea
-                                        id="task-description"
-                                        name="description"
-                                        placeholder="Describe the task..."
-                                        class="task-textarea"
-                                    ></textarea>
-
-                                </div>
-
-
-                                <button
-                                    type="submit"
-                                    class="add-task-button"
-                                >
-                                    <i
-                                        data-lucide="plus"
-                                        style="width:15px;height:15px;"
-                                    ></i>
-
-                                    Add Task
-                                </button>
-
-                            </div>
-
-                        </form>
-
-                    </section>
-
-
-                    <!-- =================================================
-                         TASK LIST
-                    ================================================= -->
-
-                    <section class="task-list-card">
-
-
-                        <div class="task-list-header">
-
-                            <div class="task-list-heading">
-
-                                <div class="task-list-icon">
-
-                                    <i data-lucide="list-checks"></i>
-
-                                </div>
-
-                                <div>
-
-                                    <h2>
-                                        Task List
-                                    </h2>
-
-                                    <p>
-                                        Manage your current tasks and update
-                                        their status.
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="task-count">
-
-                                {{ tasks|length }} Tasks
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="task-list">
-
-
-                            {% for task in tasks %}
-
-                            <div
-                                class="task-item
-                                {% if task.status == 'completed' %}
-                                    completed
-                                {% endif %}"
-                            >
-
-                                <div class="task-main">
-
-                                    <h3 class="task-item-title">
-                                        {{ task.title }}
-                                    </h3>
-
-
-                                    {% if task.description %}
-
-                                    <p class="task-item-description">
-                                        {{ task.description }}
-                                    </p>
-
-                                    {% endif %}
-
-
-                                    <div class="task-status-line">
-
-                                        {% if task.status == 'completed' %}
-
-                                            <span
-                                                class="status-dot completed"
-                                            ></span>
-
-                                            <span>
-                                                Status:
-                                            </span>
-
-                                            <span
-                                                class="status-text completed"
-                                            >
-                                                {{ task.get_status_display }}
-                                            </span>
-
-
-                                        {% elif task.status == 'in_progress' %}
-
-                                            <span
-                                                class="status-dot progress"
-                                            ></span>
-
-                                            <span>
-                                                Status:
-                                            </span>
-
-                                            <span
-                                                class="status-text progress"
-                                            >
-                                                {{ task.get_status_display }}
-                                            </span>
-
-
-                                        {% else %}
-
-                                            <span
-                                                class="status-dot pending"
-                                            ></span>
-
-                                            <span>
-                                                Status:
-                                            </span>
-
-                                            <span
-                                                class="status-text pending"
-                                            >
-                                                {{ task.get_status_display }}
-                                            </span>
-
-                                        {% endif %}
-
-                                    </div>
-
-                                </div>
-
-
-                                <!-- =================================================
-                                     ACTIONS
-                                ================================================= -->
-
-                                <div class="task-actions">
-
-
-                                    <!-- UPDATE STATUS -->
-
-                                    <form
-                                        method="POST"
-                                        action="{% url 'update_task_teamlead' task.id %}"
-                                    >
-
-                                        {% csrf_token %}
-
-                                        <div class="
-    status-select-wrap
-    {% if task.status == 'completed' %}
-        completed
-    {% elif task.status == 'in_progress' %}
-        in-progress
-    {% else %}
-        pending
-    {% endif %}
-">
-
-    <select
-        name="status"
-        class="status-select"
-        onchange="this.form.submit()"
-        aria-label="Update task status"
-    >
-
-        <option
-            value="pending"
-            {% if task.status == 'pending' %}selected{% endif %}
+        <!-- MY TASK -->
+        <button
+            type="button"
+            class="task-action-button my-task-button"
+            onclick="openTaskModal('myTaskModal')"
         >
-            Pending
-        </option>
 
-        <option
-            value="in_progress"
-            {% if task.status == 'in_progress' %}selected{% endif %}
+            <span class="task-action-button-icon">
+                <i data-lucide="clipboard-plus"></i>
+            </span>
+
+            <span class="task-action-button-content">
+
+                <strong>
+                    My Task
+                </strong>
+
+                <small>
+                    Create a task for yourself
+                </small>
+
+            </span>
+
+            <i
+                data-lucide="chevron-right"
+                class="task-action-arrow"
+            ></i>
+
+        </button>
+
+
+        <!-- ASSIGN TASK -->
+        <button
+            type="button"
+            class="task-action-button assign-task-button"
+            onclick="openTaskModal('assignTaskModal')"
         >
-            In Progress
-        </option>
 
-        <option
-            value="completed"
-            {% if task.status == 'completed' %}selected{% endif %}
-        >
-            Completed
-        </option>
+            <span class="task-action-button-icon">
+                <i data-lucide="user-plus"></i>
+            </span>
 
-    </select>
+            <span class="task-action-button-content">
+
+                <strong>
+                    Assign Task
+                </strong>
+
+                <small>
+                    Assign work to a team member
+                </small>
+
+            </span>
+
+            <i
+                data-lucide="chevron-right"
+                class="task-action-arrow"
+            ></i>
+
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     MY TASK MODAL
+========================================================= -->
+
+<div
+    id="myTaskModal"
+    class="task-modal"
+    aria-hidden="true"
+>
+
+    <div
+        class="task-modal-overlay"
+        onclick="closeTaskModal('myTaskModal')"
+    ></div>
+
+
+    <div class="task-modal-box">
+
+        <div class="task-modal-header">
+
+            <div class="task-modal-title-wrap">
+
+                <div class="task-modal-icon">
+                    <i data-lucide="clipboard-plus"></i>
+                </div>
+
+                <div>
+                    <h3>
+                        Create My Task
+                    </h3>
+
+                    <p>
+                        Create a task for yourself.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <button
+                type="button"
+                class="task-modal-close"
+                onclick="closeTaskModal('myTaskModal')"
+                aria-label="Close"
+            >
+                <i data-lucide="x"></i>
+            </button>
+
+        </div>
+
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <input
+                type="hidden"
+                name="task_mode"
+                value="personal"
+            >
+
+
+            <div class="task-modal-body">
+
+                <div class="task-modal-field">
+
+                    <label for="my-task-title">
+                        Task Title
+                    </label>
+
+                    <input
+                        id="my-task-title"
+                        type="text"
+                        name="title"
+                        class="task-modal-input"
+                        placeholder="Enter task title"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="task-modal-field">
+
+                    <label for="my-task-description">
+                        Task Description
+                    </label>
+
+                    <textarea
+                        id="my-task-description"
+                        name="description"
+                        class="task-modal-textarea"
+                        placeholder="Describe the task..."
+                        rows="5"
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="task-modal-footer">
+
+                <button
+                    type="button"
+                    class="task-modal-cancel"
+                    onclick="closeTaskModal('myTaskModal')"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="task-modal-submit"
+                >
+
+                    <i data-lucide="plus"></i>
+
+                    Create Task
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
 
 </div>
 
-                                    </form>
+
+<!-- =========================================================
+     ASSIGN TASK MODAL
+========================================================= -->
+
+<div
+    id="assignTaskModal"
+    class="task-modal"
+    aria-hidden="true"
+>
+
+    <div
+        class="task-modal-overlay"
+        onclick="closeTaskModal('assignTaskModal')"
+    ></div>
 
 
-                                    <!-- DELETE -->
+    <div class="task-modal-box">
 
-                                    <form
-                                        method="POST"
-                                        action="{% url 'delete_task_teamlead' task.id %}"
-                                    >
+        <div class="task-modal-header">
 
-                                        {% csrf_token %}
+            <div class="task-modal-title-wrap">
 
-                                        <button
-                                            type="submit"
-                                            class="delete-task-button"
-                                            title="Delete Task"
-                                            onclick="
-                                                return confirm(
-                                                    'Are you sure you want to delete this task?'
-                                                );
-                                            "
-                                        >
+                <div class="task-modal-icon">
+                    <i data-lucide="user-plus"></i>
+                </div>
 
-                                            <i
-                                                data-lucide="trash-2"
-                                                style="
-                                                    width:16px;
-                                                    height:16px;
-                                                "
-                                            ></i>
+                <div>
+                    <h3>
+                        Assign New Task
+                    </h3>
 
-                                        </button>
+                    <p>
+                        Assign a task to a team member.
+                    </p>
+                </div>
 
-                                    </form>
-
-                                </div>
-
-                            </div>
+            </div>
 
 
-                            {% empty %}
+            <button
+                type="button"
+                class="task-modal-close"
+                onclick="closeTaskModal('assignTaskModal')"
+                aria-label="Close"
+            >
+                <i data-lucide="x"></i>
+            </button>
+
+        </div>
 
 
-                            <!-- =================================================
-                                 EMPTY
-                            ================================================= -->
+        <form method="POST">
 
-                            <div class="empty-task-state">
+            {% csrf_token %}
 
-                                <div class="empty-icon">
-
-                                    <i data-lucide="check"></i>
-
-                                </div>
-
-                                <div class="empty-title">
-                                    No Tasks Yet
-                                </div>
-
-                                <div class="empty-text">
-                                    Create your first task using the form above.
-                                </div>
-
-                            </div>
+            <input
+                type="hidden"
+                name="task_mode"
+                value="assign"
+            >
 
 
-                            {% endfor %}
+            <div class="task-modal-body">
+
+                <div class="task-modal-field">
+
+                    <label for="assign-task-title">
+                        Task Title
+                    </label>
+
+                    <input
+                        id="assign-task-title"
+                        type="text"
+                        name="title"
+                        class="task-modal-input"
+                        placeholder="Enter task title"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="task-modal-field">
+
+                    <label for="assign-to">
+                        Assign To
+                    </label>
+
+                    <select
+                        id="assign-to"
+                        name="assigned_to"
+                        class="task-modal-input"
+                        required
+                    >
+
+                        <option value="">
+                            Select Team Member
+                        </option>
+
+                        {% for member in team_members %}
+
+                            <option value="{{ member.id }}">
+                                {{ member.name }}
+                            </option>
+
+                        {% empty %}
+
+                            <option value="" disabled>
+                                No team members available
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+
+                <div class="task-modal-field">
+
+                    <label for="assign-task-description">
+                        Task Description
+                    </label>
+
+                    <textarea
+                        id="assign-task-description"
+                        name="description"
+                        class="task-modal-textarea"
+                        placeholder="Describe the task..."
+                        rows="5"
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="task-modal-footer">
+
+                <button
+                    type="button"
+                    class="task-modal-cancel"
+                    onclick="closeTaskModal('assignTaskModal')"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="task-modal-submit"
+                >
+
+                    <i data-lucide="send"></i>
+
+                    Assign Task
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     TASK ACTION / MODAL CSS
+========================================================= -->
+
+<style>
+
+.task-action-card {
+    position: relative;
+    overflow: hidden;
+    padding: 25px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 22px;
+    background:
+        radial-gradient(
+            circle at 92% 0%,
+            rgba(113,72,190,0.13),
+            transparent 34%
+        ),
+        linear-gradient(
+            145deg,
+            rgba(24,22,35,0.92),
+            rgba(11,11,17,0.96)
+        );
+    box-shadow:
+        0 20px 55px rgba(0,0,0,0.28),
+        inset 0 1px 0 rgba(255,255,255,0.025);
+}
+
+.task-action-header {
+    margin-bottom: 20px;
+}
+
+.task-action-eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    color: #a78bfa;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.task-action-header h3 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.task-action-header p {
+    margin: 5px 0 0;
+    color: #77727e;
+    font-size: 11px;
+}
+
+
+.task-action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+
+.task-action-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    width: 100%;
+    min-height: 72px;
+    padding: 12px 15px;
+    border-radius: 16px;
+    color: #ffffff;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        transform 0.22s ease,
+        border-color 0.22s ease,
+        background 0.22s ease,
+        box-shadow 0.22s ease;
+}
+
+
+.task-action-button:hover {
+    transform: translateY(-2px);
+}
+
+
+.my-task-button {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(124,58,237,0.18),
+            rgba(91,50,167,0.08)
+        );
+    border: 1px solid rgba(139,92,246,0.22);
+}
+
+
+.my-task-button:hover {
+    border-color: rgba(139,92,246,0.42);
+    box-shadow: 0 12px 30px rgba(109,53,217,0.14);
+}
+
+
+.assign-task-button {
+    background:
+        linear-gradient(
+            135deg,
+            rgba(59,130,246,0.13),
+            rgba(91,50,167,0.08)
+        );
+    border: 1px solid rgba(96,165,250,0.18);
+}
+
+
+.assign-task-button:hover {
+    border-color: rgba(96,165,250,0.36);
+    box-shadow: 0 12px 30px rgba(59,130,246,0.12);
+}
+
+
+.task-action-button-icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 13px;
+
+    color: #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #6d35d9,
+            #8b5cf6
+        );
+
+    border: 1px solid rgba(255,255,255,0.12);
+
+    box-shadow:
+        0 8px 22px rgba(109,53,217,0.20);
+}
+
+
+.assign-task-button .task-action-button-icon {
+    background:
+        linear-gradient(
+            135deg,
+            #3159a8,
+            #6366f1
+        );
+}
+
+
+.task-action-button-icon svg {
+    width: 19px;
+    height: 19px;
+}
+
+
+.task-action-button-content {
+    min-width: 0;
+    flex: 1;
+}
+
+
+.task-action-button-content strong {
+    display: block;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+
+.task-action-button-content small {
+    display: block;
+    margin-top: 4px;
+    color: #77727e;
+    font-size: 10px;
+}
+
+
+.task-action-arrow {
+    width: 16px;
+    height: 16px;
+    color: #77727e;
+    flex-shrink: 0;
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.task-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+
+.task-modal.show {
+    display: flex;
+}
+
+
+.task-modal-overlay {
+    position: absolute;
+    inset: 0;
+
+    background:
+        rgba(4,4,9,0.76);
+
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+
+.task-modal-box {
+    position: relative;
+    z-index: 2;
+
+    width: min(560px, 100%);
+
+    overflow: hidden;
+
+    border-radius: 22px;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(30,25,43,0.98),
+            rgba(11,11,18,0.99)
+        );
+
+    border:
+        1px solid rgba(255,255,255,0.12);
+
+    box-shadow:
+        0 30px 100px rgba(0,0,0,0.60),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+
+    animation: taskModalIn 0.22s ease;
+}
+
+
+@keyframes taskModalIn {
+
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+}
+
+
+.task-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 20px 22px;
+
+    border-bottom:
+        1px solid rgba(255,255,255,0.07);
+}
+
+
+.task-modal-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+
+.task-modal-icon {
+    width: 42px;
+    height: 42px;
+
+    display: grid;
+    place-items: center;
+
+    flex: 0 0 42px;
+
+    border-radius: 13px;
+
+    color: #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #6d35d9,
+            #8b5cf6
+        );
+
+    box-shadow:
+        0 8px 25px rgba(109,53,217,0.22);
+}
+
+
+.task-modal-icon svg {
+    width: 19px;
+    height: 19px;
+}
+
+
+.task-modal-header h3 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+
+.task-modal-header p {
+    margin: 4px 0 0;
+    color: #77727e;
+    font-size: 10px;
+}
+
+
+.task-modal-close {
+    width: 34px;
+    height: 34px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 10px;
+
+    border: 1px solid rgba(255,255,255,0.07);
+
+    background:
+        rgba(255,255,255,0.035);
+
+    color: #8f8b96;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+
+.task-modal-close:hover {
+    color: #ffffff;
+    background: rgba(255,255,255,0.08);
+}
+
+
+.task-modal-close svg {
+    width: 16px;
+    height: 16px;
+}
+
+
+.task-modal-body {
+    padding: 22px;
+}
+
+
+.task-modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+
+    margin-bottom: 16px;
+}
+
+
+.task-modal-field:last-child {
+    margin-bottom: 0;
+}
+
+
+.task-modal-field label {
+    color: #9ca3af;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+
+.task-modal-input,
+.task-modal-textarea {
+    width: 100%;
+
+    outline: none;
+
+    color: #ffffff;
+
+    background:
+        rgba(7,7,11,0.72);
+
+    border:
+        1px solid rgba(255,255,255,0.10);
+
+    border-radius: 11px;
+
+    font-family: inherit;
+
+    transition: 0.2s ease;
+}
+
+
+.task-modal-input {
+    height: 45px;
+    padding: 0 13px;
+    font-size: 12px;
+}
+
+
+.task-modal-textarea {
+    min-height: 110px;
+    padding: 12px 13px;
+    resize: vertical;
+    font-size: 12px;
+}
+
+
+.task-modal-input:focus,
+.task-modal-textarea:focus {
+    border-color: rgba(139,92,246,0.55);
+
+    box-shadow:
+        0 0 0 3px rgba(139,92,246,0.08);
+}
+
+
+.task-modal-input::placeholder,
+.task-modal-textarea::placeholder {
+    color: #66636e;
+}
+
+
+.task-modal-input option {
+    background: #111116;
+    color: #ffffff;
+}
+
+
+.task-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding: 16px 22px;
+
+    border-top:
+        1px solid rgba(255,255,255,0.07);
+}
+
+
+.task-modal-cancel,
+.task-modal-submit {
+    min-height: 40px;
+
+    padding: 0 16px;
+
+    border-radius: 10px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+}
+
+
+.task-modal-cancel {
+    color: #aaa6b2;
+
+    background:
+        rgba(255,255,255,0.035);
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+}
+
+
+.task-modal-cancel:hover {
+    color: #ffffff;
+    background: rgba(255,255,255,0.07);
+}
+
+
+.task-modal-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    color: #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7c4bd4,
+            #5b32a7
+        );
+
+    border:
+        1px solid rgba(167,139,250,0.35);
+
+    box-shadow:
+        0 8px 22px rgba(124,75,212,0.18);
+}
+
+
+.task-modal-submit:hover {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 12px 28px rgba(124,75,212,0.28);
+}
+
+
+.task-modal-submit svg {
+    width: 14px;
+    height: 14px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .task-action-buttons {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+@media (max-width: 480px) {
+
+    .task-action-card {
+        padding: 17px;
+        border-radius: 18px;
+    }
+
+    .task-action-button {
+        min-height: 68px;
+    }
+
+    .task-modal {
+        padding: 12px;
+    }
+
+    .task-modal-header,
+    .task-modal-body,
+    .task-modal-footer {
+        padding-left: 17px;
+        padding-right: 17px;
+    }
+
+    .task-modal-footer {
+        flex-direction: column-reverse;
+    }
+
+    .task-modal-cancel,
+    .task-modal-submit {
+        width: 100%;
+    }
+
+}
+
+
+/* =========================================================
+   MODAL JS
+========================================================= */
+
+</style>
+
+
+<script>
+
+function openTaskModal(modalId) {
+
+    const modal = document.getElementById(modalId);
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.add("show");
+    modal.setAttribute("aria-hidden", "false");
+
+    document.body.style.overflow = "hidden";
+
+}
+
+
+function closeTaskModal(modalId) {
+
+    const modal = document.getElementById(modalId);
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("show");
+    modal.setAttribute("aria-hidden", "true");
+
+    document.body.style.overflow = "";
+
+}
+
+
+document.addEventListener("keydown", function(event) {
+
+    if (event.key !== "Escape") {
+        return;
+    }
+
+    document
+        .querySelectorAll(".task-modal.show")
+        .forEach(function(modal) {
+
+            modal.classList.remove("show");
+            modal.setAttribute("aria-hidden", "true");
+
+        });
+
+    document.body.style.overflow = "";
+
+});
+
+
+</script>
+
+<!-- =========================================================
+     TASK LIST
+========================================================= -->
+
+<section class="task-list-card">
+
+    <!-- =====================================================
+         TASK LIST HEADER
+    ====================================================== -->
+
+    <div class="task-list-header">
+
+        <div class="task-list-title-wrap">
+
+            <div class="task-list-icon">
+                <i data-lucide="list-checks"></i>
+            </div>
+
+            <div>
+
+                <h2>
+                    Task List
+                </h2>
+
+                <p>
+                    Manage your personal tasks and assigned tasks.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="taskListCount"
+            class="task-count"
+        >
+            {{ my_tasks|length }} Tasks
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         TASK FILTER BUTTONS
+    ====================================================== -->
+
+    <div class="task-filter-tabs">
+
+        <button
+            type="button"
+            class="task-filter-tab active"
+            id="myTasksTab"
+            onclick="showTaskTab('my')"
+        >
+
+            <i data-lucide="clipboard-list"></i>
+
+            <span>
+                My Tasks
+            </span>
+
+            <strong>
+                {{ my_tasks|length }}
+            </strong>
+
+        </button>
+
+
+        <button
+            type="button"
+            class="task-filter-tab"
+            id="assignedTasksTab"
+            onclick="showTaskTab('assigned')"
+        >
+
+            <i data-lucide="users"></i>
+
+            <span>
+                Assigned Tasks
+            </span>
+
+            <strong>
+                {{ assigned_tasks|length }}
+            </strong>
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         MY TASKS
+    ====================================================== -->
+
+    <div
+        id="myTasksList"
+        class="task-tab-content active"
+    >
+
+        <div class="task-list">
+
+            {% for task in my_tasks %}
+
+            <div
+                class="task-item
+                {% if task.status == 'completed' %}
+                    completed
+                {% endif %}"
+            >
+
+                <div class="task-main">
+
+                    <div class="task-type-label my-task-label">
+
+                        <i data-lucide="user"></i>
+
+                        My Task
+
+                    </div>
+
+
+                    <h3 class="task-item-title">
+                        {{ task.title }}
+                    </h3>
+
+
+                    {% if task.description %}
+
+                    <p class="task-item-description">
+                        {{ task.description }}
+                    </p>
+
+                    {% endif %}
+
+
+                    <div class="task-status-line">
+
+                        {% if task.status == 'completed' %}
+
+                            <span class="status-dot completed"></span>
+
+                            <span>
+                                Status:
+                            </span>
+
+                            <span class="status-text completed">
+                                {{ task.get_status_display }}
+                            </span>
+
+                        {% elif task.status == 'in_progress' %}
+
+                            <span class="status-dot progress"></span>
+
+                            <span>
+                                Status:
+                            </span>
+
+                            <span class="status-text progress">
+                                {{ task.get_status_display }}
+                            </span>
+
+                        {% else %}
+
+                            <span class="status-dot pending"></span>
+
+                            <span>
+                                Status:
+                            </span>
+
+                            <span class="status-text pending">
+                                {{ task.get_status_display }}
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTIONS -->
+
+                <div class="task-actions">
+
+                    <!-- UPDATE STATUS -->
+
+                    <form
+                        method="POST"
+                        action="{% url 'update_task_teamlead' task.id %}"
+                    >
+
+                        {% csrf_token %}
+
+                        <div class="
+                            status-select-wrap
+                            {% if task.status == 'completed' %}
+                                completed
+                            {% elif task.status == 'in_progress' %}
+                                in-progress
+                            {% else %}
+                                pending
+                            {% endif %}
+                        ">
+
+                            <select
+                                name="status"
+                                class="status-select"
+                                onchange="this.form.submit()"
+                                aria-label="Update task status"
+                            >
+
+                                <option
+                                    value="pending"
+                                    {% if task.status == 'pending' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Pending
+                                </option>
+
+                                <option
+                                    value="in_progress"
+                                    {% if task.status == 'in_progress' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    In Progress
+                                </option>
+
+                                <option
+                                    value="completed"
+                                    {% if task.status == 'completed' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Completed
+                                </option>
+
+                            </select>
 
                         </div>
 
-                    </section>
+                    </form>
+
+
+                    <!-- DELETE -->
+
+                    <form
+                        method="POST"
+                        action="{% url 'delete_task_teamlead' task.id %}"
+                    >
+
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="delete-task-button"
+                            title="Delete Task"
+                            onclick="
+                                return confirm(
+                                    'Are you sure you want to delete this task?'
+                                );
+                            "
+                        >
+
+                            <i
+                                data-lucide="trash-2"
+                                style="width:16px;height:16px;"
+                            ></i>
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            {% empty %}
+
+            <div class="empty-task-state">
+
+                <div class="empty-icon">
+                    <i data-lucide="clipboard-list"></i>
+                </div>
+
+                <div class="empty-title">
+                    No My Tasks Yet
+                </div>
+
+                <div class="empty-text">
+                    Create your first personal task using the My Task button.
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ASSIGNED TASKS
+    ====================================================== -->
+
+    <div
+        id="assignedTasksList"
+        class="task-tab-content"
+    >
+
+        <div class="task-list">
+
+            {% for task in assigned_tasks %}
+
+            <div
+                class="task-item
+                {% if task.status == 'completed' %}
+                    completed
+                {% endif %}"
+            >
+
+                <div class="task-main">
+
+                    <div class="task-type-label assigned-task-label">
+
+                        <i data-lucide="user-round-check"></i>
+
+                        Assigned Task
+
+                    </div>
+
+
+                    <h3 class="task-item-title">
+                        {{ task.title }}
+                    </h3>
+
+
+                    {% if task.description %}
+
+                    <p class="task-item-description">
+                        {{ task.description }}
+                    </p>
+
+                    {% endif %}
+
+
+                    <div class="assigned-member-line">
+
+                        <i data-lucide="user"></i>
+
+                        <span>
+                            Assigned to:
+                        </span>
+
+                        <strong>
+                            {{ task.assigned_to.name }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="task-status-line">
+
+                        {% if task.status == 'completed' %}
+
+                            <span class="status-dot completed"></span>
+
+                            <span>
+                                Status:
+                            </span>
+
+                            <span class="status-text completed">
+                                {{ task.get_status_display }}
+                            </span>
+
+                        {% elif task.status == 'in_progress' %}
+
+                            <span class="status-dot progress"></span>
+
+                            <span>
+                                Status:
+                            </span>
+
+                            <span class="status-text progress">
+                                {{ task.get_status_display }}
+                            </span>
+
+                        {% else %}
+
+                            <span class="status-dot pending"></span>
+
+                            <span>
+                                Status:
+                            </span>
+
+                            <span class="status-text pending">
+                                {{ task.get_status_display }}
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTIONS -->
+
+                <div class="task-actions">
+
+                    <form
+                        method="POST"
+                        action="{% url 'update_task_teamlead' task.id %}"
+                    >
+
+                        {% csrf_token %}
+
+                        <div class="
+                            status-select-wrap
+                            {% if task.status == 'completed' %}
+                                completed
+                            {% elif task.status == 'in_progress' %}
+                                in-progress
+                            {% else %}
+                                pending
+                            {% endif %}
+                        ">
+
+                            <select
+                                name="status"
+                                class="status-select"
+                                onchange="this.form.submit()"
+                                aria-label="Update task status"
+                            >
+
+                                <option
+                                    value="pending"
+                                    {% if task.status == 'pending' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Pending
+                                </option>
+
+                                <option
+                                    value="in_progress"
+                                    {% if task.status == 'in_progress' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    In Progress
+                                </option>
+
+                                <option
+                                    value="completed"
+                                    {% if task.status == 'completed' %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    Completed
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </form>
+
+
+                    <form
+                        method="POST"
+                        action="{% url 'delete_task_teamlead' task.id %}"
+                    >
+
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            class="delete-task-button"
+                            title="Delete Task"
+                            onclick="
+                                return confirm(
+                                    'Are you sure you want to delete this task?'
+                                );
+                            "
+                        >
+
+                            <i
+                                data-lucide="trash-2"
+                                style="width:16px;height:16px;"
+                            ></i>
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+
+            {% empty %}
+
+            <div class="empty-task-state">
+
+                <div class="empty-icon">
+                    <i data-lucide="users"></i>
+                </div>
+
+                <div class="empty-title">
+                    No Assigned Tasks Yet
+                </div>
+
+                <div class="empty-text">
+                    Tasks assigned to your team members will appear here.
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     TASK FILTER CSS
+========================================================= -->
+
+<style>
+
+.task-filter-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 5px;
+    margin: 0 0 18px;
+
+    border-radius: 13px;
+
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+
+.task-filter-tab {
+    flex: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    min-height: 42px;
+
+    padding: 0 14px;
+
+    border-radius: 10px;
+
+    border: 1px solid transparent;
+
+    background: transparent;
+
+    color: #77727e;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: all 0.22s ease;
+}
+
+
+.task-filter-tab svg {
+    width: 15px;
+    height: 15px;
+}
+
+
+.task-filter-tab strong {
+    min-width: 22px;
+    height: 21px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 6px;
+
+    border-radius: 7px;
+
+    font-size: 9px;
+
+    color: #9d8bea;
+
+    background: rgba(124,75,212,0.10);
+}
+
+
+.task-filter-tab:hover {
+    color: #c4b5fd;
+}
+
+
+.task-filter-tab.active {
+    color: #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(124,75,212,0.25),
+            rgba(91,50,167,0.12)
+        );
+
+    border-color:
+        rgba(139,92,246,0.22);
+
+    box-shadow:
+        0 6px 18px rgba(91,50,167,0.10);
+}
+
+
+.task-filter-tab.active strong {
+    color: #ffffff;
+
+    background:
+        rgba(124,75,212,0.35);
+}
+
+
+.task-tab-content {
+    display: none;
+}
+
+
+.task-tab-content.active {
+    display: block;
+}
+
+
+.task-type-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    margin-bottom: 7px;
+
+    font-size: 8px;
+    font-weight: 800;
+
+    letter-spacing: 1px;
+
+    text-transform: uppercase;
+}
+
+
+.task-type-label svg {
+    width: 12px;
+    height: 12px;
+}
+
+
+.my-task-label {
+    color: #a78bfa;
+}
+
+
+.assigned-task-label {
+    color: #60a5fa;
+}
+
+
+.assigned-member-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    margin-top: 8px;
+
+    color: #77727e;
+
+    font-size: 10px;
+}
+
+
+.assigned-member-line svg {
+    width: 12px;
+    height: 12px;
+
+    color: #818cf8;
+}
+
+
+.assigned-member-line strong {
+    color: #c4b5fd;
+    font-weight: 700;
+}
+
+
+@media (max-width: 600px) {
+
+    .task-filter-tabs {
+        gap: 5px;
+    }
+
+    .task-filter-tab {
+        padding: 0 8px;
+        font-size: 10px;
+    }
+
+    .task-filter-tab strong {
+        display: none;
+    }
+
+}
+
+</style>
+
+
+<!-- =========================================================
+     TASK FILTER JS
+========================================================= -->
+
+<script>
+
+function showTaskTab(type) {
+
+    const myTasksList =
+        document.getElementById("myTasksList");
+
+    const assignedTasksList =
+        document.getElementById("assignedTasksList");
+
+    const myTasksTab =
+        document.getElementById("myTasksTab");
+
+    const assignedTasksTab =
+        document.getElementById("assignedTasksTab");
+
+    const taskListCount =
+        document.getElementById("taskListCount");
+
+
+    if (type === "my") {
+
+        myTasksList.classList.add("active");
+        assignedTasksList.classList.remove("active");
+
+        myTasksTab.classList.add("active");
+        assignedTasksTab.classList.remove("active");
+
+        taskListCount.textContent =
+            "{{ my_tasks|length }} Tasks";
+
+    }
+
+
+    if (type === "assigned") {
+
+        assignedTasksList.classList.add("active");
+        myTasksList.classList.remove("active");
+
+        assignedTasksTab.classList.add("active");
+        myTasksTab.classList.remove("active");
+
+        taskListCount.textContent =
+            "{{ assigned_tasks|length }} Tasks";
+
+    }
+
+}
+
+</script>
 
                 </div>
 
@@ -2673,13 +4148,15 @@ select.status-select option {
             "DOMContentLoaded",
             function () {
 
-                if (
-                    window.lucide
-                ) {
+                if (window.lucide) {
 
-                    lucide.createIcons();
+    window.lucide.createIcons({
+        attrs: {
+            "stroke-width": "1.8"
+        }
+    });
 
-                }
+}
 
 
                 const sidebar =
@@ -2742,6 +4219,19 @@ select.status-select option {
         );
 
     </script>
+    <script>
+window.addEventListener("load", function () {
+
+    if (window.lucide) {
+        window.lucide.createIcons({
+            attrs: {
+                "stroke-width": "1.8"
+            }
+        });
+    }
+
+});
+</script>
 
 
     <!-- =========================================================
@@ -2750,6 +4240,7 @@ select.status-select option {
 
     <script src="{% static 'js/admin.js' %}"></script>
     <script src="{% static 'js/activity.js' %}"></script>
+
 
 </body>
 

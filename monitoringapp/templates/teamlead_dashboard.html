@@ -1575,6 +1575,194 @@
       .team-members-table td { padding: 11px 13px !important; font-size: 10px !important; }
   }
 
+  /* =========================================
+   TEAM MEMBER ADMIN-STYLE TABLE
+========================================= */
+
+.team-members-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(13, 13, 19, 0.65);
+}
+
+.team-members-table {
+    width: 100%;
+    min-width: 1550px;
+    border-collapse: collapse;
+}
+
+.team-members-table thead {
+    background: rgba(34, 34, 50, 0.85);
+}
+
+.team-members-table th {
+    padding: 13px 12px;
+    text-align: left;
+
+    color: #918d9c;
+
+    font-size: 9px;
+    font-weight: 800;
+
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+
+    white-space: nowrap;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.team-members-table td {
+    padding: 11px 12px;
+
+    color: #d6d3dc;
+
+    font-size: 11px;
+
+    white-space: nowrap;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+}
+
+.team-members-table tbody tr {
+    transition: background 0.2s ease;
+}
+
+.team-members-table tbody tr:hover {
+    background: rgba(139, 92, 246, 0.055);
+}
+
+
+/* PROFILE IMAGE */
+
+.member-avatar-wrap {
+    position: relative;
+
+    width: 34px;
+    height: 34px;
+}
+
+.member-avatar {
+    width: 34px;
+    height: 34px;
+
+    border-radius: 9px;
+
+    object-fit: cover;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.member-avatar-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(139, 92, 246, 0.35),
+            rgba(79, 70, 229, 0.25)
+        );
+
+    color: #ffffff;
+
+    font-weight: 800;
+}
+
+
+/* ONLINE DOT */
+
+.member-online-dot,
+.member-offline-dot {
+    position: absolute;
+
+    right: -2px;
+    bottom: -2px;
+
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    border: 2px solid #101017;
+}
+
+.member-online-dot {
+    background: #34d399;
+
+    box-shadow:
+        0 0 8px rgba(52, 211, 153, 0.65);
+}
+
+.member-offline-dot {
+    background: #fb7185;
+}
+
+
+/* STATUS BADGES */
+
+.member-status {
+    display: inline-flex;
+    align-items: center;
+
+    gap: 6px;
+
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.member-status > span {
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+}
+
+.member-status-active {
+    color: #86efac;
+
+    background: rgba(34, 197, 94, 0.07);
+
+    border: 1px solid rgba(34, 197, 94, 0.16);
+}
+
+.member-status-active > span {
+    background: #34d399;
+
+    box-shadow:
+        0 0 7px rgba(52, 211, 153, 0.7);
+}
+
+.member-status-inactive {
+    color: #fda4af;
+
+    background: rgba(244, 63, 94, 0.06);
+
+    border: 1px solid rgba(244, 63, 94, 0.15);
+}
+
+.member-status-inactive > span {
+    background: #fb7185;
+}
+
+
+/* EMPTY ROW */
+
+.team-empty-row {
+    text-align: center;
+
+    padding: 30px !important;
+
+    color: #77727f !important;
+}
+
   </style>
   </head>
   <body>
@@ -1864,7 +2052,7 @@
 
     <!-- 🧾 Table -->
     <div class="team-members-table-wrap">
-    <table class="team-members-table w-full border-collapse border border-gray-700">
+    <!-- <table class="team-members-table w-full border-collapse border border-gray-700">
       <thead class="bg-[#150812] text-white">
         <tr>
           <th class="border border-gray-700 p-2 text-left">Name</th>
@@ -1905,7 +2093,169 @@
         </tr>
         {% endfor %}
       </tbody>
+    </table> -->
+
+    <div class="team-members-table-wrap">
+    <table class="team-members-table">
+
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Emp ID</th>
+                <th>Department</th>
+                <th>Team</th>
+                <th>Job Position</th>
+                <th>Designation</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Work Location</th>
+                <th>Joining Date</th>
+                <th>Username</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <tbody id="teamTableBody">
+
+            {% for member in team_members %}
+            <tr>
+
+                <!-- PROFILE IMAGE -->
+                <td>
+                    <div class="member-avatar-wrap">
+
+                        {% if member.profile_image %}
+                            <img
+                                src="{{ member.profile_image.url }}"
+                                alt="{{ member.name }}"
+                                class="member-avatar"
+                            >
+                        {% else %}
+                            <div class="member-avatar member-avatar-fallback">
+                                {{ member.name|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+
+                        {% if member.status|lower == "active" %}
+                            <span class="member-online-dot"></span>
+                        {% else %}
+                            <span class="member-offline-dot"></span>
+                        {% endif %}
+
+                    </div>
+                </td>
+
+
+                <!-- EMPLOYEE ID -->
+                <td>
+                    {{ member.employee_id|default:"—" }}
+                </td>
+
+
+                <!-- DEPARTMENT -->
+                <td>
+                    {% if member.department %}
+                        {{ member.department.name }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+
+
+                <!-- TEAM -->
+                <td>
+                    {% if member.team %}
+                        {{ member.team.name }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+
+
+                <!-- JOB POSITION -->
+                <td>
+                    {{ member.job_Position|default:"—" }}
+                </td>
+
+
+                <!-- DESIGNATION -->
+                <td>
+                    {{ member.designation|default:"—" }}
+                </td>
+
+
+                <!-- NAME -->
+                <td>
+                    <strong>{{ member.name|default:"—" }}</strong>
+                </td>
+
+
+                <!-- EMAIL -->
+                <td>
+                    {{ member.email|default:"—" }}
+                </td>
+
+
+                <!-- PHONE -->
+                <td>
+                    {{ member.phone|default:"—" }}
+                </td>
+
+
+                <!-- WORK LOCATION -->
+                <td>
+                    {{ member.work_location|default:"—" }}
+                </td>
+
+
+                <!-- JOINING DATE -->
+                <td>
+                    {% if member.joining_date %}
+                        {{ member.joining_date|date:"M d, Y" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+
+
+                <!-- USERNAME -->
+                <td>
+                    {{ member.username|default:"—" }}
+                </td>
+
+
+                <!-- STATUS -->
+                <td>
+                    {% if member.status|lower == "active" %}
+                        <span class="member-status member-status-active">
+                            <span></span>
+                            Active
+                        </span>
+                    {% else %}
+                        <span class="member-status member-status-inactive">
+                            <span></span>
+                            Inactive
+                        </span>
+                    {% endif %}
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+                <td colspan="13" class="team-empty-row">
+                    No team members found.
+                </td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
     </table>
+</div>
     </div>
   </form>
 
