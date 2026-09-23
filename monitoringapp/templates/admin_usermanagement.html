@@ -1952,6 +1952,95 @@ html::-webkit-scrollbar-thumb:hover {
         #818cf8
     );
 }
+/* =========================================================
+   FILTER HEADER + RESET BUTTON
+========================================================= */
+
+.filter-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+.filter-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.filter-heading i {
+    width: 17px;
+    height: 17px;
+    color: #9b7cff;
+}
+
+.reset-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    height: 34px;
+    padding: 0 13px;
+
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    border-radius: 9px;
+
+    background: rgba(124, 58, 237, 0.08);
+    color: #c4b5fd;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reset-filter-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+    min-height: 14px !important;
+    max-width: 14px !important;
+    max-height: 14px !important;
+    stroke-width: 2 !important;
+}
+
+.reset-filter-btn:hover {
+    background: linear-gradient(
+        135deg,
+        rgba(124, 58, 237, 0.20),
+        rgba(99, 102, 241, 0.16)
+    );
+
+    border-color: rgba(139, 92, 246, 0.65);
+    color: #ffffff;
+
+    transform: translateY(-1px);
+    box-shadow: 0 5px 18px rgba(124, 58, 237, 0.18);
+}
+
+.reset-filter-btn:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+    .filter-heading-row {
+        align-items: center;
+    }
+
+    .reset-filter-btn {
+        width: 34px;
+        padding: 0;
+    }
+
+    .reset-filter-btn span {
+        display: none;
+    }
+}
     
 </style>
 </head>
@@ -2060,10 +2149,26 @@ html::-webkit-scrollbar-thumb:hover {
 
             <div class="dashboard-card employee-card">
                 <div class="filter-card">
-                    <div class="filter-heading">
+                    <!-- <div class="filter-heading">
                         <i data-lucide="sliders-horizontal"></i>
                         <span>FILTER EMPLOYEES</span>
-                    </div>
+                    </div> -->
+                    <div class="filter-heading-row">
+    <div class="filter-heading">
+        <i data-lucide="sliders-horizontal"></i>
+        <span>FILTER EMPLOYEES</span>
+    </div>
+
+    <button
+        type="button"
+        class="reset-filter-btn"
+        id="resetFiltersBtn"
+        title="Reset Filters"
+    >
+        <i data-lucide="rotate-ccw"></i>
+        <span>Reset</span>
+    </button>
+</div>
 
                     <form id="filterForm">
                         <div class="filter-grid">
@@ -3066,6 +3171,78 @@ document.addEventListener("DOMContentLoaded", function () {
     if (window.lucide) {
         lucide.createIcons();
     }
+});
+
+/* =========================================================
+   RESET EMPLOYEE FILTERS
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", function () {
+    const resetBtn = document.getElementById("resetFiltersBtn");
+    const filterForm = document.getElementById("filterForm");
+
+    if (!resetBtn || !filterForm) return;
+
+    resetBtn.addEventListener("click", function () {
+
+        // Clear search input
+        const searchInput = filterForm.querySelector(
+            'input[name="search"]'
+        );
+
+        if (searchInput) {
+            searchInput.value = "";
+        }
+
+        // Reset all select filters
+        filterForm.querySelectorAll("select").forEach(function (select) {
+            select.value = "";
+        });
+
+        // Reload complete employee list
+        const tableBody = document.getElementById("employeeTableBody");
+
+        if (!tableBody) return;
+
+        fetch(window.location.pathname, {
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+        .then(function (response) {
+            return response.text();
+        })
+        .then(function (html) {
+
+            const parser = new DOMParser();
+
+            const newBody = parser
+                .parseFromString(html, "text/html")
+                .querySelector("#employeeTableBody");
+
+            if (newBody) {
+                tableBody.innerHTML = newBody.innerHTML;
+
+                const newCount = newBody.querySelectorAll("tr").length;
+                const empty = newBody.querySelector(".empty-row");
+
+                const countBadge =
+                    document.getElementById("employeeCount");
+
+                if (countBadge) {
+                    countBadge.textContent =
+                        empty ? "0" : newCount;
+                }
+
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+            }
+        })
+        .catch(function (error) {
+            console.error("Reset Filter Error:", error);
+        });
+    });
 });
 
 </script>
