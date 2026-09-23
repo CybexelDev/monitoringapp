@@ -1739,14 +1739,6 @@
 
                     {% endif %}
 
-
-                    <!-- <a
-                        href="{% url 'admin_reports' %}?date={{ filter_date }}&export=1"
-                        class="glass-button export"
-                    >
-                        <i data-lucide="file-spreadsheet"></i>
-                        Export to Excel
-                    </a> -->
                     <a
     href="{% url 'admin_reports' %}{% if show_all %}?all=1&export=1{% elif filter_date %}?date={{ filter_date }}&export=1{% else %}?export=1{% endif %}"
     class="glass-button export"
