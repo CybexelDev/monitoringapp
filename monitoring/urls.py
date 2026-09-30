@@ -23,6 +23,7 @@ from monitoringapp import views   # make sure views.index exists
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('monitoringapp.urls')),
+    path("chat/", include("chat.urls")),
 ]
 
 # ✅ Serve media files during development

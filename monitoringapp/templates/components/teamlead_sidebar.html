@@ -1,147 +1,1052 @@
 {% load static %}
 
+<style>
+
+/* =========================================================
+
+   TEAM LEAD SIDEBAR
+
+   FULL RESPONSIVE VERSION
+
+   ========================================================= */
+
+.glass-sidebar {
+
+    width: 270px;
+
+    height: auto;
+
+    min-height: calc(100dvh - 24px);
+
+    position: fixed;
+
+    top: 12px;
+
+    left: 8px;
+
+    bottom: 12px;
+
+    z-index: 1000;
+
+    display: flex;
+
+    flex-direction: column;
+
+    overflow: hidden;
+
+    padding: 10px 8px;
+
+    box-sizing: border-box;
+
+    border-radius: 28px;
+
+    transition:
+
+        transform 0.3s ease,
+
+        width 0.3s ease;
+
+    box-shadow:
+
+        10px 0 35px rgba(0, 0, 0, 0.25);
+
+}
+
+/* =========================================================
+
+   PROFILE
+
+   ========================================================= */
+
+.sidebar-profile {
+
+    flex-shrink: 0;
+
+    padding: 14px 12px 18px;
+
+    box-sizing: border-box;
+
+}
+
+/* =========================================================
+
+   NAVIGATION
+
+   ========================================================= */
+
+.sidebar-nav {
+
+    flex: 1;
+
+    min-height: 0;
+
+    overflow-y: auto;
+
+    overflow-x: hidden;
+
+    padding: 14px 4px 18px;
+
+    box-sizing: border-box;
+
+    scrollbar-width: thin;
+
+    scrollbar-color:
+
+        rgba(139, 92, 246, 0.75)
+
+        transparent;
+
+    overscroll-behavior: contain;
+
+}
+
+/* =========================================================
+
+   CUSTOM SCROLLBAR
+
+   ========================================================= */
+
+.sidebar-nav::-webkit-scrollbar {
+
+    width: 5px;
+
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+
+    background: transparent;
+
+    border-radius: 10px;
+
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+
+    background: linear-gradient(
+
+        180deg,
+
+        rgba(139, 92, 246, 0.85),
+
+        rgba(99, 102, 241, 0.75)
+
+    );
+
+    border-radius: 10px;
+
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+
+    background: linear-gradient(
+
+        180deg,
+
+        rgba(167, 139, 250, 0.95),
+
+        rgba(129, 140, 248, 0.9)
+
+    );
+
+}
+
+/* =========================================================
+
+   SIDEBAR ITEMS
+
+   ========================================================= */
+
+.sidebar-item {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    width: 100%;
+
+    min-height: 44px;
+
+    margin: 3px 4px;
+
+    padding: 12px 16px;
+
+    box-sizing: border-box;
+
+    white-space: nowrap;
+
+    text-decoration: none;
+
+}
+
+/* =========================================================
+
+   ICON
+
+   ========================================================= */
+
+.sidebar-icon {
+
+    width: 22px;
+
+    min-width: 22px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-shrink: 0;
+
+}
+
+.sidebar-icon svg {
+
+    width: 19px;
+
+    height: 19px;
+
+}
+
+/* =========================================================
+
+   LOGOUT
+
+   ========================================================= */
+
+.sidebar-bottom {
+
+    flex-shrink: 0;
+
+    padding: 8px 4px 4px;
+
+    box-sizing: border-box;
+
+}
+
+/* =========================================================
+
+   MOBILE MENU BUTTON
+
+   ========================================================= */
+
+.mobile-menu-button {
+
+    display: none;
+
+    position: fixed;
+
+    top: 18px;
+
+    left: 18px;
+
+    z-index: 1100;
+
+    width: 44px;
+
+    height: 44px;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    border-radius: 13px;
+
+    cursor: pointer;
+
+    color: #ffffff;
+
+    background: rgba(30, 20, 45, 0.88);
+
+    backdrop-filter: blur(14px);
+
+    -webkit-backdrop-filter: blur(14px);
+
+    box-shadow:
+
+        0 8px 25px rgba(0, 0, 0, 0.25);
+
+    transition:
+
+        transform 0.2s ease,
+
+        background 0.2s ease;
+
+}
+
+.mobile-menu-button:hover {
+
+    transform: translateY(-1px);
+
+}
+
+.mobile-menu-button svg {
+
+    width: 21px;
+
+    height: 21px;
+
+}
+
+/* =========================================================
+
+   MOBILE OVERLAY
+
+   ========================================================= */
+
+.sidebar-overlay {
+
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 999;
+
+    background: rgba(0, 0, 0, 0.45);
+
+    backdrop-filter: blur(2px);
+
+    -webkit-backdrop-filter: blur(2px);
+
+}
+
+/* =========================================================
+
+   TABLET
+
+   769px - 1024px
+
+   ========================================================= */
+
+@media (max-width: 1024px) {
+
+    .glass-sidebar {
+
+        width: 260px;
+
+        top: 10px;
+
+        left: 7px;
+
+        bottom: 10px;
+
+        min-height: calc(100dvh - 20px);
+
+        border-radius: 25px;
+
+    }
+
+    .sidebar-item {
+
+        padding: 11px 13px;
+
+        font-size: 14px;
+
+        gap: 11px;
+
+    }
+
+    .sidebar-icon {
+
+        width: 20px;
+
+        min-width: 20px;
+
+    }
+
+    .sidebar-icon svg {
+
+        width: 18px;
+
+        height: 18px;
+
+    }
+
+}
+
+/* =========================================================
+
+   MOBILE
+
+   <= 768px
+
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    /* Hamburger */
+
+    .mobile-menu-button {
+
+        display: flex;
+
+    }
+
+    /* Sidebar */
+
+    .glass-sidebar {
+
+        width: 270px;
+
+        max-width: 82vw;
+
+        top: 10px;
+
+        left: 8px;
+
+        bottom: 10px;
+
+        min-height: calc(100dvh - 20px);
+
+        transform: translateX(-115%);
+
+        border-radius: 24px;
+
+        box-shadow:
+
+            10px 0 35px rgba(0, 0, 0, 0.40);
+
+    }
+
+    /* Open Sidebar */
+
+    .glass-sidebar.open {
+
+        transform: translateX(0);
+
+    }
+
+    /* Overlay */
+
+    .sidebar-overlay {
+
+        display: block;
+
+        opacity: 0;
+
+        visibility: hidden;
+
+        pointer-events: none;
+
+        transition:
+
+            opacity 0.3s ease,
+
+            visibility 0.3s ease;
+
+    }
+
+    .sidebar-overlay.open {
+
+        opacity: 1;
+
+        visibility: visible;
+
+        pointer-events: auto;
+
+    }
+
+    /* Navigation */
+
+    .sidebar-nav {
+
+        padding-left: 8px;
+
+        padding-right: 6px;
+
+    }
+
+    /* Items */
+
+    .sidebar-item {
+
+        min-height: 44px;
+
+        padding: 11px 13px;
+
+        gap: 11px;
+
+    }
+
+    /* Bottom */
+
+    .sidebar-bottom {
+
+        padding-bottom: 8px;
+
+    }
+
+}
+
+/* =========================================================
+
+   SMALL MOBILE
+
+   <= 480px
+
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .mobile-menu-button {
+
+        top: 14px;
+
+        left: 14px;
+
+        width: 42px;
+
+        height: 42px;
+
+        border-radius: 12px;
+
+    }
+
+    .glass-sidebar {
+
+        width: 255px;
+
+        max-width: 86vw;
+
+        left: 6px;
+
+        top: 8px;
+
+        bottom: 8px;
+
+        min-height: calc(100dvh - 16px);
+
+        border-radius: 22px;
+
+    }
+
+    .sidebar-profile {
+
+        padding-left: 10px;
+
+        padding-right: 10px;
+
+    }
+
+    .sidebar-item {
+
+        padding: 10px 12px;
+
+        font-size: 13px;
+
+        gap: 10px;
+
+    }
+
+    .sidebar-icon {
+
+        width: 20px;
+
+        min-width: 20px;
+
+    }
+
+    .sidebar-icon svg {
+
+        width: 17px;
+
+        height: 17px;
+
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+
+        width: 4px;
+
+    }
+
+}
+
+/* =========================================================
+
+   VERY SMALL PHONES
+
+   <= 360px
+
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+    .mobile-menu-button {
+
+        top: 12px;
+
+        left: 12px;
+
+        width: 40px;
+
+        height: 40px;
+
+    }
+
+    .glass-sidebar {
+
+        width: 240px;
+
+        max-width: 88vw;
+
+        border-radius: 20px;
+
+    }
+
+    .sidebar-item {
+
+        padding: 9px 10px;
+
+        font-size: 12px;
+
+        gap: 9px;
+
+    }
+
+    .sidebar-profile {
+
+        padding: 12px 8px 15px;
+
+    }
+
+}
+
+/* =========================================================
+
+   LANDSCAPE MOBILE
+
+   ========================================================= */
+
+@media (max-width: 768px) and (orientation: landscape) {
+
+    .glass-sidebar {
+
+        top: 6px;
+
+        bottom: 6px;
+
+        min-height: calc(100dvh - 12px);
+
+    }
+
+    .sidebar-profile {
+
+        padding-top: 8px;
+
+        padding-bottom: 10px;
+
+    }
+
+    .sidebar-nav {
+
+        padding-top: 8px;
+
+        padding-bottom: 10px;
+
+    }
+
+    .sidebar-item {
+
+        min-height: 38px;
+
+        padding-top: 8px;
+
+        padding-bottom: 8px;
+
+    }
+
+}
+
+/* =========================================================
+
+   REDUCED MOTION
+
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .glass-sidebar,
+
+    .mobile-menu-button,
+
+    .sidebar-overlay {
+
+        transition: none;
+
+    }
+
+}
+
+.sidebar-notification-icon {
+    position: relative;
+    height: 22px;
+    overflow: visible;
+}
+.sidebar-notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    box-sizing: border-box;
+    border: 2px solid #17121f;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+}
+
+</style>
+
+<!-- =========================================================
+
+     MOBILE MENU BUTTON
+
+     ========================================================= -->
+
+<button
+
+    type="button"
+
+    class="mobile-menu-button"
+
+    id="mobileMenuButton"
+
+    aria-label="Open sidebar"
+
+    aria-controls="sidebar"
+
+    aria-expanded="false">
+
+    <i data-lucide="menu"></i>
+
+</button>
+
+<!-- =========================================================
+
+     MOBILE OVERLAY
+
+     ========================================================= -->
+
+<div
+
+    class="sidebar-overlay"
+
+    id="sidebarOverlay">
+
+</div>
+
+<!-- =========================================================
+
+     TEAM LEAD SIDEBAR
+
+     ========================================================= -->
+
 <aside id="sidebar" class="glass-sidebar">
 
-    <!-- TEAM LEAD PROFILE -->
+    <!-- =====================================================
+
+         TEAM LEAD PROFILE
+
+         ===================================================== -->
+
     <div class="sidebar-profile">
+
         <div class="sidebar-logo">
-            <img src="{% static 'images/logo.png' %}" alt="Team Lead Logo">
+
+            <img
+
+                src="{% static 'images/logo.png' %}"
+
+                alt="Team Lead Logo">
+
         </div>
 
         <div class="sidebar-profile-text">
+
             <h3>TEAM LEAD</h3>
+
             <span>TAGGING HERE</span>
+
         </div>
+
     </div>
 
+    <!-- =====================================================
 
-    <!-- NAVIGATION -->
+         NAVIGATION
+
+         ===================================================== -->
+
     <nav class="sidebar-nav">
 
         <!-- Dashboard -->
-        <a href="{% url 'teamlead_dashboard' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_dashboard' %}active{% endif %}">
+
+        <a
+
+            href="{% url 'teamlead_dashboard' %}"
+
+            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_dashboard' %}active{% endif %}">
 
             <span class="sidebar-icon">
+
                 <i data-lucide="layout-dashboard"></i>
+
             </span>
 
             <span>Dashboard</span>
+
         </a>
 
+        <!-- Announcements -->
 
-        <!-- Reports -->
-        <a href="{% url 'teamlead_reports' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_reports' %}active{% endif %}">
+        <a
+
+            href="{% url 'teamlead_announcements' %}"
+
+            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_announcements' %}active{% endif %}">
 
             <span class="sidebar-icon">
+
+                <i data-lucide="megaphone"></i>
+
+            </span>
+
+            <span>Announcements</span>
+
+        </a>
+
+        <!-- Reports -->
+
+        <a
+
+            href="{% url 'teamlead_reports' %}"
+
+            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_reports' %}active{% endif %}">
+
+            <span class="sidebar-icon">
+
                 <i data-lucide="chart-no-axes-combined"></i>
+
             </span>
 
             <span>Reports</span>
+
         </a>
 
-
         <!-- Project Assigning -->
-        <a href="{% url 'teamlead_project_assigning' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_project_assigning' %}active{% endif %}">
+
+        <a
+
+            href="{% url 'teamlead_project_assigning' %}"
+
+            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_project_assigning' %}active{% endif %}">
 
             <span class="sidebar-icon">
+
                 <i data-lucide="clipboard-list"></i>
+
             </span>
 
             <span>Project Assigning</span>
+
         </a>
 
-
         <!-- Notepad -->
-        <a href="{% url 'teamlead_notepad' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_notepad' %}active{% endif %}">
+
+        <a
+
+            href="{% url 'teamlead_notepad' %}"
+
+            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_notepad' %}active{% endif %}">
 
             <span class="sidebar-icon">
+
                 <i data-lucide="notebook-pen"></i>
+
             </span>
 
             <span>Notepad</span>
+
         </a>
 
-
         <!-- Knowledge Repository -->
-        <a href="{% url 'teamlead_repository' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_repository' %}active{% endif %}">
+
+        <a
+
+            href="{% url 'teamlead_repository' %}"
+
+            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_repository' %}active{% endif %}">
 
             <span class="sidebar-icon">
+
                 <i data-lucide="book-open"></i>
+
             </span>
 
             <span>Knowledge Repository</span>
+
         </a>
-
-
-        <!-- Profile -->
-        <a href="{% url 'teamlead_profile' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_profile' %}active{% endif %}">
-
-            <span class="sidebar-icon">
-                <i data-lucide="circle-user-round"></i>
-            </span>
-
-            <span>Profile</span>
-        </a>
-
 
         <!-- My Task -->
-        <a href="{% url 'teamlead_task' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_task' %}active{% endif %}">
+
+        <a
+
+            href="{% url 'teamlead_task' %}"
+
+            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_task' %}active{% endif %}">
 
             <span class="sidebar-icon">
+
                 <i data-lucide="list-checks"></i>
+
             </span>
 
             <span>My Task</span>
+
         </a>
 
-
         <!-- Chat -->
-        <a href="{% url 'teamlead_chat' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_chat' %}active{% endif %}">
+
+        <a
+
+            href="{% url 'teamlead_chat' %}"
+
+            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_chat' %}active{% endif %}">
 
             <span class="sidebar-icon">
+
                 <i data-lucide="message-circle"></i>
+
             </span>
 
             <span>Chat</span>
+
         </a>
 
-
         <!-- Google Meet -->
-        <a href="https://meet.google.com/"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="sidebar-item">
+
+        <a
+
+            href="{% url 'teamlead_google_meet' %}"
+
+            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_google_meet' %}active{% endif %}">
 
             <span class="sidebar-icon">
+
                 <i data-lucide="video"></i>
+
             </span>
 
             <span>Google Meet</span>
 
-            <span class="sidebar-external">
-                <i data-lucide="arrow-up-right"></i>
+        </a>
+
+<a
+
+    href="{% url 'teamlead_reminders' %}"
+
+    class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_reminders' %}active{% endif %}"
+
+>
+
+    <span class="sidebar-icon sidebar-reminder-icon">
+        <i data-lucide="calendar-clock" aria-hidden="true"></i>
+    </span>
+
+    <span>Reminders</span>
+
+</a>
+
+        <!-- Notifications -->
+
+<a
+
+    href="{% url 'teamlead_notifications' %}"
+
+    class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_notifications' %}active{% endif %}"
+
+>
+
+    <span class="sidebar-icon sidebar-notification-icon">
+
+        <i data-lucide="bell" aria-hidden="true"></i>
+{% if teamlead_unread_count %}
+
+        <span class="sidebar-notification-badge">
+
+            {% if teamlead_unread_count > 99 %}
+
+                99+
+
+            {% else %}
+
+                {{ teamlead_unread_count }}
+
+            {% endif %}
+
+        </span>
+
+    {% endif %}
+
+    </span>
+
+    <span>Notifications</span>
+
+</a>
+
+                <!-- Profile -->
+
+        <a
+
+            href="{% url 'teamlead_profile' %}"
+
+            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_profile' %}active{% endif %}">
+
+            <span class="sidebar-icon sidebar-profile-avatar" id="teamLeadSidebarAvatar" aria-hidden="true">
+
+                <span id="teamLeadSidebarInitial">T</span>
+
             </span>
+
+            <span>Profile</span>
+
         </a>
 
     </nav>
 
+    <!-- =====================================================
 
-    <!-- LOGOUT -->
+         LOGOUT
+
+         ===================================================== -->
+
     <div class="sidebar-bottom">
 
-        <a href="{% url 'teamlead_logout' %}"
-           class="sidebar-logout">
+        <a
+
+            href="{% url 'teamlead_logout' %}"
+
+            class="sidebar-logout">
 
             <span class="sidebar-icon">
+
                 <i data-lucide="log-out"></i>
+
             </span>
 
             <span>Logout</span>
@@ -151,3 +1056,422 @@
     </div>
 
 </aside>
+
+<!-- =========================================================
+
+     SIDEBAR RESPONSIVE SCRIPT
+
+     ========================================================= -->
+
+<script>
+
+(function () {
+
+    const sidebar = document.getElementById("sidebar");
+
+    const menuButton = document.getElementById("mobileMenuButton");
+
+    const overlay = document.getElementById("sidebarOverlay");
+
+    if (!sidebar || !menuButton || !overlay) {
+
+        return;
+
+    }
+
+    /* =====================================================
+
+       OPEN SIDEBAR
+
+       ===================================================== */
+
+    function openSidebar() {
+
+        sidebar.classList.add("open");
+
+        overlay.classList.add("open");
+
+        menuButton.setAttribute(
+
+            "aria-expanded",
+
+            "true"
+
+        );
+
+        menuButton.setAttribute(
+
+            "aria-label",
+
+            "Close sidebar"
+
+        );
+
+        menuButton.innerHTML =
+
+            '<i data-lucide="x"></i>';
+
+        if (typeof lucide !== "undefined") {
+
+            lucide.createIcons();
+
+        }
+
+    }
+
+    /* =====================================================
+
+       CLOSE SIDEBAR
+
+       ===================================================== */
+
+    function closeSidebar() {
+
+        sidebar.classList.remove("open");
+
+        overlay.classList.remove("open");
+
+        menuButton.setAttribute(
+
+            "aria-expanded",
+
+            "false"
+
+        );
+
+        menuButton.setAttribute(
+
+            "aria-label",
+
+            "Open sidebar"
+
+        );
+
+        menuButton.innerHTML =
+
+            '<i data-lucide="menu"></i>';
+
+        if (typeof lucide !== "undefined") {
+
+            lucide.createIcons();
+
+        }
+
+    }
+
+    /* =====================================================
+
+       TOGGLE SIDEBAR
+
+       ===================================================== */
+
+    function toggleSidebar() {
+
+        if (sidebar.classList.contains("open")) {
+
+            closeSidebar();
+
+        } else {
+
+            openSidebar();
+
+        }
+
+    }
+
+    /* =====================================================
+
+       MENU BUTTON
+
+       ===================================================== */
+
+    menuButton.addEventListener(
+
+        "click",
+
+        function (event) {
+
+            event.stopPropagation();
+
+            toggleSidebar();
+
+        }
+
+    );
+
+    /* =====================================================
+
+       OVERLAY CLICK
+
+       ===================================================== */
+
+    overlay.addEventListener(
+
+        "click",
+
+        function () {
+
+            closeSidebar();
+
+        }
+
+    );
+
+    /* =====================================================
+
+       CLOSE WHEN NAV ITEM IS CLICKED ON MOBILE
+
+       ===================================================== */
+
+    const sidebarLinks =
+
+        sidebar.querySelectorAll(
+
+            ".sidebar-item, .sidebar-logout"
+
+        );
+
+    sidebarLinks.forEach(function (link) {
+
+        link.addEventListener(
+
+            "click",
+
+            function () {
+
+                if (window.innerWidth <= 768) {
+
+                    closeSidebar();
+
+                }
+
+            }
+
+        );
+
+    });
+
+    /* =====================================================
+
+       ESC KEY
+
+       ===================================================== */
+
+    document.addEventListener(
+
+        "keydown",
+
+        function (event) {
+
+            if (
+
+                event.key === "Escape" &&
+
+                window.innerWidth <= 768 &&
+
+                sidebar.classList.contains("open")
+
+            ) {
+
+                closeSidebar();
+
+            }
+
+        }
+
+    );
+
+    /* =====================================================
+
+       RESET SIDEBAR WHEN RESIZING TO DESKTOP
+
+       ===================================================== */
+
+    window.addEventListener(
+
+        "resize",
+
+        function () {
+
+            if (window.innerWidth > 768) {
+
+                sidebar.classList.remove("open");
+
+                overlay.classList.remove("open");
+
+                menuButton.setAttribute(
+
+                    "aria-expanded",
+
+                    "false"
+
+                );
+
+            }
+
+        }
+
+    );
+
+})();
+
+</script>
+
+<style>
+
+    .sidebar-profile-avatar {
+
+        position: relative;
+
+        width: 24px;
+
+        min-width: 24px;
+
+        height: 24px;
+
+        overflow: hidden;
+
+        border-radius: 50%;
+
+        color: #fff;
+
+        background: #7048c6;
+
+        font-size: 12px;
+
+        font-weight: 700;
+
+        line-height: 1;
+
+    }
+
+    .sidebar-profile-avatar img {
+
+        display: block;
+
+        position: absolute;
+
+        inset: 0;
+
+        width: 100%;
+
+        height: 100%;
+
+        object-fit: cover;
+
+    }
+
+</style>
+
+<script>
+
+(function () {
+
+    const avatar = document.getElementById('teamLeadSidebarAvatar');
+
+    if (!avatar) return;
+
+    fetch('{% url "get_logged_in_user_api" %}', { credentials: 'same-origin' })
+
+        .then(response => response.ok ? response.json() : null)
+
+        .then(user => {
+
+            if (!user) return;
+
+            const initial = document.getElementById('teamLeadSidebarInitial');
+
+            if (initial) initial.textContent = (user.name || 'T').trim().charAt(0).toUpperCase() || 'T';
+
+            if (user.profile_image_url) {
+
+                const image = document.createElement('img');
+
+                image.alt = '';
+
+                image.onload = function () { if (initial) initial.hidden = true; };
+
+                image.onerror = function () { image.remove(); };
+
+                image.src = user.profile_image_url;
+
+                avatar.appendChild(image);
+
+            }
+
+        })
+
+        .catch(() => {});
+
+})();
+
+</script>
+
+<style>
+/* Keep navigation aligned within the sidebar at every screen size. */
+.glass-sidebar .sidebar-item {
+    width: calc(100% - 8px);
+    flex-shrink: 0;
+    border: 1px solid transparent;
+    border-radius: 14px;
+}
+.glass-sidebar .sidebar-item.active {
+    color: #ffffff;
+    background: linear-gradient(110deg, #603b9f, #393d76);
+    border-color: rgba(179,145,245,.42);
+}
+.glass-sidebar .sidebar-item.active .sidebar-icon { color: #ffffff; }
+.glass-sidebar .sidebar-reminder-icon svg {
+    width: 17px;
+    height: 17px;
+}
+.glass-sidebar .sidebar-item:focus-visible {
+    outline: 2px solid #b794f6;
+    outline-offset: -2px;
+}
+@media (max-width: 768px) {
+    .glass-sidebar { max-width: min(82vw, 300px); }
+}
+</style>
+
+<script>
+(function () {
+    const sidebar = document.getElementById('sidebar');
+    const nav = sidebar && sidebar.querySelector('.sidebar-nav');
+    if (!nav) return;
+    const links = Array.from(nav.querySelectorAll('a.sidebar-item'));
+    const key = 'teamlead-sidebar-scroll';
+    const savePosition = () => {
+        try { sessionStorage.setItem(key, String(nav.scrollTop)); } catch (_) {}
+    };
+    const markCurrent = () => {
+        links.forEach(link => {
+            if (link.classList.contains('active')) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+    };
+    markCurrent();
+    requestAnimationFrame(() => {
+        try {
+            const saved = sessionStorage.getItem(key);
+            if (saved !== null && Number.isFinite(Number(saved))) nav.scrollTop = Number(saved);
+        } catch (_) {}
+        const active = nav.querySelector('.sidebar-item.active');
+        if (active) {
+            const itemRect = active.getBoundingClientRect();
+            const navRect = nav.getBoundingClientRect();
+            if (itemRect.top < navRect.top + 8) nav.scrollTop -= navRect.top + 8 - itemRect.top;
+            else if (itemRect.bottom > navRect.bottom - 8) nav.scrollTop += itemRect.bottom - navRect.bottom + 8;
+        }
+        savePosition();
+    });
+    nav.addEventListener('scroll', savePosition, {passive: true});
+    window.addEventListener('pagehide', savePosition);
+    links.forEach(link => link.addEventListener('click', event => {
+        if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        savePosition();
+        links.forEach(item => item.classList.toggle('active', item === link));
+        markCurrent();
+    }));
+})();
+</script>

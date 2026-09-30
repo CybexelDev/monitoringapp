@@ -44,6 +44,11 @@ urlpatterns = [
     path("teamlead/dashboard/", views.teamlead_dashboard, name="teamlead_dashboard"),
     path("teamlead_reports", views.teamlead_reports, name="teamlead_reports"),
     path(
+    "teamlead/edit-member/",
+    views.teamlead_edit_member,
+    name="teamlead_edit_member",
+    ),
+    path(
         "teamlead_project_assigning",
         views.teamlead_project_assigning,
         name="teamlead_project_assigning",
@@ -59,6 +64,12 @@ urlpatterns = [
     path(
         "teammember/dashboard/", views.teammember_dashboard, name="teammember_dashboard"
     ),
+    
+    path(
+    "teamlead/announcements/",
+    views.teamlead_announcements,
+    name="teamlead_announcements"
+),
     path("teamlead_repository/", views.teamlead_repository, name="teamlead_repository"),
     path(
         "teamlead_repository/delete/<int:pk>/",
@@ -66,7 +77,24 @@ urlpatterns = [
         name="teamlead_repository_delete",
     ),
     path("teamlead_profile/", views.teamlead_profile, name="teamlead_profile"),
+    path(
+    "teamlead_google_meet/",
+    views.teamlead_google_meet,
+    name="teamlead_google_meet",
+),
+
     path("teamlead_chat/", views.teamlead_chat, name="teamlead_chat"),
+    path(
+    "teamlead_chat/<int:user_id>/",
+    views.teamlead_chat_room,
+    name="teamlead_chat_room",
+),
+
+path(
+    "teamlead_chat/group/<int:group_id>/",
+    views.teamlead_group_chat_view,
+    name="teamlead_group_chat_view",
+),
     path("teamlead_notepad/", views.teamlead_notepad, name="teamlead_notepad"),
     path(
         "teamlead_notepad/delete/<int:pk>/",
@@ -106,4 +134,24 @@ urlpatterns = [
     path("chat/", views.teammember_chat, name="teammember_chat"),
     path("chat/<int:user_id>/", views.chat_room, name="chat_room"),
     path("chat/group/<int:group_id>/", views.group_chat_view, name="group_chat_view"),
+    path(
+    "teamlead/notifications/",
+    views.teamlead_notifications,
+    name="teamlead_notifications",
+),
+path(
+    "teamlead/notifications/read-all/",
+    views.teamlead_notifications_read_all,
+    name="teamlead_notifications_read_all",
+),
+path(
+    "teamlead/notifications/<int:notification_id>/open/",
+    views.teamlead_notification_open,
+    name="teamlead_notification_open",
+),
+path(
+    "teamlead/reminders/",
+    views.teamlead_reminders,
+    name="teamlead_reminders",
+),
 ]

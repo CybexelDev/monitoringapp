@@ -1,0 +1,1248 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Team Lead Chat Room - Cybexel</title>
+
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+
+    <!-- Existing CSS -->
+    <link
+        rel="stylesheet"
+        href="{% static 'css/admin.css' %}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/admin_chat.css' %}"
+    >
+
+</head>
+
+
+<body class="chat-page">
+
+
+<!-- =========================================================
+     MOBILE MENU BUTTON
+     ========================================================= -->
+
+<button
+    class="menu-toggle mobile-menu-button"
+    type="button"
+    aria-label="Open menu"
+>
+
+    <i data-lucide="menu"></i>
+
+</button>
+
+
+<!-- =========================================================
+     TEAM LEAD SIDEBAR
+     ========================================================= -->
+
+  {% include "components/teamlead_sidebar.html" %}
+
+
+
+<!-- =========================================================
+     MAIN CHAT
+     ========================================================= -->
+
+<main class="chat-main">
+
+    <div class="chat-shell">
+
+
+        <!-- =================================================
+             LEFT CHAT LIST
+             ================================================= -->
+
+        <section class="chat-list-panel">
+
+
+            <!-- Chat Header -->
+
+            <div class="chat-list-header">
+
+                <div>
+
+                    <span class="chat-eyebrow">
+                        TEAM LEAD
+                    </span>
+
+                    <h2>
+                        Chats
+                    </h2>
+
+                </div>
+
+
+                <!-- Create Group -->
+
+                <button
+                    type="button"
+                    id="openModalTop"
+                    class="chat-icon-button"
+                    aria-label="Create group"
+                >
+
+                    <i data-lucide="plus"></i>
+
+                </button>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 CHAT LIST SCROLL
+                 ================================================= -->
+
+            <div class="chat-list-scroll">
+
+
+                <!-- =================================================
+                     TEAM MEMBERS
+                     ================================================= -->
+
+                <div class="chat-section">
+
+                    <div class="chat-section-title">
+
+                        <span>
+                            Team Members
+                        </span>
+
+                        <span class="chat-count">
+                            {{ users|length }}
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="user-list"
+                        class="chat-user-list"
+                    >
+
+                        {% for user in users %}
+
+
+                        <a
+                            href="{% url 'teamlead_chat_room' user.id %}"
+                            class="chat-user-row"
+                        >
+
+
+                            <!-- Avatar -->
+
+                            <div class="chat-avatar-wrap">
+
+                                {% if user.profile_image %}
+
+                                <img
+                                    src="{{ user.profile_image.url }}"
+                                    class="chat-avatar"
+                                    alt="{{ user.name }}"
+                                >
+
+                                {% else %}
+
+                                <div class="chat-avatar chat-avatar-fallback">
+
+                                    {% if user.id == current_user.id %}
+
+                                        M
+
+                                    {% else %}
+
+                                        {{ user.name|first|upper }}
+
+                                    {% endif %}
+
+                                </div>
+
+                                {% endif %}
+
+
+                                <!-- Online status -->
+
+                                <span
+                                    class="user-status-dot"
+                                    data-user-id="{{ user.id }}"
+                                    title="Active"
+                                ></span>
+
+                            </div>
+
+
+                            <!-- User Details -->
+
+                            <div class="chat-user-info">
+
+                                <p class="chat-user-name">
+
+                                    {% if user.id == current_user.id %}
+
+                                        Me
+
+                                    {% else %}
+
+                                        {{ user.name }}
+
+                                    {% endif %}
+
+                                </p>
+
+
+                                <p class="chat-user-sub">
+
+                                    {{ user.phone }}
+
+                                </p>
+
+                            </div>
+
+
+                            <!-- Arrow -->
+
+                            <i
+                                data-lucide="chevron-right"
+                                class="chat-row-arrow"
+                            ></i>
+
+
+                        </a>
+
+
+                        {% empty %}
+
+
+                        <div class="chat-empty">
+
+                            No team members found.
+
+                        </div>
+
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     GROUPS
+                     ================================================= -->
+
+                <div class="chat-section groups-section">
+
+
+                    <div class="chat-section-title">
+
+                        <span>
+                            Groups
+                        </span>
+
+
+                        <button
+                            type="button"
+                            id="openModal"
+                            class="chat-small-plus"
+                            aria-label="Create group"
+                        >
+
+                            <i data-lucide="plus"></i>
+
+                        </button>
+
+                    </div>
+
+
+                    <div class="chat-group-list">
+
+
+                        {% for group in groups %}
+
+
+                        <a
+                            href="{% url 'teamlead_group_chat_view' group.id %}"
+                            class="chat-group-row"
+                        >
+
+                            <span class="chat-group-icon">
+
+                                <i data-lucide="users-round"></i>
+
+                            </span>
+
+
+                            <span class="chat-group-name">
+
+                                {{ group.name }}
+
+                            </span>
+
+
+                            <i
+                                data-lucide="chevron-right"
+                                class="chat-row-arrow"
+                            ></i>
+
+                        </a>
+
+
+                        {% empty %}
+
+
+                        <div class="chat-empty">
+
+                            No group chats yet.
+
+                        </div>
+
+
+                        {% endfor %}
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             CHAT CONVERSATION
+             ================================================= -->
+
+        <section
+            id="chat-window"
+            class="chat-conversation"
+        >
+
+
+            <!-- =================================================
+                 CHAT HEADER
+                 ================================================= -->
+
+            <header class="chat-conversation-header">
+
+
+                <div class="conversation-user">
+
+
+                    <!-- User Avatar -->
+
+                    <div class="chat-avatar-wrap large">
+
+
+                        {% if other_user.profile_image %}
+
+                        <img
+                            id="chat-avatar"
+                            src="{{ other_user.profile_image.url }}"
+                            class="chat-avatar"
+                            alt="{{ other_user.name }}"
+                        >
+
+                        {% else %}
+
+                        <div
+                            id="chat-avatar"
+                            class="chat-avatar chat-avatar-fallback"
+                        >
+
+                            {{ other_user.name|first|upper }}
+
+                        </div>
+
+                        {% endif %}
+
+
+                        <span
+                            class="user-status-dot large-dot"
+                            data-user-id="{{ other_user.id }}"
+                            title="Active"
+                        ></span>
+
+
+                    </div>
+
+
+                    <!-- User Info -->
+
+                    <div>
+
+                        <p
+                            id="chat-username"
+                            class="conversation-name"
+                        >
+
+                            {{ other_user.name }}
+
+                        </p>
+
+
+                        <p
+                            id="chat-userphone"
+                            class="conversation-sub"
+                        >
+
+                            {{ other_user.phone }}
+
+                        </p>
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- Online -->
+
+                <div class="conversation-status">
+
+                    <span class="status-dot"></span>
+
+                    Online
+
+                </div>
+
+
+            </header>
+
+
+
+            <!-- =================================================
+                 MESSAGES
+                 ================================================= -->
+
+            <div
+                id="chat-messages"
+                class="chat-messages"
+            >
+
+
+                {% for msg in messages %}
+
+
+                    {% if msg.sender.id == current_user.id %}
+
+
+                    <!-- SENT -->
+
+                    <div class="message-row sent">
+
+                        <p class="message-bubble sent-bubble">
+
+                            {{ msg.content }}
+
+                        </p>
+
+                    </div>
+
+
+                    {% else %}
+
+
+                    <!-- RECEIVED -->
+
+                    <div class="message-row received">
+
+
+                        {% if msg.sender.profile_image %}
+
+                        <img
+                            src="{{ msg.sender.profile_image.url }}"
+                            class="message-avatar"
+                            alt="{{ msg.sender.name }}"
+                        >
+
+                        {% else %}
+
+                        <div class="message-avatar message-avatar-fallback">
+
+                            {{ msg.sender.name|first|upper }}
+
+                        </div>
+
+                        {% endif %}
+
+
+                        <p class="message-bubble received-bubble">
+
+                            {{ msg.content }}
+
+                        </p>
+
+
+                    </div>
+
+
+                    {% endif %}
+
+
+                {% endfor %}
+
+
+            </div>
+
+
+
+            <!-- =================================================
+                 MESSAGE COMPOSER
+                 ================================================= -->
+
+            <div class="chat-composer">
+
+
+                <input
+                    id="chat-input"
+                    type="text"
+                    placeholder="Type a message..."
+                    autocomplete="off"
+                >
+
+
+                <button
+                    id="sendBtn"
+                    type="button"
+                    class="send-button"
+                >
+
+                    <i data-lucide="send"></i>
+
+                    <span>
+                        Send
+                    </span>
+
+                </button>
+
+
+            </div>
+
+
+        </section>
+
+
+    </div>
+
+</main>
+
+
+
+<!-- =========================================================
+     CREATE GROUP MODAL
+     ========================================================= -->
+
+<div
+    id="groupModal"
+    class="chat-modal hidden"
+>
+
+
+    <div class="chat-modal-card">
+
+
+        <!-- Modal Header -->
+
+        <div class="chat-modal-header">
+
+
+            <div>
+
+                <span class="chat-eyebrow">
+                    GROUP CHAT
+                </span>
+
+                <h2>
+                    Create New Group
+                </h2>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="closeModal"
+                class="chat-modal-close"
+                aria-label="Close"
+            >
+
+                <i data-lucide="x"></i>
+
+            </button>
+
+
+        </div>
+
+
+
+        <!-- Group Form -->
+
+        <form
+            method="POST"
+            class="chat-modal-form"
+        >
+
+            {% csrf_token %}
+
+
+            <input
+                type="hidden"
+                name="action"
+                value="create_group"
+            >
+
+
+            <!-- Group Name -->
+
+            <label for="group-name">
+                Group Name
+            </label>
+
+
+            <input
+                id="group-name"
+                type="text"
+                name="group_name"
+                placeholder="Enter group name"
+                required
+            >
+
+
+
+            <!-- Members -->
+
+            <label for="group-members">
+                Add Members
+            </label>
+
+
+            <select
+                id="group-members"
+                name="members"
+                multiple
+            >
+
+                {% for user in users %}
+
+                <option value="{{ user.id }}">
+                    {{ user.name }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+
+
+            <!-- Buttons -->
+
+            <div class="chat-modal-actions">
+
+
+                <button
+                    type="button"
+                    id="cancelModal"
+                    class="chat-secondary-btn"
+                >
+
+                    Cancel
+
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="chat-primary-btn"
+                >
+
+                    <i data-lucide="plus"></i>
+
+                    Create Group
+
+                </button>
+
+
+            </div>
+
+
+        </form>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     WEBSOCKET CHAT
+     ========================================================= -->
+
+<script>
+
+const roomId = "{{ room.id }}";
+
+const currentUserId =
+    Number("{{ current_user.id }}");
+
+
+const wsScheme =
+    window.location.protocol === "https:"
+        ? "wss"
+        : "ws";
+
+
+const chatSocket =
+    new WebSocket(
+        `${wsScheme}://${window.location.host}/ws/chat/${roomId}/`
+    );
+
+
+
+const messagesContainer =
+    document.querySelector("#chat-messages");
+
+
+const input =
+    document.querySelector("#chat-input");
+
+
+const sendBtn =
+    document.querySelector("#sendBtn");
+
+
+
+/* =========================================================
+   APPEND MESSAGE
+   ========================================================= */
+
+function appendMessage(
+    message,
+    senderId,
+    senderName = "",
+    senderProfile = null
+) {
+
+    const isCurrentUser =
+        Number(senderId) === currentUserId;
+
+
+    const wrapper =
+        document.createElement("div");
+
+
+    wrapper.className =
+        isCurrentUser
+            ? "message-row sent dynamic-message"
+            : "message-row received dynamic-message";
+
+
+    /* RECEIVED AVATAR */
+
+    if (!isCurrentUser) {
+
+        if (senderProfile) {
+
+            const avatar =
+                document.createElement("img");
+
+            avatar.src =
+                senderProfile;
+
+            avatar.className =
+                "message-avatar";
+
+            avatar.alt =
+                senderName || "User";
+
+            wrapper.appendChild(avatar);
+
+        } else {
+
+            const avatar =
+                document.createElement("div");
+
+            avatar.className =
+                "message-avatar message-avatar-fallback";
+
+            avatar.textContent =
+                senderName
+                    ? senderName.charAt(0).toUpperCase()
+                    : "U";
+
+            wrapper.appendChild(avatar);
+
+        }
+
+    }
+
+
+    /* MESSAGE BUBBLE */
+
+    const bubble =
+        document.createElement("p");
+
+
+    bubble.className =
+        isCurrentUser
+            ? "message-bubble sent-bubble"
+            : "message-bubble received-bubble";
+
+
+    /*
+       textContent is used intentionally
+       so HTML cannot be injected into messages.
+    */
+
+    bubble.textContent =
+        message;
+
+
+    wrapper.appendChild(bubble);
+
+
+    messagesContainer.appendChild(wrapper);
+
+
+    /* Scroll bottom */
+
+    messagesContainer.scrollTop =
+        messagesContainer.scrollHeight;
+
+}
+
+
+
+/* =========================================================
+   WEBSOCKET MESSAGE
+   ========================================================= */
+
+chatSocket.onmessage = function (event) {
+
+    const data =
+        JSON.parse(event.data);
+
+
+    const senderId =
+        Number(data.sender_id);
+
+
+    /*
+       Current user's message is already
+       displayed immediately when sent.
+    */
+
+    if (senderId !== currentUserId) {
+
+        appendMessage(
+            data.message,
+            senderId,
+            data.sender,
+            data.sender_profile || null
+        );
+
+    }
+
+};
+
+
+
+/* =========================================================
+   SEND MESSAGE
+   ========================================================= */
+
+function sendMessage() {
+
+    const message =
+        input.value.trim();
+
+
+    if (!message) {
+        return;
+    }
+
+
+    /*
+       Show message immediately
+    */
+
+    appendMessage(
+        message,
+        currentUserId
+    );
+
+
+    /*
+       Send through WebSocket
+    */
+
+    if (
+        chatSocket.readyState === WebSocket.OPEN
+    ) {
+
+        chatSocket.send(
+            JSON.stringify({
+
+                message: message,
+
+                sender_id:
+                    currentUserId
+
+            })
+        );
+
+    }
+
+
+    input.value = "";
+
+    input.focus();
+
+}
+
+
+
+/* =========================================================
+   SEND BUTTON
+   ========================================================= */
+
+if (sendBtn) {
+
+    sendBtn.addEventListener(
+        "click",
+        sendMessage
+    );
+
+}
+
+
+
+/* =========================================================
+   ENTER KEY
+   ========================================================= */
+
+if (input) {
+
+    input.addEventListener(
+        "keypress",
+        function (event) {
+
+            if (event.key === "Enter") {
+
+                event.preventDefault();
+
+                sendMessage();
+
+            }
+
+        }
+    );
+
+}
+
+
+
+/* =========================================================
+   SOCKET EVENTS
+   ========================================================= */
+
+chatSocket.onopen = function () {
+
+    console.log(
+        "Team Lead chat connected."
+    );
+
+};
+
+
+chatSocket.onerror = function (error) {
+
+    console.error(
+        "Chat WebSocket error:",
+        error
+    );
+
+};
+
+
+chatSocket.onclose = function () {
+
+    console.log(
+        "Team Lead chat disconnected."
+    );
+
+};
+
+
+
+/* =========================================================
+   SCROLL TO BOTTOM
+   ========================================================= */
+
+window.addEventListener(
+    "load",
+    function () {
+
+        if (messagesContainer) {
+
+            messagesContainer.scrollTop =
+                messagesContainer.scrollHeight;
+
+        }
+
+    }
+);
+
+</script>
+
+
+
+<!-- =========================================================
+     GROUP MODAL
+     ========================================================= -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+
+        const modal =
+            document.getElementById(
+                "groupModal"
+            );
+
+
+        const openButtons = [
+
+            document.getElementById(
+                "openModal"
+            ),
+
+            document.getElementById(
+                "openModalTop"
+            )
+
+        ].filter(Boolean);
+
+
+        const closeButtons = [
+
+            document.getElementById(
+                "closeModal"
+            ),
+
+            document.getElementById(
+                "cancelModal"
+            )
+
+        ].filter(Boolean);
+
+
+
+        /* OPEN */
+
+        openButtons.forEach(
+            function (button) {
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        modal?.classList.remove(
+                            "hidden"
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+
+        /* CLOSE */
+
+        closeButtons.forEach(
+            function (button) {
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        modal?.classList.add(
+                            "hidden"
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+
+        /* CLICK OUTSIDE */
+
+        modal?.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target === modal
+                ) {
+
+                    modal.classList.add(
+                        "hidden"
+                    );
+
+                }
+
+            }
+        );
+
+
+    }
+);
+
+</script>
+
+
+
+<!-- =========================================================
+     EXISTING ADMIN JS
+     ========================================================= -->
+
+<script src="{% static 'js/admin.js' %}"></script>
+
+
+
+<!-- =========================================================
+     ICONS + MOBILE SIDEBAR
+     ========================================================= -->
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+
+        /* Lucide */
+
+        if (window.lucide) {
+
+            lucide.createIcons();
+
+        }
+
+
+
+        /* Mobile menu */
+
+        document
+            .querySelectorAll(".menu-toggle")
+            .forEach(
+                function (button) {
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+
+                            const sidebar =
+                                document.getElementById(
+                                    "sidebar"
+                                );
+
+
+                            sidebar?.classList.toggle(
+                                "open"
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+
+
+        /* Close sidebar after click */
+
+        const sidebar =
+            document.getElementById(
+                "sidebar"
+            );
+
+
+        document
+            .querySelectorAll(
+                ".sidebar-item, .sidebar-logout"
+            )
+            .forEach(
+                function (item) {
+
+                    item.addEventListener(
+                        "click",
+                        function () {
+
+                            if (
+                                window.innerWidth <= 768
+                            ) {
+
+                                sidebar?.classList.remove(
+                                    "open"
+                                );
+
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+
+    }
+);
+
+</script>
+
+
+
+<!-- Activity -->
+<script src="{% static 'js/activity.js' %}"></script>
+
+
+</body>
+
+</html>

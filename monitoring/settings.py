@@ -24,6 +24,7 @@ ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', 'cybexeltechnologies.com']
 
 # Application definition
 INSTALLED_APPS = [
+    "daphne",
     "jazzmin",
     'django.contrib.admin',
     'django.contrib.auth',
@@ -33,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'monitoringapp',
     "channels",   # ✅ for WebSockets
+    "chat",
 ]
 
 MIDDLEWARE = [

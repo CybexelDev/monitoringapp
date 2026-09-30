@@ -1,0 +1,513 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Notifications - Team Lead</title>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        html, body { margin: 0; min-height: 100%; }
+        body {
+            background: radial-gradient(circle at 15% 10%, rgba(92,47,145,.16), transparent 28%),
+                radial-gradient(circle at 85% 15%, rgba(40,88,160,.12), transparent 30%), #08080d;
+            color: #f8fafc;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        .notification-main { margin-left: 290px; padding: 24px; min-width: 0; }
+        .notification-shell {
+            max-width: 1250px; margin: 0 auto; padding: 26px;
+            border: 1px solid rgba(255,255,255,.1); border-radius: 24px;
+            background: linear-gradient(145deg, rgba(17,16,24,.96), rgba(8,9,14,.98));
+            box-shadow: 0 25px 70px rgba(0,0,0,.25);
+        }
+        .notification-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px; margin-bottom: 23px; }
+        .notification-eyebrow { display: block; margin-bottom: 8px; color: #a78bfa; font-size: 10px; font-weight: 750; letter-spacing: .12em; }
+        .notification-header h1 { margin: 0; font-size: 25px; font-weight: 750; }
+        .notification-header p { margin: 8px 0 0; color: #a1a1aa; font-size: 12px; }
+        .notification-header-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .notification-unread-count { padding: 7px 11px; border-radius: 20px; color: #d8c7ff; background: rgba(139,92,246,.12); border: 1px solid rgba(167,139,250,.22); font-size: 11px; font-weight: 650; }
+        .notification-clear, .notification-open {
+            display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+            min-height: 36px; padding: 0 12px; border-radius: 9px;
+            border: 1px solid rgba(167,139,250,.35); background: rgba(139,92,246,.1);
+            color: #e4d7ff; font: inherit; font-size: 11px; font-weight: 650; cursor: pointer;
+        }
+        .notification-clear:hover, .notification-open:hover { background: rgba(139,92,246,.22); border-color: #a78bfa; }
+        .notification-clear svg, .notification-open svg { width: 14px; height: 14px; }
+        .notification-header form, .notification-table form { margin: 0; }
+        .notification-table-scroll {
+            max-height: min(580px, 65vh); overflow: auto; overscroll-behavior: contain;
+            border: 1px solid rgba(255,255,255,.09); border-radius: 14px;
+            background: #101017; scrollbar-width: thin; scrollbar-color: #7650bc transparent;
+        }
+        .notification-table-scroll::-webkit-scrollbar { width: 7px; height: 7px; }
+        .notification-table-scroll::-webkit-scrollbar-thumb { background: #7650bc; border-radius: 20px; }
+        .notification-table { width: 100%; min-width: 660px; border-collapse: separate; border-spacing: 0; }
+        .notification-table th { position: sticky; top: 0; z-index: 2; padding: 15px 18px; background: #1b1822; border-bottom: 1px solid rgba(255,255,255,.1); color: #aaa2b6; font-size: 10px; font-weight: 750; letter-spacing: .07em; text-align: left; text-transform: uppercase; }
+        .notification-table td { padding: 18px; border-bottom: 1px solid rgba(255,255,255,.065); vertical-align: middle; }
+        .notification-table tr:last-child td { border-bottom: 0; }
+        .notification-row.unread { background: rgba(139,92,246,.065); }
+        .notification-row:hover { background: rgba(139,92,246,.1); }
+        .notification-detail { display: flex; align-items: flex-start; gap: 12px; }
+        .notification-icon { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: rgba(139,92,246,.13); color: #bca0fa; }
+        .notification-icon svg { width: 17px; height: 17px; }
+        .notification-content { min-width: 0; max-width: 620px; overflow-wrap: anywhere; }
+        .notification-content strong { display: block; color: #f1eafa; font-size: 13px; font-weight: 650; line-height: 1.5; }
+        .notification-content p { margin: 5px 0 0; color: #a8a0b3; font-size: 12px; line-height: 1.65; white-space: pre-line; }
+        .notification-date { min-width: 125px; white-space: nowrap; color: #b5adbf; font-size: 11px; line-height: 1.7; }
+        .notification-date span { display: block; color: #85808f; font-size: 10px; }
+        .notification-status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid rgba(255,255,255,.1); border-radius: 20px; color: #a1a1aa; font-size: 10px; white-space: nowrap; }
+        .notification-status.is-unread { color: #c4b5fd; border-color: rgba(167,139,250,.3); }
+        .notification-status.is-unread::before { content: ''; width: 5px; height: 5px; background: #a78bfa; border-radius: 50%; }
+        .notification-action { width: 95px; }
+        .notification-empty { padding: 65px 20px; text-align: center; }
+        .notification-empty-icon { display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 16px; border-radius: 15px; background: rgba(139,92,246,.1); color: #a78bfa; }
+        .notification-empty h2 { margin: 0 0 8px; font-size: 16px; }
+        .notification-empty p { margin: 0; color: #9991a5; font-size: 12px; line-height: 1.7; }
+        button:focus-visible, a:focus-visible, .notification-table-scroll:focus-visible { outline: 2px solid #c4b5fd; outline-offset: 3px; }
+        .notification-toolbar { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+        .notification-search { display:flex; align-items:center; gap:9px; flex:1; min-width:200px; padding:0 12px; border:1px solid #34303f; border-radius:10px; background:#111018; }
+        .notification-search svg { width:16px; color:#a69ab8; }
+        .notification-search input { width:100%; height:42px; border:0; outline:none; background:transparent; color:#eee8f8; font:inherit; font-size:12px; }
+        .notification-filter { height:42px; padding:0 12px; border:1px solid #34303f; border-radius:10px; background:#111018; color:#ddd4ea; font:inherit; font-size:12px; color-scheme:dark; }
+        .notification-tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+        .notification-tab { border:1px solid transparent; border-radius:8px; background:transparent; color:#a69ab8; padding:9px 12px; font:inherit; font-size:12px; cursor:pointer; }
+        .notification-tab[aria-pressed="true"] { color:#dfd0ff; background:rgba(139,92,246,.15); border-color:rgba(139,92,246,.3); }
+        .notification-tab span { margin-left:6px; font-size:10px; opacity:.8; }
+        .notification-actions { display:flex; align-items:center; gap:6px; }
+        .notification-action { width:180px; }
+        .notification-icon-button { display:grid; place-items:center; width:32px; height:34px; border:1px solid #37303f; border-radius:8px; background:transparent; color:#b9abc9; cursor:pointer; }
+        .notification-icon-button:hover { background:#292033; color:#e3d1ff; }
+        .notification-icon-button svg { width:15px; height:15px; }
+        .notification-footer { margin:14px 0 0; color:#90869e; font-size:11px; }
+        .notification-row[hidden], [hidden] { display:none !important; }
+        input:focus-visible, select:focus-visible { outline:2px solid #c4b5fd; outline-offset:3px; }
+        @media (max-width: 1024px) { .notification-main { margin-left: 275px; padding: 18px; } .notification-shell { padding: 20px; } }
+        @media (max-width: 768px) { .notification-main { margin-left: 0; padding: 76px 12px 20px; } .notification-shell { padding: 18px; border-radius: 18px; } .notification-header h1 { font-size: 22px; } .notification-header-actions { width: 100%; justify-content: space-between; } .notification-table-scroll { max-height: 60vh; } }
+   .notification-category {
+    position: relative;
+    width: 190px;
+    flex-shrink: 0;
+}
+.notification-category summary {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 14px;
+    border: 1px solid #393044;
+    border-radius: 10px;
+    background: #15111d;
+    color: #e7def3;
+    font-size: 12px;
+    cursor: pointer;
+    list-style: none;
+}
+.notification-category summary::-webkit-details-marker {
+    display: none;
+}
+.notification-category summary svg {
+    width: 15px;
+    height: 15px;
+    color: #bda5e6;
+    transition: transform .2s;
+}
+.notification-category details[open] summary {
+    border-color: #9370cd;
+}
+.notification-category details[open] summary svg {
+    transform: rotate(180deg);
+}
+.category-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 20;
+    width: 220px;
+    max-width: calc(100vw - 48px);
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid #443450;
+    border-radius: 13px;
+    background: #19131f;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, .4);
+    scrollbar-width: thin;
+    scrollbar-color: #7650bc transparent;
+}
+.category-menu button {
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #bfb2cf;
+    text-align: left;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+.category-menu button:hover,
+.category-menu button:focus-visible {
+    background: #30213e;
+    color: #f2eaff;
+}
+.category-menu button.selected {
+    background: #3a2650;
+    color: #e1c9ff;
+    font-weight: 600;
+}
+   
+/* Dashboard theme applied only to this page. */
+html, body { height: 100%; overflow: hidden; }
+.notification-main {
+    position: fixed;
+    inset: 0 0 0 275px;
+    margin: 0;
+    min-width: 0;
+    padding: 18px 20px;
+    overflow: hidden;
+}
+.notification-shell {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 16px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 28px;
+    background: linear-gradient(145deg, rgba(17,16,24,.94), rgba(8,9,14,.96));
+    border: 1px solid rgba(255,255,255,.10);
+    box-shadow: 0 25px 80px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.035);
+    backdrop-filter: blur(25px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(151,112,235,.65) transparent;
+}
+          .notification-header {
+              position: relative;
+
+              min-height: 168px;
+
+              display: flex;
+              align-items: center;
+
+              padding: 30px 32px;
+
+              border-radius: 25px;
+
+              overflow: hidden;
+
+              background:
+                  linear-gradient(
+                      110deg,
+                      rgba(44, 32, 55, 0.62),
+                      rgba(18, 23, 31, 0.72),
+                      rgba(30, 31, 59, 0.62)
+                  );
+
+              border: 1px solid rgba(255, 255, 255, 0.10);
+
+              box-shadow:
+                  inset 0 1px 0 rgba(255, 255, 255, 0.04);
+          }
+
+          .notification-header::before {
+              content: "";
+
+              position: absolute;
+
+              width: 260px;
+              height: 260px;
+
+              right: -100px;
+              top: -130px;
+
+              background: rgba(99, 102, 241, 0.13);
+
+              filter: blur(80px);
+
+              pointer-events: none;
+          }
+
+          .notification-header-inner {
+              position: relative;
+              z-index: 2;
+
+              width: 100%;
+
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+
+              gap: 25px;
+          }
+
+          .notification-eyebrow {
+              margin-bottom: 15px;
+
+              color: #a78bfa;
+
+              font-size: 10px;
+              font-weight: 800;
+
+              letter-spacing: 3px;
+          }
+
+          .notification-header h1 {
+              margin: 0;
+
+              font-size: clamp(34px, 4vw, 52px);
+
+              line-height: 1;
+              font-weight: 900;
+
+              letter-spacing: -2px;
+
+              background:
+                  linear-gradient(
+                      90deg,
+                      #ffffff 0%,
+                      #c4b5fd 45%,
+                      #67c8ff 100%
+                  );
+
+              -webkit-background-clip: text;
+              background-clip: text;
+
+              -webkit-text-fill-color: transparent;
+          }
+
+          .notification-header p {
+              margin: 18px 0 0;
+
+              color: #96939e;
+
+              font-size: 14px;
+          }
+
+
+.notification-header { margin-bottom: 26px; }
+.notification-eyebrow { display: block; }
+.notification-header-actions { justify-content: flex-end; flex-shrink: 0; gap: 10px; }
+.notification-unread-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 13px;
+    color: #ddd0ff;
+    background: rgba(139,92,246,.12);
+    border: 1px solid rgba(167,139,250,.22);
+}
+.notification-unread-count i, .notification-unread-count svg { width: 14px; height: 14px; }
+.notification-toolbar { gap: 12px; }
+.notification-search, .notification-category summary {
+    background: rgba(16,16,23,.85);
+    border-color: rgba(255,255,255,.12);
+    border-radius: 12px;
+}
+.notification-tabs {
+    width: fit-content;
+    padding: 5px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(21,19,29,.65);
+}
+.notification-table-scroll {
+    max-height: min(580px, 56vh);
+    border-radius: 18px;
+    border-color: rgba(255,255,255,.09);
+    background: rgba(16,16,23,.75);
+}
+.notification-table th { background: #1b1824; padding: 16px 18px; }
+.notification-actions { justify-content: flex-start; gap: 7px; }
+.notification-icon-button { height: 34px; width: 34px; }
+.notification-footer { padding: 2px 4px; }
+@media (max-width: 1100px) {
+    .notification-header-inner { flex-wrap: wrap; gap: 20px; }
+    .notification-header-actions { justify-content: flex-start; }
+}
+@media (max-width: 768px) {
+    .notification-main { inset: 0; margin: 0; padding: 74px 12px 12px; }
+    .notification-shell { padding: 12px; border-radius: 22px; }
+    .notification-header { padding: 24px 20px; min-height: 158px; border-radius: 18px; }
+    .notification-header h1 { font-size: clamp(28px, 7vw, 38px); letter-spacing: -1px; }
+    .notification-header p { font-size: 12px; line-height: 1.65; margin-top: 12px; }
+    .notification-eyebrow { font-size: 9px; letter-spacing: 2px; margin-bottom: 12px; }
+    .notification-header-actions { width: auto; }
+    .notification-search { width: 100%; flex-basis: 100%; min-width: 0; }
+    .notification-category { width: 100%; }
+    .category-menu { left: 0; right: auto; width: 100%; }
+    .notification-table-scroll { max-height: 52vh; }
+}
+
+</style>
+</head>
+<body>
+    {% include 'components/teamlead_sidebar.html' %}
+    <main class="notification-main">
+        <section class="notification-shell" aria-labelledby="notificationHeading">
+            <header class="notification-header">
+                <div class="notification-header-inner">
+                <div>
+                    <span class="notification-eyebrow">CYBEXEL TEAM LEAD PANEL</span>
+                    <h1 id="notificationHeading">NOTIFICATIONS</h1>
+                    <p>Updates from your team, reports and daily activities.</p>
+                </div>
+                <div class="notification-header-actions">
+                    <span class="notification-unread-count"><i data-lucide="bell" aria-hidden="true"></i>{{ unread_count }} unread</span>
+                    {% if unread_count %}
+                    <form method="post" action="{% url 'teamlead_notifications_read_all' %}">
+                        {% csrf_token %}
+                        <button class="notification-clear" type="submit"><i data-lucide="check-check" aria-hidden="true"></i>Mark all as read</button>
+                    </form>
+                    {% endif %}
+                </div>
+                            </div>
+            </header>
+            <div class="notification-toolbar">
+                <label class="notification-search"><i data-lucide="search" aria-hidden="true"></i><input id="notificationSearch" type="search" placeholder="Search notifications…" aria-label="Search notifications"></label>
+               <div class="notification-category">
+    <details id="categoryDropdown">
+        <summary>
+            <span id="categoryLabel">All categories</span>
+            <i data-lucide="chevron-down" aria-hidden="true"></i>
+        </summary>
+        <div class="category-menu" role="group" aria-label="Categories">
+            <button type="button" data-value="" class="selected">All categories</button>
+            <button type="button" data-value="report">Reports</button>
+            <button type="button" data-value="announcement">Announcements</button>
+            <button type="button" data-value="project">Projects</button>
+            <button type="button" data-value="schedule">Schedules</button>
+            <button type="button" data-value="task">Tasks</button>
+            <button type="button" data-value="note">Notes</button>
+            <button type="button" data-value="resource">Resources</button>
+            <button type="button" data-value="reminder">Reminders</button>
+        </div>
+    </details>
+    <!-- Existing filter script uses this field -->
+    <select id="notificationKind" hidden>
+        <option value="">All categories</option>
+        <option value="report">Reports</option>
+        <option value="announcement">Announcements</option>
+        <option value="project">Projects</option>
+        <option value="schedule">Schedules</option>
+        <option value="task">Tasks</option>
+        <option value="note">Notes</option>
+        <option value="resource">Resources</option>
+        <option value="reminder">Reminders</option>
+    </select>
+</div>
+            </div>
+            <div class="notification-tabs" role="group" aria-label="Notification folders">
+                <button type="button" class="notification-tab" data-folder="inbox" aria-pressed="true">Inbox <span></span></button>
+                <button type="button" class="notification-tab" data-folder="unread" aria-pressed="false">Unread <span></span></button>
+                <button type="button" class="notification-tab" data-folder="archived" aria-pressed="false">Archived <span></span></button>
+            </div>
+            {% if items %}
+            <div class="notification-table-scroll" tabindex="0" role="region" aria-label="Notifications table">
+                <table class="notification-table">
+                    <thead><tr><th scope="col">Notification</th><th scope="col">Received</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr class="notification-row{% if not item.is_read %} unread{% endif %}" data-kind="{{ item.kind }}" data-read="{{ item.is_read|yesno:'true,false' }}" data-archived="{{ item.is_archived|yesno:'true,false' }}"{% if item.is_archived %} hidden{% endif %}>
+                            <td><div class="notification-detail">
+                                <span class="notification-icon" aria-hidden="true"><i data-lucide="{% if item.kind == 'report' %}file-text{% elif item.kind == 'announcement' %}megaphone{% elif item.kind == 'project' %}clipboard-list{% elif item.kind == 'schedule' %}clock{% elif item.kind == 'task' %}list-checks{% elif item.kind == 'note' %}notebook-pen{% elif item.kind == 'resource' %}book-open{% elif item.kind == 'reminder' %}calendar-clock{% else %}bell{% endif %}"></i></span>
+                                <div class="notification-content"><strong>{{ item.title }}</strong>{% if item.message %}<p>{{ item.message }}</p>{% endif %}</div>
+                            </div></td>
+                            <td class="notification-date"><time datetime="{{ item.created_at|date:'c' }}">{{ item.created_at|date:'d M Y' }}<span>{{ item.created_at|date:'h:i A' }}</span></time></td>
+                            <td>{% if item.is_read %}<span class="notification-status">Read</span>{% else %}<span class="notification-status is-unread">Unread</span>{% endif %}</td>
+                            <td class="notification-action"><div class="notification-actions"><form method="post" action="{% url 'teamlead_notification_open' item.pk %}">{% csrf_token %}<button type="submit" class="notification-open" aria-label="View {{ item.title }}">View<i data-lucide="arrow-up-right" aria-hidden="true"></i></button></form>
+                                <form method="post" action="{% url 'teamlead_notification_open' item.pk %}">{% csrf_token %}
+                                    <input type="hidden" name="action" value="{% if item.is_read %}mark_unread{% else %}mark_read{% endif %}">
+                                    <button class="notification-icon-button" type="submit" title="{% if item.is_read %}Mark as unread{% else %}Mark as read{% endif %}" aria-label="{% if item.is_read %}Mark as unread{% else %}Mark as read{% endif %}: {{ item.title }}"><i data-lucide="{% if item.is_read %}mail{% else %}mail-check{% endif %}" aria-hidden="true"></i></button>
+                                </form>
+                                <form method="post" action="{% url 'teamlead_notification_open' item.pk %}">{% csrf_token %}
+                                    <input type="hidden" name="action" value="{% if item.is_archived %}restore{% else %}archive{% endif %}">
+                                    <button class="notification-icon-button" type="submit" title="{% if item.is_archived %}Restore to inbox{% else %}Archive{% endif %}" aria-label="{% if item.is_archived %}Restore{% else %}Archive{% endif %}: {{ item.title }}"><i data-lucide="{% if item.is_archived %}archive-restore{% else %}archive{% endif %}" aria-hidden="true"></i></button>
+                                </form>
+                            </div></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="notification-empty"><span class="notification-empty-icon"><i data-lucide="bell" aria-hidden="true"></i></span><h2>No notifications yet</h2><p>Your team updates will appear here.</p></div>
+            {% endif %}
+            <div id="notificationNoMatch" class="notification-empty" hidden><h2>No matching notifications</h2><p>Try another search, category or folder.</p></div>
+            <p id="notificationResultCount" class="notification-footer" aria-live="polite"></p>
+        </section>
+    </main>
+    <script>
+    (() => {
+        if (window.lucide) lucide.createIcons();
+        const rows = Array.from(document.querySelectorAll('.notification-row'));
+        const tabs = Array.from(document.querySelectorAll('.notification-tab'));
+        const search = document.getElementById('notificationSearch');
+        const kind = document.getElementById('notificationKind');
+        const scroll = document.querySelector('.notification-table-scroll');
+        let folder = 'inbox';
+        const inFolder = (row, name) => name === 'archived' ? row.dataset.archived === 'true' : row.dataset.archived !== 'true' && (name !== 'unread' || row.dataset.read === 'false');
+        function filterRows() {
+            const query = search.value.trim().toLocaleLowerCase();
+            let visible = 0;
+            rows.forEach(row => {
+                const match = inFolder(row, folder) && (!kind.value || row.dataset.kind === kind.value) && row.querySelector('.notification-content').textContent.toLocaleLowerCase().includes(query);
+                row.hidden = !match;
+                if (match) visible++;
+            });
+            tabs.forEach(tab => {
+                tab.setAttribute('aria-pressed', String(tab.dataset.folder === folder));
+                tab.querySelector('span').textContent = rows.filter(row => inFolder(row, tab.dataset.folder)).length;
+            });
+            if (scroll) scroll.hidden = visible === 0;
+            document.getElementById('notificationNoMatch').hidden = visible > 0 || rows.length === 0;
+            document.getElementById('notificationResultCount').textContent = rows.length ? `${visible} notification${visible === 1 ? '' : 's'} shown · Latest first` : '';
+        }
+        tabs.forEach(tab => tab.addEventListener('click', () => { folder = tab.dataset.folder; filterRows(); if (scroll) scroll.scrollTop = 0; }));
+        search.addEventListener('input', filterRows);
+        kind.addEventListener('change', filterRows);
+        filterRows();
+    })();
+    </script>
+    <script>
+(() => {
+    const dropdown = document.getElementById("categoryDropdown");
+    const label = document.getElementById("categoryLabel");
+    const select = document.getElementById("notificationKind");
+    const buttons = dropdown.querySelectorAll("[data-value]");
+    const summary = dropdown.querySelector("summary");
+    buttons.forEach(button => {
+        button.addEventListener("click", () => {
+            select.value = button.dataset.value;
+            label.textContent = button.textContent;
+            buttons.forEach(item => {
+                item.classList.toggle("selected", item === button);
+            });
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+            dropdown.open = false;
+            summary.focus();
+        });
+    });
+    document.addEventListener("click", event => {
+        if (!dropdown.contains(event.target)) {
+            dropdown.open = false;
+        }
+    });
+    dropdown.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            dropdown.open = false;
+            summary.focus();
+        }
+    });
+})();
+</script>
+</body>
+</html>
