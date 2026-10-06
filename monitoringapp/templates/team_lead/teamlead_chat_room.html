@@ -1,92 +1,221 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Team Lead Chat - Cybexel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#08070b;color:#f4edf9;}
+    *{box-sizing:border-box;}
+    .lead-chat-layout{margin-left:300px;height:100dvh;padding:16px 16px 16px 0;min-width:0;}
+    .lead-chat-layout>.dashboard-box{height:100%;min-height:0;min-width:0;margin:0;padding:0;}
+    .lead-chat-menu{display:none;position:fixed;top:10px;left:12px;z-index:1001;width:34px;height:34px;align-items:center;justify-content:center;border:1px solid #61417d;border-radius:9px;background:#261b32;color:#e1d0f2;}
+    .lead-chat-menu svg{width:18px;height:18px;}
+    @media(max-width:1024px) and (min-width:769px){.lead-chat-layout{margin-left:282px;}}
+    @media(max-width:768px){.lead-chat-layout{margin-left:0;padding:54px 10px 10px;height:100dvh;}.lead-chat-menu{display:flex;}}
+    @view-transition{navigation:auto;}
+    ::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal;}
+  </style>
+  <link rel="stylesheet" href="{% static 'css/admin_chat.css' %}"><style>
+/* Shared Member base owns the application sidebar; Lead chat CSS owns the chat panels. */
+#memberChatPage{min-width:0;height:100%;}
+#memberChatPage .chat-main{position:static!important;inset:auto!important;margin:0!important;padding:0!important;height:100%!important;min-width:0;}
+#memberChatPage .chat-shell{display:grid;grid-template-columns:minmax(230px,300px) minmax(0,1fr);height:100%;min-height:520px;max-height:calc(100dvh - 75px);overflow:hidden;}
+#memberChatPage .chat-list-panel,#memberChatPage .chat-conversation{min-width:0;min-height:0;overflow:hidden;}
+#memberChatPage .chat-list-panel{overflow-y:auto;scrollbar-width:thin;}
+#memberChatPage .chat-conversation{display:flex;flex-direction:column;}
+#memberChatPage .chat-messages{flex:1;min-height:180px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;}
+#memberChatPage .chat-composer{flex-shrink:0;}
+#memberChatPage [hidden],#groupModal.hidden,#memberChatPage .hidden{display:none!important;}
+#memberChatPage .message-bubble{overflow-wrap:anywhere;white-space:pre-wrap;}
+#memberChatPage .message-time{display:block;font-size:10px;margin-top:5px;opacity:.7;white-space:normal;}
+#memberChatPage .group-settings{max-height:45vh;overflow:auto;flex-shrink:0;}
+#memberChatSearch{width:100%;padding:11px 13px;margin:8px 0;color:#eee;background:rgba(0,0,0,.25);border:1px solid rgba(167,139,250,.2);border-radius:10px;}
+#memberChatConnection{font-size:10px;color:#b6a5cb;white-space:nowrap;}
+#memberChatConnection[data-connected=true]{color:#b9a0ff;}
+#memberChatBack{display:none;}
+#memberChatPage button:disabled{opacity:.55;cursor:wait;}
+#groupModal{background:rgba(7,7,12,.3);backdrop-filter:blur(2px);z-index:9999;}
+#groupModal .chat-modal-card{max-height:calc(100dvh - 32px);overflow-y:auto;}
+.member-chat-modal-open,.member-chat-modal-open body,.member-chat-modal-open .dashboard-box{overflow:hidden!important;}
+.member-checkbox-list{max-height:200px;overflow-y:auto;display:grid;gap:6px;}
+.member-checkbox-list label{display:flex;align-items:center;gap:10px;padding:9px;border:1px solid rgba(167,139,250,.15);border-radius:9px;font-size:12px;cursor:pointer;}
+.member-checkbox-list input{width:auto;accent-color:#8b5cf6;}
+#memberChatPage button:focus-visible,#groupModal button:focus-visible,#groupModal input:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px;}
+@media(max-width:700px){#memberChatPage .chat-shell{grid-template-columns:1fr;min-height:480px;max-height:calc(100dvh - 106px);}#memberChatPage.member-chat-has-room:not(.show-contacts) .chat-list-panel{display:none;}#memberChatPage.member-chat-has-room.show-contacts .chat-conversation{display:none;}#memberChatPage:not(.member-chat-has-room) .chat-conversation{display:none;}#memberChatBack{display:inline-flex;}#memberChatPage .chat-conversation-header{padding:12px;gap:8px;flex-wrap:wrap;}#memberChatPage .chat-messages{padding:14px;}}
 
-    <meta charset="UTF-8">
+#memberChatFeedback{position:absolute;}
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+/* Member base supplies the sidebar. Match the Lead chat panel dimensions. */
+.dashboard-box:has(#memberChatPage){padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:hidden!important;}
+#memberChatPage{height:100%;min-height:0;min-width:0;}
+#memberChatPage *,#groupModal *{box-sizing:border-box;}
+#memberChatPage .chat-main{height:100%!important;min-height:0;padding:0!important;overflow:hidden;}
+#memberChatPage .chat-shell{display:grid;grid-template-columns:330px minmax(0,1fr);height:100%;min-height:0;max-height:none;border-radius:28px;}
+#memberChatPage .chat-list-panel{width:100%;min-width:0;height:100%;min-height:0;overflow:hidden;display:flex;flex-direction:column;}
+#memberChatPage .chat-list-header{flex:none;min-width:0;}
+#memberChatPage .chat-list-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;}
+#memberChatPage .chat-conversation{width:100%;height:100%;min-height:0;min-width:0;}
+#memberChatPage .chat-messages{flex:1;min-height:0;overflow-x:hidden;}
+#memberChatPage .chat-conversation-header{position:relative;justify-content:space-between;flex-wrap:nowrap;min-width:0;}
+#memberChatPage .chat-conversation-header>.conversation-user{flex:1;min-width:0;}
+#memberChatPage .conversation-status,#memberChatPage .manage-group-button{flex:none;}
+#memberChatConnection{position:absolute;bottom:5px;left:22px;font-size:9px;line-height:1;pointer-events:none;}
+#memberChatPage .message-bubble{white-space:normal;height:auto;min-height:0;margin:0;flex:none;text-align:left;}
+#memberChatPage .message-text{white-space:pre-wrap;overflow-wrap:anywhere;}
+#memberChatPage .message-time{display:block;text-align:right;line-height:1.3;margin-top:5px;}
+#memberChatSearch{flex:none;width:calc(100% - 32px);margin:0 16px 12px;padding:10px 12px;font-size:12px;}
+#memberChatPage .chat-composer{min-width:0;}
+#memberChatPage .chat-composer input{min-width:0;}
+@media(max-width:1100px) and (min-width:701px){#memberChatPage .chat-shell{grid-template-columns:minmax(230px,29%) minmax(0,1fr);}}
+@media(max-width:700px){
+ #memberChatPage .chat-shell{grid-template-columns:minmax(0,1fr);height:100%;min-height:0;max-height:none;border-radius:19px;}
+ #memberChatPage .chat-list-panel,#memberChatPage .chat-conversation{height:100%;min-height:0;}
+ #memberChatPage.member-chat-has-room:not(.show-contacts) .chat-list-panel{display:none;}
+ #memberChatPage.member-chat-has-room.show-contacts .chat-conversation,#memberChatPage:not(.member-chat-has-room) .chat-conversation{display:none;}
+ #memberChatPage .chat-conversation-header{padding:12px 12px 20px;gap:8px;}
+ #memberChatConnection{left:64px;bottom:5px;}
+ #memberChatPage .message-bubble{max-width:86%;}
+ #memberChatPage .chat-messages{padding:14px;}
+ #memberChatPage .conversation-status{font-size:9px;padding:6px 8px;}
+ #memberChatBack{display:inline-flex;flex:none;}
+}
 
-    <title>Team Lead Chat Room - Cybexel</title>
+
+/* Small tools added to the original Lead theme. */
+#memberChatPage .member-message-tools{display:flex;align-items:center;gap:9px;flex:none;padding:9px 20px;border-bottom:1px solid rgba(167,139,250,.12);background:rgba(28,23,39,.65);}
+#memberChatPage .member-message-tools>svg{width:14px;height:14px;color:#a58abe;flex:none;}
+#memberMessageSearch{min-width:0;flex:1;background:transparent;border:0;outline:none;padding:4px 0;color:#eee7f8;font-size:11px;}
+#memberMessageSearch::placeholder{color:#8c8099;}
+#memberMessageSearch:focus-visible{outline:1px solid #a78bfa;outline-offset:4px;border-radius:3px;}
+#memberMessageSearchCount{font-size:9px;white-space:nowrap;color:#b59acf;}
+#memberClearMessageSearch{display:grid;place-items:center;width:24px;height:24px;border:1px solid #463256;border-radius:7px;background:#292034;color:#c4b5fd;cursor:pointer;flex:none;}
+#memberClearMessageSearch svg{width:12px;height:12px;}
+#memberChatPage .member-date-label{align-self:center;flex:none;padding:4px 10px;margin:7px 0;font-size:9px;font-weight:500;color:#b8a6c9;border-radius:7px;border:1px solid rgba(167,139,250,.14);background:#211a2b;}
+#memberChatPage .message-row{flex-shrink:0;}
+#memberChatPage .member-jump-latest{display:flex;align-items:center;justify-content:center;gap:7px;align-self:center;flex:none;max-width:calc(100% - 24px);padding:8px 14px;margin:7px 0;border-radius:10px;background:#7048c6;border:1px solid #9471d0;color:white;font-size:10px;cursor:pointer;box-shadow:0 5px 16px rgba(0,0,0,.18);}
+#memberChatPage .member-jump-latest svg{width:13px;height:13px;}
+#memberNoSearchResults{text-align:center;flex:none;padding:16px;color:#a997bc;font-size:11px;}
+#memberChatPage .mc-selected{border-color:rgba(167,139,250,.45);background:rgba(112,72,198,.16);box-shadow:inset 3px 0 0 #a78bfa;}
+#memberChatPage .message-bubble{font-weight:500;}
+#memberChatPage{container-type:inline-size;container-name:member-chat;}
+@container member-chat (max-width:660px){
+ #memberChatPage .chat-shell{grid-template-columns:minmax(0,1fr);border-radius:19px;}
+ #memberChatPage.member-chat-has-room:not(.show-contacts) .chat-list-panel{display:none;}
+ #memberChatPage.member-chat-has-room.show-contacts .chat-conversation,#memberChatPage:not(.member-chat-has-room) .chat-conversation{display:none;}
+ #memberChatPage .chat-list-panel,#memberChatPage .chat-conversation{height:100%;min-height:0;}
+ #memberChatBack{display:inline-flex;}#memberChatPage .chat-conversation-header{padding:12px 12px 20px;gap:8px;}
+ #memberChatConnection{left:64px;bottom:5px;}#memberChatPage .member-message-tools{padding:8px 13px;}
+ #memberChatPage .manage-group-button{padding:8px;width:34px;min-width:34px;}#memberChatPage .manage-group-button span{display:none;}
+ #memberChatPage .send-button{padding:0;width:44px;min-width:44px;}#memberChatPage .send-button span{display:none;}
+ #memberChatPage .chat-composer{padding:10px;gap:8px;}#memberChatPage .chat-composer input{min-width:0;}
+ #memberChatPage .chat-messages{padding:14px;}#memberChatPage .message-bubble{max-width:86%;}
+}
+@container member-chat (max-width:360px){#memberChatPage .conversation-status{display:none;}}
 
 
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
+#memberChatPage .chat-shell{position:relative;}
+#memberChatPage .member-chat-menu-wrap{position:relative;flex:none;margin-left:2px;}
+#memberChatMenuButton{display:grid;place-items:center;width:32px;height:32px;background:#2a2038;border:1px solid #49325f;border-radius:9px;color:#d5c1f2;cursor:pointer;}
+#memberChatMenuButton svg{width:17px;height:17px;}
+#memberChatMenu{position:absolute;top:calc(100% + 8px);right:0;width:204px;padding:6px;background:#21182c;border:1px solid #5c4074;border-radius:13px;box-shadow:0 12px 32px rgba(0,0,0,.4);z-index:30;}
+#memberChatMenu button{display:flex;align-items:center;gap:10px;width:100%;padding:10px 11px;text-align:left;border:0;border-radius:8px;color:#e4d8f2;background:transparent;font-size:11px;cursor:pointer;}
+#memberChatMenu button:hover,#memberChatMenu button:focus-visible{background:#372348;outline:none;}
+#memberChatMenu button svg{width:14px;height:14px;color:#b992e7;}
+#memberContactsBackdrop,#memberCloseContacts{display:none;}
+#memberChatPage .chat-list-header{position:relative;}
+
+@media(max-width:700px){
+ #memberChatPage.member-chat-has-room .chat-conversation{display:flex!important;}
+ #memberChatPage.member-chat-has-room.show-contacts .chat-list-panel{display:flex!important;position:absolute;left:0;top:0;bottom:0;width:min(310px,90%);height:100%;border-right:1px solid #67447f;z-index:42;box-shadow:14px 0 35px rgba(0,0,0,.35);background:linear-gradient(180deg,#251c32,#141019);}
+ #memberChatPage.member-chat-has-room.show-contacts #memberContactsBackdrop{display:block;position:absolute;inset:0;z-index:41;border:0;background:rgba(8,5,13,.38);cursor:pointer;}
+ #memberChatPage.member-chat-has-room #memberCloseContacts{display:grid;place-items:center;position:absolute;top:12px;right:12px;width:27px;height:27px;border-radius:8px;border:1px solid #533a69;background:#2b1e3b;color:#cfb7ed;cursor:pointer;}
+ #memberCloseContacts svg{width:13px;height:13px;}
+ #memberChatPage.member-chat-has-room .chat-list-header{padding-top:45px;}
+ #memberChatMenu{width:192px;}
+}
+@container member-chat (max-width:660px){
+ #memberChatPage.member-chat-has-room .chat-conversation{display:flex!important;}
+ #memberChatPage.member-chat-has-room.show-contacts .chat-list-panel{display:flex!important;position:absolute;left:0;top:0;bottom:0;width:min(310px,90%);height:100%;border-right:1px solid #67447f;z-index:42;box-shadow:14px 0 35px rgba(0,0,0,.35);background:linear-gradient(180deg,#251c32,#141019);}
+ #memberChatPage.member-chat-has-room.show-contacts #memberContactsBackdrop{display:block;position:absolute;inset:0;z-index:41;border:0;background:rgba(8,5,13,.38);cursor:pointer;}
+ #memberChatPage.member-chat-has-room #memberCloseContacts{display:grid;place-items:center;position:absolute;top:12px;right:12px;width:27px;height:27px;border-radius:8px;border:1px solid #533a69;background:#2b1e3b;color:#cfb7ed;cursor:pointer;}
+ #memberCloseContacts svg{width:13px;height:13px;}
+ #memberChatPage.member-chat-has-room .chat-list-header{padding-top:45px;}
+ #memberChatMenu{width:192px;}
+}
 
 
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+#memberCloseMessageSearch{display:grid;place-items:center;flex:none;width:25px;height:25px;border:1px solid #4a345f;border-radius:7px;background:#292034;color:#c4b5fd;cursor:pointer;}
+#memberCloseMessageSearch svg{width:13px;height:13px;}
+#memberMessageSearchBar[hidden]{display:none!important;}
+#memberChatPage .member-message-options{flex:none;align-self:center;display:grid;place-items:center;width:22px;height:28px;padding:0;border:1px solid transparent;border-radius:7px;background:transparent;color:#bfa8d8;cursor:pointer;transition:background .15s,border-color .15s,color .15s;}#memberChatPage .member-message-options:hover,#memberChatPage .member-message-options[aria-expanded="true"]{background:#2c2039;border-color:#4f3865;color:#ede1ff;}#memberChatPage .member-message-options:focus-visible{outline:2px solid #b790e6;outline-offset:2px;}
+#memberChatPage .member-edited-label{display:block;font-size:9px;color:#b6a3ca;text-align:right;margin-top:3px;}
+.member-bubble-menu{position:fixed;z-index:2000;width:180px;padding:5px;border:1px solid #5b4074;border-radius:11px;background:#21182c;box-shadow:0 8px 24px #0005;}
+.member-bubble-menu[hidden]{display:none;}.member-bubble-menu button{display:block;width:100%;padding:10px;border:0;border-radius:7px;text-align:left;background:transparent;color:#eee4fb;cursor:pointer;}.member-bubble-menu button:hover,.member-bubble-menu button:focus-visible{background:#38264a;}
+.member-action-dialog{box-sizing:border-box;width:min(430px,calc(100vw - 28px));max-height:85dvh;overflow:auto;padding:22px;color:#f1e8ff;background:#21182c;border:1px solid #664887;border-radius:18px;box-shadow:0 15px 50px #0005;}
+.member-action-dialog::backdrop{background:rgba(15,10,22,.32);backdrop-filter:blur(3px);}
+.member-action-dialog header,.member-action-dialog footer{display:flex;align-items:center;justify-content:space-between;gap:10px;}.member-action-dialog h3{font-size:18px;margin:0;}.member-action-dialog p{font-size:13px;color:#c2b2d1;line-height:1.6;}.member-action-dialog textarea{box-sizing:border-box;width:100%;resize:vertical;padding:12px;background:#150f1e;color:#f6eeff;border:1px solid #664887;border-radius:10px;font:inherit;}.member-action-dialog textarea[hidden]{display:none;}.member-action-dialog button{padding:9px 13px;border:1px solid #61457b;border-radius:9px;background:#30203e;color:#e8dcf8;cursor:pointer;}.member-action-dialog button[type=submit]{background:#7048ad;font-weight:600;}.member-action-dialog button:disabled{opacity:.55;cursor:wait;}.member-action-dialog .member-action-error{color:#f2a8b6;}.member-action-dialog :focus-visible,.member-bubble-menu :focus-visible{outline:2px solid #b790e6;outline-offset:2px;}
 
+.member-bubble-menu button:disabled,.member-bubble-menu button:disabled:hover{opacity:.4;background:transparent;cursor:not-allowed;}
 
-    <!-- Existing CSS -->
-    <link
-        rel="stylesheet"
-        href="{% static 'css/admin.css' %}"
-    >
-
-    <link
-        rel="stylesheet"
-        href="{% static 'css/admin_chat.css' %}"
-    >
-
+#memberChatPage .member-unread-badge{flex:none;margin-left:auto;min-width:20px;height:20px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;background:#8b5cf6;color:#fff;font-size:10px;font-weight:700;line-height:1;}
+#memberChatPage .member-unread-badge[hidden]{display:none!important;}
+#memberChatPage .member-read-tick{display:inline-block;margin-left:6px;color:#aaa0b7;font-size:13px;font-weight:700;line-height:1;letter-spacing:-3px;padding-right:3px;}
+#memberChatPage .member-read-tick.seen{color: #7DD3FC;}
+</style>
+<style>
+/* Compact contact/group search: override inherited input sizes. */
+#memberChatPage #memberChatSearch {
+    box-sizing: border-box;
+    display: block;
+    flex: none;
+    width: calc(100% - 32px);
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
+    margin: 0 16px 10px;
+    padding: 7px 11px;
+    border-radius: 9px;
+    font-size: 12px;
+    line-height: 20px;
+}
+</style>
+<style>
+/* Space the contact search away from the header and list. */
+#memberChatPage .lead-contact-search{flex:none;padding:12px 16px 14px;min-width:0;}
+#memberChatPage .lead-search-field{display:block;position:relative;min-width:0;margin:0;}
+#memberChatPage .lead-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:#a997bc;pointer-events:none;transition:color .15s;}
+#memberChatPage .lead-contact-search #memberChatSearch{box-sizing:border-box;display:block;width:100%;height:38px;min-height:38px;max-height:38px;margin:0;padding:8px 12px 8px 36px;border:1px solid #42314f;border-radius:10px;background:#120f18;color:#f1e9fb;font-size:12px;line-height:20px;outline:none;transition:border-color .15s,background-color .15s;}
+#memberChatPage .lead-contact-search #memberChatSearch::placeholder{color:#a99eB6;opacity:1;}
+#memberChatPage .lead-contact-search #memberChatSearch:focus{border-color:#a783ce;background:#17111f;}
+#memberChatPage .lead-search-field:focus-within .lead-search-icon{color:#d0b6ee;}
+</style>
 </head>
-
-
 <body class="chat-page">
+  <button class="menu-toggle mobile-menu-button lead-chat-menu" type="button" aria-label="Open navigation"><i data-lucide="menu"></i></button>
+  {% include 'components/teamlead_sidebar.html' %}
+  <div class="lead-chat-layout"><div class="dashboard-box"><div id="memberChatPage" data-meta-url="{% url 'chat_meta' %}" data-read-url="{% url 'chat_mark_read' %}" class="member-chat-has-room" data-mode="personal" data-user-id="{{ current_user.id }}" data-current-name="{{ current_user.name }}" data-socket-path="/ws/chat/{{ room.id }}/"><main class="chat-main">
+
+    <div class="chat-shell"><button id="memberContactsBackdrop" type="button" tabindex="-1" aria-label="Close contacts"></button><p id="memberChatFeedback" hidden role="status"></p>
 
 
-<!-- =========================================================
-     MOBILE MENU BUTTON
-     ========================================================= -->
-
-<button
-    class="menu-toggle mobile-menu-button"
-    type="button"
-    aria-label="Open menu"
->
-
-    <i data-lucide="menu"></i>
-
-</button>
-
-
-<!-- =========================================================
-     TEAM LEAD SIDEBAR
-     ========================================================= -->
-
-  {% include "components/teamlead_sidebar.html" %}
-
-
-
-<!-- =========================================================
-     MAIN CHAT
-     ========================================================= -->
-
-<main class="chat-main">
-
-    <div class="chat-shell">
-
-
-        <!-- =================================================
-             LEFT CHAT LIST
-             ================================================= -->
+        
 
         <section class="chat-list-panel">
 
 
-            <!-- Chat Header -->
+            
 
-            <div class="chat-list-header">
+            <div class="chat-list-header"><button id="memberCloseContacts" type="button" aria-label="Close contacts"><i data-lucide="x"></i></button>
 
                 <div>
 
                     <span class="chat-eyebrow">
-                        TEAM LEAD
+                        MESSAGING
                     </span>
 
                     <h2>
@@ -96,7 +225,7 @@
                 </div>
 
 
-                <!-- Create Group -->
+                
 
                 <button
                     type="button"
@@ -113,23 +242,25 @@
 
 
 
-            <!-- =================================================
-                 CHAT LIST SCROLL
-                 ================================================= -->
+            
 
-            <div class="chat-list-scroll">
+            <div class="lead-contact-search">
+                <label class="lead-search-field" for="memberChatSearch">
+                    <svg class="lead-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
+                    <input id="memberChatSearch" type="search" placeholder="Search contacts or groups…" aria-label="Search contacts or groups">
+                </label>
+            </div>
+<div class="chat-list-scroll">
 
 
-                <!-- =================================================
-                     TEAM MEMBERS
-                     ================================================= -->
+                
 
                 <div class="chat-section">
 
                     <div class="chat-section-title">
 
                         <span>
-                            Team Members
+                             Members
                         </span>
 
                         <span class="chat-count">
@@ -148,12 +279,12 @@
 
 
                         <a
-                            href="{% url 'teamlead_chat_room' user.id %}"
+                            href="{% url 'teamlead_chat_room' user.id %}" data-peer-id="{{ user.id }}"
                             class="chat-user-row"
                         >
 
 
-                            <!-- Avatar -->
+                            
 
                             <div class="chat-avatar-wrap">
 
@@ -184,7 +315,7 @@
                                 {% endif %}
 
 
-                                <!-- Online status -->
+                                
 
                                 <span
                                     class="user-status-dot"
@@ -195,7 +326,7 @@
                             </div>
 
 
-                            <!-- User Details -->
+                            
 
                             <div class="chat-user-info">
 
@@ -223,7 +354,7 @@
                             </div>
 
 
-                            <!-- Arrow -->
+                            
 
                             <i
                                 data-lucide="chevron-right"
@@ -252,9 +383,7 @@
 
 
 
-                <!-- =================================================
-                     GROUPS
-                     ================================================= -->
+                
 
                 <div class="chat-section groups-section">
 
@@ -287,7 +416,7 @@
 
 
                         <a
-                            href="{% url 'teamlead_group_chat_view' group.id %}"
+                            href="{% url 'teamlead_group_chat_view' group.id %}" data-group-id="{{ group.id }}"
                             class="chat-group-row"
                         >
 
@@ -336,9 +465,7 @@
 
 
 
-        <!-- =================================================
-             CHAT CONVERSATION
-             ================================================= -->
+        
 
         <section
             id="chat-window"
@@ -346,17 +473,15 @@
         >
 
 
-            <!-- =================================================
-                 CHAT HEADER
-                 ================================================= -->
+            
 
-            <header class="chat-conversation-header">
+            <header class="chat-conversation-header"><button type="button" id="memberChatBack" class="chat-icon-button" aria-label="Show contacts"><i data-lucide="arrow-left"></i></button><span id="memberChatConnection" role="status">Connecting…</span>
 
 
                 <div class="conversation-user">
 
 
-                    <!-- User Avatar -->
+                    
 
                     <div class="chat-avatar-wrap large">
 
@@ -394,7 +519,7 @@
                     </div>
 
 
-                    <!-- User Info -->
+                    
 
                     <div>
 
@@ -423,7 +548,7 @@
                 </div>
 
 
-                <!-- Online -->
+                
 
                 <div class="conversation-status">
 
@@ -434,13 +559,11 @@
                 </div>
 
 
-            </header>
+            <div class="member-chat-menu-wrap"><button id="memberChatMenuButton" type="button" aria-label="Chat options" aria-haspopup="menu" aria-expanded="false" aria-controls="memberChatMenu"><i data-lucide="ellipsis"></i></button><div id="memberChatMenu" role="menu" hidden><button type="button" role="menuitem" tabindex="-1" data-chat-action="clear"><i data-lucide="eraser"></i>Clear chat</button><button type="button" role="menuitem" tabindex="-1" data-chat-action="search"><i data-lucide="search"></i>Search messages</button><button type="button" role="menuitem" tabindex="-1" data-chat-action="latest"><i data-lucide="arrow-down-to-line"></i>Go to latest</button><button type="button" role="menuitem" tabindex="-1" data-chat-action="download"><i data-lucide="download"></i>Download chat text</button></div></div></header><div class="member-message-tools" id="memberMessageSearchBar" hidden><i data-lucide="search"></i><input id="memberMessageSearch" type="search" placeholder="Search in this conversation…" aria-label="Search messages"><span id="memberMessageSearchCount" aria-live="polite"></span><button id="memberCloseMessageSearch" type="button" aria-label="Close message search"><i data-lucide="x"></i></button><button id="memberClearMessageSearch" type="button" hidden aria-label="Clear search text"><i data-lucide="eraser"></i></button></div>
 
 
 
-            <!-- =================================================
-                 MESSAGES
-                 ================================================= -->
+            
 
             <div
                 id="chat-messages"
@@ -454,13 +577,13 @@
                     {% if msg.sender.id == current_user.id %}
 
 
-                    <!-- SENT -->
+                    
 
-                    <div class="message-row sent">
+                    <div class="message-row sent" data-message-id="{{ msg.id }}" data-message-at="{{ msg.created_at|date:'c' }}" data-deleted="{{ msg.deleted_for_everyone|yesno:'true,false' }}" data-edited-at="{{ msg.edited_at|date:'c' }}">
 
                         <p class="message-bubble sent-bubble">
 
-                            {{ msg.content }}
+                            <span class="message-text">{{ msg.content }}</span><span class="message-time">{{ msg.created_at|date:"d M, h:i A" }}</span>
 
                         </p>
 
@@ -470,9 +593,9 @@
                     {% else %}
 
 
-                    <!-- RECEIVED -->
+                    
 
-                    <div class="message-row received">
+                    <div class="message-row received" data-message-id="{{ msg.id }}" data-message-at="{{ msg.created_at|date:'c' }}" data-deleted="{{ msg.deleted_for_everyone|yesno:'true,false' }}" data-edited-at="{{ msg.edited_at|date:'c' }}">
 
 
                         {% if msg.sender.profile_image %}
@@ -496,7 +619,7 @@
 
                         <p class="message-bubble received-bubble">
 
-                            {{ msg.content }}
+                            <span class="message-text">{{ msg.content }}</span><span class="message-time">{{ msg.created_at|date:"d M, h:i A" }}</span>
 
                         </p>
 
@@ -514,11 +637,9 @@
 
 
 
-            <!-- =================================================
-                 MESSAGE COMPOSER
-                 ================================================= -->
+            
 
-            <div class="chat-composer">
+            <p id="memberNoSearchResults" hidden>No matching messages.</p><button id="memberJumpLatest" class="member-jump-latest" type="button" hidden><i data-lucide="arrow-down"></i><span>New messages</span></button><div class="chat-composer">
 
 
                 <input
@@ -556,9 +677,7 @@
 
 
 
-<!-- =========================================================
-     CREATE GROUP MODAL
-     ========================================================= -->
+
 
 <div
     id="groupModal"
@@ -569,7 +688,7 @@
     <div class="chat-modal-card">
 
 
-        <!-- Modal Header -->
+        
 
         <div class="chat-modal-header">
 
@@ -603,11 +722,11 @@
 
 
 
-        <!-- Group Form -->
+        
 
         <form
             method="POST"
-            class="chat-modal-form"
+            class="chat-modal-form" action="{% url 'teamlead_chat' %}"
         >
 
             {% csrf_token %}
@@ -620,7 +739,7 @@
             >
 
 
-            <!-- Group Name -->
+            
 
             <label for="group-name">
                 Group Name
@@ -630,39 +749,25 @@
             <input
                 id="group-name"
                 type="text"
-                name="group_name"
+                name="group_name" maxlength="150"
                 placeholder="Enter group name"
                 required
             >
 
 
 
-            <!-- Members -->
+            
 
-            <label for="group-members">
+            <label >
                 Add Members
             </label>
 
 
-            <select
-                id="group-members"
-                name="members"
-                multiple
-            >
-
-                {% for user in users %}
-
-                <option value="{{ user.id }}">
-                    {{ user.name }}
-                </option>
-
-                {% endfor %}
-
-            </select>
+            <div id="group-members" class="member-checkbox-list" role="group" aria-label="Choose group members">{% for user in users %}<label><input type="checkbox" name="members" value="{{ user.id }}">{{ user.name }}</label>{% endfor %}</div>
 
 
 
-            <!-- Buttons -->
+            
 
             <div class="chat-modal-actions">
 
@@ -702,547 +807,377 @@
 
 
 
-<!-- =========================================================
-     WEBSOCKET CHAT
-     ========================================================= -->
+
+
+</div></div></div>
+  {% include 'components/toast_notification.html' %}
+  <script src="{% static 'js/admin.js' %}"></script>
+  <script>
+(() => {
+ 'use strict';
+ const root = document.getElementById('memberChatPage');
+ root.querySelectorAll('.chat-user-row,.chat-group-row').forEach(link=>{if(new URL(link.href,location.href).pathname===location.pathname){link.classList.add('mc-selected');link.setAttribute('aria-current','page');}});
+ const currentId = Number(root.dataset.userId);
+ const mode = root.dataset.mode;
+ const modal = document.getElementById('groupModal');
+ const feedback = document.getElementById('memberChatFeedback');
+ let busy = false, lastFocus = null, socket = null, closed = false, retry = 0, reconnectTimer, pending = null, historyBusy = false;
+ const toast = (message,type='info') => {if(window.showToast) window.showToast(message,type); else {feedback.textContent = message;feedback.hidden = false;}};
+ const input = document.getElementById(mode === 'group' ? 'message-input' : 'chat-input');
+ const messages = document.getElementById(mode === 'group' ? 'chat-area' : 'chat-messages');
+ const send = mode === 'group' ? document.querySelector('#chat-form [type=submit]') : document.getElementById('sendBtn');
+ const connection = document.getElementById('memberChatConnection');
+ const legacyRows = new Map();
+ const ids = new Set([...root.querySelectorAll('[data-message-id]')].map(row=>String(row.dataset.messageId)));
+ function icons(){if(window.lucide) window.lucide.createIcons();}
+ function openModal(){if(!modal || busy) return;lastFocus=document.activeElement;document.body.appendChild(modal);modal.classList.remove('hidden');modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');document.documentElement.classList.add('member-chat-modal-open');modal.querySelector('input[name=group_name]')?.focus();}
+ function closeModal(){if(!modal || busy)return;modal.classList.add('hidden');document.documentElement.classList.remove('member-chat-modal-open');lastFocus?.focus();}
+ document.querySelectorAll('#openModal,#openModalTop').forEach(button=>button.addEventListener('click',openModal));
+ modal?.querySelectorAll('#closeModal,#cancelModal').forEach(button=>button.addEventListener('click',closeModal));
+ modal?.addEventListener('click',event=>{if(event.target===modal)closeModal();});
+ document.addEventListener('keydown',event=>{
+  if(modal && !modal.classList.contains('hidden')) {
+   if(event.key==='Escape'){event.preventDefault();closeModal();}
+   if(event.key==='Tab'){const elements=[...modal.querySelectorAll('button,input,a,select,textarea')].filter(el=>!el.disabled&&el.offsetParent!==null);const first=elements[0],last=elements.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}
+  }
+ });
+ document.getElementById('manageGroupButton')?.addEventListener('click',()=>document.getElementById('groupSettings')?.classList.toggle('hidden'));
+ document.getElementById('closeGroupSettings')?.addEventListener('click',()=>document.getElementById('groupSettings')?.classList.add('hidden'));
+
+ const search = document.getElementById('memberChatSearch');
+ search?.addEventListener('input',()=>{const value=search.value.trim().toLocaleLowerCase();root.querySelectorAll('.chat-user-row,.chat-group-row').forEach(row=>row.hidden=!row.textContent.toLocaleLowerCase().includes(value));});
+ async function operation(form){
+  if(busy)return;busy=true;const button=form.querySelector('[type=submit]');if(button)button.disabled=true;
+  try {
+   const response=await fetch(form.getAttribute('action')||location.href,{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
+   if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Check your login and try again.');
+   const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.message||'Could not complete this action.');
+   busy=false;toast(data.message,'success');
+   if(data.url){const url=new URL(data.url,location.href);if(url.origin!==location.origin)throw new Error('Invalid chat link.');closeModal();location.assign(url);}
+   else {
+    const response=await fetch(location.href,{credentials:'same-origin',cache:'no-store'});if(!response.ok)throw new Error('Saved, but could not refresh the members list.');
+    const doc=new DOMParser().parseFromString(await response.text(),'text/html');const fresh=doc.getElementById('groupSettings');const old=document.getElementById('groupSettings');if(!fresh||!old)throw new Error('Saved. Reopen this chat to see the updated members.');
+    fresh.classList.remove('hidden');old.replaceWith(fresh);document.getElementById('closeGroupSettings')?.addEventListener('click',()=>fresh.classList.add('hidden'));
+    const count=doc.querySelector('.group-conversation .conversation-sub');if(count)root.querySelector('.group-conversation .conversation-sub').textContent=count.textContent;icons();
+   }
+  }catch(error){toast(error.message,'error');}finally{busy=false;if(button)button.disabled=false;}
+ }
+ document.addEventListener('submit',event=>{
+  const form=event.target;if(!(form instanceof HTMLFormElement))return;
+  const action=form.elements.action?.value;
+  if(!['create_group','add_member','remove_member'].includes(action)||(!root.contains(form)&&!modal?.contains(form)))return;
+  event.preventDefault();if(action==='create_group'&&!form.querySelector('[name=members]:checked')){toast('Select at least one other member.','warning');return;}operation(form);
+ });
+ const menuButton=document.getElementById('memberChatMenuButton');
+ const menu=document.getElementById('memberChatMenu');
+ const contactsPanel=root.querySelector('.chat-list-panel');
+ const drawerBackdrop=document.getElementById('memberContactsBackdrop');
+ const contactsButton=document.getElementById('memberChatBack');
+ function closeMenu(restore=false){if(!menu)return;menu.hidden=true;menuButton?.setAttribute('aria-expanded','false');if(restore)menuButton?.focus();}
+ function openMenu(){if(!menu)return;closeContacts();menu.hidden=false;menuButton?.setAttribute('aria-expanded','true');menu.querySelector('button')?.focus();}
+ menuButton?.addEventListener('click',()=>menu.hidden?openMenu():closeMenu(true));
+ document.addEventListener('click',event=>{if(menu&&!menu.hidden&&!menu.contains(event.target)&&!menuButton.contains(event.target))closeMenu();});
+ menu?.addEventListener('keydown',event=>{const items=[...menu.querySelectorAll('button')];const at=items.indexOf(document.activeElement);if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?items.length-1:(at+(event.key==='ArrowDown'?1:-1)+items.length)%items.length;items[next]?.focus();}if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closeMenu(true);}if(event.key==='Tab')closeMenu();});
+ function closeContacts(restore=false){root.classList.remove('show-contacts');contactsButton?.setAttribute('aria-expanded','false');contactsPanel?.removeAttribute('aria-modal');contactsPanel?.removeAttribute('role');if(restore)contactsButton?.focus();}
+ function openContacts(){closeMenu();root.classList.add('show-contacts');contactsButton?.setAttribute('aria-expanded','true');contactsPanel?.setAttribute('role','dialog');contactsPanel?.setAttribute('aria-modal','true');document.getElementById('memberCloseContacts')?.focus();}
+ contactsButton?.setAttribute('aria-controls','memberContactsPanel');contactsButton?.setAttribute('aria-expanded','false');
+ if(contactsPanel)contactsPanel.id='memberContactsPanel';
+ contactsButton?.addEventListener('click',()=>root.classList.contains('show-contacts')?closeContacts(true):openContacts());
+ document.getElementById('memberCloseContacts')?.addEventListener('click',()=>closeContacts(true));
+ drawerBackdrop?.addEventListener('click',()=>closeContacts(true));
+ document.addEventListener('keydown',event=>{if(!root.classList.contains('show-contacts')||!modal?.classList.contains('hidden'))return;if(event.key==='Escape'){event.preventDefault();closeContacts(true);}if(event.key==='Tab'){const items=[...contactsPanel.querySelectorAll('button,input,a')].filter(el=>!el.disabled&&!el.hidden&&el.offsetParent!==null);const first=items[0],last=items.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}});
+ window.addEventListener('resize',()=>{if(root.clientWidth>660&&window.innerWidth>700)closeContacts();});
+ menu?.addEventListener('click',event=>{
+  const button=event.target.closest('button[data-chat-action]');if(!button)return;const action=button.dataset.chatAction;closeMenu();
+  if(action==='search'){const bar=document.getElementById('memberMessageSearchBar');if(bar)bar.hidden=false;document.getElementById('memberMessageSearch')?.focus();}
+  if(action==='latest'){const field=document.getElementById('memberMessageSearch');if(field)field.value='';decorateMessages();if(messages)messages.scrollTop=messages.scrollHeight;resetNewMessages();}
+  if(action==='members'){document.getElementById('groupSettings')?.classList.remove('hidden');document.getElementById('closeGroupSettings')?.focus();}
+  if(action==='download'){
+   const rows=[...messages.querySelectorAll('.message-row')];if(!rows.length){toast('There are no messages to download.','info');return;}
+   const title=root.querySelector('.conversation-name')?.textContent.trim()||'Group conversation';
+   const lines=rows.map(row=>{const mine=row.classList.contains('sent');const sender=row.dataset.senderName||row.querySelector('.sender-name')?.textContent.trim()||(mine?root.dataset.currentName||'You':title);const date=new Date(row.dataset.messageAt);const stamp=isNaN(date)?'':date.toLocaleString('en-IN',{timeZone:'Asia/Kolkata'});const text=row.querySelector('.message-text')?.textContent||'';return `[${stamp}] ${sender}: ${text}`;});
+   const blob=new Blob([`Chat: ${title}\nLoaded messages: ${rows.length}\nTimes: Asia/Kolkata\n\n`+lines.join('\n\n')],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`chat-${new Date().toISOString().slice(0,10)}.txt`;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Loaded chat messages downloaded.','success');
+  }
+ });
+
+ const messageSearch = document.getElementById('memberMessageSearch');
+ const messageSearchCount = document.getElementById('memberMessageSearchCount');
+ const clearMessageSearch = document.getElementById('memberClearMessageSearch');
+ const jumpButton = document.getElementById('memberJumpLatest');
+ const unseenRows = new Set();
+ // One compact menu and one accessible dialog, shared by all message bubbles.
+ const bubbleMenu=document.createElement('div');bubbleMenu.className='member-bubble-menu';bubbleMenu.hidden=true;bubbleMenu.setAttribute('role','menu');document.body.append(bubbleMenu);
+ const actionDialog=document.createElement('dialog');actionDialog.className='member-action-dialog';actionDialog.innerHTML='<form><header><h3 id="memberActionTitle"></h3><button type="button" data-close aria-label="Close">×</button></header><p id="memberActionHint"></p><textarea maxlength="10000" rows="5" aria-label="Message"></textarea><p class="member-action-error" role="alert"></p><footer><button type="button" data-close>Cancel</button><button type="submit">Save changes</button></footer></form>';actionDialog.setAttribute('aria-labelledby','memberActionTitle');document.body.append(actionDialog);
+ let activeRow=null,activeAction='',actionBusy=false,actionFocus=null,previousOverflow='',historyAgain=false,historyEpoch=0;
+ let editWindowTimer=null,serverClockOffset=0;
+ function editExpiresAt(row){const sentAt=new Date(row?.dataset.messageAt||'').getTime();return Number.isFinite(sentAt)?sentAt+2*60*60*1000:0;}
+ function canEditMessage(row){return !!row&&row.classList.contains('sent')&&row.dataset.deleted!=='true'&&row.dataset.editExpired!=='true'&&editExpiresAt(row)>Date.now()+serverClockOffset;}
+ function updateServerClock(value){const now=new Date(value||'').getTime();if(Number.isFinite(now)){serverClockOffset=now-Date.now();refreshEditWindow();}}
+ function refreshEditWindow(){
+  clearTimeout(editWindowTimer);if(!activeRow)return;
+  const eligible=canEditMessage(activeRow);
+  if(!bubbleMenu.hidden){const item=bubbleMenu.querySelector('[data-message-action="edit_message"]');if(item){const focused=document.activeElement===item;item.disabled=!eligible;item.setAttribute('aria-disabled',String(!eligible));item.title=eligible?'Edit message':'Editing is available for 2 hours after sending.';if(focused&&!eligible)bubbleMenu.querySelector('button:not(:disabled)')?.focus();}}
+  if(actionDialog.open&&activeAction==='edit_message'){
+   const save=actionDialog.querySelector('[type=submit]');save.disabled=actionBusy||!eligible;
+   if(!eligible)actionDialog.querySelector('.member-action-error').textContent='The 2-hour editing window has ended. This message can no longer be edited.';
+  }
+  if(eligible&&(!bubbleMenu.hidden||(actionDialog.open&&activeAction==='edit_message'))){const remaining=editExpiresAt(activeRow)-(Date.now()+serverClockOffset);editWindowTimer=setTimeout(refreshEditWindow,Math.max(10,remaining+5));}
+ }
+ function closeBubbleMenu(){bubbleMenu.hidden=true;actionFocus?.setAttribute('aria-expanded','false');clearTimeout(editWindowTimer);if(actionDialog.open&&activeAction==='edit_message')refreshEditWindow();}
+
+ function closeActionDialog(){if(actionBusy)return;actionDialog.close();}
+ actionDialog.addEventListener('close',()=>{document.documentElement.style.overflow=previousOverflow;actionFocus?.isConnected&&actionFocus.focus();});
+ actionDialog.addEventListener('cancel',event=>{if(actionBusy)event.preventDefault();});
+ actionDialog.querySelectorAll('[data-close]').forEach(button=>button.addEventListener('click',closeActionDialog));
+ actionDialog.addEventListener('click',event=>{const rect=actionDialog.getBoundingClientRect();if(event.target===actionDialog&&(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom))closeActionDialog();});
+ function openMessageAction(action,row=null,focus=document.activeElement){
+  if(action==='edit_message'&&!canEditMessage(row)){toast('This message can only be edited within 2 hours of sending.','warning');return;}
+  closeBubbleMenu();closeMenu();activeRow=row;activeAction=action;actionFocus=focus;
+  const edit=action==='edit_message';const textarea=actionDialog.querySelector('textarea');textarea.hidden=!edit;textarea.required=edit;textarea.value=edit?(row?.querySelector('.message-text')?.textContent||''):'';
+  actionDialog.querySelector('h3').textContent=edit?'Edit message':action==='clear_chat'?'Clear chat?':action==='delete_for_everyone'?'Delete for everyone?':'Delete for me?';
+  actionDialog.querySelector('#memberActionHint').textContent=edit?'Update your message.':action==='clear_chat'?'Existing messages will be hidden for you. Other people keep their chat. New messages will still appear.':action==='delete_for_everyone'?'Everyone will see “This message was deleted.”':'This message will be hidden only for you.';
+  actionDialog.querySelector('[type=submit]').textContent=edit?'Save changes':action==='clear_chat'?'Clear chat':'Delete message';actionDialog.querySelector('.member-action-error').textContent='';
+  previousOverflow=document.documentElement.style.overflow;document.documentElement.style.overflow='hidden';actionDialog.showModal();(edit?textarea:actionDialog.querySelector('[data-close]')).focus();refreshEditWindow();
+ }
+ actionDialog.querySelector('form').addEventListener('submit',async event=>{
+  event.preventDefault();if(actionBusy)return;if(activeAction==='edit_message'&&!canEditMessage(activeRow)){refreshEditWindow();return;}actionBusy=true;const buttons=actionDialog.querySelectorAll('button');buttons.forEach(button=>button.disabled=true);
+  const form=new FormData();form.set('action',activeAction);if(activeRow)form.set('message_id',activeRow.dataset.messageId);if(activeAction==='edit_message')form.set('message',actionDialog.querySelector('textarea').value);
+  const token=root.querySelector('[name=csrfmiddlewaretoken]')?.value;if(token)form.set('csrfmiddlewaretoken',token);
+  try{const url=new URL(location.href);url.searchParams.delete('messages');const response=await fetch(url,{method:'POST',body:form,credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}});if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Check your login and try again.');const data=await response.json();updateServerClock(data.server_now);if(data.code==='edit_window_expired'&&activeRow){activeRow.dataset.editExpired='true';refreshEditWindow();}if(!response.ok||!data.ok)throw new Error(data.message||'Could not save this change.');historyEpoch++;historyAgain=true;actionBusy=false;actionDialog.close();toast(data.message,'success');syncHistory();}
+  catch(error){actionDialog.querySelector('.member-action-error').textContent=error.message;toast(error.message,'error');}
+  finally{actionBusy=false;buttons.forEach(button=>button.disabled=false);refreshEditWindow();}
+ });
+ function decorateMessageActions(){
+  messages?.querySelectorAll('.message-row[data-message-id]').forEach(row=>{
+   if(row.querySelector('.member-message-options'))return;
+   const button=document.createElement('button');button.type='button';button.className='member-message-options';button.innerHTML='<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><circle cx="8" cy="3" r="1.2" fill="currentColor"/><circle cx="8" cy="8" r="1.2" fill="currentColor"/><circle cx="8" cy="13" r="1.2" fill="currentColor"/></svg>';button.setAttribute('aria-label','Message options');button.setAttribute('aria-haspopup','menu');button.setAttribute('aria-expanded','false');
+   button.addEventListener('click',()=>{const same=!bubbleMenu.hidden&&activeRow===row;closeBubbleMenu();if(same)return;activeRow=row;actionFocus=button;bubbleMenu.replaceChildren();
+    const choices=[['delete_for_me','Delete for me']];if(row.classList.contains('sent')&&row.dataset.deleted!=='true'){choices.unshift(['delete_for_everyone','Delete for everyone']);choices.unshift(['edit_message','Edit message']);}
+    choices.forEach(([action,label])=>{const item=document.createElement('button');item.type='button';item.textContent=label;item.setAttribute('role','menuitem');item.dataset.messageAction=action;if(action==='edit_message'){item.disabled=!canEditMessage(row);item.setAttribute('aria-disabled',String(item.disabled));item.title=item.disabled?'Editing is available for 2 hours after sending.':'Edit message';}item.addEventListener('click',()=>openMessageAction(action,row,button));bubbleMenu.append(item);});
+    bubbleMenu.hidden=false;button.setAttribute('aria-expanded','true');const rect=button.getBoundingClientRect();bubbleMenu.style.left=Math.max(8,Math.min(rect.left,innerWidth-188))+'px';bubbleMenu.style.top=Math.max(8,Math.min(rect.bottom+4,innerHeight-bubbleMenu.offsetHeight-8))+'px';bubbleMenu.querySelector('button:not(:disabled)')?.focus();refreshEditWindow();
+   });row.append(button);
+   if(row.dataset.deleted==='true')row.querySelector('.message-text').textContent='This message was deleted.';
+   setEditedLabel(row,row.dataset.editedAt||'');
+  });
+ }
+ function setEditedLabel(row,value){row.dataset.editedAt=value||'';let label=row.querySelector('.member-edited-label');if(value&&!label){label=document.createElement('span');label.className='member-edited-label';label.textContent='Edited';row.querySelector('.message-bubble').append(label);}if(!value)label?.remove();}
+ document.addEventListener('click',event=>{if(!bubbleMenu.contains(event.target)&&!event.target.closest('.member-message-options'))closeBubbleMenu();});
+ document.addEventListener('keydown',event=>{if(bubbleMenu.hidden)return;if(event.key==='Escape'){event.preventDefault();closeBubbleMenu();actionFocus?.focus();}if(['ArrowDown','ArrowUp'].includes(event.key)){event.preventDefault();const items=[...bubbleMenu.querySelectorAll('button:not(:disabled)')];const index=items.indexOf(document.activeElement);items[(index+(event.key==='ArrowDown'?1:-1)+items.length)%items.length].focus();}if(event.key==='Tab')closeBubbleMenu();});
+ messages?.addEventListener('scroll',closeBubbleMenu,{passive:true});window.addEventListener('resize',closeBubbleMenu);
+ menu?.addEventListener('click',event=>{if(event.target.closest('[data-chat-action="clear"]'))openMessageAction('clear_chat',null,menuButton);});
+
+ const dateFormatter = new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric'});
+ const dayKey = date => new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(date);
+ function resetNewMessages(){unseenRows.clear();if(jumpButton)jumpButton.hidden=true;}
+ function refreshJumpButton(){if(!jumpButton)return;jumpButton.hidden=unseenRows.size===0;jumpButton.querySelector('span').textContent=`${unseenRows.size} new message${unseenRows.size===1?'':'s'}`;}
+ function decorateMessages(){
+  decorateMessageActions();refreshEditWindow();
+  if(!messages)return;
+  messages.querySelectorAll('.member-date-label').forEach(label=>label.remove());
+  const query=(messageSearch?.value||'').trim().toLocaleLowerCase();
+  const today=dayKey(new Date());const yesterday=dayKey(new Date(Date.now()-86400000));
+  let previous='',matches=0;
+  messages.querySelectorAll('.message-row').forEach(row=>{
+   const text=row.querySelector('.message-text')?.textContent||row.querySelector('.message-bubble')?.textContent||'';
+   const visible=!query||text.toLocaleLowerCase().includes(query);row.hidden=!visible;if(!visible)return;matches++;
+   const date=new Date(row.dataset.messageAt);if(isNaN(date))return;
+   const key=dayKey(date);if(key===previous)return;previous=key;
+   const chip=document.createElement('div');chip.className='member-date-label';chip.textContent=key===today?'Today':key===yesterday?'Yesterday':dateFormatter.format(date);row.before(chip);
+  });
+  if(messageSearchCount)messageSearchCount.textContent=query?`${matches} match${matches===1?'':'es'}`:'';
+  if(clearMessageSearch)clearMessageSearch.hidden=!query;
+  const empty=document.getElementById('memberNoSearchResults');if(empty)empty.hidden=!query||matches>0;
+ }
+ messageSearch?.addEventListener('input',decorateMessages);
+ clearMessageSearch?.addEventListener('click',()=>{messageSearch.value='';decorateMessages();messageSearch.focus();});
+ function closeMessageSearch(){if(messageSearch)messageSearch.value='';decorateMessages();const bar=document.getElementById('memberMessageSearchBar');if(bar)bar.hidden=true;document.getElementById('memberChatMenuButton')?.focus();}
+ document.getElementById('memberCloseMessageSearch')?.addEventListener('click',closeMessageSearch);
+ messageSearch?.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closeMessageSearch();}});
+ jumpButton?.addEventListener('click',()=>{if(messageSearch){messageSearch.value='';decorateMessages();}messages.scrollTop=messages.scrollHeight;resetNewMessages();});
+ messages?.addEventListener('scroll',()=>{if(!document.hidden&&messages.scrollHeight-messages.scrollTop-messages.clientHeight<90)resetNewMessages();},{passive:true});
+ decorateMessages();
+
+ function renderMessage(data,live=false){
+  if(!messages || !data.message || !data.sender_id)return;
+  const key=data.message_id?String(data.message_id):null;
+  if(key&&ids.has(key)){const row=[...messages.querySelectorAll('[data-message-id]')].find(row=>row.dataset.messageId===key);if(row){row.querySelector('.message-text').textContent=data.deleted?'This message was deleted.':data.message;row.dataset.deleted=String(!!data.deleted);setEditedLabel(row,data.edited_at);decorateMessages();}return;}
+  const fingerprint=data.timestamp?JSON.stringify([Number(data.sender_id),data.message,new Date(data.timestamp).getTime()]):null;
+  if(key&&fingerprint&&legacyRows.has(fingerprint)){const old=legacyRows.get(fingerprint);old.dataset.messageId=key;ids.add(key);legacyRows.delete(fingerprint);return;}
+  if(!key&&fingerprint&&legacyRows.has(fingerprint))return;
+  const atBottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<90;
+  if(key)ids.add(key);
+  messages.querySelector('[data-empty-message]')?.remove();
+  const mine=Number(data.sender_id)===currentId;
+  const row=document.createElement('div');row.className='message-row '+(mine?'sent':'received');if(key)row.dataset.messageId=key;row.dataset.messageAt=data.timestamp||new Date().toISOString();row.dataset.senderName=data.sender||'';row.dataset.deleted=String(!!data.deleted);row.dataset.editedAt=data.edited_at||'';
+  if(!mine && mode==='personal') {const avatar=document.createElement('span');avatar.className='message-avatar message-avatar-fallback';avatar.textContent=(data.sender||'U').trim().charAt(0).toUpperCase();row.append(avatar);}
+  const bubble=document.createElement('div');bubble.className='message-bubble '+(mine?'sent-bubble':'received-bubble');
+  if(!mine && mode==='group'){const sender=document.createElement('strong');sender.className='sender-name';sender.textContent=data.sender||'Unknown';bubble.append(sender);}
+  const text=document.createElement('span');text.className='message-text';text.textContent=data.message;bubble.append(text);
+  const time=document.createElement('time');time.className='message-time';let date=new Date(data.timestamp||Date.now());if(isNaN(date))date=new Date();time.dateTime=date.toISOString();time.textContent=date.toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:true});bubble.append(time);row.append(bubble);messages.append(row);if(!key&&fingerprint)legacyRows.set(fingerprint,row);
+  if(live&&!mine&&(document.hidden||!atBottom)){unseenRows.add(row);refreshJumpButton();}
+  decorateMessages();
+  if((atBottom&&!document.hidden)||mine)messages.scrollTop=messages.scrollHeight;
+ }
+ async function syncHistory(){
+  if(!messages||document.hidden)return;if(historyBusy){historyAgain=true;return;}historyBusy=true;const epoch=historyEpoch;
+  try{const url=new URL(location.href);url.searchParams.set('messages','1');const response=await fetch(url,{credentials:'same-origin',cache:'no-store',headers:{'Accept':'application/json'}});if(response.ok&&(response.headers.get('content-type')||'').includes('application/json')){const data=await response.json();updateServerClock(data.server_now||response.headers.get('Date'));if(epoch!==historyEpoch){historyAgain=true;return;}if(data.ok&&Array.isArray(data.items)){const atBottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<90;const visible=new Set(data.items.map(item=>String(item.message_id)));messages.querySelectorAll('[data-message-id]').forEach(row=>{if(!visible.has(row.dataset.messageId)){ids.delete(row.dataset.messageId);unseenRows.delete(row);row.remove();}});data.items.forEach(item=>renderMessage(item));[...messages.querySelectorAll('[data-message-id]')].sort((a,b)=>new Date(a.dataset.messageAt)-new Date(b.dataset.messageAt)||Number(a.dataset.messageId)-Number(b.dataset.messageId)).forEach(row=>messages.append(row));refreshJumpButton();decorateMessages();if(atBottom)messages.scrollTop=messages.scrollHeight;}}}catch(_){}finally{historyBusy=false;if(historyAgain){historyAgain=false;queueMicrotask(syncHistory);}}
+ }
+ function status(text,connected){if(connection){connection.textContent=text;connection.dataset.connected=String(connected);}if(send)send.disabled=!connected||!!pending;}
+ function restorePending(){if(!pending)return;clearTimeout(pending.timer);if(input&&!input.value)input.value=pending.text;pending=null;if(input)input.disabled=false;if(send)send.disabled=!socket||socket.readyState!==WebSocket.OPEN;toast('Connection interrupted. Check the chat before resending; the message may already be saved.','warning');}
+ function connect(){
+  if(closed||!root.dataset.socketPath)return;
+  status('Connecting…',false);const scheme=location.protocol==='https:'?'wss':'ws';socket=new WebSocket(`${scheme}://${location.host}${root.dataset.socketPath}`);
+  socket.onopen=()=>{retry=0;status('Connected',true);syncHistory();};
+  socket.onmessage=event=>{let data;try{data=JSON.parse(event.data);}catch{return;}if(data.action==='sync_messages'){historyEpoch++;syncHistory();return;}if(data.error){restorePending();toast(data.error,'error');return;}historyEpoch++;renderMessage(data,true);if(pending&&data.client_id===pending.id&&Number(data.sender_id)===currentId){clearTimeout(pending.timer);pending=null;if(input)input.disabled=false;if(send)send.disabled=false;input?.focus();}};
+  socket.onclose=event=>{status(event.code===4403?'Access denied':'Reconnecting…',false);restorePending();if(!closed&&event.code!==4403)reconnectTimer=setTimeout(connect,Math.min(1000*2**retry++,15000));};
+  socket.onerror=()=>status('Connection unavailable',false);
+ }
+ function sendMessage(event){event?.preventDefault();if(!input)return;const text=input.value.trim();if(!text)return;if(text.length>10000){toast('Use 10,000 characters or fewer.','warning');return;}if(!socket||socket.readyState!==WebSocket.OPEN){toast('Chat is reconnecting. Your message is kept; try again when connected.','warning');return;}if(pending){toast('Waiting for the previous message to be confirmed.','info');return;}
+  const clientId=`${currentId}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  input.disabled=true;if(send)send.disabled=true;pending={id:clientId,text,timer:setTimeout(()=>{restorePending();syncHistory();},10000)};
+  try{socket.send(JSON.stringify({message:text,sender_id:currentId,client_id:clientId}));input.value='';input.focus();}catch{restorePending();}
+ }
+ if(input){if(mode==='group')document.getElementById('chat-form').addEventListener('submit',sendMessage);else send?.addEventListener('click',sendMessage);input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing)sendMessage(event);});}
+ window.addEventListener('pagehide',()=>{closed=true;clearTimeout(reconnectTimer);if(pending)clearTimeout(pending.timer);socket?.close();});
+ document.addEventListener('visibilitychange',()=>{refreshEditWindow();if(!document.hidden)syncHistory();});
+ if(messages){messages.scrollTop=messages.scrollHeight;connect();setInterval(syncHistory,15000);}icons();
+})();
+
+</script><script src="{% static 'js/member_chat_receipts.js' %}"></script>
+  <script>if(window.lucide)window.lucide.createIcons();</script>
+  <script src="{% static 'js/activity.js' %}"></script>
 
 <script>
-
-const roomId = "{{ room.id }}";
-
-const currentUserId =
-    Number("{{ current_user.id }}");
-
-
-const wsScheme =
-    window.location.protocol === "https:"
-        ? "wss"
-        : "ws";
-
-
-const chatSocket =
-    new WebSocket(
-        `${wsScheme}://${window.location.host}/ws/chat/${roomId}/`
-    );
-
-
-
-const messagesContainer =
-    document.querySelector("#chat-messages");
-
-
-const input =
-    document.querySelector("#chat-input");
-
-
-const sendBtn =
-    document.querySelector("#sendBtn");
-
-
-
-/* =========================================================
-   APPEND MESSAGE
-   ========================================================= */
-
-function appendMessage(
-    message,
-    senderId,
-    senderName = "",
-    senderProfile = null
-) {
-
-    const isCurrentUser =
-        Number(senderId) === currentUserId;
-
-
-    const wrapper =
-        document.createElement("div");
-
-
-    wrapper.className =
-        isCurrentUser
-            ? "message-row sent dynamic-message"
-            : "message-row received dynamic-message";
-
-
-    /* RECEIVED AVATAR */
-
-    if (!isCurrentUser) {
-
-        if (senderProfile) {
-
-            const avatar =
-                document.createElement("img");
-
-            avatar.src =
-                senderProfile;
-
-            avatar.className =
-                "message-avatar";
-
-            avatar.alt =
-                senderName || "User";
-
-            wrapper.appendChild(avatar);
-
-        } else {
-
-            const avatar =
-                document.createElement("div");
-
-            avatar.className =
-                "message-avatar message-avatar-fallback";
-
-            avatar.textContent =
-                senderName
-                    ? senderName.charAt(0).toUpperCase()
-                    : "U";
-
-            wrapper.appendChild(avatar);
-
-        }
-
-    }
-
-
-    /* MESSAGE BUBBLE */
-
-    const bubble =
-        document.createElement("p");
-
-
-    bubble.className =
-        isCurrentUser
-            ? "message-bubble sent-bubble"
-            : "message-bubble received-bubble";
-
-
-    /*
-       textContent is used intentionally
-       so HTML cannot be injected into messages.
-    */
-
-    bubble.textContent =
-        message;
-
-
-    wrapper.appendChild(bubble);
-
-
-    messagesContainer.appendChild(wrapper);
-
-
-    /* Scroll bottom */
-
-    messagesContainer.scrollTop =
-        messagesContainer.scrollHeight;
-
-}
-
-
-
-/* =========================================================
-   WEBSOCKET MESSAGE
-   ========================================================= */
-
-chatSocket.onmessage = function (event) {
-
-    const data =
-        JSON.parse(event.data);
-
-
-    const senderId =
-        Number(data.sender_id);
-
-
-    /*
-       Current user's message is already
-       displayed immediately when sent.
-    */
-
-    if (senderId !== currentUserId) {
-
-        appendMessage(
-            data.message,
-            senderId,
-            data.sender,
-            data.sender_profile || null
-        );
-
-    }
-
-};
-
-
-
-/* =========================================================
-   SEND MESSAGE
-   ========================================================= */
-
-function sendMessage() {
-
-    const message =
-        input.value.trim();
-
-
-    if (!message) {
-        return;
-    }
-
-
-    /*
-       Show message immediately
-    */
-
-    appendMessage(
-        message,
-        currentUserId
-    );
-
-
-    /*
-       Send through WebSocket
-    */
-
-    if (
-        chatSocket.readyState === WebSocket.OPEN
-    ) {
-
-        chatSocket.send(
-            JSON.stringify({
-
-                message: message,
-
-                sender_id:
-                    currentUserId
-
-            })
-        );
-
-    }
-
-
-    input.value = "";
-
-    input.focus();
-
-}
-
-
-
-/* =========================================================
-   SEND BUTTON
-   ========================================================= */
-
-if (sendBtn) {
-
-    sendBtn.addEventListener(
-        "click",
-        sendMessage
-    );
-
-}
-
-
-
-/* =========================================================
-   ENTER KEY
-   ========================================================= */
-
-if (input) {
-
-    input.addEventListener(
-        "keypress",
-        function (event) {
-
-            if (event.key === "Enter") {
-
-                event.preventDefault();
-
-                sendMessage();
-
-            }
-
-        }
-    );
-
-}
-
-
-
-/* =========================================================
-   SOCKET EVENTS
-   ========================================================= */
-
-chatSocket.onopen = function () {
-
-    console.log(
-        "Team Lead chat connected."
-    );
-
-};
-
-
-chatSocket.onerror = function (error) {
-
-    console.error(
-        "Chat WebSocket error:",
-        error
-    );
-
-};
-
-
-chatSocket.onclose = function () {
-
-    console.log(
-        "Team Lead chat disconnected."
-    );
-
-};
-
-
-
-/* =========================================================
-   SCROLL TO BOTTOM
-   ========================================================= */
-
-window.addEventListener(
-    "load",
-    function () {
-
-        if (messagesContainer) {
-
-            messagesContainer.scrollTop =
-                messagesContainer.scrollHeight;
-
-        }
-
-    }
-);
-
-</script>
-
-
-
-<!-- =========================================================
-     GROUP MODAL
-     ========================================================= -->
-
-<script>
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
-
-
-        const modal =
-            document.getElementById(
-                "groupModal"
+(() => {
+    const root = document.getElementById("memberChatPage");
+    if (!root) return;
+
+    const dots = [
+        ...root.querySelectorAll(".user-status-dot[data-user-id]")
+    ].filter(dot => /^\d+$/.test(dot.dataset.userId));
+
+    const userIds = [...new Set(
+        dots.map(dot => dot.dataset.userId)
+    )];
+
+    const statusUrl = "{% url 'get_user_status' 0 %}";
+    let busy = false;
+
+    function paint(userId, status) {
+        const active = status === "active";
+        const known = active || status === "inactive";
+
+        const color = active
+            ? "#4ADE80"
+            : known
+                ? "#F87171"
+                : "#94A3B8";
+
+        const label = active
+            ? "Active"
+            : known
+                ? "Inactive"
+                : "Checking status";
+
+        dots.filter(
+            dot => dot.dataset.userId === userId
+        ).forEach(dot => {
+            dot.style.setProperty(
+                "background-color",
+                color,
+                "important"
             );
 
+            dot.style.setProperty(
+                "box-shadow",
+                "none",
+                "important"
+            );
 
-        const openButtons = [
+            dot.title = label;
+            dot.setAttribute("aria-label", label);
 
-            document.getElementById(
-                "openModal"
-            ),
-
-            document.getElementById(
-                "openModalTop"
-            )
-
-        ].filter(Boolean);
-
-
-        const closeButtons = [
-
-            document.getElementById(
-                "closeModal"
-            ),
-
-            document.getElementById(
-                "cancelModal"
-            )
-
-        ].filter(Boolean);
-
-
-
-        /* OPEN */
-
-        openButtons.forEach(
-            function (button) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        modal?.classList.remove(
-                            "hidden"
-                        );
-
-                    }
+            if (dot.classList.contains("large-dot")) {
+                const badge = root.querySelector(
+                    ".chat-conversation-header .conversation-status"
                 );
 
-            }
-        );
+                if (badge) {
+                    const indicator = document.createElement("span");
+                    indicator.className = "status-dot";
 
-
-
-        /* CLOSE */
-
-        closeButtons.forEach(
-            function (button) {
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        modal?.classList.add(
-                            "hidden"
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-
-
-        /* CLICK OUTSIDE */
-
-        modal?.addEventListener(
-            "click",
-            function (event) {
-
-                if (
-                    event.target === modal
-                ) {
-
-                    modal.classList.add(
-                        "hidden"
+                    indicator.style.setProperty(
+                        "background-color",
+                        color,
+                        "important"
                     );
 
+                    indicator.style.setProperty(
+                        "box-shadow",
+                        "none",
+                        "important"
+                    );
+
+                    badge.replaceChildren(
+                        indicator,
+                        document.createTextNode(` ${label}`)
+                    );
                 }
-
             }
-        );
-
-
+        });
     }
-);
 
-</script>
+    async function syncStatus() {
+        if (busy || document.hidden || !root.isConnected) return;
 
+        busy = true;
 
+        try {
+            await Promise.all(userIds.map(async userId => {
+                try {
+                    const url = statusUrl.replace(
+                        /\/0\/$/,
+                        `/${userId}/`
+                    );
 
-<!-- =========================================================
-     EXISTING ADMIN JS
-     ========================================================= -->
+                    const response = await fetch(url, {
+                        credentials: "same-origin",
+                        cache: "no-store"
+                    });
 
-<script src="{% static 'js/admin.js' %}"></script>
+                    if (!response.ok) throw new Error();
 
+                    const data = await response.json();
 
+                    paint(
+                        userId,
+                        data.success ? data.status : "unknown"
+                    );
+                } catch (_) {
+                    paint(userId, "unknown");
+                }
+            }));
+        } finally {
+            busy = false;
+        }
+    }
 
-<!-- =========================================================
-     ICONS + MOBILE SIDEBAR
-     ========================================================= -->
+    userIds.forEach(userId => paint(userId, "unknown"));
+    syncStatus();
 
-<script>
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
-
-
-        /* Lucide */
-
-        if (window.lucide) {
-
-            lucide.createIcons();
-
+    const timer = setInterval(() => {
+        if (!root.isConnected) {
+            clearInterval(timer);
+            return;
         }
 
+        syncStatus();
+    }, 15000);
 
-
-        /* Mobile menu */
-
-        document
-            .querySelectorAll(".menu-toggle")
-            .forEach(
-                function (button) {
-
-                    button.addEventListener(
-                        "click",
-                        function () {
-
-                            const sidebar =
-                                document.getElementById(
-                                    "sidebar"
-                                );
-
-
-                            sidebar?.classList.toggle(
-                                "open"
-                            );
-
-                        }
-                    );
-
-                }
-            );
-
-
-
-        /* Close sidebar after click */
-
-        const sidebar =
-            document.getElementById(
-                "sidebar"
-            );
-
-
-        document
-            .querySelectorAll(
-                ".sidebar-item, .sidebar-logout"
-            )
-            .forEach(
-                function (item) {
-
-                    item.addEventListener(
-                        "click",
-                        function () {
-
-                            if (
-                                window.innerWidth <= 768
-                            ) {
-
-                                sidebar?.classList.remove(
-                                    "open"
-                                );
-
-                            }
-
-                        }
-                    );
-
-                }
-            );
-
-
-    }
-);
-
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) syncStatus();
+    });
+})();
 </script>
-
-
-
-<!-- Activity -->
-<script src="{% static 'js/activity.js' %}"></script>
-
-
 </body>
-
 </html>
