@@ -1,34 +1,6 @@
 {% extends "team_member/base3.html" %}{% load static %}
 {% block title %}Team Member Chat - Cybexel{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/admin_chat.css' %}"><style>
-        /* Team Lead chat refinements. Existing admin_chat.css remains the theme. */
-        .chat-shell { min-width: 0; }
-        .chat-list-panel, .chat-conversation { min-width: 0; }
-        .chat-user-row, .chat-group-row { border-radius: 13px; }
-        .chat-user-row:focus-visible, .chat-group-row:focus-visible,
-        .chat-icon-button:focus-visible, .chat-small-plus:focus-visible,
-        .chat-composer button:focus-visible, .chat-modal button:focus-visible {
-            outline: 2px solid #a78bfa;
-            outline-offset: 2px;
-        }
-        .chat-user-info, .conversation-user, .chat-group-name { min-width: 0; }
-        .chat-user-name, .chat-user-sub, .conversation-name, .conversation-sub,
-        .chat-group-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .chat-messages { overscroll-behavior: contain; }
-        .message-bubble { overflow-wrap: anywhere; word-break: normal; }
-        .message-time { font-size: 10px; font-weight: 500; letter-spacing: .01em; }
-        .chat-composer { flex-shrink: 0; }
-        .chat-modal-card { scrollbar-width: thin; scrollbar-color: #7658a8 transparent; }
-        @media (max-width: 620px) {
-            .chat-main { padding: 8px; }
-            .chat-shell { border-radius: 18px; }
-            .chat-list-panel { min-height: 175px; }
-            .chat-messages { padding: 14px; }
-            .message-bubble { max-width: min(86%, 560px); }
-            .chat-composer { min-height: 66px; padding: 10px 12px; }
-            .chat-modal-card { max-height: calc(100dvh - 32px); }
-        }
-    
 /* Shared Member base owns the application sidebar; Lead chat CSS owns the chat panels. */
 #memberChatPage{min-width:0;height:100%;}
 #memberChatPage .chat-main{position:static!important;inset:auto!important;margin:0!important;padding:0!important;height:100%!important;min-width:0;}
@@ -183,9 +155,9 @@
 #memberChatPage .lead-contact-search #memberChatSearch:focus{border-color:#a783ce;background:#17111f;}
 #memberChatPage .lead-search-field:focus-within .lead-search-icon{color:#d0b6ee;}
 </style>{% endblock %}
-{% block content %}<div id="memberChatPage" data-meta-url="{% url 'chat_meta' %}" data-read-url="{% url 'chat_mark_read' %}" class="" data-mode="list" data-user-id="{{ current_user.id }}" data-current-name="{{ current_user.name }}" data-socket-path=""><main class="chat-main">
+{% block content %}<div id="memberChatPage" data-meta-url="{% url 'chat_meta' %}" data-read-url="{% url 'chat_mark_read' %}" class="member-chat-has-room" data-mode="personal" data-user-id="{{ current_user.id }}" data-current-name="{{ current_user.name }}" data-socket-path="/ws/member/chat/{{ room.id }}/"><main class="chat-main">
 
-    <div class="chat-shell"><p id="memberChatFeedback" hidden role="status"></p>
+    <div class="chat-shell"><button id="memberContactsBackdrop" type="button" tabindex="-1" aria-label="Close contacts"></button><p id="memberChatFeedback" hidden role="status"></p>
 
 
         
@@ -194,7 +166,8 @@
 
 
             
-            <div class="chat-list-header">
+
+            <div class="chat-list-header"><button id="memberCloseContacts" type="button" aria-label="Close contacts"><i data-lucide="x"></i></button>
 
                 <div>
 
@@ -210,11 +183,13 @@
 
 
                 
+
                 <button
                     type="button"
                     id="openModalTop"
                     class="chat-icon-button"
-                    aria-label="Create group">
+                    aria-label="Create group"
+                >
 
                     <i data-lucide="plus"></i>
 
@@ -225,6 +200,7 @@
 
 
             
+
             <div class="lead-contact-search">
                 <label class="lead-search-field" for="memberChatSearch">
                     <svg class="lead-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
@@ -241,7 +217,7 @@
                     <div class="chat-section-title">
 
                         <span>
-                             Members
+                            Members
                         </span>
 
                         <span class="chat-count">
@@ -253,87 +229,108 @@
 
                     <div
                         id="user-list"
-                        class="chat-user-list">
-
+                        class="chat-user-list"
+                    >
 
                         {% for user in users %}
 
+
                         <a
                             href="{% url 'teammember_chat_room' user.id %}" data-peer-id="{{ user.id }}"
-                            class="chat-user-row">
+                            class="chat-user-row"
+                        >
 
 
                             
+
                             <div class="chat-avatar-wrap">
 
                                 {% if user.profile_image %}
 
-                                    <img
-                                        src="{{ user.profile_image.url }}"
-                                        class="chat-avatar"
-                                        alt="{{ user.name }}">
+                                <img
+                                    src="{{ user.profile_image.url }}"
+                                    class="chat-avatar"
+                                    alt="{{ user.name }}"
+                                >
 
                                 {% else %}
 
-                                    <div
-                                        class="chat-avatar chat-avatar-fallback">
+                                <div class="chat-avatar chat-avatar-fallback">
 
-                                        {% if user.id == current_user.id %}
-                                            M
-                                        {% else %}
-                                            {{ user.name|first|upper }}
-                                        {% endif %}
+                                    {% if user.id == current_user.id %}
 
-                                    </div>
+                                        M
+
+                                    {% else %}
+
+                                        {{ user.name|first|upper }}
+
+                                    {% endif %}
+
+                                </div>
 
                                 {% endif %}
 
 
                                 
+
                                 <span
                                     class="user-status-dot"
                                     data-user-id="{{ user.id }}"
-                                    title="Active">
-                                </span>
+                                    title="Active"
+                                ></span>
 
                             </div>
 
 
                             
+
                             <div class="chat-user-info">
 
                                 <p class="chat-user-name">
 
                                     {% if user.id == current_user.id %}
+
                                         Me
+
                                     {% else %}
+
                                         {{ user.name }}
+
                                     {% endif %}
 
                                 </p>
 
 
                                 <p class="chat-user-sub">
+
                                     {{ user.phone }}
+
                                 </p>
 
                             </div>
 
 
                             
+
                             <i
                                 data-lucide="chevron-right"
-                                class="chat-row-arrow">
-                            </i>
+                                class="chat-row-arrow"
+                            ></i>
+
 
                         </a>
 
 
                         {% empty %}
 
+
                         <div class="chat-empty">
+
                             No team members found.
+
                         </div>
+
 
                         {% endfor %}
 
@@ -347,6 +344,7 @@
 
                 <div class="chat-section groups-section">
 
+
                     <div class="chat-section-title">
 
                         <span>
@@ -358,7 +356,8 @@
                             type="button"
                             id="openModal"
                             class="chat-small-plus"
-                            aria-label="Create group">
+                            aria-label="Create group"
+                        >
 
                             <i data-lucide="plus"></i>
 
@@ -372,33 +371,46 @@
 
                         {% for group in groups %}
 
+
                         <a
                             href="{% url 'teammember_group_chat' group.id %}" data-group-id="{{ group.id }}"
-                            class="chat-group-row">
+                            class="chat-group-row"
+                        >
 
                             <span class="chat-group-icon">
+
                                 <i data-lucide="users-round"></i>
+
                             </span>
 
+
                             <span class="chat-group-name">
+
                                 {{ group.name }}
+
                             </span>
+
 
                             <i
                                 data-lucide="chevron-right"
-                                class="chat-row-arrow">
-                            </i>
+                                class="chat-row-arrow"
+                            ></i>
 
                         </a>
 
 
                         {% empty %}
 
+
                         <div class="chat-empty">
+
                             No group chats yet.
+
                         </div>
 
+
                         {% endfor %}
+
 
                     </div>
 
@@ -414,41 +426,42 @@
 
         <section
             id="chat-window"
-            class="chat-conversation">
-
-
-            {% if other_user %}
+            class="chat-conversation"
+        >
 
 
             
 
-            <header class="chat-conversation-header">
+            <header class="chat-conversation-header"><button type="button" id="memberChatBack" class="chat-icon-button" aria-label="Show contacts"><i data-lucide="arrow-left"></i></button><span id="memberChatConnection" role="status">Connecting…</span>
 
 
                 <div class="conversation-user">
 
 
                     
+
                     <div class="chat-avatar-wrap large">
 
 
                         {% if other_user.profile_image %}
 
-                            <img
-                                id="chat-avatar"
-                                src="{{ other_user.profile_image.url }}"
-                                class="chat-avatar"
-                                alt="{{ other_user.name }}">
+                        <img
+                            id="chat-avatar"
+                            src="{{ other_user.profile_image.url }}"
+                            class="chat-avatar"
+                            alt="{{ other_user.name }}"
+                        >
 
                         {% else %}
 
-                            <div
-                                id="chat-avatar"
-                                class="chat-avatar chat-avatar-fallback">
+                        <div
+                            id="chat-avatar"
+                            class="chat-avatar chat-avatar-fallback"
+                        >
 
-                                {{ other_user.name|first|upper }}
+                            {{ other_user.name|first|upper }}
 
-                            </div>
+                        </div>
 
                         {% endif %}
 
@@ -456,19 +469,21 @@
                         <span
                             class="user-status-dot large-dot"
                             data-user-id="{{ other_user.id }}"
-                            title="Active">
-                        </span>
+                            title="Active"
+                        ></span>
+
 
                     </div>
 
 
-
                     
+
                     <div>
 
                         <p
                             id="chat-username"
-                            class="conversation-name">
+                            class="conversation-name"
+                        >
 
                             {{ other_user.name }}
 
@@ -477,7 +492,8 @@
 
                         <p
                             id="chat-userphone"
-                            class="conversation-sub">
+                            class="conversation-sub"
+                        >
 
                             {{ other_user.phone }}
 
@@ -485,11 +501,12 @@
 
                     </div>
 
+
                 </div>
 
 
-
                 
+
                 <div class="conversation-status">
 
                     <span class="status-dot"></span>
@@ -498,7 +515,8 @@
 
                 </div>
 
-            </header>
+
+            <div class="member-chat-menu-wrap"><button id="memberChatMenuButton" type="button" aria-label="Chat options" aria-haspopup="menu" aria-expanded="false" aria-controls="memberChatMenu"><i data-lucide="ellipsis"></i></button><div id="memberChatMenu" role="menu" hidden><button type="button" role="menuitem" tabindex="-1" data-chat-action="clear"><i data-lucide="eraser"></i>Clear chat</button><button type="button" role="menuitem" tabindex="-1" data-chat-action="search"><i data-lucide="search"></i>Search messages</button><button type="button" role="menuitem" tabindex="-1" data-chat-action="latest"><i data-lucide="arrow-down-to-line"></i>Go to latest</button><button type="button" role="menuitem" tabindex="-1" data-chat-action="download"><i data-lucide="download"></i>Download chat text</button></div></div></header><div class="member-message-tools" id="memberMessageSearchBar" hidden><i data-lucide="search"></i><input id="memberMessageSearch" type="search" placeholder="Search in this conversation…" aria-label="Search messages"><span id="memberMessageSearchCount" aria-live="polite"></span><button id="memberCloseMessageSearch" type="button" aria-label="Close message search"><i data-lucide="x"></i></button><button id="memberClearMessageSearch" type="button" hidden aria-label="Clear search text"><i data-lucide="eraser"></i></button></div>
 
 
 
@@ -506,7 +524,8 @@
 
             <div
                 id="chat-messages"
-                class="chat-messages">
+                class="chat-messages"
+            >
 
 
                 {% for msg in messages %}
@@ -515,92 +534,61 @@
                     {% if msg.sender.id == current_user.id %}
 
 
-                        
+                    
 
-                        <div class="message-row sent" data-message-id="{{ msg.id }}" data-message-at="{{ msg.created_at|date:'c' }}" data-deleted="{{ msg.deleted_for_everyone|yesno:'true,false' }}" data-edited-at="{{ msg.edited_at|date:'c' }}">
+                    <div class="message-row sent" data-message-id="{{ msg.id }}" data-message-at="{{ msg.created_at|date:'c' }}" data-deleted="{{ msg.deleted_for_everyone|yesno:'true,false' }}" data-edited-at="{{ msg.edited_at|date:'c' }}">
 
-                            <p class="message-bubble sent-bubble">
+                        <p class="message-bubble sent-bubble">
 
-                                <span class="message-text">{{ msg.content }}</span>
+                            <span class="message-text">{{ msg.content }}</span><span class="message-time">{{ msg.created_at|date:"d M, h:i A" }}</span>
 
-                                <span class="message-time">
-                                    {{ msg.created_at|date:"h:i A" }}
-                                </span>
+                        </p>
 
-                            </p>
-
-                        </div>
+                    </div>
 
 
                     {% else %}
 
 
-                        
+                    
 
-                        <div class="message-row received" data-message-id="{{ msg.id }}" data-message-at="{{ msg.created_at|date:'c' }}" data-deleted="{{ msg.deleted_for_everyone|yesno:'true,false' }}" data-edited-at="{{ msg.edited_at|date:'c' }}">
-
-
-                            {% if msg.sender.profile_image %}
-
-                                <img
-                                    src="{{ msg.sender.profile_image.url }}"
-                                    class="message-avatar"
-                                    alt="{{ msg.sender.name }}">
-
-                            {% else %}
-
-                                <div
-                                    class="message-avatar message-avatar-fallback">
-
-                                    {{ msg.sender.name|first|upper }}
-
-                                </div>
-
-                            {% endif %}
+                    <div class="message-row received" data-message-id="{{ msg.id }}" data-message-at="{{ msg.created_at|date:'c' }}" data-deleted="{{ msg.deleted_for_everyone|yesno:'true,false' }}" data-edited-at="{{ msg.edited_at|date:'c' }}">
 
 
-                            <div>
+                        {% if msg.sender.profile_image %}
 
-                                <span class="sender-name">
-                                    {{ msg.sender.name }}
-                                </span>
+                        <img
+                            src="{{ msg.sender.profile_image.url }}"
+                            class="message-avatar"
+                            alt="{{ msg.sender.name }}"
+                        >
 
+                        {% else %}
 
-                                <p class="message-bubble received-bubble">
+                        <div class="message-avatar message-avatar-fallback">
 
-                                    <span class="message-text">{{ msg.content }}</span>
-
-                                    <span class="message-time">
-                                        {{ msg.created_at|date:"h:i A" }}
-                                    </span>
-
-                                </p>
-
-                            </div>
+                            {{ msg.sender.name|first|upper }}
 
                         </div>
+
+                        {% endif %}
+
+
+                        <p class="message-bubble received-bubble">
+
+                            <span class="message-text">{{ msg.content }}</span><span class="message-time">{{ msg.created_at|date:"d M, h:i A" }}</span>
+
+                        </p>
+
+
+                    </div>
 
 
                     {% endif %}
 
 
-                {% empty %}
-
-
-                    <div
-                        style="
-                            margin:auto;
-                            text-align:center;
-                            color:#77717f;
-                            font-size:12px;
-                        ">
-
-                        No messages yet. Start a conversation.
-
-                    </div>
-
-
                 {% endfor %}
+
 
             </div>
 
@@ -608,26 +596,22 @@
 
             
 
-            <form
-                method="POST"
-                class="chat-composer"
-                id="chat-form">
+            <p id="memberNoSearchResults" hidden>No matching messages.</p><button id="memberJumpLatest" class="member-jump-latest" type="button" hidden><i data-lucide="arrow-down"></i><span>New messages</span></button><div class="chat-composer">
 
-                {% csrf_token %}
 
                 <input
                     id="chat-input"
-                    name="content"
                     type="text"
                     placeholder="Type a message..."
                     autocomplete="off"
-                    required>
+                >
 
 
                 <button
                     id="sendBtn"
-                    type="submit"
-                    class="send-button">
+                    type="button"
+                    class="send-button"
+                >
 
                     <i data-lucide="send"></i>
 
@@ -637,105 +621,12 @@
 
                 </button>
 
-            </form>
-
-
-            {% else %}
-
-
-            
-
-            <div
-                style="
-                    flex:1;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    text-align:center;
-                    padding:30px;
-                ">
-
-
-                <div
-                    style="
-                        width:min(420px,90%);
-                        padding:42px 30px;
-                        border-radius:24px;
-                        background:
-                            linear-gradient(
-                                145deg,
-                                rgba(29,25,39,.88),
-                                rgba(14,14,21,.95)
-                            );
-                        border:1px solid rgba(255,255,255,.08);
-                        box-shadow:
-                            0 25px 70px rgba(0,0,0,.35);
-                        backdrop-filter:blur(18px);
-                    ">
-
-
-                    <div
-                        style="
-                            width:68px;
-                            height:68px;
-                            margin:0 auto 18px;
-                            display:flex;
-                            align-items:center;
-                            justify-content:center;
-                            border-radius:20px;
-                            color:#c4b5fd;
-                            background:
-                                linear-gradient(
-                                    135deg,
-                                    rgba(124,58,237,.24),
-                                    rgba(168,85,247,.10)
-                                );
-                            border:1px solid rgba(167,139,250,.20);
-                        ">
-
-                        <i
-                            data-lucide="message-circle"
-                            style="width:30px;height:30px;">
-                        </i>
-
-                    </div>
-
-
-                    <h2
-                        style="
-                            margin:0 0 8px;
-                            color:#fff;
-                            font-size:22px;
-                            font-weight:800;
-                        ">
-
-                        Select a team member
-
-                    </h2>
-
-
-                    <p
-                        style="
-                            margin:0;
-                            color:#817b89;
-                            font-size:12px;
-                            line-height:1.7;
-                        ">
-
-                        Choose a team member from the left side
-                        to start chatting.
-
-                    </p>
-
-                </div>
 
             </div>
 
 
-            {% endif %}
-
-
         </section>
+
 
     </div>
 
@@ -747,14 +638,17 @@
 
 <div
     id="groupModal"
-    class="chat-modal hidden">
+    class="chat-modal hidden"
+>
 
 
     <div class="chat-modal-card">
 
 
         
+
         <div class="chat-modal-header">
+
 
             <div>
 
@@ -773,55 +667,73 @@
                 type="button"
                 id="closeModal"
                 class="chat-modal-close"
-                aria-label="Close">
+                aria-label="Close"
+            >
 
                 <i data-lucide="x"></i>
 
             </button>
+
 
         </div>
 
 
 
         
+
         <form
             method="POST"
-            class="chat-modal-form" action="{% url 'teammember_chat' %}">
+            class="chat-modal-form" action="{% url 'teammember_chat' %}"
+        >
 
             {% csrf_token %}
+
 
             <input
                 type="hidden"
                 name="action"
-                value="create_group">
+                value="create_group"
+            >
 
+
+            
 
             <label for="group-name">
                 Group Name
             </label>
+
 
             <input
                 id="group-name"
                 type="text"
                 name="group_name" maxlength="150"
                 placeholder="Enter group name"
-                required>
+                required
+            >
 
+
+
+            
 
             <label >
                 Add Members
             </label>
 
+
             <div id="group-members" class="member-checkbox-list" role="group" aria-label="Choose group members">{% for user in users %}<label><input type="checkbox" name="members" value="{{ user.id }}">{{ user.name }}</label>{% endfor %}</div>
 
 
 
+            
+
             <div class="chat-modal-actions">
+
 
                 <button
                     type="button"
                     id="cancelModal"
-                    class="chat-secondary-btn">
+                    class="chat-secondary-btn"
+                >
 
                     Cancel
 
@@ -830,7 +742,8 @@
 
                 <button
                     type="submit"
-                    class="chat-primary-btn">
+                    class="chat-primary-btn"
+                >
 
                     <i data-lucide="plus"></i>
 
@@ -838,9 +751,12 @@
 
                 </button>
 
+
             </div>
 
+
         </form>
+
 
     </div>
 

@@ -1,79 +1,115 @@
 {% load static %}
 
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
 
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>
+
         {% block title %}
+
             Team Member - Cybexel
+
         {% endblock %}
+
     </title>
 
     <!-- Tailwind -->
+
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Lucide -->
+
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Existing CSS -->
+
     <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 
     <!-- No Cache -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
 
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
+    <meta http-equiv="Pragma" content="no-cache">
+
+    <meta http-equiv="Expires" content="0">
 
     <style>
 
         /* =========================================================
+
            GLOBAL
+
         ========================================================= */
 
         html,
+
         body {
+
             width: 100%;
+
             height: 100%;
+
             margin: 0;
+
             overflow: hidden !important;
+
         }
 
         body {
+
             min-height: 100vh;
 
             background:
+
                 radial-gradient(
+
                     circle at top left,
+
                     rgba(139, 200, 63, 0.10),
+
                     transparent 30%
+
                 ),
+
                 radial-gradient(
+
                     circle at bottom right,
+
                     rgba(99, 102, 241, 0.08),
+
                     transparent 30%
+
                 ),
+
                 #050505;
 
             color: #ffffff;
+
         }
 
-
         /* =========================================================
+
            SIDEBAR
+
         ========================================================= */
 
         .glass-sidebar {
+
             position: fixed;
 
             top: 20px;
+
             left: 20px;
 
             width: 250px;
+
             height: calc(100vh - 40px);
 
             padding: 22px;
@@ -83,24 +119,33 @@
             border-radius: 28px;
 
             background:
+
                 linear-gradient(
+
                     145deg,
+
                     rgba(37, 15, 30, 0.96),
+
                     rgba(24, 10, 20, 0.96)
+
                 );
 
             border: 1px solid rgba(255, 255, 255, 0.08);
 
             box-shadow:
+
                 0 25px 70px rgba(0, 0, 0, 0.45),
+
                 inset 0 1px 0 rgba(255, 255, 255, 0.04);
 
             backdrop-filter: blur(18px);
+
             -webkit-backdrop-filter: blur(18px);
 
             z-index: 1000;
 
             display: flex;
+
             flex-direction: column;
 
             overflow: hidden;
@@ -108,33 +153,43 @@
             transform: translateX(0);
 
             transition: transform 0.28s ease;
+
         }
 
-
         /* =========================================================
+
            SIDEBAR PROFILE
+
         ========================================================= */
 
         .sidebar-profile {
+
             flex: 0 0 auto;
 
             display: flex;
+
             flex-direction: column;
+
             align-items: center;
 
             padding-bottom: 20px;
+
             margin-bottom: 14px;
 
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
         }
 
-
         .sidebar-logo {
+
             width: 92px;
+
             height: 92px;
 
             display: flex;
+
             align-items: center;
+
             justify-content: center;
 
             border-radius: 24px;
@@ -144,95 +199,117 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
 
             box-shadow:
+
                 0 15px 30px rgba(0, 0, 0, 0.30);
+
         }
 
-
         .sidebar-logo img {
+
             width: 78px;
+
             height: 78px;
 
             object-fit: contain;
-        }
 
+        }
 
         .sidebar-profile-text {
+
             text-align: center;
+
             margin-top: 14px;
+
         }
 
-
         .sidebar-profile-text h3 {
+
             margin: 0;
 
             font-size: 14px;
+
             font-weight: 800;
 
             letter-spacing: 0.16em;
 
             color: #ffffff;
+
         }
 
-
         .sidebar-profile-text span {
+
             display: block;
 
             margin-top: 5px;
 
             font-size: 10px;
+
             font-weight: 600;
 
             letter-spacing: 0.13em;
 
             color: #a1a1aa;
+
         }
 
-
         /* =========================================================
+
            SIDEBAR NAVIGATION
+
         ========================================================= */
 
         .sidebar-nav {
+
             flex: 1 1 auto;
 
             min-height: 0;
 
             display: flex;
+
             flex-direction: column;
 
             gap: 7px;
 
             overflow-y: auto;
+
             overflow-x: hidden;
 
             scrollbar-width: thin;
 
             padding-right: 2px;
-        }
 
+        }
 
         .sidebar-nav::-webkit-scrollbar {
-            width: 5px;
-        }
 
+            width: 5px;
+
+        }
 
         .sidebar-nav::-webkit-scrollbar-thumb {
+
             background: rgba(255, 255, 255, 0.12);
+
             border-radius: 20px;
+
         }
 
-
         /* =========================================================
+
            SIDEBAR ITEMS
+
         ========================================================= */
 
         .sidebar-item,
+
         .sidebar-logout {
+
             min-width: 0;
 
             width: 100%;
 
             display: flex;
+
             align-items: center;
 
             gap: 12px;
@@ -248,32 +325,43 @@
             text-decoration: none;
 
             font-size: 13px;
+
             font-weight: 600;
 
             transition:
+
                 background 0.2s ease,
+
                 color 0.2s ease,
+
                 transform 0.2s ease;
 
             flex-shrink: 0;
+
         }
 
-
         .sidebar-item:hover {
+
             background: rgba(255, 255, 255, 0.07);
 
             color: #ffffff;
 
             transform: translateX(2px);
+
         }
 
-
         .sidebar-item.active {
+
             background:
+
                 linear-gradient(
+
                     135deg,
+
                     rgba(139, 200, 63, 0.22),
+
                     rgba(139, 200, 63, 0.08)
+
                 );
 
             color: #ffffff;
@@ -281,83 +369,109 @@
             border: 1px solid rgba(139, 200, 63, 0.20);
 
             box-shadow:
+
                 0 8px 24px rgba(0, 0, 0, 0.20);
+
         }
 
-
         /* =========================================================
+
            SIDEBAR ICONS
+
         ========================================================= */
 
         .sidebar-icon,
+
         .sidebar-external,
+
         .card-icon,
+
         .input-icon,
+
         .button-icon {
+
             display: inline-flex;
 
             align-items: center;
+
             justify-content: center;
 
             flex: 0 0 auto;
-        }
 
+        }
 
         .sidebar-icon {
+
             width: 20px;
+
             height: 20px;
+
         }
 
-
         .sidebar-icon svg {
+
             width: 19px;
+
             height: 19px;
 
             stroke-width: 1.8;
-        }
 
+        }
 
         .sidebar-external {
-            margin-left: auto;
-        }
 
+            margin-left: auto;
+
+        }
 
         .sidebar-external svg {
+
             width: 14px;
+
             height: 14px;
+
         }
 
-
         .card-icon svg {
+
             width: 25px;
+
             height: 25px;
 
             stroke-width: 1.7;
+
         }
 
-
         .input-icon svg {
+
             width: 17px;
+
             height: 17px;
 
             stroke-width: 1.8;
+
         }
 
-
         .button-icon svg {
+
             width: 16px;
+
             height: 16px;
 
             stroke-width: 2.2;
+
         }
 
-
         /* =========================================================
+
            SIDEBAR TEXT ELLIPSIS
+
         ========================================================= */
 
         .sidebar-item > span:last-of-type,
+
         .sidebar-logout > span:last-of-type {
+
             overflow: hidden;
 
             text-overflow: ellipsis;
@@ -365,14 +479,17 @@
             white-space: nowrap;
 
             min-width: 0;
+
         }
 
-
         /* =========================================================
+
            LOGOUT
+
         ========================================================= */
 
         .sidebar-bottom {
+
             flex: 0 0 auto;
 
             margin-top: 14px;
@@ -382,40 +499,53 @@
             border-top: 1px solid rgba(255, 255, 255, 0.08);
 
             background:
+
                 linear-gradient(
+
                     to bottom,
+
                     rgba(24, 10, 20, 0.15),
+
                     rgba(24, 10, 20, 0.45)
+
                 );
+
         }
 
-
         .sidebar-logout {
+
             background: rgba(220, 38, 38, 0.12);
 
             color: #fca5a5;
 
             border: 1px solid rgba(220, 38, 38, 0.12);
+
         }
 
-
         .sidebar-logout:hover {
+
             background: rgba(220, 38, 38, 0.20);
 
             color: #ffffff;
+
         }
 
-
         /* =========================================================
+
            MAIN AREA
+
         ========================================================= */
 
         .main-area {
+
             position: fixed;
 
             top: 0;
+
             right: 20px;
+
             bottom: 0;
+
             left: 334px;
 
             width: auto;
@@ -427,19 +557,23 @@
             height: 100vh;
 
             min-height: 100vh;
+
             min-width: 0;
 
             box-sizing: border-box;
 
             overflow: hidden;
+
         }
 
-
         /* =========================================================
+
            DASHBOARD BOX
+
         ========================================================= */
 
         .dashboard-box {
+
             width: 100%;
 
             height: calc(100vh - 40px);
@@ -451,87 +585,111 @@
             border-radius: 30px;
 
             background:
+
                 linear-gradient(
+
                     145deg,
+
                     rgba(18, 18, 18, 0.96),
+
                     rgba(9, 9, 9, 0.96)
+
                 );
 
             border: 1px solid rgba(255, 255, 255, 0.08);
 
             box-shadow:
+
                 0 30px 90px rgba(0, 0, 0, 0.45),
+
                 inset 0 1px 0 rgba(255, 255, 255, 0.035);
 
             backdrop-filter: blur(18px);
+
             -webkit-backdrop-filter: blur(18px);
 
             box-sizing: border-box;
 
             overflow-y: auto !important;
+
             overflow-x: hidden !important;
 
             -webkit-overflow-scrolling: touch;
 
             scrollbar-width: thin;
-        }
 
+        }
 
         .dashboard-box::-webkit-scrollbar {
+
             width: 6px;
+
         }
 
-
         .dashboard-box::-webkit-scrollbar-thumb {
+
             background: rgba(255, 255, 255, 0.12);
 
             border-radius: 20px;
+
         }
 
-
         /* =========================================================
+
            TABLE WRAPPER
+
         ========================================================= */
 
         .table-wrapper {
+
             width: 100%;
 
             overflow-x: auto;
 
             -webkit-overflow-scrolling: touch;
+
         }
 
-
         /* =========================================================
+
            ADD BUTTON
+
         ========================================================= */
 
         .add-button {
+
             display: inline-flex;
 
             align-items: center;
+
             justify-content: center;
 
             gap: 8px;
+
         }
 
-
         /* =========================================================
+
            MOBILE MENU BUTTON
+
         ========================================================= */
 
         .mobile-menu-button {
+
             display: none;
 
             position: fixed;
 
             top: 18px;
+
             left: 18px;
 
             width: 44px;
+
             height: 44px;
 
             align-items: center;
+
             justify-content: center;
 
             border-radius: 14px;
@@ -547,24 +705,31 @@
             z-index: 1001;
 
             box-shadow:
+
                 0 12px 30px rgba(0, 0, 0, 0.35);
 
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
 
+            -webkit-backdrop-filter: blur(12px);
+
+        }
 
         .mobile-menu-button svg {
+
             width: 20px;
+
             height: 20px;
+
         }
 
-
         /* =========================================================
+
            SIDEBAR OVERLAY
+
         ========================================================= */
 
         .sidebar-overlay {
+
             display: none;
 
             position: fixed;
@@ -574,30 +739,37 @@
             background: rgba(0, 0, 0, 0.55);
 
             backdrop-filter: blur(3px);
+
             -webkit-backdrop-filter: blur(3px);
 
             z-index: 999;
-        }
 
+        }
 
         .sidebar-overlay.active {
+
             display: block;
+
         }
 
-
         /* =========================================================
+
            TOAST
+
         ========================================================= */
 
-        .toast-container {
+        #toast-container.toast-container {
+
             position: fixed;
 
             bottom: 20px;
+
             right: 20px;
 
             z-index: 9999;
 
             display: flex;
+
             flex-direction: column;
 
             gap: 12px;
@@ -605,10 +777,11 @@
             width: 350px;
 
             max-width: calc(100% - 40px);
+
         }
 
+        #toast-container .toast-message {
 
-        .toast-message {
             display: flex;
 
             align-items: center;
@@ -616,10 +789,15 @@
             gap: 12px;
 
             background:
+
                 linear-gradient(
+
                     145deg,
+
                     rgba(37, 15, 30, 0.98),
+
                     rgba(20, 10, 17, 0.98)
+
                 );
 
             color: #ffffff;
@@ -631,39 +809,47 @@
             border-radius: 16px;
 
             box-shadow:
+
                 0 20px 45px rgba(0, 0, 0, 0.45);
 
             backdrop-filter: blur(15px);
+
             -webkit-backdrop-filter: blur(15px);
 
-            animation: toastSlideIn 0.35s ease-out;
+            animation: memberLegacyToastSlideIn 0.35s ease-out;
+
         }
 
+        #toast-container .toast-message.toast-hide {
 
-        .toast-message.toast-hide {
-            animation: toastSlideOut 0.35s ease-in forwards;
+            animation: memberLegacyToastSlideOut 0.35s ease-in forwards;
+
         }
 
+        #toast-container .toast-icon {
 
-        .toast-icon {
             width: 24px;
+
             height: 24px;
 
             flex-shrink: 0;
+
         }
 
+        #toast-container .toast-text {
 
-        .toast-text {
             flex: 1;
 
             font-size: 12px;
+
             font-weight: 600;
 
             line-height: 1.5;
+
         }
 
+        #toast-container .toast-close {
 
-        .toast-close {
             background: transparent;
 
             border: 0;
@@ -677,54 +863,67 @@
             cursor: pointer;
 
             flex-shrink: 0;
+
         }
 
+        #toast-container .toast-close:hover {
 
-        .toast-close:hover {
             color: #ffffff;
+
         }
 
-
-        @keyframes toastSlideIn {
+        @keyframes memberLegacyToastSlideIn {
 
             from {
+
                 opacity: 0;
 
                 transform: translateX(100%);
+
             }
 
             to {
+
                 opacity: 1;
 
                 transform: translateX(0);
+
             }
+
         }
 
-
-        @keyframes toastSlideOut {
+        @keyframes memberLegacyToastSlideOut {
 
             from {
+
                 opacity: 1;
 
                 transform: translateX(0);
+
             }
 
             to {
+
                 opacity: 0;
 
                 transform: translateX(100%);
-            }
-        }
 
+            }
+
+        }
 
         /* =========================================================
+
            DESKTOP
+
         ========================================================= */
 
         @media (min-width: 1201px) {
 
             .glass-sidebar {
+
                 top: 20px;
+
                 left: 20px;
 
                 width: 250px;
@@ -732,15 +931,19 @@
                 height: calc(100vh - 40px);
 
                 padding: 22px;
+
             }
 
-
             .main-area {
+
                 position: fixed;
 
                 top: 0;
+
                 left: 334px;
+
                 right: 20px;
+
                 bottom: 0;
 
                 width: auto;
@@ -756,27 +959,33 @@
                 min-width: 0;
 
                 overflow: hidden;
+
             }
 
-
             .dashboard-box {
+
                 width: 100%;
 
                 height: calc(100vh - 40px);
 
                 max-height: calc(100vh - 40px);
+
             }
+
         }
 
-
         /* =========================================================
+
            LAPTOP
+
         ========================================================= */
 
         @media (min-width: 901px) and (max-width: 1200px) {
 
             .glass-sidebar {
+
                 top: 20px;
+
                 left: 20px;
 
                 width: 250px;
@@ -784,15 +993,19 @@
                 height: calc(100vh - 40px);
 
                 padding: 22px;
+
             }
 
-
             .main-area {
+
                 position: fixed;
 
                 top: 0;
+
                 left: 334px;
+
                 right: 20px;
+
                 bottom: 0;
 
                 width: auto;
@@ -808,43 +1021,53 @@
                 min-width: 0;
 
                 overflow: hidden;
+
             }
 
-
             .dashboard-box {
+
                 width: 100%;
 
                 height: calc(100vh - 40px);
 
                 max-height: calc(100vh - 40px);
+
             }
+
         }
 
-
         /* =========================================================
+
            ORGANIZATION / DASHBOARD RESPONSIVE
+
         ========================================================= */
 
         @media (max-width: 1100px) {
 
             .organization-grid {
-                grid-template-columns: 1fr !important;
-            }
 
+                grid-template-columns: 1fr !important;
+
+            }
 
             .dashboard-header-content {
-                gap: 20px;
-            }
 
+                gap: 20px;
+
+            }
 
             .dashboard-card {
+
                 min-width: 0;
+
             }
+
         }
 
-
         /* =========================================================
+
            TABLET / MOBILE
+
         ========================================================= */
 
         @media (max-width: 768px) {
@@ -852,22 +1075,27 @@
             /* Mobile menu */
 
             .mobile-menu-button {
+
                 display: flex !important;
 
                 align-items: center;
+
                 justify-content: center;
 
                 z-index: 1001;
-            }
 
+            }
 
             /* Sidebar */
 
             .glass-sidebar {
+
                 position: fixed;
 
                 top: 0;
+
                 left: 0;
+
                 bottom: 0;
 
                 width: 280px;
@@ -887,27 +1115,33 @@
                 transition: transform .28s ease;
 
                 overflow: hidden;
-            }
 
+            }
 
             .glass-sidebar.open {
-                transform: translateX(0);
-            }
 
+                transform: translateX(0);
+
+            }
 
             /* Main */
 
             .main-area {
+
                 position: relative;
 
                 top: auto;
+
                 left: auto;
+
                 right: auto;
+
                 bottom: auto;
 
                 width: 100% !important;
 
                 margin-left: 0 !important;
+
                 margin-right: 0 !important;
 
                 padding: 12px !important;
@@ -919,12 +1153,13 @@
                 box-sizing: border-box;
 
                 overflow: hidden;
-            }
 
+            }
 
             /* Dashboard */
 
             .dashboard-box {
+
                 width: 100%;
 
                 height: calc(100vh - 24px) !important;
@@ -936,148 +1171,175 @@
                 box-sizing: border-box;
 
                 overflow-y: auto !important;
-                overflow-x: hidden !important;
-            }
 
+                overflow-x: hidden !important;
+
+            }
 
             /* Dashboard header */
 
             .dashboard-header {
+
                 padding: 24px 20px !important;
+
             }
 
-
             .dashboard-header-content {
+
                 flex-direction: column;
 
                 align-items: flex-start !important;
-            }
 
+            }
 
             .system-status {
-                align-self: flex-start;
-            }
 
+                align-self: flex-start;
+
+            }
 
             /* Dashboard content */
 
             .dashboard-content {
-                padding: 20px !important;
-            }
 
+                padding: 20px !important;
+
+            }
 
             .section-heading {
-                gap: 12px;
-            }
 
+                gap: 12px;
+
+            }
 
             .heading-line {
-                display: none;
-            }
 
+                display: none;
+
+            }
 
             /* Forms */
 
             .add-form {
-                grid-template-columns: 1fr !important;
-            }
 
+                grid-template-columns: 1fr !important;
+
+            }
 
             .add-button {
+
                 width: 100%;
+
             }
+
         }
 
-
         /* =========================================================
+
            SMALL MOBILE
+
         ========================================================= */
 
         @media (max-width: 480px) {
 
             .main-area {
+
                 padding: 8px !important;
+
             }
 
-
             .dashboard-box {
+
                 height: calc(100vh - 16px) !important;
 
                 max-height: calc(100vh - 16px) !important;
 
                 border-radius: 20px !important;
-            }
 
+            }
 
             .dashboard-header {
-                padding: 22px 16px !important;
-            }
 
+                padding: 22px 16px !important;
+
+            }
 
             .dashboard-content {
+
                 padding: 16px !important;
+
             }
 
-
             .dashboard-header h1 {
+
                 font-size: clamp(1.55rem, 8vw, 2.1rem) !important;
 
                 line-height: 1.05;
-            }
 
+            }
 
             .dashboard-header p {
+
                 font-size: .86rem !important;
+
             }
 
-
             .dashboard-card {
+
                 padding: 16px !important;
 
                 border-radius: 18px !important;
-            }
 
+            }
 
             .card-heading {
+
                 align-items: flex-start;
+
             }
 
-
             .card-icon {
+
                 width: 42px !important;
+
                 height: 42px !important;
 
                 min-width: 42px !important;
+
             }
 
-
             .table-wrapper {
+
                 margin-left: -4px;
 
                 margin-right: -4px;
 
                 width: calc(100% + 8px);
-            }
 
+            }
 
             table {
-                min-width: 430px;
-            }
 
+                min-width: 430px;
+
+            }
 
             .table-section-header {
-                gap: 10px;
-            }
 
+                gap: 10px;
+
+            }
 
             .count-badge {
-                flex-shrink: 0;
-            }
 
+                flex-shrink: 0;
+
+            }
 
             /* Toast */
 
-            .toast-container {
+            #toast-container.toast-container {
+
                 right: 10px;
 
                 bottom: 10px;
@@ -1085,59 +1347,1009 @@
                 width: calc(100% - 20px);
 
                 max-width: none;
+
             }
+
         }
 
-    </style>
-
+    
+/* Same 24px circular Profile avatar as the Team Lead sidebar. */
+#teamMemberSidebarAvatar{display:grid;place-items:center;flex-shrink:0;}
+#teamMemberSidebarAvatar [hidden]{display:none!important;}
+</style>
 
     <!-- Page-specific CSS -->
 
     {% block extra_css %}
+
     {% endblock %}
 
-</head>
+<style>
 
+/* Shared Member sidebar: Team Lead sidebar appearance. */
+
+.glass-sidebar {
+
+    background: linear-gradient(145deg,rgba(38,24,49,.96),rgba(14,14,21,.96));
+
+    border: 1px solid rgba(255,255,255,.12);
+
+    backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+
+}
+
+.sidebar-profile { display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid rgba(255,255,255,.07); }
+
+.sidebar-logo { width: 86px; height: 86px; margin-bottom: 8px; border-radius: 23px; background: linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.025)); }
+
+.sidebar-logo img { width: 68px; height: 68px; object-fit: contain; }
+
+.sidebar-profile-text h3 { font-size: 15px; font-weight: 800; letter-spacing: 1px; }
+
+.sidebar-profile-text span { font-size: 7px; color: #898592; letter-spacing: 1.7px; }
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 5px; }
+
+.sidebar-item { color: #aaa6b2; font-size: 12px; font-weight: 600; border-radius: 13px; }
+
+.sidebar-item:hover { color: #fff; background: rgba(255,255,255,.055); border-color: rgba(255,255,255,.06); }
+
+.sidebar-icon { color: #8d8995; }
+
+.sidebar-item.active::before { display: none; }
+
+/* =========================================================
+
+   TEAM LEAD SIDEBAR
+
+   FULL RESPONSIVE VERSION
+
+   ========================================================= */
+
+.glass-sidebar {
+
+    width: 270px;
+
+    height: auto;
+
+    min-height: calc(100dvh - 24px);
+
+    position: fixed;
+
+    top: 12px;
+
+    left: 8px;
+
+    bottom: 12px;
+
+    z-index: 1000;
+
+    display: flex;
+
+    flex-direction: column;
+
+    overflow: hidden;
+
+    padding: 10px 8px;
+
+    box-sizing: border-box;
+
+    border-radius: 28px;
+
+    transition:
+
+        transform 0.3s ease,
+
+        width 0.3s ease;
+
+    box-shadow:
+
+        10px 0 35px rgba(0, 0, 0, 0.25);
+
+}
+
+/* =========================================================
+
+   PROFILE
+
+   ========================================================= */
+
+.sidebar-profile {
+
+    flex-shrink: 0;
+
+    padding: 14px 12px 18px;
+
+    box-sizing: border-box;
+
+}
+
+/* =========================================================
+
+   NAVIGATION
+
+   ========================================================= */
+
+.sidebar-nav {
+
+    flex: 1;
+
+    min-height: 0;
+
+    overflow-y: auto;
+
+    overflow-x: hidden;
+
+    padding: 14px 4px 18px;
+
+    box-sizing: border-box;
+
+    scrollbar-width: thin;
+
+    scrollbar-color:
+
+        rgba(139, 92, 246, 0.75)
+
+        transparent;
+
+    overscroll-behavior: contain;
+
+}
+
+/* =========================================================
+
+   CUSTOM SCROLLBAR
+
+   ========================================================= */
+
+.sidebar-nav::-webkit-scrollbar {
+
+    width: 5px;
+
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+
+    background: transparent;
+
+    border-radius: 10px;
+
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+
+    background: linear-gradient(
+
+        180deg,
+
+        rgba(139, 92, 246, 0.85),
+
+        rgba(99, 102, 241, 0.75)
+
+    );
+
+    border-radius: 10px;
+
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+
+    background: linear-gradient(
+
+        180deg,
+
+        rgba(167, 139, 250, 0.95),
+
+        rgba(129, 140, 248, 0.9)
+
+    );
+
+}
+
+/* =========================================================
+
+   SIDEBAR ITEMS
+
+   ========================================================= */
+
+.sidebar-item {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    width: 100%;
+
+    min-height: 44px;
+
+    margin: 3px 4px;
+
+    padding: 12px 16px;
+
+    box-sizing: border-box;
+
+    white-space: nowrap;
+
+    text-decoration: none;
+
+}
+
+/* =========================================================
+
+   ICON
+
+   ========================================================= */
+
+.sidebar-icon {
+
+    width: 22px;
+
+    min-width: 22px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    flex-shrink: 0;
+
+}
+
+.sidebar-icon svg {
+
+    width: 19px;
+
+    height: 19px;
+
+}
+
+/* =========================================================
+
+   LOGOUT
+
+   ========================================================= */
+
+.sidebar-bottom {
+
+    flex-shrink: 0;
+
+    padding: 8px 4px 4px;
+
+    box-sizing: border-box;
+
+}
+
+/* =========================================================
+
+   MOBILE MENU BUTTON
+
+   ========================================================= */
+
+.mobile-menu-button {
+
+    display: none;
+
+    position: fixed;
+
+    top: 18px;
+
+    left: 18px;
+
+    z-index: 1100;
+
+    width: 44px;
+
+    height: 44px;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    border-radius: 13px;
+
+    cursor: pointer;
+
+    color: #ffffff;
+
+    background: rgba(30, 20, 45, 0.88);
+
+    backdrop-filter: blur(14px);
+
+    -webkit-backdrop-filter: blur(14px);
+
+    box-shadow:
+
+        0 8px 25px rgba(0, 0, 0, 0.25);
+
+    transition:
+
+        transform 0.2s ease,
+
+        background 0.2s ease;
+
+}
+
+.mobile-menu-button:hover {
+
+    transform: translateY(-1px);
+
+}
+
+.mobile-menu-button svg {
+
+    width: 21px;
+
+    height: 21px;
+
+}
+
+/* =========================================================
+
+   MOBILE OVERLAY
+
+   ========================================================= */
+
+.sidebar-overlay {
+
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 999;
+
+    background: rgba(0, 0, 0, 0.45);
+
+    backdrop-filter: blur(2px);
+
+    -webkit-backdrop-filter: blur(2px);
+
+}
+
+/* =========================================================
+
+   TABLET
+
+   769px - 1024px
+
+   ========================================================= */
+
+@media (max-width: 1024px) {
+
+    .glass-sidebar {
+
+        width: 260px;
+
+        top: 10px;
+
+        left: 7px;
+
+        bottom: 10px;
+
+        min-height: calc(100dvh - 20px);
+
+        border-radius: 25px;
+
+    }
+
+    .sidebar-item {
+
+        padding: 11px 13px;
+
+        font-size: 14px;
+
+        gap: 11px;
+
+    }
+
+    .sidebar-icon {
+
+        width: 20px;
+
+        min-width: 20px;
+
+    }
+
+    .sidebar-icon svg {
+
+        width: 18px;
+
+        height: 18px;
+
+    }
+
+}
+
+/* =========================================================
+
+   MOBILE
+
+   <= 768px
+
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    /* Hamburger */
+
+    .mobile-menu-button {
+
+        display: flex;
+
+    }
+
+    /* Sidebar */
+
+    .glass-sidebar {
+
+        width: 270px;
+
+        max-width: 82vw;
+
+        top: 10px;
+
+        left: 8px;
+
+        bottom: 10px;
+
+        min-height: calc(100dvh - 20px);
+
+        transform: translateX(-115%);
+
+        border-radius: 24px;
+
+        box-shadow:
+
+            10px 0 35px rgba(0, 0, 0, 0.40);
+
+    }
+
+    /* Open Sidebar */
+
+    .glass-sidebar.open {
+
+        transform: translateX(0);
+
+    }
+
+    /* Overlay */
+
+    .sidebar-overlay {
+
+        display: block;
+
+        opacity: 0;
+
+        visibility: hidden;
+
+        pointer-events: none;
+
+        transition:
+
+            opacity 0.3s ease,
+
+            visibility 0.3s ease;
+
+    }
+
+    .sidebar-overlay.open {
+
+        opacity: 1;
+
+        visibility: visible;
+
+        pointer-events: auto;
+
+    }
+
+    /* Navigation */
+
+    .sidebar-nav {
+
+        padding-left: 8px;
+
+        padding-right: 6px;
+
+    }
+
+    /* Items */
+
+    .sidebar-item {
+
+        min-height: 44px;
+
+        padding: 11px 13px;
+
+        gap: 11px;
+
+    }
+
+    /* Bottom */
+
+    .sidebar-bottom {
+
+        padding-bottom: 8px;
+
+    }
+
+}
+
+/* =========================================================
+
+   SMALL MOBILE
+
+   <= 480px
+
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+    .mobile-menu-button {
+
+        top: 14px;
+
+        left: 14px;
+
+        width: 42px;
+
+        height: 42px;
+
+        border-radius: 12px;
+
+    }
+
+    .glass-sidebar {
+
+        width: 255px;
+
+        max-width: 86vw;
+
+        left: 6px;
+
+        top: 8px;
+
+        bottom: 8px;
+
+        min-height: calc(100dvh - 16px);
+
+        border-radius: 22px;
+
+    }
+
+    .sidebar-profile {
+
+        padding-left: 10px;
+
+        padding-right: 10px;
+
+    }
+
+    .sidebar-item {
+
+        padding: 10px 12px;
+
+        font-size: 13px;
+
+        gap: 10px;
+
+    }
+
+    .sidebar-icon {
+
+        width: 20px;
+
+        min-width: 20px;
+
+    }
+
+    .sidebar-icon svg {
+
+        width: 17px;
+
+        height: 17px;
+
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+
+        width: 4px;
+
+    }
+
+}
+
+/* =========================================================
+
+   VERY SMALL PHONES
+
+   <= 360px
+
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+    .mobile-menu-button {
+
+        top: 12px;
+
+        left: 12px;
+
+        width: 40px;
+
+        height: 40px;
+
+    }
+
+    .glass-sidebar {
+
+        width: 240px;
+
+        max-width: 88vw;
+
+        border-radius: 20px;
+
+    }
+
+    .sidebar-item {
+
+        padding: 9px 10px;
+
+        font-size: 12px;
+
+        gap: 9px;
+
+    }
+
+    .sidebar-profile {
+
+        padding: 12px 8px 15px;
+
+    }
+
+}
+
+/* =========================================================
+
+   LANDSCAPE MOBILE
+
+   ========================================================= */
+
+@media (max-width: 768px) and (orientation: landscape) {
+
+    .glass-sidebar {
+
+        top: 6px;
+
+        bottom: 6px;
+
+        min-height: calc(100dvh - 12px);
+
+    }
+
+    .sidebar-profile {
+
+        padding-top: 8px;
+
+        padding-bottom: 10px;
+
+    }
+
+    .sidebar-nav {
+
+        padding-top: 8px;
+
+        padding-bottom: 10px;
+
+    }
+
+    .sidebar-item {
+
+        min-height: 38px;
+
+        padding-top: 8px;
+
+        padding-bottom: 8px;
+
+    }
+
+}
+
+/* =========================================================
+
+   REDUCED MOTION
+
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .glass-sidebar,
+
+    .mobile-menu-button,
+
+    .sidebar-overlay {
+
+        transition: none;
+
+    }
+
+}
+
+.sidebar-notification-icon {
+
+    position: relative;
+
+    height: 22px;
+
+    overflow: visible;
+
+}
+
+.sidebar-notification-badge {
+
+    position: absolute;
+
+    top: -8px;
+
+    right: -9px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 17px;
+
+    height: 17px;
+
+    padding: 0 4px;
+
+    box-sizing: border-box;
+
+    border: 2px solid #17121f;
+
+    border-radius: 999px;
+
+    background: #ef4444;
+
+    color: #ffffff;
+
+    font-size: 9px;
+
+    font-weight: 700;
+
+    line-height: 1;
+
+    pointer-events: none;
+
+}
+
+    .sidebar-profile-avatar {
+
+        position: relative;
+
+        width: 24px;
+
+        min-width: 24px;
+
+        height: 24px;
+
+        overflow: hidden;
+
+        border-radius: 50%;
+
+        color: #fff;
+
+        background: #7048c6;
+
+        font-size: 12px;
+
+        font-weight: 700;
+
+        line-height: 1;
+
+    }
+
+    .sidebar-profile-avatar img {
+
+        display: block;
+
+        position: absolute;
+
+        inset: 0;
+
+        width: 100%;
+
+        height: 100%;
+
+        object-fit: cover;
+
+    }
+
+/* Keep navigation aligned within the sidebar at every screen size. */
+
+.glass-sidebar .sidebar-item {
+
+    width: calc(100% - 8px);
+
+    flex-shrink: 0;
+
+    border: 1px solid transparent;
+
+    border-radius: 14px;
+
+}
+
+.glass-sidebar .sidebar-item.active {
+
+    color: #ffffff;
+
+    background: linear-gradient(110deg, #603b9f, #393d76);
+
+    border-color: rgba(179,145,245,.42);
+
+}
+
+.glass-sidebar .sidebar-item.active .sidebar-icon { color: #ffffff; }
+
+.glass-sidebar .sidebar-reminder-icon svg {
+
+    width: 17px;
+
+    height: 17px;
+
+}
+
+.glass-sidebar .sidebar-item:focus-visible {
+
+    outline: 2px solid #b794f6;
+
+    outline-offset: -2px;
+
+}
+
+@media (max-width: 768px) {
+
+    .glass-sidebar { max-width: min(82vw, 300px); }
+
+}
+
+/* Base layout uses the same sidebar width without covering page content. */
+
+.glass-sidebar { height: auto; max-height: calc(100dvh - 24px); }
+
+.sidebar-icon { height: 22px; }
+
+.sidebar-item > span:not(.sidebar-icon):not(.sidebar-external) { white-space: normal; line-height: 1.4; }
+
+.sidebar-logout { min-height: 43px; border-radius: 13px; font-size: 12px; color: #ff9ba4; background: rgba(255,70,85,.055); border: 1px solid rgba(255,70,85,.13); }
+
+/* Shared desktop layout: sidebar edge + 16px content gap. */
+
+@media (min-width: 769px) {
+
+    .main-area {
+
+        left: 278px;
+
+        right: 0;
+
+        padding: 18px 16px;
+
+    }
+
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+
+    .main-area { left: 267px; }
+
+}
+
+@media (max-width: 768px) {
+
+    .glass-sidebar { max-height: calc(100dvh - 20px); }
+
+    .sidebar-overlay { display: none; opacity: 1; visibility: visible; pointer-events: auto; }
+
+    .sidebar-overlay.active { display: block; }
+
+    .main-area { padding-top: 74px !important; }
+
+    .main-area .dashboard-box { height: calc(100vh - 86px) !important; max-height: calc(100vh - 86px) !important; height: calc(100dvh - 86px) !important; max-height: calc(100dvh - 86px) !important; }
+
+}
+
+@media (max-width: 768px) and (orientation: landscape) { .glass-sidebar { max-height: calc(100dvh - 12px); } }
+
+</style>
+
+
+<!-- Keep same-origin page changes visually continuous in supported browsers. -->
+<style>
+html {background:#08070b;color-scheme:dark;}
+@view-transition {navigation:auto;}
+::view-transition-group(root) {animation-duration:0s;}
+::view-transition-old(root),::view-transition-new(root) {
+    animation:none;
+    mix-blend-mode:normal;
+}
+/* The incoming page is shown when its snapshot is ready, without a cross-fade. */
+::view-transition-old(root) {display:none;}
+.sidebar-nav {scroll-behavior:auto!important;}
+</style>
+
+<style>
+.sidebar-icon.member-notification-icon {position:relative;overflow:visible;flex-shrink:0;}
+.member-notification-icon .member-notification-badge {
+    position:absolute;top:-8px;right:-12px;margin:0;
+    min-width:20px;height:17px;padding:0 5px;box-sizing:border-box;
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:999px;background:#ef4444;color:#ffffff;
+    font-size:10px;font-weight:700;line-height:1;z-index:1;
+    pointer-events:none;font-variant-numeric:tabular-nums;
+}
+.member-notification-icon .member-notification-badge[hidden] {display:none;}
+</style></head>
 
 <body>
 
-
     <!-- =========================================================
+
          MOBILE MENU BUTTON
+
     ========================================================= -->
 
     <button
+
         id="mobile-menu-button"
+
         class="mobile-menu-button"
+
         type="button"
+
         aria-label="Open menu">
 
         <i data-lucide="menu"></i>
 
     </button>
 
-
     <!-- =========================================================
+
          MOBILE OVERLAY
+
     ========================================================= -->
 
     <div
+
         id="sidebar-overlay"
+
         class="sidebar-overlay">
+
     </div>
 
-
     <!-- =========================================================
+
          SIDEBAR
+
     ========================================================= -->
 
     <aside
+
         id="sidebar"
+
         class="glass-sidebar">
 
-
         <!-- =====================================================
+
              SIDEBAR PROFILE
+
         ====================================================== -->
 
         <div class="sidebar-profile">
@@ -1145,41 +2357,51 @@
             <div class="sidebar-logo">
 
                 <img
+
                     src="{% static 'images/logo.png' %}"
+
                     alt="Cybexel Logo">
 
             </div>
 
-
             <div class="sidebar-profile-text">
 
                 <h3>
+
                     TEAM MEMBER
+
                 </h3>
 
                 <span>
+
                     CYBEXEL WORKSPACE
+
                 </span>
 
             </div>
 
         </div>
 
-
         <!-- =====================================================
+
              NAVIGATION
+
         ====================================================== -->
 
         <nav class="sidebar-nav">
 
-
             <!-- Dashboard -->
 
             <a
+
                 href="{% url 'teammember_dashboard' %}"
+
                 class="sidebar-item
+
                 {% if request.resolver_match.url_name == 'teammember_dashboard' %}
+
                     active
+
                 {% endif %}">
 
                 <span class="sidebar-icon">
@@ -1189,19 +2411,53 @@
                 </span>
 
                 <span>
+
                     Dashboard
+
                 </span>
 
             </a>
 
+                        <!-- Announcements -->
+
+            <a href="{% url 'teammember_announcements' %}"
+
+               class="sidebar-item {% if request.resolver_match.url_name == 'teammember_announcements' %}active{% endif %}"
+
+               {% if request.resolver_match.url_name == 'teammember_announcements' %}aria-current="page"{% endif %}>
+
+                <span class="sidebar-icon"><i data-lucide="megaphone"></i></span>
+
+                <span>Announcements</span>
+
+            </a>
+
+            <!-- Reports -->
+
+            <a href="{% url 'teammember_reports' %}"
+
+               class="sidebar-item {% if request.resolver_match.url_name == 'teammember_reports' %}active{% endif %}"
+
+               {% if request.resolver_match.url_name == 'teammember_reports' %}aria-current="page"{% endif %}>
+
+                <span class="sidebar-icon"><i data-lucide="chart-no-axes-combined"></i></span>
+
+                <span>Reports</span>
+
+            </a>
 
             <!-- Projects -->
 
             <a
+
                 href="{% url 'teammember_project' %}"
+
                 class="sidebar-item
+
                 {% if request.resolver_match.url_name == 'teammember_project' %}
+
                     active
+
                 {% endif %}">
 
                 <span class="sidebar-icon">
@@ -1211,19 +2467,25 @@
                 </span>
 
                 <span>
+
                     Projects
+
                 </span>
 
             </a>
 
-
             <!-- Notepad -->
 
             <a
+
                 href="{% url 'teammember_notepad' %}"
+
                 class="sidebar-item
+
                 {% if request.resolver_match.url_name == 'teammember_notepad' %}
+
                     active
+
                 {% endif %}">
 
                 <span class="sidebar-icon">
@@ -1233,41 +2495,53 @@
                 </span>
 
                 <span>
+
                     Notepad
+
                 </span>
 
             </a>
-
 
             <!-- Knowledge Repository -->
 
             <a
+
                 href="{% url 'teammember_repository' %}"
+
                 class="sidebar-item
+
                 {% if request.resolver_match.url_name == 'teammember_repository' %}
+
                     active
+
                 {% endif %}">
 
                 <span class="sidebar-icon">
 
-                    <i data-lucide="library"></i>
+                    <i data-lucide="book-open"></i>
 
                 </span>
 
                 <span>
+
                     Knowledge Repository
+
                 </span>
 
             </a>
 
-
             <!-- My Task -->
 
             <a
+
                 href="{% url 'teammember_task' %}"
+
                 class="sidebar-item
+
                 {% if request.resolver_match.url_name == 'teammember_task' %}
+
                     active
+
                 {% endif %}">
 
                 <span class="sidebar-icon">
@@ -1277,19 +2551,25 @@
                 </span>
 
                 <span>
+
                     My Task
+
                 </span>
 
             </a>
 
-
             <!-- Chat -->
 
             <a
+
                 href="{% url 'teammember_chat' %}"
+
                 class="sidebar-item
+
                 {% if request.resolver_match.url_name == 'teammember_chat' %}
+
                     active
+
                 {% endif %}">
 
                 <span class="sidebar-icon">
@@ -1299,72 +2579,88 @@
                 </span>
 
                 <span>
+
                     Chat
+
                 </span>
 
             </a>
-
-
-            <!-- Profile -->
-
-            <a
-                href="{% url 'teammember_profile' %}"
-                class="sidebar-item
-                {% if request.resolver_match.url_name == 'teammember_profile' %}
-                    active
-                {% endif %}">
-
-                <span class="sidebar-icon">
-
-                    <i data-lucide="circle-user-round"></i>
-
-                </span>
-
-                <span>
-                    Profile
-                </span>
-
-            </a>
-
 
             <!-- Google Meet -->
 
-            <a
-                href="https://meet.google.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="sidebar-item">
+            <a href="{% url 'teammember_google_meet' %}"
 
-                <span class="sidebar-icon">
+               class="sidebar-item {% if request.resolver_match.url_name == 'teammember_google_meet' %}active{% endif %}"
 
-                    <i data-lucide="video"></i>
+               {% if request.resolver_match.url_name == 'teammember_google_meet' %}aria-current="page"{% endif %}>
 
+                <span class="sidebar-icon"><i data-lucide="video"></i></span>
+
+                <span>Google Meet</span>
+
+            </a>
+
+            <!-- Reminders -->
+            <a href="{% url 'teammember_reminders' %}"
+               class="sidebar-item {% if request.resolver_match.url_name == 'teammember_reminders' %}active{% endif %}"
+               {% if request.resolver_match.url_name == 'teammember_reminders' %}aria-current="page"{% endif %}>
+                <span class="sidebar-icon sidebar-reminder-icon"><i data-lucide="calendar-clock"></i></span>
+                <span>Reminders</span>
+            </a>
+            <!-- Notifications -->
+            <a href="{% url 'teammember_notifications' %}"
+               class="sidebar-item {% if request.resolver_match.url_name == 'teammember_notifications' %}active{% endif %}">
+                <span class="sidebar-icon member-notification-icon"><i data-lucide="bell"></i>
+                    <span id="memberNotificationBadge" class="member-notification-badge" {% if not teammember_unread_count %}hidden{% endif %}>{{ teammember_unread_count }}</span>
                 </span>
+                <span>Notifications</span>
+            </a>
+
+
+
+                        <!-- Profile -->
+
+            <a
+
+                href="{% url 'teammember_profile' %}"
+
+                class="sidebar-item
+
+                {% if request.resolver_match.url_name == 'teammember_profile' %}
+
+                    active
+
+                {% endif %}">
+
+                {% with profile_user=logged_in_user|default:user %}
+                <span class="sidebar-icon sidebar-profile-avatar" id="teamMemberSidebarAvatar" aria-hidden="true">
+                    <img id="teamMemberSidebarPhoto" alt="" {% if profile_user.profile_image %}src="{{ profile_user.profile_image.url }}"{% else %}hidden{% endif %}>
+                    <span id="teamMemberSidebarInitial" {% if profile_user.profile_image %}hidden{% endif %}>{{ profile_user.name|default:profile_user.username|default:"U"|slice:":1"|upper }}</span>
+                </span>
+                {% endwith %}
 
                 <span>
-                    Google Meet
-                </span>
 
-                <span class="sidebar-external">
-
-                    <i data-lucide="arrow-up-right"></i>
+                    Profile
 
                 </span>
 
             </a>
 
-
         </nav>
 
-
         <!-- =====================================================
+
              LOGOUT
+
         ====================================================== -->
 
         <div class="sidebar-bottom">
 
             <a
+
                 href="{% url 'teammember_logout' %}"
+
                 class="sidebar-logout">
 
                 <span class="sidebar-icon">
@@ -1374,7 +2670,9 @@
                 </span>
 
                 <span>
+
                     Logout
+
                 </span>
 
             </a>
@@ -1383,125 +2681,64 @@
 
     </aside>
 
-
     <!-- =========================================================
+
          MAIN AREA
+
     ========================================================= -->
 
     <main class="main-area">
 
-
         <!-- =====================================================
+
              DASHBOARD BOX
+
         ====================================================== -->
 
         <div class="dashboard-box">
 
             {% block content %}
+
             {% endblock %}
 
         </div>
 
     </main>
 
-
     <!-- =========================================================
+
          TOAST
+
     ========================================================= -->
 
-    <div
-        id="toast-container"
-        class="toast-container">
+    <div id="toast-container" class="toast-container"></div>
 
-        {% if messages %}
+    {% include "components/toast_notification.html" %}
 
-            {% for message in messages %}
+    <style>
 
-                <div class="toast-message">
+        @media (max-width: 600px) {
 
+            #toastContainer { top: auto; bottom: 14px; }
 
-                    <!-- Icon -->
+        }
 
-                    {% if message.tags == "error" %}
-
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="toast-icon"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            style="color:#f87171;">
-
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-
-                        </svg>
-
-                    {% else %}
-
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="toast-icon"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            style="color:#4ade80;">
-
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M5 13l4 4L19 7" />
-
-                        </svg>
-
-                    {% endif %}
-
-
-                    <!-- Message -->
-
-                    <span class="toast-text">
-
-                        {{ message }}
-
-                    </span>
-
-
-                    <!-- Close -->
-
-                    <button
-                        type="button"
-                        onclick="removeToast(this.parentElement)"
-                        class="toast-close"
-                        aria-label="Close notification">
-
-                        &times;
-
-                    </button>
-
-                </div>
-
-            {% endfor %}
-
-        {% endif %}
-
-    </div>
-
+    </style>
 
     <!-- =========================================================
+
          COMMON JAVASCRIPT
+
     ========================================================= -->
 
     <script>
 
         document.addEventListener("DOMContentLoaded", function () {
 
-
             /* =====================================================
+
                LUCIDE ICONS
+
             ===================================================== */
 
             if (window.lucide) {
@@ -1510,20 +2747,23 @@
 
             }
 
-
             /* =====================================================
+
                SIDEBAR
+
             ===================================================== */
 
             const sidebar =
+
                 document.getElementById("sidebar");
 
             const menuButton =
+
                 document.getElementById("mobile-menu-button");
 
             const sidebarOverlay =
-                document.getElementById("sidebar-overlay");
 
+                document.getElementById("sidebar-overlay");
 
             function openSidebar() {
 
@@ -1541,7 +2781,6 @@
 
             }
 
-
             function closeSidebar() {
 
                 if (sidebar) {
@@ -1558,20 +2797,26 @@
 
             }
 
-
             /* =====================================================
+
                MENU BUTTON
+
             ===================================================== */
 
             if (menuButton) {
 
                 menuButton.addEventListener(
+
                     "click",
+
                     function () {
 
                         if (
+
                             sidebar &&
+
                             sidebar.classList.contains("open")
+
                         ) {
 
                             closeSidebar();
@@ -1583,44 +2828,55 @@
                         }
 
                     }
+
                 );
 
             }
 
-
             /* =====================================================
+
                OVERLAY
+
             ===================================================== */
 
             if (sidebarOverlay) {
 
                 sidebarOverlay.addEventListener(
+
                     "click",
+
                     closeSidebar
+
                 );
 
             }
 
-
             /* =====================================================
+
                CLOSE SIDEBAR AFTER NAVIGATION
+
             ===================================================== */
 
             if (sidebar) {
 
                 const sidebarLinks =
-                    sidebar.querySelectorAll("a");
 
+                    sidebar.querySelectorAll("a");
 
                 sidebarLinks.forEach(function (link) {
 
                     link.addEventListener(
+
                         "click",
+
                         function () {
 
                             if (
+
                                 window.innerWidth <= 768 &&
+
                                 !link.hasAttribute("target")
+
                             ) {
 
                                 closeSidebar();
@@ -1628,20 +2884,22 @@
                             }
 
                         }
+
                     );
 
                 });
 
             }
 
-
             /* =====================================================
+
                TOAST AUTO HIDE
+
             ===================================================== */
 
             const toasts =
-                document.querySelectorAll(".toast-message");
 
+                document.querySelectorAll("#toast-container > .toast-message");
 
             toasts.forEach(function (toast) {
 
@@ -1655,9 +2913,10 @@
 
         });
 
-
         /* =========================================================
+
            REMOVE TOAST
+
         ========================================================= */
 
         function removeToast(toast) {
@@ -1668,9 +2927,7 @@
 
             }
 
-
             toast.classList.add("toast-hide");
-
 
             setTimeout(function () {
 
@@ -1686,27 +2943,149 @@
 
     </script>
 
-
     <!-- Existing JavaScript -->
 
     <script src="{% static 'js/team_member.js' %}"></script>
 
     <script src="{% static 'js/activity.js' %}"></script>
 
-
     <!-- Page-specific JavaScript -->
 
     {% block extra_js %}
-    {% endblock %}
 
+    {% endblock %}
 
     <!-- Page-specific Modals -->
 
     {% block modals %}
+
     {% endblock %}
 
-    
+<script>
 
+(function () {
+    const sidebar = document.getElementById('sidebar');
+    const nav = sidebar && sidebar.querySelector('.sidebar-nav');
+    if (!nav) return;
+    const links = Array.from(nav.querySelectorAll('a.sidebar-item'));
+    const key = 'teammember-sidebar-scroll-{{ request.session.user_id|default:"anonymous"|escapejs }}';
+    const savePosition = () => {
+        try { sessionStorage.setItem(key, String(nav.scrollTop)); } catch (_) {}
+    };
+    const markCurrent = () => {
+        links.forEach(link => {
+            if (link.classList.contains('active')) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+        });
+    };
+    markCurrent();
+    const restorePosition = () => {
+        try {
+            const saved = sessionStorage.getItem(key);
+            if (saved !== null && Number.isFinite(Number(saved))) nav.scrollTop = Number(saved);
+        } catch (_) {}
+        const active = nav.querySelector('.sidebar-item.active');
+        if (active) {
+            const itemRect = active.getBoundingClientRect();
+            const navRect = nav.getBoundingClientRect();
+            if (itemRect.top < navRect.top + 8) nav.scrollTop -= navRect.top + 8 - itemRect.top;
+            else if (itemRect.bottom > navRect.bottom - 8) nav.scrollTop += itemRect.bottom - navRect.bottom + 8;
+        }
+        savePosition();
+    };
+    restorePosition();
+    requestAnimationFrame(restorePosition);
+    window.addEventListener('pageshow', restorePosition);
+    // Restore before the destination snapshot is exposed during navigation.
+    window.addEventListener('pagereveal', restorePosition);
+    nav.addEventListener('scroll', savePosition, {passive: true});
+    window.addEventListener('pagehide', savePosition);
+    links.forEach(link => link.addEventListener('click', event => {
+        if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        savePosition();
+        links.forEach(item => item.classList.toggle('active', item === link));
+        markCurrent();
+    }));
+})();
+
+</script>
+<script>
+(() => {
+    const endpoint = "{% url 'teammember_reminders' %}?alerts=1";
+    const userId = "{{ request.session.user_id|escapejs }}";
+    const prefix = 'member-reminder-alert:' + userId + ':';
+    const seenHere = new Set();
+    let busy = false;
+    async function checkReminders() {
+        if (busy || document.hidden || typeof window.showToast !== 'function') return;
+        busy = true;
+        try {
+            const response = await fetch(endpoint, {credentials:'same-origin', cache:'no-store', headers:{'Accept':'application/json'}});
+            if (!response.ok || !(response.headers.get('content-type') || '').includes('application/json')) return;
+            const data = await response.json();
+            if (!data.ok || !Array.isArray(data.items)) return;
+            let shown = 0;
+            for (const item of data.items) {
+                const key = prefix + item.id + ':' + item.remind_at;
+                let stored = false;
+                try { stored = localStorage.getItem(key) === 'shown'; } catch (_) {}
+                if (stored || seenHere.has(key)) continue;
+                // showToast's message is plain text; never insert reminder text as HTML.
+                window.showToast('Reminder: ' + item.title + ' — ' + item.event_at, 'warning');
+                seenHere.add(key);
+                try { localStorage.setItem(key, 'shown'); } catch (_) {}
+                if (++shown >= 3) break;
+            }
+        } catch (_) {
+            // Retry on the next poll without displaying a network-error toast.
+        } finally { busy = false; }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', checkReminders, {once:true});
+    else checkReminders();
+    setInterval(checkReminders, 15000);
+    document.addEventListener('visibilitychange', () => {if (!document.hidden) checkReminders();});
+})();
+</script>
+<script>
+(() => {
+ let busy=false;
+ async function refreshNotificationCount(){
+  if(busy||document.hidden)return;busy=true;
+  try{
+   const response=await fetch("{% url 'teammember_notifications' %}?counts=1",{credentials:'same-origin',cache:'no-store',headers:{'Accept':'application/json'}});
+   if(!response.ok||!(response.headers.get('content-type')||'').includes('application/json'))return;
+   const result=await response.json();const badge=document.getElementById('memberNotificationBadge');
+   if(result.ok&&badge){badge.textContent=result.unread_count;badge.hidden=result.unread_count===0;}
+  }catch(_){}finally{busy=false;}
+ }
+ refreshNotificationCount();setInterval(refreshNotificationCount,15000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshNotificationCount();});
+})();
+</script>
+
+<script>
+(() => {
+    const avatar = document.getElementById('teamMemberSidebarAvatar');
+    const image = document.getElementById('teamMemberSidebarPhoto');
+    const initial = document.getElementById('teamMemberSidebarInitial');
+    if (!avatar || !image || !initial) return;
+    image.addEventListener('load', () => {image.hidden = false; initial.hidden = true;});
+    image.addEventListener('error', () => {image.hidden = true; initial.hidden = false;});
+    if (image.complete && image.getAttribute('src')) {
+        image.hidden = !image.naturalWidth;
+        initial.hidden = !!image.naturalWidth;
+    }
+    fetch('{% url "get_logged_in_user_api" %}', {credentials: 'same-origin', cache: 'no-store'})
+        .then(response => response.ok ? response.json() : null)
+        .then(user => {
+            if (!user || (!user.name && !user.username)) return;
+            initial.textContent = (user.name || user.username || 'U').trim().charAt(0).toUpperCase() || 'U';
+            if (user.profile_image_url) image.src = user.profile_image_url;
+            else {image.removeAttribute('src'); image.hidden = true; initial.hidden = false;}
+        })
+        .catch(() => {});
+})();
+</script>
 </body>
 
 </html>

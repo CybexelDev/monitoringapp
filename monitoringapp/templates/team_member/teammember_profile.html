@@ -6,1307 +6,1215 @@
 {% block extra_css %}
 
 <style>
+.dashboard-header {
+            position: relative;
 
-    /* =========================================================
-       PROFILE PAGE
-    ========================================================= */
+            min-height: 168px;
 
-    .section-heading {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        margin-bottom: 22px;
-        min-width: 0;
-    }
-
-    .section-eyebrow {
-        display: block;
-        font-size: 10px;
-        font-weight: 800;
-        letter-spacing: .16em;
-        color: #8bc83f;
-        margin-bottom: 5px;
-    }
-
-    .section-heading h2 {
-        margin: 0;
-        font-size: 22px;
-        font-weight: 800;
-        color: #ffffff;
-    }
-
-    .heading-line {
-        height: 1px;
-        flex: 1;
-        min-width: 20px;
-        background: linear-gradient(
-            90deg,
-            rgba(255,255,255,.10),
-            transparent
-        );
-    }
-
-
-    /* =========================================================
-       PROFILE HERO
-    ========================================================= */
-
-    .profile-card {
-        position: relative;
-
-        display: flex;
-        align-items: center;
-
-        gap: 28px;
-
-        padding: 26px;
-        margin-bottom: 24px;
-
-        border-radius: 24px;
-
-        background:
-            radial-gradient(
-                circle at top right,
-                rgba(139, 200, 63, 0.09),
-                transparent 35%
-            ),
-            linear-gradient(
-                145deg,
-                rgba(37, 15, 30, 0.82),
-                rgba(20, 10, 17, 0.82)
-            );
-
-        border: 1px solid rgba(255, 255, 255, 0.08);
-
-        box-shadow:
-            0 18px 45px rgba(0, 0, 0, 0.28);
-
-        min-width: 0;
-    }
-
-
-    /* =========================================================
-       PROFILE IMAGE
-    ========================================================= */
-
-    .profile-image-wrapper {
-        position: relative;
-
-        width: 138px;
-        height: 138px;
-
-        flex-shrink: 0;
-
-        cursor: pointer;
-    }
-
-    .profile-image-ring {
-        width: 138px;
-        height: 138px;
-
-        padding: 4px;
-
-        border-radius: 50%;
-
-        background:
-            linear-gradient(
-                145deg,
-                rgba(139, 200, 63, 0.95),
-                rgba(139, 200, 63, 0.25)
-            );
-
-        box-shadow:
-            0 16px 40px rgba(139, 200, 63, 0.10);
-    }
-
-    #profile-display {
-        width: 130px;
-        height: 130px;
-
-        display: block;
-
-        border-radius: 50%;
-
-        object-fit: cover;
-
-        border: 3px solid #111111;
-
-        transition:
-            transform .25s ease,
-            filter .25s ease;
-    }
-
-    .profile-image-wrapper:hover #profile-display {
-        transform: scale(1.025);
-        filter: brightness(1.08);
-    }
-
-    .profile-edit-badge {
-        position: absolute;
-
-        right: 0;
-        bottom: 2px;
-
-        width: 38px;
-        height: 38px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 50%;
-
-        color: #ffffff;
-
-        background:
-            linear-gradient(
-                135deg,
-                #8bc83f,
-                #6da52e
-            );
-
-        border: 3px solid #111111;
-
-        box-shadow:
-            0 8px 20px rgba(0, 0, 0, 0.35);
-
-        pointer-events: none;
-    }
-
-    .profile-edit-badge svg {
-        width: 17px;
-        height: 17px;
-    }
-
-    .profile-status-dot {
-        position: absolute;
-
-        right: 9px;
-        bottom: 38px;
-
-        width: 17px;
-        height: 17px;
-
-        border-radius: 50%;
-
-        background: #22c55e;
-
-        border: 3px solid #111111;
-
-        box-shadow:
-            0 0 0 3px rgba(34, 197, 94, 0.12);
-    }
-
-
-    /* =========================================================
-       PROFILE SUMMARY
-    ========================================================= */
-
-    .profile-summary {
-        min-width: 0;
-        flex: 1;
-    }
-
-    .profile-summary-label {
-        color: #8bc83f;
-
-        font-size: 10px;
-        font-weight: 800;
-
-        letter-spacing: .16em;
-
-        text-transform: uppercase;
-
-        margin-bottom: 7px;
-    }
-
-    .profile-summary h2 {
-        margin: 0;
-
-        font-size: 26px;
-
-        line-height: 1.15;
-
-        font-weight: 850;
-
-        letter-spacing: -.03em;
-
-        color: #ffffff;
-
-        overflow-wrap: anywhere;
-    }
-
-    .profile-summary-role {
-        margin-top: 7px;
-
-        color: #a1a1aa;
-
-        font-size: 13px;
-    }
-
-    .profile-summary-id {
-        display: inline-flex;
-
-        align-items: center;
-
-        gap: 7px;
-
-        margin-top: 15px;
-
-        padding: 7px 10px;
-
-        border-radius: 10px;
-
-        color: #d4d4d8;
-
-        background:
-            rgba(255, 255, 255, 0.04);
-
-        border:
-            1px solid rgba(255, 255, 255, 0.06);
-
-        font-size: 11px;
-        font-weight: 600;
-
-        max-width: 100%;
-    }
-
-    .profile-summary-id svg {
-        width: 14px;
-        height: 14px;
-
-        color: #8bc83f;
-
-        flex-shrink: 0;
-    }
-
-
-    /* =========================================================
-       PROFILE DETAILS CARD
-    ========================================================= */
-
-    .profile-details-card,
-    .edit-profile-card {
-        min-width: 0;
-
-        border-radius: 22px;
-
-        background:
-            linear-gradient(
-                145deg,
-                rgba(37, 15, 30, 0.78),
-                rgba(20, 10, 17, 0.78)
-            );
-
-        border:
-            1px solid rgba(255, 255, 255, 0.07);
-
-        box-shadow:
-            0 15px 40px rgba(0, 0, 0, 0.20);
-    }
-
-    .profile-details-card {
-        padding: 24px;
-        margin-bottom: 22px;
-    }
-
-
-    /* =========================================================
-       CARD HEADING
-    ========================================================= */
-
-    .card-heading {
-        display: flex;
-
-        align-items: center;
-
-        gap: 14px;
-
-        margin-bottom: 20px;
-
-        min-width: 0;
-    }
-
-    .card-icon {
-        width: 48px;
-        height: 48px;
-
-        min-width: 48px;
-
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-
-        border-radius: 15px;
-
-        background:
-            rgba(139, 200, 63, 0.10);
-
-        border:
-            1px solid rgba(139, 200, 63, 0.14);
-
-        color: #8bc83f;
-    }
-
-    .card-icon svg {
-        width: 24px;
-        height: 24px;
-
-        stroke-width: 1.7;
-    }
-
-    .card-heading > div:last-child {
-        min-width: 0;
-    }
-
-    .card-heading h3 {
-        margin: 0;
-
-        font-size: 17px;
-
-        font-weight: 800;
-
-        color: #ffffff;
-
-        min-width: 0;
-    }
-
-    .card-heading p {
-        margin: 4px 0 0;
-
-        font-size: 12px;
-
-        color: #a1a1aa;
-
-        line-height: 1.5;
-    }
-
-
-    /* =========================================================
-       INFORMATION GRID
-    ========================================================= */
-
-    .details-grid {
-        display: grid;
-
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-
-        gap: 12px;
-
-        width: 100%;
-
-        min-width: 0;
-    }
-
-    .detail-item {
-        min-width: 0;
-
-        padding: 15px;
-
-        border-radius: 16px;
-
-        background:
-            rgba(0, 0, 0, 0.25);
-
-        border:
-            1px solid rgba(255, 255, 255, 0.06);
-
-        transition:
-            background .2s ease,
-            border-color .2s ease;
-    }
-
-    .detail-item:hover {
-        background:
-            rgba(255, 255, 255, 0.035);
-
-        border-color:
-            rgba(139, 200, 63, 0.16);
-    }
-
-    .detail-label {
-        display: flex;
-
-        align-items: center;
-
-        gap: 7px;
-
-        margin-bottom: 7px;
-
-        color: #71717a;
-
-        font-size: 10px;
-
-        font-weight: 700;
-
-        text-transform: uppercase;
-
-        letter-spacing: .07em;
-    }
-
-    .detail-label svg {
-        width: 14px;
-        height: 14px;
-
-        color: #8bc83f;
-
-        flex-shrink: 0;
-    }
-
-    .detail-value {
-        color: #f4f4f5;
-
-        font-size: 13px;
-
-        font-weight: 600;
-
-        line-height: 1.5;
-
-        overflow-wrap: anywhere;
-
-        word-break: break-word;
-    }
-
-
-    /* =========================================================
-       EDIT PROFILE
-    ========================================================= */
-
-    .edit-profile-card {
-        padding: 24px;
-    }
-
-    .edit-form {
-        display: grid;
-
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-
-        gap: 18px;
-
-        min-width: 0;
-    }
-
-    .form-field {
-        min-width: 0;
-        overflow-wrap: anywhere;
-    }
-
-    .form-field.full-width {
-        grid-column: 1 / -1;
-    }
-
-    .form-field label {
-        display: flex;
-
-        align-items: center;
-
-        gap: 7px;
-
-        margin-bottom: 8px;
-
-        color: #d4d4d8;
-
-        font-size: 12px;
-
-        font-weight: 700;
-    }
-
-    .form-field label svg {
-        width: 14px;
-        height: 14px;
-
-        color: #8bc83f;
-
-        flex-shrink: 0;
-    }
-
-    .form-input {
-        width: 100%;
-
-        min-height: 46px;
-
-        padding: 11px 13px;
-
-        border-radius: 13px;
-
-        background:
-            rgba(0, 0, 0, 0.55);
-
-        border:
-            1px solid rgba(255, 255, 255, 0.09);
-
-        color: #ffffff;
-
-        outline: none;
-
-        font-size: 13px;
-
-        transition:
-            border-color .2s ease,
-            box-shadow .2s ease,
-            background .2s ease;
-    }
-
-    .form-input::placeholder {
-        color: #52525b;
-    }
-
-    .form-input:hover {
-        border-color:
-            rgba(255, 255, 255, 0.15);
-    }
-
-    .form-input:focus {
-        background:
-            rgba(0, 0, 0, 0.72);
-
-        border-color:
-            rgba(139, 200, 63, 0.55);
-
-        box-shadow:
-            0 0 0 3px rgba(139, 200, 63, 0.08);
-    }
-
-    .form-input:disabled {
-        cursor: not-allowed;
-        opacity: .65;
-    }
-
-    .form-actions {
-        grid-column: 1 / -1;
-
-        display: flex;
-
-        align-items: center;
-        justify-content: flex-end;
-
-        padding-top: 4px;
-    }
-
-    .save-button {
-        display: inline-flex;
-
-        align-items: center;
-        justify-content: center;
-
-        gap: 8px;
-
-        min-height: 45px;
-
-        padding: 0 18px;
-
-        border: 0;
-
-        border-radius: 13px;
-
-        background:
-            linear-gradient(
-                135deg,
-                #8bc83f,
-                #6da52e
-            );
-
-        color: #ffffff;
-
-        font-size: 12px;
-
-        font-weight: 800;
-
-        cursor: pointer;
-
-        box-shadow:
-            0 12px 28px rgba(139, 200, 63, 0.14);
-
-        transition:
-            transform .2s ease,
-            box-shadow .2s ease,
-            filter .2s ease;
-    }
-
-    .save-button:hover {
-        transform:
-            translateY(-1px);
-
-        filter:
-            brightness(1.06);
-
-        box-shadow:
-            0 16px 34px rgba(139, 200, 63, 0.20);
-    }
-
-    .save-button:active {
-        transform:
-            translateY(0);
-    }
-
-    .save-button svg {
-        width: 16px;
-        height: 16px;
-    }
-
-    .button-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-
-    /* =========================================================
-       EXTRA WIDTH PROTECTION
-    ========================================================= */
-
-    .profile-summary,
-    .detail-value,
-    .form-field {
-        overflow-wrap: anywhere;
-    }
-
-
-    /* =========================================================
-       RESPONSIVE
-    ========================================================= */
-
-    @media (min-width: 901px) and (max-width: 1200px) {
-
-        .details-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .edit-form {
-            grid-template-columns:
-                repeat(2, minmax(0, 1fr));
-        }
-    }
-
-
-    @media (max-width: 900px) {
-
-        .profile-card {
-            gap: 22px;
-        }
-
-        .details-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .edit-form {
-            grid-template-columns: 1fr;
-        }
-
-        .form-field.full-width {
-            grid-column: auto;
-        }
-
-        .form-actions {
-            grid-column: auto;
-            justify-content: stretch;
-        }
-
-        .save-button {
-            width: 100%;
-        }
-    }
-
-
-    @media (max-width: 600px) {
-
-        .section-heading {
-            gap: 12px;
-        }
-
-        .heading-line {
-            display: none;
-        }
-
-        .profile-card {
-            flex-direction: column;
-
+            display: flex;
             align-items: center;
+
+            padding: 30px 32px;
+
+            border-radius: 25px;
+
+            overflow: hidden;
+
+            background:
+                linear-gradient(
+                    110deg,
+                    rgba(44, 32, 55, 0.62),
+                    rgba(18, 23, 31, 0.72),
+                    rgba(30, 31, 59, 0.62)
+                );
+
+            border: 1px solid rgba(255, 255, 255, 0.10);
+
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .dashboard-header::before {
+            content: "";
+
+            position: absolute;
+
+            width: 260px;
+            height: 260px;
+
+            right: -100px;
+            top: -130px;
+
+            background: rgba(99, 102, 241, 0.13);
+
+            filter: blur(80px);
+
+            pointer-events: none;
+        }
+
+        .dashboard-header-content {
+            position: relative;
+            z-index: 2;
+
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 25px;
+        }
+
+        .dashboard-eyebrow {
+            margin-bottom: 15px;
+
+            color: #a78bfa;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            letter-spacing: 3px;
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+
+            font-size: clamp(34px, 4vw, 52px);
+
+            line-height: 1;
+            font-weight: 900;
+
+            letter-spacing: -2px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #ffffff 0%,
+                    #c4b5fd 45%,
+                    #67c8ff 100%
+                );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard-header p {
+            margin: 18px 0 0;
+
+            color: #96939e;
+
+            font-size: 14px;
+        }
+
+        /* =========================================================
+           SYSTEM STATUS
+        ========================================================= */
+
+        .system-status {
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+
+            gap: 9px;
+
+            padding: 10px 18px;
+
+            border-radius: 30px;
+
+            color: #9ee7ba;
+
+            font-size: 12px;
+
+            background: rgba(52, 211, 153, 0.055);
+
+            border: 1px solid rgba(52, 211, 153, 0.17);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: #4ade80;
+
+            box-shadow:
+                0 0 12px rgba(74, 222, 128, 0.75);
+        }
+
+        /* =========================================================
+           CONTENT
+        ========================================================= */
+
+        
+
+        /* =========================================================
+           PROFILE PAGE
+           SAME DASHBOARD UI
+        ========================================================= */
+
+        .profile-content {
+            padding: 38px 0 35px;
+        }
+
+        /* ---------------------------------------------------------
+           PROFILE TOP CARD
+        --------------------------------------------------------- */
+
+        .profile-main-card {
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr);
+            gap: 28px;
+
+            padding: 28px;
+
+            border-radius: 23px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.20),
+                inset 0 1px 0 rgba(255,255,255,0.035);
+
+            transition:
+                border-color 0.25s ease,
+                transform 0.25s ease;
+        }
+
+        .profile-main-card:hover {
+            border-color:
+                rgba(139, 92, 246, 0.23);
+
+            transform: translateY(-2px);
+        }
+
+
+        /* ---------------------------------------------------------
+           PROFILE IMAGE AREA
+        --------------------------------------------------------- */
+
+        .profile-image-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+
+            padding: 8px;
+        }
+
+        .profile-image-wrapper {
+            position: relative;
+
+            width: 150px;
+            height: 150px;
+
+            cursor: pointer;
+        }
+
+        .profile-image-wrapper::before {
+            content: "";
+
+            position: absolute;
+
+            inset: -8px;
+
+            border-radius: 50%;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(139, 92, 246, 0.45),
+                    rgba(56, 189, 248, 0.25)
+                );
+
+            filter: blur(12px);
+
+            opacity: 0.45;
+
+            pointer-events: none;
+        }
+
+        .profile-image-wrapper img {
+            position: relative;
+            z-index: 2;
+
+            width: 150px;
+            height: 150px;
+
+            object-fit: cover;
+
+            border-radius: 50%;
+
+            border:
+                4px solid rgba(139, 92, 246, 0.85);
+
+            box-shadow:
+                0 15px 40px rgba(0, 0, 0, 0.40),
+                0 0 0 1px rgba(255,255,255,0.08);
+        }
+
+/* ---------------------------------------------------------
+   PROFILE STATUS — GREEN DOT
+--------------------------------------------------------- */
+
+.profile-status {
+    position: absolute;
+
+    
+    left: 20px;
+    bottom: 9px;
+
+    z-index: 10;
+
+    width: 18px;
+    height: 18px;
+
+    border-radius: 50%;
+
+    background: #4ade80;
+
+    border: 3px solid #17151e;
+
+    box-shadow:
+        0 0 14px rgba(74, 222, 128, 0.9);
+}
+
+/* ---------------------------------------------------------
+   EDIT CAMERA BUTTON
+--------------------------------------------------------- */
+
+.profile-camera {
+    position: absolute;
+
+    right: -2px;
+    bottom: 12px;
+
+    z-index: 6;
+
+    width: 39px;
+    height: 39px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    color: #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7c4bd4,
+            #5b32a7
+        );
+
+    border:
+        2px solid #181620;
+
+    box-shadow:
+        0 8px 22px rgba(124,75,212,0.35);
+
+    pointer-events: none;
+}
+
+.profile-camera svg {
+    width: 18px;
+    height: 18px;
+}
+
+
+        /* ---------------------------------------------------------
+           PROFILE IMAGE TEXT
+        --------------------------------------------------------- */
+
+        .profile-image-hint {
+            margin-top: 18px;
+
+            color: #77727f;
+
+            font-size: 10px;
 
             text-align: center;
 
-            padding: 20px 17px;
+            line-height: 1.5;
         }
 
-        .profile-image-wrapper,
-        .profile-image-ring {
-            width: 118px;
-            height: 118px;
+
+        /* ---------------------------------------------------------
+           PROFILE DETAILS
+        --------------------------------------------------------- */
+
+        .profile-details {
+            min-width: 0;
         }
 
-        #profile-display {
-            width: 110px;
-            height: 110px;
+        .profile-details-heading {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+
+            margin-bottom: 24px;
         }
 
-        .profile-summary {
-            width: 100%;
-        }
+        .profile-details-icon {
+            width: 52px;
+            height: 52px;
 
-        .profile-summary h2 {
-            font-size: 22px;
-        }
+            flex-shrink: 0;
 
-        .profile-summary-id {
+            display: flex;
+            align-items: center;
             justify-content: center;
+
+            border-radius: 16px;
+
+            color: #c4b5fd;
+
+            background:
+                rgba(139, 92, 246, 0.11);
+
+            border:
+                1px solid rgba(139, 92, 246, 0.30);
         }
 
-        .profile-details-card,
-        .edit-profile-card {
-            padding: 18px 16px;
-            border-radius: 18px;
+        .profile-details-icon svg {
+            width: 23px;
+            height: 23px;
         }
 
-        .detail-item {
-            padding: 13px;
+        .profile-details-heading h3 {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 18px;
+
+            font-weight: 800;
         }
 
-        .card-heading {
-            align-items: flex-start;
-        }
+        .profile-details-heading p {
+            margin: 5px 0 0;
 
-        .card-icon {
-            width: 43px;
-            height: 43px;
-            min-width: 43px;
-        }
-    }
+            color: #8f8c96;
 
-
-    @media (max-width: 400px) {
-
-        .profile-card {
-            padding: 18px 14px;
-        }
-
-        .profile-summary h2 {
-            font-size: 20px;
-        }
-
-        .card-heading h3 {
-            font-size: 15px;
-        }
-
-        .card-heading p {
             font-size: 11px;
         }
 
-        .detail-item {
-            padding: 12px;
-        }
-    }
 
+        /* ---------------------------------------------------------
+           DETAILS GRID
+        --------------------------------------------------------- */
+
+        .profile-info-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 12px;
+        }
+
+        .profile-info-item {
+            min-width: 0;
+
+            padding: 15px 16px;
+
+            border-radius: 14px;
+
+            background:
+                rgba(7, 7, 11, 0.42);
+
+            border:
+                1px solid rgba(255,255,255,0.07);
+        }
+
+        .profile-info-label {
+            display: block;
+
+            margin-bottom: 6px;
+
+            color: #77727f;
+
+            font-size: 9px;
+
+            font-weight: 800;
+
+            letter-spacing: 1.4px;
+
+            text-transform: uppercase;
+        }
+
+        .profile-info-value {
+            display: block;
+
+            color: #dedbe2;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+
+        /* ---------------------------------------------------------
+           EDIT PROFILE CARD
+        --------------------------------------------------------- */
+
+        .profile-edit-card {
+            margin-top: 22px;
+
+            padding: 26px;
+
+            border-radius: 23px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+
+            border:
+                1px solid rgba(255,255,255,0.09);
+
+            box-shadow:
+                0 20px 50px rgba(0,0,0,0.20),
+                inset 0 1px 0 rgba(255,255,255,0.035);
+        }
+
+        .profile-edit-heading {
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+
+            margin-bottom: 24px;
+        }
+
+        .profile-edit-icon {
+            width: 52px;
+            height: 52px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 16px;
+
+            color: #67d5ff;
+
+            background:
+                rgba(56,189,248,0.09);
+
+            border:
+                1px solid rgba(56,189,248,0.25);
+        }
+
+        .profile-edit-icon svg {
+            width: 23px;
+            height: 23px;
+        }
+
+        .profile-edit-heading h3 {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 18px;
+
+            font-weight: 800;
+        }
+
+        .profile-edit-heading p {
+            margin: 5px 0 0;
+
+            color: #8f8c96;
+
+            font-size: 11px;
+        }
+
+
+        /* ---------------------------------------------------------
+           EDIT FORM
+        --------------------------------------------------------- */
+
+        .profile-form-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 17px;
+        }
+
+        .profile-form-group {
+            min-width: 0;
+        }
+
+        .profile-form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .profile-form-group label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            color: #8f8c96;
+
+            font-size: 10px;
+
+            font-weight: 700;
+        }
+
+        .profile-form-input {
+            width: 100%;
+
+            height: 52px;
+
+            padding:
+                0 15px;
+
+            border-radius: 14px;
+
+            outline: none;
+
+            color: #ffffff;
+
+            background:
+                rgba(7,7,11,0.50);
+
+            border:
+                1px solid rgba(255,255,255,0.10);
+
+            font-size: 12px;
+
+            transition:
+                border-color .25s ease,
+                box-shadow .25s ease;
+        }
+
+        .profile-form-input::placeholder {
+            color: #77737e;
+        }
+
+        .profile-form-input:focus {
+            border-color:
+                rgba(139,92,246,0.55);
+
+            box-shadow:
+                0 0 0 3px rgba(139,92,246,0.08);
+        }
+
+
+        /* ---------------------------------------------------------
+           SAVE BUTTON
+        --------------------------------------------------------- */
+
+        .profile-save-wrapper {
+            display: flex;
+
+            justify-content: flex-end;
+
+            margin-top: 22px;
+        }
+
+        .profile-save-button {
+            min-height: 50px;
+
+            padding:
+                0 24px;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            border: none;
+
+            border-radius: 14px;
+
+            cursor: pointer;
+
+            color: #ffffff;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #7c4bd4,
+                    #5b32a7
+                );
+
+            box-shadow:
+                0 10px 25px rgba(124,75,212,0.18),
+                inset 0 1px 0 rgba(255,255,255,0.16);
+
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease;
+        }
+
+        .profile-save-button:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 14px 30px rgba(124,75,212,0.28),
+                inset 0 1px 0 rgba(255,255,255,0.16);
+        }
+
+        .profile-save-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+
+        /* ---------------------------------------------------------
+           RESPONSIVE
+        --------------------------------------------------------- */
+
+        @media (max-width: 1100px) {
+
+            .profile-main-card {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-image-section {
+                padding-bottom: 10px;
+            }
+
+        }
+
+
+        @media (max-width: 768px) {
+
+            .profile-content {
+                padding:
+                    28px 2px;
+            }
+
+            .profile-main-card {
+                padding: 18px;
+
+                border-radius: 20px;
+
+                gap: 20px;
+            }
+
+            .profile-edit-card {
+                padding: 18px;
+
+                border-radius: 20px;
+            }
+
+            .profile-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-form-group.full-width {
+                grid-column: auto;
+            }
+
+            .profile-save-wrapper {
+                justify-content: stretch;
+            }
+
+            .profile-save-button {
+                width: 100%;
+            }
+
+        }
+
+
+        @media (max-width: 480px) {
+
+            .profile-main-card {
+                padding: 15px;
+            }
+
+            .profile-edit-card {
+                padding: 15px;
+            }
+
+            .profile-image-wrapper,
+            .profile-image-wrapper img {
+                width: 130px;
+                height: 130px;
+            }
+
+            .profile-image-wrapper {
+                margin: 0 auto;
+            }
+
+            .profile-info-item {
+                padding: 13px 14px;
+            }
+
+        }
+
+    
+/* Shared base controls sidebar positioning. */
+body {background:radial-gradient(circle at 12% 0%,rgba(99,55,156,.13),transparent 35%),radial-gradient(circle at 100% 100%,rgba(45,68,133,.10),transparent 40%),#08080d;}
+.dashboard-box {box-sizing:border-box;padding:16px;border-radius:28px;background:linear-gradient(145deg,rgba(17,16,24,.94),rgba(8,9,14,.96));border:1px solid rgba(255,255,255,.10);min-width:0;}
+.dashboard-header {box-sizing:border-box;}
+.dashboard-header-content > div:first-child {min-width:0;}
+.section-heading {display:flex;align-items:center;gap:18px;margin-bottom:20px;}
+.section-heading h2 {margin:0;color:#fff;font-size:20px;font-weight:800;}
+.section-eyebrow {display:block;margin-bottom:6px;color:#a78bfa;font-size:9px;font-weight:800;letter-spacing:2px;}
+.heading-line {height:1px;flex:1;background:linear-gradient(90deg,rgba(255,255,255,.12),transparent);}
+.profile-image-wrapper img,.profile-form-input {box-sizing:border-box;}
+.profile-info-value {white-space:normal;overflow-wrap:anywhere;}
+.profile-form {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;}
+.profile-save-wrapper {grid-column:1 / -1;margin-top:5px;}
+.profile-form-input:disabled {opacity:.6;cursor:not-allowed;}
+.profile-form-group label {display:flex;align-items:center;gap:7px;}
+.profile-form-group label svg {width:14px;height:14px;}
+.profile-save-button .button-icon {display:flex;align-items:center;}
+.hidden {display:none;}
+button:focus-visible,.profile-image-wrapper:focus-visible {outline:2px solid #b69af0;outline-offset:4px;}
+@media(max-width:1100px) {.dashboard-header-content {flex-wrap:wrap;gap:20px;}}
+@media(max-width:768px) {
+ .dashboard-box {padding:12px;border-radius:20px;}
+ .dashboard-header {padding:24px 20px;min-height:0;border-radius:20px;}
+ .dashboard-header h1 {font-size:32px;letter-spacing:-1px;line-height:1.12;}
+ .dashboard-header p {font-size:12px;line-height:1.6;}
+ .profile-form {grid-template-columns:minmax(0,1fr);}
+ .profile-details-heading h3,.profile-edit-heading h3 {font-size:16px;}
+ .profile-details-icon,.profile-edit-icon {width:44px;height:44px;border-radius:13px;}
+ .profile-content {padding:24px 0;}
+}
+@media(prefers-reduced-motion:reduce) {.profile-main-card,.profile-save-button {transition:none;} .profile-main-card:hover,.profile-save-button:hover {transform:none;}}
+
+/* Responsive profile controls, with the existing dashboard theme. */
+#memberProfilePage [hidden]{display:none!important;}
+#memberProfilePage{min-width:0;}
+#memberProfilePage .profile-initial{box-sizing:border-box;position:relative;z-index:2;display:grid;place-items:center;width:150px;height:150px;border-radius:50%;border:4px solid rgba(139,92,246,.85);background:linear-gradient(135deg,#392456,#1e172c);color:#e3d5ff;font-size:56px;font-weight:800;}
+#memberProfilePage .profile-info-value{white-space:normal;overflow-wrap:anywhere;}
+#memberProfilePage .profile-save-wrapper{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;}
+#memberProfilePage .profile-save-state{margin:0 auto 0 0;color:#a89db6;font-size:11px;}
+#memberProfilePage .profile-reset-button{min-height:42px;padding:0 16px;border:1px solid rgba(167,139,250,.25);border-radius:12px;color:#d8c7ee;background:rgba(139,92,246,.08);cursor:pointer;font:inherit;font-size:12px;}
+#memberProfilePage button:disabled{opacity:.55;cursor:default;}
+#memberProfilePage [aria-disabled=true]{cursor:wait;}
+#memberProfilePage input:focus-visible,#memberProfilePage button:focus-visible,#profile-container:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px;}
+@media(max-width:600px){#memberProfilePage .profile-save-state{flex-basis:100%;}#memberProfilePage .profile-save-button,#memberProfilePage .profile-reset-button{flex:1;justify-content:center;}#memberProfilePage .profile-main-card,#memberProfilePage .profile-edit-card{padding:18px;}}
+@media(prefers-reduced-motion:reduce){#memberProfilePage *{transition:none!important;}}
 </style>
 
 {% endblock %}
 
 
 
-{% block content %}
+{% block content %}<div id="memberProfilePage">
+<section class="dashboard-header">
 
-<!-- =========================================================
-     HEADER
-========================================================= -->
+            <div class="dashboard-header-content">
 
-<header class="dashboard-header">
+                <div>
 
-    <div class="dashboard-header-content">
+                    <div class="dashboard-eyebrow">
+                        CYBEXEL TEAM MEMBER PANEL
+                    </div>
 
-        <div>
+                    <h1>
+                        TEAM MEMBER PROFILE
+                    </h1>
 
-            <div class="dashboard-eyebrow">
-                TEAM MEMBER • PROFILE
+                    <p>
+                        Manage your profile information and account details.
+                    </p>
+
+                </div>
+
+
+                <!-- System Status -->
+
+                <div class="system-status">
+
+                    <span class="status-dot"></span>
+
+                    <span>
+                        System Online
+                    </span>
+
+                </div>
+
             </div>
 
-            <h1>
-                My Profile
-            </h1>
-
-            <p>
-                Manage your personal information,
-                profile image, and team member
-                account details.
-            </p>
-
-        </div>
-
-        <div class="system-status">
-
-            <span class="status-dot"></span>
-
-            <span>
-                Workspace Active
-            </span>
-
-        </div>
-
-    </div>
-
-</header>
+        </section>
 
 
 
-<!-- =========================================================
-     CONTENT
-========================================================= -->
+        <!-- =================================================
+             PROFILE CONTENT
+        ================================================== -->
 
-<section class="dashboard-content">
+        <section class="profile-content">
 
 
-    <!-- SECTION HEADING -->
+            <!-- =================================================
+                 SECTION HEADING
+            ================================================== -->
 
-    <div class="section-heading">
+            <div class="section-heading">
 
-        <div>
+                <div>
 
-            <div class="section-eyebrow">
-                ACCOUNT OVERVIEW
+                    <span class="section-eyebrow">
+                        ACCOUNT
+                    </span>
+
+                    <h2>
+                        My Profile
+                    </h2>
+
+                </div>
+
+                <div class="heading-line"></div>
+
             </div>
 
-            <h2>
-                Your Profile
-            </h2>
-
-        </div>
-
-        <div class="heading-line"></div>
-
-    </div>
 
 
+            <!-- =================================================
+                 PROFILE MAIN CARD
+            ================================================== -->
 
-    <!-- =====================================================
-         PROFILE HERO
-    ===================================================== -->
-
-    <div class="profile-card">
+            <div class="profile-main-card">
 
 
-        <!-- PROFILE IMAGE -->
+                <!-- PROFILE IMAGE -->
 
-        <div
-            class="profile-image-wrapper"
-            id="profile-container"
-            title="Click to change profile image"
-        >
+                <div class="profile-image-section">
 
-            <div class="profile-image-ring">
-
-                {% if user.profile_image %}
-
-                    <img
-                        id="profile-display"
-                        src="{{ user.profile_image.url }}"
-                        alt="Profile Image"
+                    <div
+                        class="profile-image-wrapper"
+                        id="profile-container" role="button" tabindex="0" aria-label="Change profile image"
                     >
 
-                {% else %}
-
-                    <img
-                        id="profile-display"
-                        src="{% static 'images/default-user.png' %}"
-                        alt="Default Profile Image"
-                    >
-
-                {% endif %}
-
-            </div>
+                        <img id="profile-display" {% if user.profile_image %}src="{{ user.profile_image.url }}"{% else %}hidden{% endif %} alt="Your profile photo">
+                        <span id="profile-initial" class="profile-initial" {% if user.profile_image %}hidden{% endif %} aria-label="Profile initial">{{ user.name|default:user.username|slice:":1"|upper }}</span>
 
 
-            <!-- Hidden File Input -->
-
-            <input
-                type="file"
-                id="profile-input"
-                class="hidden"
-                name="profile_image"
-                accept="image/*"
-            >
+                        <input
+                            type="file"
+                            id="profile-input"
+                            class="hidden"
+                            name="profile_image"
+                            accept="image/*"
+                        >
 
 
-            <!-- Active Status -->
+                        <!-- Status -->
 
-            <span
-                id="profile-status-dot"
-                class="profile-status-dot user-status-dot"
-                data-user-id="{{ user.id }}"
-                title="Active"
-            ></span>
-
-
-            <!-- Edit Badge -->
-
-            <span class="profile-edit-badge">
-
-                <i data-lucide="camera"></i>
-
-            </span>
-
-        </div>
+                        <span
+                            id="profile-status-dot"
+                            class="profile-status user-status-dot"
+                            data-user-id="{{ user.id }}"
+                            title="Active"
+                        ></span>
 
 
+                        <!-- Camera -->
 
-        <!-- PROFILE SUMMARY -->
+                        <span class="profile-camera">
 
-        <div class="profile-summary">
+                            <i data-lucide="camera"></i>
 
-            <div class="profile-summary-label">
-                Team Member
-            </div>
+                        </span>
 
-            <h2>
-                {{ user.name }}
-            </h2>
-
-            <p class="profile-summary-role">
-                {{ user.designation|default:user.job_Position }}
-            </p>
-
-            <div class="profile-summary-id">
-
-                <i data-lucide="badge-id-card"></i>
-
-                <span>
-                    Employee ID:
-                    {{ user.employee_id }}
-                </span>
-
-            </div>
-
-        </div>
-
-    </div>
+                    </div>
 
 
-
-    <!-- =====================================================
-         PROFILE DETAILS
-    ===================================================== -->
-
-    <div class="profile-details-card">
-
-
-        <!-- CARD HEADING -->
-
-        <div class="card-heading">
-
-            <div class="card-icon">
-
-                <i data-lucide="contact"></i>
-
-            </div>
-
-            <div>
-
-                <h3>
-                    Personal & Work Information
-                </h3>
-
-                <p>
-                    Your current information
-                    registered in Cybexel.
-                </p>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- DETAILS GRID -->
-
-        <div class="details-grid">
-
-
-            <!-- Full Name -->
-
-            <div class="detail-item">
-
-                <div class="detail-label">
-
-                    <i data-lucide="user"></i>
-
-                    <span>
-                        Full Name
-                    </span>
+                    <div class="profile-image-hint">
+                        Click the image to change your profile photo
+                    </div>
 
                 </div>
 
-                <div class="detail-value">
-                    {{ user.name|default:"Not provided" }}
-                </div>
-
-            </div>
 
 
+                <!-- PROFILE DETAILS -->
 
-            <!-- Employee ID -->
-
-            <div class="detail-item">
-
-                <div class="detail-label">
-
-                    <i data-lucide="badge-id-card"></i>
-
-                    <span>
-                        Employee ID
-                    </span>
-
-                </div>
-
-                <div class="detail-value">
-                    {{ user.employee_id|default:"Not provided" }}
-                </div>
-
-            </div>
+                <div class="profile-details">
 
 
+                    <div class="profile-details-heading">
 
-            <!-- Email -->
+                        <div class="profile-details-icon">
 
-            <div class="detail-item">
+                            <i data-lucide="circle-user-round"></i>
 
-                <div class="detail-label">
+                        </div>
 
-                    <i data-lucide="mail"></i>
+                        <div>
 
-                    <span>
-                        Email
-                    </span>
+                            <h3>
+                                Personal Information
+                            </h3>
 
-                </div>
+                            <p>
+                                Your current account information
+                            </p>
 
-                <div class="detail-value">
-                    {{ user.email|default:"Not provided" }}
-                </div>
+                        </div>
 
-            </div>
+                    </div>
 
 
 
-            <!-- Phone -->
-
-            <div class="detail-item">
-
-                <div class="detail-label">
-
-                    <i data-lucide="phone"></i>
-
-                    <span>
-                        Phone
-                    </span>
-
-                </div>
-
-                <div class="detail-value">
-                    {{ user.phone|default:"Not provided" }}
-                </div>
-
-            </div>
+                    <div class="profile-info-grid">
 
 
+                        <!-- Full Name -->
 
-            <!-- Department -->
+                        <div class="profile-info-item">
 
-            <div class="detail-item">
+                            <span class="profile-info-label">
+                                Full Name
+                            </span>
 
-                <div class="detail-label">
+                            <span class="profile-info-value">
+                                {{ user.name|default:"Not provided" }}
+                            </span>
 
-                    <i data-lucide="building-2"></i>
-
-                    <span>
-                        Department
-                    </span>
-
-                </div>
-
-                <div class="detail-value">
-                    {{ user.department.name|default:"Not assigned" }}
-                </div>
-
-            </div>
+                        </div>
 
 
+                        <!-- Employee ID -->
 
-            <!-- Team -->
+                        <div class="profile-info-item">
 
-            <div class="detail-item">
+                            <span class="profile-info-label">
+                                Employee ID
+                            </span>
 
-                <div class="detail-label">
+                            <span class="profile-info-value">
+                                {{ user.employee_id|default:"Not provided" }}
+                            </span>
 
-                    <i data-lucide="users"></i>
-
-                    <span>
-                        Team
-                    </span>
-
-                </div>
-
-                <div class="detail-value">
-                    {{ user.team.name|default:"Not assigned" }}
-                </div>
-
-            </div>
+                        </div>
 
 
+                        <!-- Email -->
 
-            <!-- Job Position -->
+                        <div class="profile-info-item">
 
-            <div class="detail-item">
+                            <span class="profile-info-label">
+                                Email
+                            </span>
 
-                <div class="detail-label">
+                            <span class="profile-info-value">
+                                {{ user.email|default:"Not provided" }}
+                            </span>
 
-                    <i data-lucide="briefcase-business"></i>
+                        </div>
 
-                    <span>
-                        Job Position
-                    </span>
 
-                </div>
+                        <!-- Phone -->
 
-                <div class="detail-value">
-                    {{ user.job_Position|default:"Not provided" }}
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Phone
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.phone|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Department -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Department
+                            </span>
+
+                            <span class="profile-info-value">
+
+                                {% if user.department %}
+                                    {{ user.department.name }}
+                                {% else %}
+                                    Not assigned
+                                {% endif %}
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- Team -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Team
+                            </span>
+
+                            <span class="profile-info-value">
+
+                                {% if user.team %}
+                                    {{ user.team.name }}
+                                {% else %}
+                                    Not assigned
+                                {% endif %}
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- Job Position -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Job Position
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.job_Position|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Designation -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Designation
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.designation|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Work Location -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Work Location
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.work_location|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Joining Date -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Joining Date
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.joining_date|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Username -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Username
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ user.username|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
                 </div>
 
             </div>
 
 
 
-            <!-- Designation -->
+            <!-- =================================================
+                 EDIT PROFILE
+            ================================================== -->
 
-            <div class="detail-item">
-
-                <div class="detail-label">
-
-                    <i data-lucide="award"></i>
-
-                    <span>
-                        Designation
-                    </span>
-
-                </div>
-
-                <div class="detail-value">
-                    {{ user.designation|default:"Not provided" }}
-                </div>
-
-            </div>
+            <div class="profile-edit-card">
 
 
+                <div class="profile-edit-heading">
 
-            <!-- Work Location -->
+                    <div class="profile-edit-icon">
 
-            <div class="detail-item">
+                        <i data-lucide="user-pen"></i>
 
-                <div class="detail-label">
+                    </div>
 
-                    <i data-lucide="map-pin"></i>
+                    <div>
 
-                    <span>
-                        Work Location
-                    </span>
+                        <h3>
+                            Edit Profile
+                        </h3>
+
+                        <p>
+                            Update your basic profile information
+                        </p>
+
+                    </div>
 
                 </div>
 
-                <div class="detail-value">
-                    {{ user.work_location|default:"Not provided" }}
-                </div>
-
-            </div>
 
 
-
-            <!-- Joining Date -->
-
-            <div class="detail-item">
-
-                <div class="detail-label">
-
-                    <i data-lucide="calendar-days"></i>
-
-                    <span>
-                        Joining Date
-                    </span>
-
-                </div>
-
-                <div class="detail-value">
-                    {{ user.joining_date|default:"Not provided" }}
-                </div>
-
-            </div>
-
-
-
-            <!-- Username -->
-
-            <div class="detail-item">
-
-                <div class="detail-label">
-
-                    <i data-lucide="at-sign"></i>
-
-                    <span>
-                        Username
-                    </span>
-
-                </div>
-
-                <div class="detail-value">
-                    {{ user.username|default:"Not provided" }}
-                </div>
-
-            </div>
-
-
-        </div>
-
-    </div>
-
-
-
-    <!-- =====================================================
-         EDIT PROFILE
-    ===================================================== -->
-
-    <div class="edit-profile-card">
-
-
-        <!-- CARD HEADING -->
-
-        <div class="card-heading">
-
-            <div class="card-icon">
-
-                <i data-lucide="user-pen"></i>
-
-            </div>
-
-            <div>
-
-                <h3>
-                    Edit Profile
-                </h3>
-
-                <p>
-                    Update the information you
-                    want to change.
-                </p>
-
-            </div>
-
-        </div>
-
-
-
-        <!-- EDIT FORM -->
-
-        <form
+                <form
             method="POST"
             enctype="multipart/form-data"
-            class="edit-form"
+            class="profile-form" id="memberProfileForm" action="{% url 'teammember_profile' %}"
         >
 
             {% csrf_token %}
@@ -1318,9 +1226,10 @@
             >
 
 
+            <input type="hidden" name="work_location" value="{{ user.work_location|default_if_none:'' }}">
             <!-- Full Name -->
 
-            <div class="form-field">
+            <div class="profile-form-group">
 
                 <label for="profile-name">
 
@@ -1337,8 +1246,8 @@
                     type="text"
                     name="name"
                     value="{{ user.name }}"
-                    class="form-input"
-                    autocomplete="name"
+                    class="profile-form-input"
+                    autocomplete="name" maxlength="150" required
                 >
 
             </div>
@@ -1347,7 +1256,7 @@
 
             <!-- Email -->
 
-            <div class="form-field">
+            <div class="profile-form-group">
 
                 <label for="profile-email">
 
@@ -1364,8 +1273,8 @@
                     type="email"
                     name="email"
                     value="{{ user.email }}"
-                    class="form-input"
-                    autocomplete="email"
+                    class="profile-form-input"
+                    autocomplete="email" maxlength="254" required
                 >
 
             </div>
@@ -1374,7 +1283,7 @@
 
             <!-- Phone -->
 
-            <div class="form-field">
+            <div class="profile-form-group">
 
                 <label for="profile-phone">
 
@@ -1390,9 +1299,9 @@
                     id="profile-phone"
                     type="text"
                     name="phone"
-                    value="{{ user.phone }}"
-                    class="form-input"
-                    autocomplete="tel"
+                    value="{{ user.phone|default_if_none:'' }}"
+                    class="profile-form-input"
+                    autocomplete="tel" maxlength="15"
                 >
 
             </div>
@@ -1401,7 +1310,7 @@
 
             <!-- Username -->
 
-            <div class="form-field">
+            <div class="profile-form-group">
 
                 <label for="profile-username">
 
@@ -1417,7 +1326,7 @@
                     id="profile-username"
                     type="text"
                     value="{{ user.username }}"
-                    class="form-input"
+                    class="profile-form-input"
                     disabled
                 >
 
@@ -1427,11 +1336,13 @@
 
             <!-- SAVE -->
 
-            <div class="form-actions">
+            <div class="profile-save-wrapper">
+                <p id="profileSaveState" class="profile-save-state" role="status">All changes saved</p>
+                <button type="button" id="resetProfile" class="profile-reset-button">Reset changes</button>
 
                 <button
                     type="submit"
-                    class="save-button"
+                    class="profile-save-button"
                 >
 
                     <span class="button-icon">
@@ -1450,364 +1361,126 @@
 
         </form>
 
-    </div>
+            </div>
 
 
-</section>
-
+        </section>
+</div>
 {% endblock %}
 
 
 
-{% block extra_js %}
-
-<script>
-
-    /* =========================================================
-       PROFILE IMAGE UPLOAD
-    ========================================================= */
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-
-            const profileDisplay =
-                document.getElementById(
-                    "profile-display"
-                );
-
-            const profileInput =
-                document.getElementById(
-                    "profile-input"
-                );
-
-            const profileContainer =
-                document.getElementById(
-                    "profile-container"
-                );
-
-
-            if (
-                !profileDisplay ||
-                !profileInput ||
-                !profileContainer
-            ) {
-
-                return;
-
-            }
-
-
-            /* =================================================
-               OPEN FILE SELECTOR
-            ================================================= */
-
-            profileContainer.addEventListener(
-                "click",
-                function (event) {
-
-                    /*
-                     * Prevent duplicate click handling.
-                     */
-
-                    if (
-                        event.target.closest(
-                            "#profile-input"
-                        )
-                    ) {
-
-                        return;
-
-                    }
-
-                    profileInput.click();
-
-                }
-            );
-
-
-            /* =================================================
-               FILE CHANGE
-            ================================================= */
-
-            profileInput.addEventListener(
-                "change",
-                function () {
-
-                    const file =
-                        profileInput.files[0];
-
-
-                    if (!file) {
-
-                        return;
-
-                    }
-
-
-                    /* Validate image */
-
-                    if (
-                        !file.type.startsWith(
-                            "image/"
-                        )
-                    ) {
-
-                        showProfileToast(
-                            "Please select a valid image file.",
-                            true
-                        );
-
-                        profileInput.value = "";
-
-                        return;
-
-                    }
-
-
-                    const formData =
-                        new FormData();
-
-
-                    formData.append(
-                        "profile_image",
-                        file
-                    );
-
-                    formData.append(
-                        "action",
-                        "edit_profile"
-                    );
-
-                    formData.append(
-                        "csrfmiddlewaretoken",
-                        "{{ csrf_token }}"
-                    );
-
-
-                    profileContainer.style.opacity =
-                        "0.65";
-
-
-                    /* =================================================
-                       UPLOAD
-                    ================================================= */
-
-                    fetch(
-                        "{% url 'teammember_profile' %}",
-                        {
-                            method: "POST",
-
-                            body: formData,
-
-                            headers: {
-                                "X-Requested-With":
-                                    "XMLHttpRequest"
-                            }
-                        }
-                    )
-
-                    .then(
-                        function (response) {
-
-                            if (!response.ok) {
-
-                                throw new Error(
-                                    "Upload request failed."
-                                );
-
-                            }
-
-                            return response.json();
-
-                        }
-                    )
-
-                    .then(
-                        function (data) {
-
-                            if (data.success) {
-
-                                profileDisplay.src =
-                                    data.image_url +
-                                    "?t=" +
-                                    Date.now();
-
-                                showProfileToast(
-                                    "Profile image updated successfully.",
-                                    false
-                                );
-
-                            } else {
-
-                                showProfileToast(
-                                    data.error ||
-                                        "Failed to update image.",
-                                    true
-                                );
-
-                            }
-
-                        }
-                    )
-
-                    .catch(
-                        function (error) {
-
-                            console.error(
-                                "Profile image upload error:",
-                                error
-                            );
-
-                            showProfileToast(
-                                "Failed to update profile image.",
-                                true
-                            );
-
-                        }
-                    )
-
-                    .finally(
-                        function () {
-
-                            profileContainer.style.opacity =
-                                "1";
-
-                            profileInput.value = "";
-
-                        }
-                    );
-
-                }
-            );
-
-        }
-    );
-
-
-    /* =========================================================
-       PROFILE TOAST
-       Uses the common toast container from base.html
-    ========================================================= */
-
-    function showProfileToast(
-        message,
-        isError
-    ) {
-
-        const container =
-            document.getElementById(
-                "toast-container"
-            );
-
-
-        if (!container) {
-
-            return;
-
-        }
-
-
-        const toast =
-            document.createElement(
-                "div"
-            );
-
-        toast.className =
-            "toast-message";
-
-
-        const icon =
-            document.createElement(
-                "i"
-            );
-
-        icon.setAttribute(
-            "data-lucide",
-            isError
-                ? "circle-alert"
-                : "circle-check"
-        );
-
-        icon.className =
-            "toast-icon";
-
-
-        const text =
-            document.createElement(
-                "span"
-            );
-
-        text.className =
-            "toast-text";
-
-        text.textContent =
-            message;
-
-
-        const close =
-            document.createElement(
-                "button"
-            );
-
-        close.type =
-            "button";
-
-        close.className =
-            "toast-close";
-
-        close.innerHTML =
-            "×";
-
-        close.setAttribute(
-            "aria-label",
-            "Close notification"
-        );
-
-
-        close.addEventListener(
-            "click",
-            function () {
-
-                removeToast(toast);
-
-            }
-        );
-
-
-        toast.appendChild(icon);
-        toast.appendChild(text);
-        toast.appendChild(close);
-
-        container.appendChild(toast);
-
-
-        /* Refresh Lucide icon */
-
-        if (window.lucide) {
-
-            lucide.createIcons({
-                attrs: {
-                    "stroke-width": 2
-                }
-            });
-
-        }
-
-
-        /* Auto hide */
-
-        setTimeout(
-            function () {
-
-                removeToast(toast);
-
-            },
-            4000
-        );
-
-    }
-
-</script>
-
-{% endblock %}
+{% block extra_js %}<script>
+(() => {
+ 'use strict';
+ const page = document.getElementById('memberProfilePage');
+ const form = document.getElementById('memberProfileForm');
+ const photo = document.getElementById('profile-container');
+ const image = document.getElementById('profile-display');
+ const initial = document.getElementById('profile-initial');
+ const input = document.getElementById('profile-input');
+ const save = form.querySelector('[type=submit]');
+ const reset = document.getElementById('resetProfile');
+ const state = document.getElementById('profileSaveState');
+ const fields = [...form.querySelectorAll('input[name]:not([type=hidden])')];
+ let saving = false, loading = false, revision = 0, controller = null, preview = null;
+ let baseline = snapshot();
+ const endpoint = form.action;
+ const toast = (m,t) => {if(window.showToast) window.showToast(m,t);};
+ function snapshot() {return JSON.stringify(fields.map(field=>[field.name,field.value]));}
+ function dirty() {return snapshot() !== baseline;}
+ function markState() {state.textContent = dirty() ? 'Unsaved changes' : 'All changes saved'; reset.disabled = saving || !dirty();}
+ function parsePage(text) {
+  const doc = new DOMParser().parseFromString(text,'text/html');
+  if(!doc.getElementById('memberProfileForm') || !doc.getElementById('profile-display')) throw new Error('Could not load your profile. Check your login and try again.');
+  return doc;
+ }
+ function setImage(url, letter) {
+  if(url) {image.src = url; image.hidden = false; initial.hidden = true;}
+  else {image.removeAttribute('src'); image.hidden = true; initial.hidden = false; if(letter) initial.textContent = letter;}
+ }
+ function syncSidebar(url) {
+  document.querySelectorAll('.sidebar-profile-avatar img, .sidebar-avatar img, .sidebar-item[href="' + new URL(endpoint,location.href).pathname + '"] .sidebar-icon img').forEach(img => {if(url) img.src = url;});
+ }
+ function applyPage(doc) {
+  const remoteForm = doc.getElementById('memberProfileForm');
+  fields.forEach(field=>{const remote = remoteForm.elements.namedItem(field.name); if(remote) {field.value = remote.value;field.defaultValue = remote.value;}});
+  const locationField = form.elements.namedItem('work_location');
+  if(locationField) locationField.value = remoteForm.elements.namedItem('work_location')?.value || '';
+  const token = remoteForm.elements.namedItem('csrfmiddlewaretoken');
+  if(token) form.elements.namedItem('csrfmiddlewaretoken').value = token.value;
+  const grid = page.querySelector('.profile-info-grid'), nextGrid = doc.querySelector('.profile-info-grid');
+  if(grid && nextGrid && grid.innerHTML !== nextGrid.innerHTML) grid.innerHTML = nextGrid.innerHTML;
+  const remoteImage = doc.getElementById('profile-display');
+  const remoteInitial = doc.getElementById('profile-initial');
+  const url = remoteImage.hidden ? '' : remoteImage.getAttribute('src');
+  setImage(url, remoteInitial?.textContent); syncSidebar(url);
+  baseline = snapshot(); markState();
+ }
+ function lock(value) {
+  saving = value; save.disabled = value; input.disabled = value; reset.disabled = value || !dirty();
+  fields.forEach(field=>field.disabled = value);
+  photo.setAttribute('aria-disabled',String(value)); photo.setAttribute('aria-busy',String(value)); form.setAttribute('aria-busy',String(value));
+ }
+ async function loadProfile() {
+  if(loading || saving || dirty() || document.hidden) return;
+  loading = true; const ticket = ++revision; controller = new AbortController();
+  try {
+   const response = await fetch(endpoint,{credentials:'same-origin',cache:'no-store',signal:controller.signal,headers:{'Accept':'text/html'}});
+   if(!response.ok) return;
+   const doc = parsePage(await response.text());
+   if(ticket !== revision || saving || dirty()) return;
+   applyPage(doc);
+  } catch(_) { /* Retry quietly while preserving the user's draft. */ }
+  finally {if(ticket === revision) {loading = false;controller = null;}}
+ }
+ async function saveDetails(event) {
+  event.preventDefault(); if(saving || !form.reportValidity()) return;
+  const body = new FormData(form);
+  const expected = fields.map(field=>[field.name,field.value]);
+  ++revision; controller?.abort(); loading = false; lock(true); state.textContent = 'Saving…';
+  try {
+   const response = await fetch(endpoint,{method:'POST',body,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'text/html'}});
+   if(!response.ok) throw new Error('Could not save your profile. Check the details and try again.');
+   const doc = parsePage(await response.text());
+   const notices = [...doc.querySelectorAll('#toast-django-messages [data-type]')];
+   const error = notices.find(n=>/error|warning/.test(n.dataset.type || ''));
+   if(error) throw new Error(error.textContent.trim());
+   const remoteForm = doc.getElementById('memberProfileForm');
+   if(expected.some(([name,value])=>remoteForm.elements.namedItem(name)?.value !== value)) throw new Error('Your profile update was not confirmed. Please try again.');
+   const success = notices.find(n=>(n.dataset.type || '').split(/\s+/).includes('success'));
+   if(!success) throw new Error('Your profile update was not confirmed. Please try again.');
+   applyPage(doc); toast(success.textContent.trim(),'success');
+  } catch(error) {toast(error.message || 'Could not save your profile.','error'); state.textContent = 'Save failed · Your changes are retained';}
+  finally {lock(false);}
+ }
+ async function uploadPhoto() {
+  const file = input.files[0]; if(!file || saving) return;
+  if(!file.type.startsWith('image/')) {toast('Please select a valid image file.','warning'); input.value = '';return;}
+  const previous = {src:image.getAttribute('src'),hidden:image.hidden,letter:initial.textContent};
+  const body = new FormData(); body.append('profile_image',file); body.append('action','edit_profile'); body.append('csrfmiddlewaretoken',form.elements.namedItem('csrfmiddlewaretoken').value);
+  ++revision; controller?.abort(); loading = false; lock(true);
+  if(preview) URL.revokeObjectURL(preview); preview = URL.createObjectURL(file); setImage(preview);
+  state.textContent = 'Uploading photo…';
+  try {
+   const response = await fetch(endpoint,{method:'POST',body,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
+   if(!response.ok || !(response.headers.get('content-type') || '').includes('application/json')) throw new Error('Could not upload the photo. Check your login and try again.');
+   const result = await response.json();
+   if(!result.success || !result.image_url) throw new Error(result.error || 'Photo update was not confirmed.');
+   const url = new URL(result.image_url,location.href); if(!['https:','http:'].includes(url.protocol)) throw new Error('Invalid photo URL.');
+   url.searchParams.set('v',Date.now()); setImage(url.href); syncSidebar(url.href);
+   toast('Profile image updated successfully.','success'); markState();
+  } catch(error) {setImage(previous.hidden ? '' : previous.src,previous.letter);toast(error.message || 'Photo upload failed.','error');state.textContent = 'Photo upload failed · Previous photo restored';}
+  finally {if(preview) URL.revokeObjectURL(preview); preview = null; input.value = '';lock(false);}
+ }
+ photo.addEventListener('click',event=>{if(!saving && event.target !== input) input.click();});
+ photo.addEventListener('keydown',event=>{if(event.target === photo && ['Enter',' '].includes(event.key)) {event.preventDefault();if(!saving) input.click();}});
+ input.addEventListener('change',uploadPhoto);
+ form.addEventListener('submit',saveDetails); form.addEventListener('input',markState);
+ reset.addEventListener('click',()=>{if(saving) return;fields.forEach(field=>field.value = field.defaultValue);markState();});
+ setInterval(loadProfile,15000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden) loadProfile();});
+ markState(); if(window.lucide) window.lucide.createIcons();
+})();
+
+</script>{% endblock %}

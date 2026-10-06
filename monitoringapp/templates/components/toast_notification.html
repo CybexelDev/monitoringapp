@@ -3,7 +3,10 @@
 {% if messages %}
 <div id="toast-django-messages" hidden>
     {% for message in messages %}
+    {# Chat pages also use messages for their history; only Django alerts have level. #}
+    {% if message.level %}
     <span data-type="{{ message.tags|default:'info' }}">{{ message }}</span>
+    {% endif %}
     {% endfor %}
 </div>
 {% endif %}

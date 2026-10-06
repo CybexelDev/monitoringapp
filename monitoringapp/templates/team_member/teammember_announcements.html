@@ -1,0 +1,560 @@
+{% extends "team_member/base3.html" %}
+{% load static tz %}
+{% block title %}Team Member - Announcements{% endblock %}
+{% block extra_css %}<style>
+.dashboard-header {
+            position: relative;
+            min-height: 155px;
+            display: flex;
+            align-items: center;
+            padding: 28px 32px;
+            border-radius: 25px;
+            overflow: hidden;
+            background:
+                linear-gradient(
+                    110deg,
+                    rgba(44, 32, 55, 0.62),
+                    rgba(18, 23, 31, 0.72),
+                    rgba(30, 31, 59, 0.62)
+                );
+            border:
+                1px solid rgba(255, 255, 255, 0.10);
+        }
+        .dashboard-header::before {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            top: -130px;
+            right: -100px;
+            background:
+                rgba(99, 102, 241, 0.13);
+            filter: blur(80px);
+        }
+        .dashboard-header-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 25px;
+        }
+        .dashboard-eyebrow {
+            margin-bottom: 12px;
+            color: #a78bfa;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 3px;
+        }
+        .dashboard-header h1 {
+            margin: 0;
+            font-size:
+                clamp(34px, 4vw, 52px);
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: -2px;
+            background:
+                linear-gradient(
+                    90deg,
+                    #ffffff,
+                    #c4b5fd,
+                    #67c8ff
+                );
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .dashboard-header p {
+            margin: 16px 0 0;
+            color: #96939e;
+            font-size: 13px;
+        }
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            flex-shrink: 0;
+            padding: 9px 17px;
+            border-radius: 30px;
+            color: #9ee7ba;
+            font-size: 11px;
+            background:
+                rgba(52, 211, 153, 0.055);
+            border:
+                1px solid rgba(52, 211, 153, 0.17);
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow:
+                0 0 12px rgba(74, 222, 128, 0.75);
+        }
+        .dashboard-content {
+            padding: 24px 0 30px;
+        }
+        .section-heading {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 13px;
+        }
+        .section-title-block {
+            flex-shrink: 0;
+        }
+        .section-eyebrow {
+            display: block;
+            margin-bottom: 5px;
+            color: #a78bfa;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 2.5px;
+        }
+        .section-heading h2 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 19px;
+            font-weight: 800;
+        }
+        .heading-line {
+            flex: 1;
+            height: 1px;
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(255, 255, 255, 0.12),
+                    transparent
+                );
+        }
+.history-card {
+            overflow: hidden;
+            border-radius: 20px;
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.20);
+        }
+        .history-top {
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 0 16px;
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(139,92,246,0.055),
+                    rgba(255,255,255,0.015)
+                );
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.07);
+        }
+        .history-label {
+            color: #85818d;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .history-count {
+            padding: 5px 9px;
+            border-radius: 8px;
+            color: #c4b5fd;
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(139,92,246,0.16),
+                    rgba(99,102,241,0.08)
+                );
+            border:
+                1px solid rgba(167,139,250,0.28);
+            font-size: 9px;
+            font-weight: 700;
+        }
+        .announcement-list {
+            max-height: 500px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color:
+                rgba(139, 92, 246, 0.75)
+                rgba(255, 255, 255, 0.03);
+        }
+        .announcement-list::-webkit-scrollbar {
+            width: 7px;
+        }
+        .announcement-list::-webkit-scrollbar-track {
+            background:
+                rgba(255, 255, 255, 0.025);
+            border-radius: 20px;
+        }
+        .announcement-list::-webkit-scrollbar-thumb {
+            background:
+                linear-gradient(
+                    180deg,
+                    #8b5cf6,
+                    #5b32a7
+                );
+            border-radius: 20px;
+        }
+        .announcement-item {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 20px 18px;
+            border-bottom:
+                1px solid rgba(255,255,255,0.055);
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(139,92,246,0.035),
+                    rgba(255,255,255,0.008)
+                );
+            transition:
+                background .25s ease,
+                box-shadow .25s ease;
+        }
+        .announcement-item:last-child {
+            border-bottom: none;
+        }
+        .announcement-item::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 18px;
+            bottom: 18px;
+            width: 2px;
+            border-radius:
+                0 5px 5px 0;
+            background:
+                linear-gradient(
+                    to bottom,
+                    #a855f7,
+                    #6366f1
+                );
+            opacity: 0;
+            transition:
+                opacity .25s ease;
+        }
+        .announcement-item:hover {
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(139,92,246,0.075),
+                    rgba(99,102,241,0.018)
+                );
+        }
+        .announcement-item:hover::before {
+            opacity: 1;
+        }
+        .announcement-icon {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 11px;
+            color: #c4b5fd;
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(139,92,246,0.18),
+                    rgba(99,102,241,0.08)
+                );
+            border:
+                1px solid rgba(167,139,250,0.30);
+            box-shadow:
+                0 5px 16px rgba(124,58,237,0.12);
+            transition:
+                all .25s ease;
+        }
+        .announcement-item:hover .announcement-icon {
+            transform: translateY(-1px);
+            border-color:
+                rgba(167,139,250,0.55);
+            box-shadow:
+                0 7px 20px rgba(124,58,237,0.22);
+        }
+        .announcement-icon svg {
+            width: 17px;
+            height: 17px;
+        }
+        .announcement-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .announcement-title-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        .announcement-title {
+            margin: 0;
+            color: #f5f3ff;
+            font-size: 12px;
+            font-weight: 800;
+            transition:
+                color .2s ease;
+        }
+        .announcement-item:hover .announcement-title {
+            color: #ddd6fe;
+        }
+        .announcement-message {
+            margin: 11px 0 9px;
+            color: #aaa6b8;
+            font-size: 11px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .announcement-meta {
+            color: #777383;
+            font-size: 9px;
+            opacity: .9;
+        }
+        .announcement-meta strong {
+            color: #a78bfa;
+            font-weight: 700;
+        }
+        .edited-label {
+            color: #a78bfa;
+            font-weight: 700;
+        }
+        
+.member-announcements {min-width:0;}
+.member-announcements .dashboard-content {display:block;margin-top:24px;}
+.member-announcements .announcement-title {font-size:14px;overflow-wrap:anywhere;}
+.member-announcements .announcement-message {font-size:13px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.member-announcements .announcement-meta {font-size:11px;}
+.member-announcements .announcement-list {max-height:500px;overscroll-behavior:contain;}
+.member-announcements .announcement-actions {display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.member-announcements .read-badge {padding:5px 9px;border-radius:8px;font-size:11px;border:1px solid #7151a3;color:#c4b5fd;background:rgba(139,92,246,.12);white-space:nowrap;}
+.member-announcements .read-badge.unread {color:#f6cd85;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.1);}
+.member-announcements .view-button,.announcement-pagination a {display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid #7151a3;border-radius:9px;background:#352448;color:#ede5ff;text-decoration:none;cursor:pointer;font-size:12px;}
+.member-announcements svg {width:18px;height:18px;}
+.announcement-pagination {display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px;font-size:12px;color:#b7abc6;}
+.member-announcement-dialog {width:min(560px,calc(100vw - 32px));max-height:80dvh;padding:0;border:1px solid #65517e;border-radius:18px;background:#1b1726;color:#eee7fa;box-sizing:border-box;}
+.member-announcement-dialog::backdrop {background:rgba(7,7,12,.3);backdrop-filter:blur(2px);}
+.member-announcement-dialog header {display:flex;align-items:center;justify-content:space-between;gap:15px;padding:20px;border-bottom:1px solid #393047;}
+.member-announcement-dialog h2 {margin:0;font-size:18px;overflow-wrap:anywhere;}
+.member-announcement-dialog button {border:1px solid #645078;border-radius:8px;background:#30233f;color:#eee7fa;padding:8px;cursor:pointer;}
+.member-announcement-dialog .dialog-body {padding:20px;overflow:auto;max-height:55dvh;}
+.member-announcement-dialog .dialog-message {white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;font-size:14px;}
+.member-announcement-dialog .dialog-meta {font-size:12px;color:#b4a4c6;margin-bottom:15px;}
+html.announcement-dialog-open,html.announcement-dialog-open body,html.announcement-dialog-open .dashboard-box {overflow:hidden!important;}
+@media(max-width:600px){.member-announcements .dashboard-header{padding:23px 18px;border-radius:18px;}.member-announcements .dashboard-header-content{flex-wrap:wrap;gap:15px;}.member-announcements .dashboard-header h1{font-size:30px;letter-spacing:-1px;}.member-announcements .announcement-item{padding:16px 12px;gap:10px;}.member-announcements .announcement-title-row{flex-wrap:wrap;gap:10px;}.member-announcements .announcement-icon{width:34px;height:34px;min-width:34px;}.announcement-pagination{flex-wrap:wrap;}}
+
+
+.member-announcements .announcement-item {cursor:pointer;}
+.member-announcements .announcement-item:focus-visible {outline:2px solid #a78bfa;outline-offset:-2px;}
+
+/* Responsive refinements scoped to this page. */
+#memberAnnouncementsPage,#memberAnnouncementsPage * {box-sizing:border-box;}
+#memberAnnouncementsPage {width:100%;max-width:100%;min-width:0;}
+#memberAnnouncementsPage .dashboard-header-content > div:first-child {min-width:0;}
+#memberAnnouncementsPage .dashboard-header h1 {overflow-wrap:anywhere;}
+#memberAnnouncementsPage .dashboard-header p {line-height:1.7;}
+#memberAnnouncementsPage .history-top {flex-wrap:wrap;padding:12px 16px;gap:10px;}
+#memberAnnouncementsPage .history-count {line-height:1.6;}
+#memberAnnouncementsPage .announcement-title-row {min-width:0;}
+#memberAnnouncementsPage .announcement-title {line-height:1.5;}
+#memberAnnouncementsPage .announcement-actions {flex-shrink:0;}
+#memberAnnouncementsPage .announcement-seen-form {margin:0;}
+#memberAnnouncementsPage .announcement-meta {line-height:1.7;overflow-wrap:anywhere;}
+#memberAnnouncementsPage .announcement-list {width:100%;max-width:100%;-webkit-overflow-scrolling:touch;}
+#memberAnnouncementsPage .announcement-pagination a {min-height:42px;}
+.announcement-feedback {padding:12px 16px;color:#e4d8f8;border:1px solid #7151a3;border-radius:10px;background:#21172e;font-size:13px;}
+.member-announcement-dialog {max-width:calc(100vw - 24px);max-height:85vh;max-height:85dvh;}
+.member-announcement-dialog header {align-items:flex-start;}
+.member-announcement-dialog header button {flex-shrink:0;width:36px;height:36px;}
+.member-announcement-dialog .dialog-body {max-height:60vh;max-height:60dvh;}
+@media(max-width:768px){
+    #memberAnnouncementsPage .dashboard-header-content {flex-wrap:wrap;gap:16px;}
+    #memberAnnouncementsPage .dashboard-header {padding:24px 20px;}
+    #memberAnnouncementsPage .dashboard-header h1 {font-size:clamp(28px,6vw,38px);line-height:1.15;letter-spacing:-1px;}
+    #memberAnnouncementsPage .section-heading {flex-wrap:wrap;gap:12px;}
+    #memberAnnouncementsPage .announcement-title-row {flex-wrap:wrap;gap:10px;}
+    #memberAnnouncementsPage .announcement-list {max-height:440px;}
+}
+@media(max-width:420px){
+    #memberAnnouncementsPage .announcement-item {padding:16px 12px;gap:10px;}
+    #memberAnnouncementsPage .announcement-actions {width:100%;}
+    #memberAnnouncementsPage .announcement-message {font-size:12px;}
+    #memberAnnouncementsPage .history-top {padding:12px;}
+    .member-announcement-dialog header,.member-announcement-dialog .dialog-body {padding:16px;}
+}
+@media(prefers-reduced-motion:reduce){#memberAnnouncementsPage .announcement-item,#memberAnnouncementsPage .announcement-icon {transition:none;}}
+
+</style>{% endblock %}
+{% block content %}
+
+<div class="member-announcements" id="memberAnnouncementsPage">
+<p id="announcementFeedback" class="announcement-feedback" role="status" aria-live="polite" hidden></p>
+<section class="dashboard-header">
+
+                <div class="dashboard-header-content">
+
+                    <div>
+
+                        <div class="dashboard-eyebrow">
+                            CYBEXEL TEAM MEMBER PANEL
+                        </div>
+
+                        <h1>
+                            ANNOUNCEMENTS
+                        </h1>
+
+                        <p>
+                            Read the updates shared with you by your team lead.
+                        </p>
+
+                    </div>
+
+
+                    <div class="system-status">
+
+                        <span class="status-dot"></span>
+
+                        <span>
+                            System Online
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+<section class="dashboard-content">
+<div class="section-heading"><div class="section-title-block"><span class="section-eyebrow">TEAM COMMUNICATION</span><h2>Your Announcements</h2></div><div class="heading-line"></div></div>
+<div class="history-card"><div class="history-top"><span class="history-label">Updates shared with you</span><span class="history-count">{{ page_obj.paginator.count }} announcements · <span id="announcementUnreadCount">{{ unread_count }}</span> unread</span></div>
+<div class="announcement-list">
+{% for row in page_obj %}
+<article class="announcement-item" id="announcement-{{ row.announcement_id }}" tabindex="0" aria-label="{{ row.announcement.title|default:'Announcement' }} — select to mark as seen">
+<div class="announcement-icon"><i data-lucide="megaphone"></i></div>
+<div class="announcement-body"><div class="announcement-title-row"><h3 class="announcement-title">{{ row.announcement.title|default:"Team Announcement" }}</h3>
+<div class="announcement-actions"><span class="read-badge{% if not row.read_at %} unread{% endif %}">{% if row.read_at %}Seen{% else %}New{% endif %}</span>
+<form method="post" action="{% url 'teammember_announcement_seen' row.announcement_id %}" class="announcement-seen-form">{% csrf_token %}<button class="view-button" type="button" aria-label="View announcement"><i data-lucide="eye"></i>View</button></form></div></div>
+<p class="announcement-message">{{ row.announcement.message }}</p>
+<div class="announcement-meta">Posted by <strong>{{ row.announcement.created_by.name|default:row.announcement.created_by.username }}</strong> · {{ row.announcement.created_at|localtime|date:"d M Y, h:i A" }}</div>
+</div></article>
+{% empty %}<div style="padding:40px 20px;text-align:center;color:#b7abc6;">No announcements have been shared with you yet.</div>{% endfor %}
+</div>
+{% if page_obj.paginator.num_pages > 1 %}<nav class="announcement-pagination" aria-label="Announcement pages"><div>{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}</div><span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></nav>{% endif %}
+</div></section></div>
+<dialog id="memberAnnouncementDialog" class="member-announcement-dialog" aria-labelledby="announcementDialogTitle"><header><h2 id="announcementDialogTitle">Announcement</h2><button type="button" id="closeAnnouncementDialog" aria-label="Close">✕</button></header><div class="dialog-body"><div class="dialog-meta" id="announcementDialogMeta"></div><div class="dialog-message" id="announcementDialogMessage"></div></div></dialog>
+
+{% endblock %}
+{% block extra_js %}<script>
+(() => {
+    const page=document.getElementById('memberAnnouncementsPage');
+    const dialog=document.getElementById('memberAnnouncementDialog');
+    if(!page || !dialog)return;
+    const saving=new Set();
+    let trigger=null,busy=false,revision=0,readController=null,expired=false;
+    function notice(message){
+        if(typeof window.showToast==='function')window.showToast(message,'error');
+        else {const box=document.getElementById('announcementFeedback');box.textContent=message;box.hidden=false;}
+    }
+    function fingerprint(card){
+        const copy=card.cloneNode(true);
+        copy.querySelectorAll('[name="csrfmiddlewaretoken"]').forEach(el=>el.remove());
+        copy.querySelectorAll('[data-lucide]').forEach(el=>{const icon=document.createElement('i');icon.dataset.lucide=el.dataset.lucide;el.replaceWith(icon);});
+        return copy.innerHTML.replace(/\s+/g,' ').trim();
+    }
+    let baseline=fingerprint(page.querySelector('.history-card'));
+    function draw(doc){
+        const incoming=doc.querySelector('#memberAnnouncementsPage .history-card');
+        if(!incoming)throw new Error('Unable to update announcements.');
+        const current=page.querySelector('.history-card');
+        const list=current.querySelector('.announcement-list');
+        const top=list?.scrollTop || 0;
+        const focused=document.activeElement?.closest('.announcement-item');
+        const focusId=focused?.id;
+        const viewFocused=document.activeElement?.classList.contains('view-button');
+        baseline=fingerprint(incoming);
+        current.innerHTML=incoming.innerHTML;
+        const nextList=current.querySelector('.announcement-list');
+        if(nextList)nextList.scrollTop=top;
+        if(window.lucide)window.lucide.createIcons();
+        if(focusId){const card=document.getElementById(focusId);const target=viewFocused?card?.querySelector('.view-button'):card;target?.focus({preventScroll:true});}
+    }
+    async function load(url,manual=false){
+        if(expired || saving.size || dialog.open || (!manual && (busy || document.hidden)))return;
+        readController?.abort();
+        const controller=new AbortController();readController=controller;
+        const stamp=++revision;busy=true;
+        try {
+            const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:controller.signal,headers:{'Accept':'text/html'}});
+            if(!response.ok)throw new Error('Could not load announcements. Please try again.');
+            if(!(response.headers.get('content-type') || '').includes('text/html'))throw new Error('Unexpected announcement response.');
+            const doc=new DOMParser().parseFromString(await response.text(),'text/html');
+            const next=doc.querySelector('#memberAnnouncementsPage .history-card');
+            if(!next){
+                if(response.redirected){expired=true;notice('Please sign in again to view announcements.');return;}
+                throw new Error('Unable to load announcements.');
+            }
+            if(stamp!==revision || saving.size || dialog.open || controller.signal.aborted)return;
+            if(manual || fingerprint(next)!==baseline)draw(doc);
+            if(manual && response.url!==location.href)history.pushState(null,'',response.url);
+        } catch(error){if(error.name!=='AbortError' && manual)notice(error.message);}
+        finally {if(stamp===revision)busy=false;if(readController===controller)readController=null;}
+    }
+    async function markSeen(card){
+        const badge=card.querySelector('.read-badge');
+        const form=card.querySelector('.announcement-seen-form');
+        if(!badge?.classList.contains('unread') || saving.has(card.id))return;
+        readController?.abort();revision++;busy=false;
+        saving.add(card.id);card.setAttribute('aria-busy','true');
+        try {
+            const response=await fetch(form.action,{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
+            if(!response.ok || !(response.headers.get('content-type') || '').includes('application/json'))throw new Error('Unable to mark this announcement as seen. Please try again.');
+            const data=await response.json();
+            if(!data.ok)throw new Error(data.message || 'Unable to mark as seen.');
+            badge.textContent='Seen';badge.classList.remove('unread');
+            const count=document.getElementById('announcementUnreadCount');
+            if(count)count.textContent=data.unread_count;
+        } catch(error){notice(error.message);}
+        finally {saving.delete(card.id);card.removeAttribute('aria-busy');}
+    }
+    function showView(card,button){
+        document.getElementById('announcementDialogTitle').textContent=card.querySelector('.announcement-title').textContent.trim();
+        document.getElementById('announcementDialogMessage').textContent=card.querySelector('.announcement-message').textContent;
+        document.getElementById('announcementDialogMeta').textContent=card.querySelector('.announcement-meta').textContent.trim();
+        trigger=button;document.body.appendChild(dialog);dialog.showModal();
+        document.documentElement.classList.add('announcement-dialog-open');
+        document.getElementById('closeAnnouncementDialog').focus();
+    }
+    page.addEventListener('click',event=>{
+        const card=event.target.closest('.announcement-item');
+        const view=event.target.closest('.view-button');
+        if(view && card){event.preventDefault();showView(card,view);return;}
+        const link=event.target.closest('.announcement-pagination a');
+        if(link && event.button===0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey){event.preventDefault();load(link.href,true);return;}
+        if(card && !event.target.closest('button,a,input,form'))markSeen(card);
+    });
+    page.addEventListener('keydown',event=>{
+        const card=event.target.closest('.announcement-item');
+        if(card && event.target===card && (event.key==='Enter' || event.key===' ')){event.preventDefault();markSeen(card);}
+    });
+    page.addEventListener('submit',event=>{if(event.target.matches('.announcement-seen-form'))event.preventDefault();});
+    const close=()=>dialog.close();
+    document.getElementById('closeAnnouncementDialog').addEventListener('click',close);
+    dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left || event.clientX>r.right || event.clientY<r.top || event.clientY>r.bottom)close();}});
+    dialog.addEventListener('close',()=>{document.documentElement.classList.remove('announcement-dialog-open');if(trigger?.isConnected)trigger.focus({preventScroll:true});load(location.href);});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)load(location.href);});
+    window.addEventListener('popstate',()=>load(location.href));
+    setInterval(()=>load(location.href),15000);
+    if(window.lucide)window.lucide.createIcons();
+})();
+
+</script>{% endblock %}

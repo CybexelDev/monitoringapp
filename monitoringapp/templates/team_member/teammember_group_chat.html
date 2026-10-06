@@ -1,34 +1,6 @@
 {% extends "team_member/base3.html" %}{% load static %}
 {% block title %}Team Member Chat - Cybexel{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/admin_chat.css' %}"><style>
-        /* Team Lead chat refinements. Existing admin_chat.css remains the theme. */
-        .chat-shell { min-width: 0; }
-        .chat-list-panel, .chat-conversation { min-width: 0; }
-        .chat-user-row, .chat-group-row { border-radius: 13px; }
-        .chat-user-row:focus-visible, .chat-group-row:focus-visible,
-        .chat-icon-button:focus-visible, .chat-small-plus:focus-visible,
-        .chat-composer button:focus-visible, .chat-modal button:focus-visible {
-            outline: 2px solid #a78bfa;
-            outline-offset: 2px;
-        }
-        .chat-user-info, .conversation-user, .chat-group-name { min-width: 0; }
-        .chat-user-name, .chat-user-sub, .conversation-name, .conversation-sub,
-        .chat-group-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .chat-messages { overscroll-behavior: contain; }
-        .message-bubble { overflow-wrap: anywhere; word-break: normal; }
-        .message-time { font-size: 10px; font-weight: 500; letter-spacing: .01em; }
-        .chat-composer { flex-shrink: 0; }
-        .chat-modal-card { scrollbar-width: thin; scrollbar-color: #7658a8 transparent; }
-        @media (max-width: 620px) {
-            .chat-main { padding: 8px; }
-            .chat-shell { border-radius: 18px; }
-            .chat-list-panel { min-height: 175px; }
-            .chat-messages { padding: 14px; }
-            .message-bubble { max-width: min(86%, 560px); }
-            .chat-composer { min-height: 66px; padding: 10px 12px; }
-            .chat-modal-card { max-height: calc(100dvh - 32px); }
-        }
-    
 /* Shared Member base owns the application sidebar; Lead chat CSS owns the chat panels. */
 #memberChatPage{min-width:0;height:100%;}
 #memberChatPage .chat-main{position:static!important;inset:auto!important;margin:0!important;padding:0!important;height:100%!important;min-width:0;}
@@ -168,6 +140,7 @@
 .member-action-dialog::backdrop{background:rgba(15,10,22,.32);backdrop-filter:blur(3px);}
 .member-action-dialog header,.member-action-dialog footer{display:flex;align-items:center;justify-content:space-between;gap:10px;}.member-action-dialog h3{font-size:18px;margin:0;}.member-action-dialog p{font-size:13px;color:#c2b2d1;line-height:1.6;}.member-action-dialog textarea{box-sizing:border-box;width:100%;resize:vertical;padding:12px;background:#150f1e;color:#f6eeff;border:1px solid #664887;border-radius:10px;font:inherit;}.member-action-dialog textarea[hidden]{display:none;}.member-action-dialog button{padding:9px 13px;border:1px solid #61457b;border-radius:9px;background:#30203e;color:#e8dcf8;cursor:pointer;}.member-action-dialog button[type=submit]{background:#7048ad;font-weight:600;}.member-action-dialog button:disabled{opacity:.55;cursor:wait;}.member-action-dialog .member-action-error{color:#f2a8b6;}.member-action-dialog :focus-visible,.member-bubble-menu :focus-visible{outline:2px solid #b790e6;outline-offset:2px;}
 
+#memberChatPage .group-settings{width:min(460px,calc(100% - 24px));max-height:min(70dvh,620px);overflow:auto;}#memberChatPage .group-member-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 0;}#memberChatPage .group-member-avatar{overflow:hidden;flex:none;}#memberChatPage .group-member-avatar img{width:100%;height:100%;object-fit:cover;}#memberChatPage .member-group-person{flex:1;min-width:100px;display:flex;flex-direction:column;gap:5px;}#memberChatPage .member-group-name{font-size:12px;overflow-wrap:anywhere;}#memberChatPage .member-group-name small{color:#ae97c5;}#memberChatPage .member-role-badge{width:max-content;padding:3px 7px;border-radius:5px;border:1px solid #513969;background:#30203e;font-size:9px;color:#d6bbee;}#memberChatPage .member-group-actions{display:flex;flex-wrap:wrap;gap:6px;}#memberChatPage .member-group-actions form{margin:0;}#memberChatPage .member-role-button,#memberChatPage .member-group-actions .remove-member-btn{padding:6px 8px;font-size:10px;line-height:1.3;white-space:nowrap;border:1px solid #65447e;border-radius:7px;background:#362344;color:#dcc5ed;cursor:pointer;}#memberChatPage .member-group-actions .remove-member-btn{border-color:#724051;background:#3a222d;color:#efb4c6;}#memberChatPage .member-role-button:focus-visible{outline:2px solid #b790e6;outline-offset:2px;}@media(max-width:480px){#memberChatPage .member-group-actions{width:100%;padding-left:42px;}}
 .member-bubble-menu button:disabled,.member-bubble-menu button:disabled:hover{opacity:.4;background:transparent;cursor:not-allowed;}
 
 #memberChatPage .member-unread-badge{flex:none;margin-left:auto;min-width:20px;height:20px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;background:#8b5cf6;color:#fff;font-size:10px;font-weight:700;line-height:1;}
@@ -183,9 +156,9 @@
 #memberChatPage .lead-contact-search #memberChatSearch:focus{border-color:#a783ce;background:#17111f;}
 #memberChatPage .lead-search-field:focus-within .lead-search-icon{color:#d0b6ee;}
 </style>{% endblock %}
-{% block content %}<div id="memberChatPage" data-meta-url="{% url 'chat_meta' %}" data-read-url="{% url 'chat_mark_read' %}" class="" data-mode="list" data-user-id="{{ current_user.id }}" data-current-name="{{ current_user.name }}" data-socket-path=""><main class="chat-main">
+{% block content %}<div id="memberChatPage" data-meta-url="{% url 'chat_meta' %}" data-read-url="{% url 'chat_mark_read' %}" class="member-chat-has-room" data-mode="group" data-user-id="{{ current_user.id }}" data-current-name="{{ current_user.name }}" data-socket-path="/ws/member/group/{{ group.id }}/"><main class="chat-main">
 
-    <div class="chat-shell"><p id="memberChatFeedback" hidden role="status"></p>
+    <div class="chat-shell"><button id="memberContactsBackdrop" type="button" tabindex="-1" aria-label="Close contacts"></button><p id="memberChatFeedback" hidden role="status"></p>
 
 
         
@@ -194,7 +167,8 @@
 
 
             
-            <div class="chat-list-header">
+
+            <div class="chat-list-header"><button id="memberCloseContacts" type="button" aria-label="Close contacts"><i data-lucide="x"></i></button>
 
                 <div>
 
@@ -209,12 +183,12 @@
                 </div>
 
 
-                
                 <button
                     type="button"
                     id="openModalTop"
                     class="chat-icon-button"
-                    aria-label="Create group">
+                    aria-label="Create group"
+                >
 
                     <i data-lucide="plus"></i>
 
@@ -225,6 +199,7 @@
 
 
             
+
             <div class="lead-contact-search">
                 <label class="lead-search-field" for="memberChatSearch">
                     <svg class="lead-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
@@ -253,87 +228,104 @@
 
                     <div
                         id="user-list"
-                        class="chat-user-list">
-
+                        class="chat-user-list"
+                    >
 
                         {% for user in users %}
 
+
                         <a
                             href="{% url 'teammember_chat_room' user.id %}" data-peer-id="{{ user.id }}"
-                            class="chat-user-row">
+                            class="chat-user-row"
+                        >
 
 
                             
+
                             <div class="chat-avatar-wrap">
 
                                 {% if user.profile_image %}
 
-                                    <img
-                                        src="{{ user.profile_image.url }}"
-                                        class="chat-avatar"
-                                        alt="{{ user.name }}">
+                                <img
+                                    src="{{ user.profile_image.url }}"
+                                    class="chat-avatar"
+                                    alt="{{ user.name }}"
+                                >
 
                                 {% else %}
 
-                                    <div
-                                        class="chat-avatar chat-avatar-fallback">
+                                <div class="chat-avatar chat-avatar-fallback">
 
-                                        {% if user.id == current_user.id %}
-                                            M
-                                        {% else %}
-                                            {{ user.name|first|upper }}
-                                        {% endif %}
+                                    {% if user.id == current_user.id %}
 
-                                    </div>
+                                        M
+
+                                    {% else %}
+
+                                        {{ user.name|first|upper }}
+
+                                    {% endif %}
+
+                                </div>
 
                                 {% endif %}
 
 
-                                
                                 <span
                                     class="user-status-dot"
                                     data-user-id="{{ user.id }}"
-                                    title="Active">
-                                </span>
+                                    title="Active"
+                                ></span>
 
                             </div>
 
 
                             
+
                             <div class="chat-user-info">
 
                                 <p class="chat-user-name">
 
                                     {% if user.id == current_user.id %}
+
                                         Me
+
                                     {% else %}
+
                                         {{ user.name }}
+
                                     {% endif %}
 
                                 </p>
 
 
                                 <p class="chat-user-sub">
+
                                     {{ user.phone }}
+
                                 </p>
 
                             </div>
 
 
-                            
                             <i
                                 data-lucide="chevron-right"
-                                class="chat-row-arrow">
-                            </i>
+                                class="chat-row-arrow"
+                            ></i>
+
 
                         </a>
 
 
                         {% empty %}
 
+
                         <div class="chat-empty">
+
                             No team members found.
+
                         </div>
+
 
                         {% endfor %}
 
@@ -347,6 +339,7 @@
 
                 <div class="chat-section groups-section">
 
+
                     <div class="chat-section-title">
 
                         <span>
@@ -358,7 +351,8 @@
                             type="button"
                             id="openModal"
                             class="chat-small-plus"
-                            aria-label="Create group">
+                            aria-label="Create group"
+                        >
 
                             <i data-lucide="plus"></i>
 
@@ -370,39 +364,56 @@
                     <div class="chat-group-list">
 
 
-                        {% for group in groups %}
+                        {% for chat_group in groups %}
+
 
                         <a
-                            href="{% url 'teammember_group_chat' group.id %}" data-group-id="{{ group.id }}"
-                            class="chat-group-row">
+                            href="{% url 'teammember_group_chat' chat_group.id %}" data-group-id="{{ chat_group.id }}"
+                            class="chat-group-row
+                            {% if chat_group.id == group.id %}
+                                active
+                            {% endif %}"
+                        >
 
                             <span class="chat-group-icon">
+
                                 <i data-lucide="users-round"></i>
+
                             </span>
 
+
                             <span class="chat-group-name">
-                                {{ group.name }}
+
+                                {{ chat_group.name }}
+
                             </span>
+
 
                             <i
                                 data-lucide="chevron-right"
-                                class="chat-row-arrow">
-                            </i>
+                                class="chat-row-arrow"
+                            ></i>
 
                         </a>
 
 
                         {% empty %}
 
+
                         <div class="chat-empty">
+
                             No group chats yet.
+
                         </div>
 
+
                         {% endfor %}
+
 
                     </div>
 
                 </div>
+
 
             </div>
 
@@ -413,194 +424,185 @@
         
 
         <section
-            id="chat-window"
-            class="chat-conversation">
-
-
-            {% if other_user %}
+            class="chat-conversation group-conversation"
+        >
 
 
             
 
-            <header class="chat-conversation-header">
+            <header class="chat-conversation-header"><button type="button" id="memberChatBack" class="chat-icon-button" aria-label="Show contacts"><i data-lucide="arrow-left"></i></button><span id="memberChatConnection" role="status">Connecting…</span>
 
 
                 <div class="conversation-user">
 
 
-                    
-                    <div class="chat-avatar-wrap large">
+                    <div class="group-main-icon">
 
-
-                        {% if other_user.profile_image %}
-
-                            <img
-                                id="chat-avatar"
-                                src="{{ other_user.profile_image.url }}"
-                                class="chat-avatar"
-                                alt="{{ other_user.name }}">
-
-                        {% else %}
-
-                            <div
-                                id="chat-avatar"
-                                class="chat-avatar chat-avatar-fallback">
-
-                                {{ other_user.name|first|upper }}
-
-                            </div>
-
-                        {% endif %}
-
-
-                        <span
-                            class="user-status-dot large-dot"
-                            data-user-id="{{ other_user.id }}"
-                            title="Active">
-                        </span>
+                        <i data-lucide="users-round"></i>
 
                     </div>
 
 
-
-                    
                     <div>
 
-                        <p
-                            id="chat-username"
-                            class="conversation-name">
+                        <p class="conversation-name">
 
-                            {{ other_user.name }}
+                            {{ group.name }}
 
                         </p>
 
 
-                        <p
-                            id="chat-userphone"
-                            class="conversation-sub">
+                        <p class="conversation-sub">
 
-                            {{ other_user.phone }}
+                            {{ members|length }} members
 
                         </p>
 
                     </div>
 
-                </div>
 
+                </div>
 
 
                 
-                <div class="conversation-status">
 
-                    <span class="status-dot"></span>
+                <button
+                    type="button"
+                    id="manageGroupButton"
+                    class="manage-group-button"
+                >
 
-                    Online
+                    <i data-lucide="settings-2"></i>
 
-                </div>
+                    <span>
+                        {% if can_manage_group %}Manage Group{% else %}Members{% endif %}
+                    </span>
 
-            </header>
+                </button>
+
+
+            <div class="member-chat-menu-wrap"><button id="memberChatMenuButton" type="button" aria-label="Chat options" aria-haspopup="menu" aria-expanded="false" aria-controls="memberChatMenu"><i data-lucide="ellipsis"></i></button><div id="memberChatMenu" role="menu" hidden><button type="button" role="menuitem" tabindex="-1" data-chat-action="clear"><i data-lucide="eraser"></i>Clear chat</button><button type="button" role="menuitem" tabindex="-1" data-chat-action="search"><i data-lucide="search"></i>Search messages</button><button type="button" role="menuitem" tabindex="-1" data-chat-action="latest"><i data-lucide="arrow-down-to-line"></i>Go to latest</button><button type="button" role="menuitem" tabindex="-1" data-chat-action="download"><i data-lucide="download"></i>Download chat text</button><button type="button" role="menuitem" tabindex="-1" data-chat-action="members"><i data-lucide="users-round"></i>View group members</button></div></div></header><div class="member-message-tools" id="memberMessageSearchBar" hidden><i data-lucide="search"></i><input id="memberMessageSearch" type="search" placeholder="Search in this conversation…" aria-label="Search messages"><span id="memberMessageSearchCount" aria-live="polite"></span><button id="memberCloseMessageSearch" type="button" aria-label="Close message search"><i data-lucide="x"></i></button><button id="memberClearMessageSearch" type="button" hidden aria-label="Clear search text"><i data-lucide="eraser"></i></button></div>
 
 
 
             
 
             <div
-                id="chat-messages"
-                class="chat-messages">
+                id="groupSettings"
+                class="group-settings hidden"
+            >
 
 
-                {% for msg in messages %}
+                
 
+                <div class="group-settings-heading">
 
-                    {% if msg.sender.id == current_user.id %}
+                    <div>
 
+                        <span class="chat-eyebrow">
+                            GROUP SETTINGS
+                        </span>
 
-                        
-
-                        <div class="message-row sent" data-message-id="{{ msg.id }}" data-message-at="{{ msg.created_at|date:'c' }}" data-deleted="{{ msg.deleted_for_everyone|yesno:'true,false' }}" data-edited-at="{{ msg.edited_at|date:'c' }}">
-
-                            <p class="message-bubble sent-bubble">
-
-                                <span class="message-text">{{ msg.content }}</span>
-
-                                <span class="message-time">
-                                    {{ msg.created_at|date:"h:i A" }}
-                                </span>
-
-                            </p>
-
-                        </div>
-
-
-                    {% else %}
-
-
-                        
-
-                        <div class="message-row received" data-message-id="{{ msg.id }}" data-message-at="{{ msg.created_at|date:'c' }}" data-deleted="{{ msg.deleted_for_everyone|yesno:'true,false' }}" data-edited-at="{{ msg.edited_at|date:'c' }}">
-
-
-                            {% if msg.sender.profile_image %}
-
-                                <img
-                                    src="{{ msg.sender.profile_image.url }}"
-                                    class="message-avatar"
-                                    alt="{{ msg.sender.name }}">
-
-                            {% else %}
-
-                                <div
-                                    class="message-avatar message-avatar-fallback">
-
-                                    {{ msg.sender.name|first|upper }}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            <div>
-
-                                <span class="sender-name">
-                                    {{ msg.sender.name }}
-                                </span>
-
-
-                                <p class="message-bubble received-bubble">
-
-                                    <span class="message-text">{{ msg.content }}</span>
-
-                                    <span class="message-time">
-                                        {{ msg.created_at|date:"h:i A" }}
-                                    </span>
-
-                                </p>
-
-                            </div>
-
-                        </div>
-
-
-                    {% endif %}
-
-
-                {% empty %}
-
-
-                    <div
-                        style="
-                            margin:auto;
-                            text-align:center;
-                            color:#77717f;
-                            font-size:12px;
-                        ">
-
-                        No messages yet. Start a conversation.
+                        <h3>
+                            Members
+                        </h3>
 
                     </div>
 
 
-                {% endfor %}
+                    <button
+                        type="button"
+                        id="closeGroupSettings"
+                        class="chat-modal-close"
+                        aria-label="Close settings"
+                    >
+
+                        <i data-lucide="x"></i>
+
+                    </button>
+
+                </div>
+
+
+
+                
+
+                <div class="group-members-list">
+                    {% for member in members %}
+                    <div class="group-member-row">
+                        <div class="group-member-avatar">{% if member.user.profile_image %}<img src="{{ member.user.profile_image.url }}" alt="{{ member.user.name }}">{% else %}{{ member.user.name|first|upper }}{% endif %}</div>
+                        <div class="member-group-person"><span class="member-group-name">{{ member.user.name }}{% if member.user.id == current_user.id %} <small>(You)</small>{% endif %}</span><span class="member-role-badge">{% if member.user.id == group.created_by_id %}Creator{% elif member.role == 'admin' %}Admin{% else %}Member{% endif %}</span></div>
+                        {% if can_manage_group and member.user.id != group.created_by_id and member.user.id != current_user.id %}
+                        <div class="member-group-actions">
+                            <form method="post" data-member-name="{{ member.user.name }}">{% csrf_token %}<input type="hidden" name="user_id" value="{{ member.user.id }}"><input type="hidden" name="action" value="{% if member.role == 'admin' %}remove_admin{% else %}make_admin{% endif %}"><button type="submit" class="member-role-button">{% if member.role == 'admin' %}Remove admin{% else %}Make admin{% endif %}</button></form>
+                            <form method="post" data-member-name="{{ member.user.name }}">{% csrf_token %}<input type="hidden" name="user_id" value="{{ member.user.id }}"><input type="hidden" name="action" value="remove_member"><button type="submit" class="remove-member-btn">Remove</button></form>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% empty %}<p class="chat-empty">No members yet.</p>{% endfor %}
+                </div>
+
+                {% if can_manage_group %}<div class="add-member-block">
+
+
+                    <span class="chat-eyebrow">
+
+                        ADD MEMBER
+
+                    </span>
+
+
+                    <form
+                        method="POST"
+                        class="add-member-form"
+                    >
+
+                        {% csrf_token %}
+
+
+                        <select
+                            name="user_id"
+                            class="chat-select"
+                        >
+
+                            {% for user in all_users %}
+
+                            <option
+                                value="{{ user.id }}"
+                            >
+
+                                {{ user.name }}
+
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="add_member"
+                        >
+
+
+                        <button
+                            type="submit"
+                            class="chat-primary-btn"
+                        >
+
+                            <i data-lucide="user-plus"></i>
+
+                            Add
+
+                        </button>
+
+
+                    </form>
+
+                </div>{% endif %}
+
 
             </div>
 
@@ -608,26 +610,101 @@
 
             
 
-            <form
-                method="POST"
-                class="chat-composer"
-                id="chat-form">
+            <div
+                id="chat-area"
+                class="chat-messages group-messages"
+            >
 
-                {% csrf_token %}
+
+                {% for message in messages %}
+
+
+                    {% if message.sender.id == current_user.id %}
+
+
+                    
+
+                    <div class="message-row sent" data-message-id="{{ message.id }}" data-message-at="{{ message.timestamp|date:'c' }}" data-deleted="{{ message.deleted_for_everyone|yesno:'true,false' }}" data-edited-at="{{ message.edited_at|date:'c' }}">
+
+                        <div class="message-bubble sent-bubble">
+
+                            <span class="message-text">{{ message.message }}</span>
+
+
+                            <span class="message-time">
+
+                                {{ message.timestamp|date:"H:i" }}
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    {% else %}
+
+
+                    
+
+                    <div class="message-row received" data-message-id="{{ message.id }}" data-message-at="{{ message.timestamp|date:'c' }}" data-deleted="{{ message.deleted_for_everyone|yesno:'true,false' }}" data-edited-at="{{ message.edited_at|date:'c' }}">
+
+                        <div class="message-bubble received-bubble">
+
+
+                            <strong class="sender-name">
+
+                                {{ message.sender.name }}
+
+                            </strong>
+
+
+                            <span class="message-text">{{ message.message }}</span>
+
+
+                            <span class="message-time">
+
+                                {{ message.timestamp|date:"H:i" }}
+
+                            </span>
+
+
+                        </div>
+
+                    </div>
+
+
+                    {% endif %}
+
+
+                {% endfor %}
+
+
+            </div>
+
+
+
+            
+
+            <p id="memberNoSearchResults" hidden>No matching messages.</p><button id="memberJumpLatest" class="member-jump-latest" type="button" hidden><i data-lucide="arrow-down"></i><span>New messages</span></button><form
+                id="chat-form"
+                class="chat-composer"
+            >
+
 
                 <input
-                    id="chat-input"
-                    name="content"
                     type="text"
+                    id="message-input"
                     placeholder="Type a message..."
                     autocomplete="off"
-                    required>
+                >
 
 
                 <button
-                    id="sendBtn"
                     type="submit"
-                    class="send-button">
+                    class="send-button"
+                    aria-label="Send message"
+                >
 
                     <i data-lucide="send"></i>
 
@@ -637,105 +714,12 @@
 
                 </button>
 
+
             </form>
 
 
-            {% else %}
-
-
-            
-
-            <div
-                style="
-                    flex:1;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    text-align:center;
-                    padding:30px;
-                ">
-
-
-                <div
-                    style="
-                        width:min(420px,90%);
-                        padding:42px 30px;
-                        border-radius:24px;
-                        background:
-                            linear-gradient(
-                                145deg,
-                                rgba(29,25,39,.88),
-                                rgba(14,14,21,.95)
-                            );
-                        border:1px solid rgba(255,255,255,.08);
-                        box-shadow:
-                            0 25px 70px rgba(0,0,0,.35);
-                        backdrop-filter:blur(18px);
-                    ">
-
-
-                    <div
-                        style="
-                            width:68px;
-                            height:68px;
-                            margin:0 auto 18px;
-                            display:flex;
-                            align-items:center;
-                            justify-content:center;
-                            border-radius:20px;
-                            color:#c4b5fd;
-                            background:
-                                linear-gradient(
-                                    135deg,
-                                    rgba(124,58,237,.24),
-                                    rgba(168,85,247,.10)
-                                );
-                            border:1px solid rgba(167,139,250,.20);
-                        ">
-
-                        <i
-                            data-lucide="message-circle"
-                            style="width:30px;height:30px;">
-                        </i>
-
-                    </div>
-
-
-                    <h2
-                        style="
-                            margin:0 0 8px;
-                            color:#fff;
-                            font-size:22px;
-                            font-weight:800;
-                        ">
-
-                        Select a team member
-
-                    </h2>
-
-
-                    <p
-                        style="
-                            margin:0;
-                            color:#817b89;
-                            font-size:12px;
-                            line-height:1.7;
-                        ">
-
-                        Choose a team member from the left side
-                        to start chatting.
-
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            {% endif %}
-
-
         </section>
+
 
     </div>
 
@@ -747,14 +731,17 @@
 
 <div
     id="groupModal"
-    class="chat-modal hidden">
+    class="chat-modal hidden"
+>
 
 
     <div class="chat-modal-card">
 
 
         
+
         <div class="chat-modal-header">
+
 
             <div>
 
@@ -773,7 +760,8 @@
                 type="button"
                 id="closeModal"
                 class="chat-modal-close"
-                aria-label="Close">
+                aria-label="Close"
+            >
 
                 <i data-lucide="x"></i>
 
@@ -784,44 +772,59 @@
 
 
         
+
         <form
             method="POST"
-            class="chat-modal-form" action="{% url 'teammember_chat' %}">
+            class="chat-modal-form" action="{% url 'teammember_chat' %}"
+        >
 
             {% csrf_token %}
+
 
             <input
                 type="hidden"
                 name="action"
-                value="create_group">
+                value="create_group"
+            >
 
+
+            
 
             <label for="group-name">
                 Group Name
             </label>
+
 
             <input
                 id="group-name"
                 type="text"
                 name="group_name" maxlength="150"
                 placeholder="Enter group name"
-                required>
+                required
+            >
 
+
+            
 
             <label >
                 Add Members
             </label>
 
+
             <div id="group-members" class="member-checkbox-list" role="group" aria-label="Choose group members">{% for user in users %}<label><input type="checkbox" name="members" value="{{ user.id }}">{{ user.name }}</label>{% endfor %}</div>
 
 
 
+            
+
             <div class="chat-modal-actions">
+
 
                 <button
                     type="button"
                     id="cancelModal"
-                    class="chat-secondary-btn">
+                    class="chat-secondary-btn"
+                >
 
                     Cancel
 
@@ -830,7 +833,8 @@
 
                 <button
                     type="submit"
-                    class="chat-primary-btn">
+                    class="chat-primary-btn"
+                >
 
                     <i data-lucide="plus"></i>
 
@@ -838,9 +842,12 @@
 
                 </button>
 
+
             </div>
 
+
         </form>
+
 
     </div>
 
@@ -880,11 +887,40 @@
    if(event.key==='Tab'){const elements=[...modal.querySelectorAll('button,input,a,select,textarea')].filter(el=>!el.disabled&&el.offsetParent!==null);const first=elements[0],last=elements.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}
   }
  });
- document.getElementById('manageGroupButton')?.addEventListener('click',()=>document.getElementById('groupSettings')?.classList.toggle('hidden'));
+ document.getElementById('manageGroupButton')?.addEventListener('click',()=>{document.getElementById('groupSettings')?.classList.toggle('hidden');syncMembers();});
  document.getElementById('closeGroupSettings')?.addEventListener('click',()=>document.getElementById('groupSettings')?.classList.add('hidden'));
 
  const search = document.getElementById('memberChatSearch');
  search?.addEventListener('input',()=>{const value=search.value.trim().toLocaleLowerCase();root.querySelectorAll('.chat-user-row,.chat-group-row').forEach(row=>row.hidden=!row.textContent.toLocaleLowerCase().includes(value));});
+ let memberBusy=false,memberAgain=false,memberEpoch=0,memberFingerprint='';
+ function renderMemberState(data){
+  if(!data.ok||!Array.isArray(data.members))return;
+  const fingerprint=JSON.stringify([data.members,data.can_manage,data.all_users]);if(fingerprint===memberFingerprint)return;memberFingerprint=fingerprint;
+  const list=document.querySelector('#groupSettings .group-members-list');if(!list)return;list.replaceChildren();
+  const csrf=root.querySelector('[name=csrfmiddlewaretoken]')?.value||'';
+  function actionForm(person,action,label,cls){const form=document.createElement('form');form.method='post';form.dataset.memberName=person.name;for(const [name,value] of Object.entries({csrfmiddlewaretoken:csrf,user_id:person.id,action})){const field=document.createElement('input');field.type='hidden';field.name=name;field.value=value;form.append(field);}const button=document.createElement('button');button.type='submit';button.className=cls;button.textContent=label;form.append(button);return form;}
+  for(const person of data.members){const row=document.createElement('div');row.className='group-member-row';const avatar=document.createElement('div');avatar.className='group-member-avatar';if(person.profile){const img=document.createElement('img');img.src=person.profile;img.alt=person.name;avatar.append(img);}else avatar.textContent=(person.name||'U').trim().charAt(0).toUpperCase();row.append(avatar);
+   const details=document.createElement('div');details.className='member-group-person';const name=document.createElement('span');name.className='member-group-name';name.textContent=person.name+(person.is_self?' (You)':'');const role=document.createElement('span');role.className='member-role-badge';role.textContent=person.is_creator?'Creator':person.role==='admin'?'Admin':'Member';details.append(name,role);row.append(details);
+   if(data.can_manage&&!person.is_creator&&!person.is_self){const actions=document.createElement('div');actions.className='member-group-actions';actions.append(actionForm(person,person.role==='admin'?'remove_admin':'make_admin',person.role==='admin'?'Remove admin':'Make admin','member-role-button'),actionForm(person,'remove_member','Remove','remove-member-btn'));row.append(actions);}list.append(row);
+  }
+  const header=root.querySelector('.group-conversation .conversation-sub');if(header)header.textContent=`${data.count} member${data.count===1?'':'s'}`;
+  const label=document.querySelector('#manageGroupButton span');if(label)label.textContent=data.can_manage?'Manage Group':'Members';
+  let add=document.querySelector('#groupSettings .add-member-block');
+  if(!data.can_manage){add?.remove();return;}
+  if(!add){add=document.createElement('div');add.className='add-member-block';const eyebrow=document.createElement('span');eyebrow.className='chat-eyebrow';eyebrow.textContent='ADD MEMBER';add.append(eyebrow);const form=actionForm({id:'',name:''},'add_member','Add','chat-primary-btn');form.className='add-member-form';form.querySelector('[name=user_id]').remove();const select=document.createElement('select');select.name='user_id';select.className='chat-select';select.setAttribute('aria-label','Select a new member');form.prepend(select);add.append(form);document.getElementById('groupSettings').append(add);}
+  const select=add.querySelector('[name=user_id]');const selected=select.value;select.replaceChildren();for(const person of data.all_users||[]){const option=document.createElement('option');option.value=person.id;option.textContent=person.name;select.append(option);}if([...select.options].some(option=>option.value===selected))select.value=selected;select.disabled=!select.options.length;const addButton=add.querySelector('[type=submit]');if(addButton)addButton.disabled=!select.options.length;
+ }
+ async function syncMembers(){
+  if(closed||document.hidden||mode!=='group')return;if(memberBusy){memberAgain=true;return;}memberBusy=true;const epoch=memberEpoch;
+  try{const url=new URL(location.href);url.searchParams.delete('messages');url.searchParams.set('members','1');const response=await fetch(url,{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});if(response.status===403||response.status===404){document.getElementById('groupSettings')?.classList.add('hidden');return;}if(!response.ok||!(response.headers.get('content-type')||'').includes('application/json'))return;const data=await response.json();if(epoch!==memberEpoch){memberAgain=true;return;}renderMemberState(data);}catch(_){}finally{memberBusy=false;if(memberAgain&&!closed){memberAgain=false;queueMicrotask(syncMembers);}}
+ }
+ function confirmMemberAction(form){
+  const action=form.elements.action.value;const name=form.dataset.memberName||'this member';openMessageAction(action,null,form.querySelector('[type=submit]'));activeGroupForm=form;
+  actionDialog.querySelector('h3').textContent=action==='remove_member'?'Remove member?':action==='make_admin'?'Make admin?':'Remove admin access?';
+  actionDialog.querySelector('#memberActionHint').textContent=action==='remove_member'?`${name} will no longer have access to this group.`:action==='make_admin'?`${name} will be able to add/remove members and manage admin roles.`:`${name} will stay in the group as a regular member.`;
+  actionDialog.querySelector('[type=submit]').textContent=action==='remove_member'?'Remove member':action==='make_admin'?'Make admin':'Remove admin';
+ }
+
  async function operation(form){
   if(busy)return;busy=true;const button=form.querySelector('[type=submit]');if(button)button.disabled=true;
   try {
@@ -893,19 +929,15 @@
    const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.message||'Could not complete this action.');
    busy=false;toast(data.message,'success');
    if(data.url){const url=new URL(data.url,location.href);if(url.origin!==location.origin)throw new Error('Invalid chat link.');closeModal();location.assign(url);}
-   else {
-    const response=await fetch(location.href,{credentials:'same-origin',cache:'no-store'});if(!response.ok)throw new Error('Saved, but could not refresh the members list.');
-    const doc=new DOMParser().parseFromString(await response.text(),'text/html');const fresh=doc.getElementById('groupSettings');const old=document.getElementById('groupSettings');if(!fresh||!old)throw new Error('Saved. Reopen this chat to see the updated members.');
-    fresh.classList.remove('hidden');old.replaceWith(fresh);document.getElementById('closeGroupSettings')?.addEventListener('click',()=>fresh.classList.add('hidden'));
-    const count=doc.querySelector('.group-conversation .conversation-sub');if(count)root.querySelector('.group-conversation .conversation-sub').textContent=count.textContent;icons();
-   }
-  }catch(error){toast(error.message,'error');}finally{busy=false;if(button)button.disabled=false;}
+   else {memberEpoch++;renderMemberState(data);}
+   return true;
+  }catch(error){toast(error.message,'error');return false;}finally{busy=false;if(button)button.disabled=false;}
  }
  document.addEventListener('submit',event=>{
   const form=event.target;if(!(form instanceof HTMLFormElement))return;
   const action=form.elements.action?.value;
-  if(!['create_group','add_member','remove_member'].includes(action)||(!root.contains(form)&&!modal?.contains(form)))return;
-  event.preventDefault();if(action==='create_group'&&!form.querySelector('[name=members]:checked')){toast('Select at least one other member.','warning');return;}operation(form);
+  if(!['create_group','add_member','remove_member','make_admin','remove_admin'].includes(action)||(!root.contains(form)&&!modal?.contains(form)))return;
+  event.preventDefault();if(action==='create_group'&&!form.querySelector('[name=members]:checked')){toast('Select at least one other member.','warning');return;}if(['remove_member','make_admin','remove_admin'].includes(action))confirmMemberAction(form);else operation(form);
  });
  const menuButton=document.getElementById('memberChatMenuButton');
  const menu=document.getElementById('memberChatMenu');
@@ -930,7 +962,7 @@
   const button=event.target.closest('button[data-chat-action]');if(!button)return;const action=button.dataset.chatAction;closeMenu();
   if(action==='search'){const bar=document.getElementById('memberMessageSearchBar');if(bar)bar.hidden=false;document.getElementById('memberMessageSearch')?.focus();}
   if(action==='latest'){const field=document.getElementById('memberMessageSearch');if(field)field.value='';decorateMessages();if(messages)messages.scrollTop=messages.scrollHeight;resetNewMessages();}
-  if(action==='members'){document.getElementById('groupSettings')?.classList.remove('hidden');document.getElementById('closeGroupSettings')?.focus();}
+  if(action==='members'){syncMembers();document.getElementById('groupSettings')?.classList.remove('hidden');document.getElementById('closeGroupSettings')?.focus();}
   if(action==='download'){
    const rows=[...messages.querySelectorAll('.message-row')];if(!rows.length){toast('There are no messages to download.','info');return;}
    const title=root.querySelector('.conversation-name')?.textContent.trim()||'Group conversation';
@@ -947,7 +979,7 @@
  // One compact menu and one accessible dialog, shared by all message bubbles.
  const bubbleMenu=document.createElement('div');bubbleMenu.className='member-bubble-menu';bubbleMenu.hidden=true;bubbleMenu.setAttribute('role','menu');document.body.append(bubbleMenu);
  const actionDialog=document.createElement('dialog');actionDialog.className='member-action-dialog';actionDialog.innerHTML='<form><header><h3 id="memberActionTitle"></h3><button type="button" data-close aria-label="Close">×</button></header><p id="memberActionHint"></p><textarea maxlength="10000" rows="5" aria-label="Message"></textarea><p class="member-action-error" role="alert"></p><footer><button type="button" data-close>Cancel</button><button type="submit">Save changes</button></footer></form>';actionDialog.setAttribute('aria-labelledby','memberActionTitle');document.body.append(actionDialog);
- let activeRow=null,activeAction='',actionBusy=false,actionFocus=null,previousOverflow='',historyAgain=false,historyEpoch=0;
+ let activeGroupForm=null,activeRow=null,activeAction='',actionBusy=false,actionFocus=null,previousOverflow='',historyAgain=false,historyEpoch=0;
  let editWindowTimer=null,serverClockOffset=0;
  function editExpiresAt(row){const sentAt=new Date(row?.dataset.messageAt||'').getTime();return Number.isFinite(sentAt)?sentAt+2*60*60*1000:0;}
  function canEditMessage(row){return !!row&&row.classList.contains('sent')&&row.dataset.deleted!=='true'&&row.dataset.editExpired!=='true'&&editExpiresAt(row)>Date.now()+serverClockOffset;}
@@ -971,7 +1003,7 @@
  actionDialog.addEventListener('click',event=>{const rect=actionDialog.getBoundingClientRect();if(event.target===actionDialog&&(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom))closeActionDialog();});
  function openMessageAction(action,row=null,focus=document.activeElement){
   if(action==='edit_message'&&!canEditMessage(row)){toast('This message can only be edited within 2 hours of sending.','warning');return;}
-  closeBubbleMenu();closeMenu();activeRow=row;activeAction=action;actionFocus=focus;
+  closeBubbleMenu();closeMenu();activeGroupForm=null;activeRow=row;activeAction=action;actionFocus=focus;
   const edit=action==='edit_message';const textarea=actionDialog.querySelector('textarea');textarea.hidden=!edit;textarea.required=edit;textarea.value=edit?(row?.querySelector('.message-text')?.textContent||''):'';
   actionDialog.querySelector('h3').textContent=edit?'Edit message':action==='clear_chat'?'Clear chat?':action==='delete_for_everyone'?'Delete for everyone?':'Delete for me?';
   actionDialog.querySelector('#memberActionHint').textContent=edit?'Update your message.':action==='clear_chat'?'Existing messages will be hidden for you. Other people keep their chat. New messages will still appear.':action==='delete_for_everyone'?'Everyone will see “This message was deleted.”':'This message will be hidden only for you.';
@@ -980,6 +1012,7 @@
  }
  actionDialog.querySelector('form').addEventListener('submit',async event=>{
   event.preventDefault();if(actionBusy)return;if(activeAction==='edit_message'&&!canEditMessage(activeRow)){refreshEditWindow();return;}actionBusy=true;const buttons=actionDialog.querySelectorAll('button');buttons.forEach(button=>button.disabled=true);
+  if(activeGroupForm){try{const ok=await operation(activeGroupForm);if(ok){actionBusy=false;activeGroupForm=null;actionDialog.close();document.getElementById('manageGroupButton')?.focus();}else actionDialog.querySelector('.member-action-error').textContent='Could not complete this change. Check the notification and try again.';}finally{actionBusy=false;buttons.forEach(button=>button.disabled=false);}return;}
   const form=new FormData();form.set('action',activeAction);if(activeRow)form.set('message_id',activeRow.dataset.messageId);if(activeAction==='edit_message')form.set('message',actionDialog.querySelector('textarea').value);
   const token=root.querySelector('[name=csrfmiddlewaretoken]')?.value;if(token)form.set('csrfmiddlewaretoken',token);
   try{const url=new URL(location.href);url.searchParams.delete('messages');const response=await fetch(url,{method:'POST',body:form,credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}});if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Check your login and try again.');const data=await response.json();updateServerClock(data.server_now);if(data.code==='edit_window_expired'&&activeRow){activeRow.dataset.editExpired='true';refreshEditWindow();}if(!response.ok||!data.ok)throw new Error(data.message||'Could not save this change.');historyEpoch++;historyAgain=true;actionBusy=false;actionDialog.close();toast(data.message,'success');syncHistory();}
@@ -1067,7 +1100,7 @@
   if(closed||!root.dataset.socketPath)return;
   status('Connecting…',false);const scheme=location.protocol==='https:'?'wss':'ws';socket=new WebSocket(`${scheme}://${location.host}${root.dataset.socketPath}`);
   socket.onopen=()=>{retry=0;status('Connected',true);syncHistory();};
-  socket.onmessage=event=>{let data;try{data=JSON.parse(event.data);}catch{return;}if(data.action==='sync_messages'){historyEpoch++;syncHistory();return;}if(data.error){restorePending();toast(data.error,'error');return;}historyEpoch++;renderMessage(data,true);if(pending&&data.client_id===pending.id&&Number(data.sender_id)===currentId){clearTimeout(pending.timer);pending=null;if(input)input.disabled=false;if(send)send.disabled=false;input?.focus();}};
+  socket.onmessage=event=>{let data;try{data=JSON.parse(event.data);}catch{return;}if(data.action==='sync_messages'){historyEpoch++;memberEpoch++;syncHistory();syncMembers();return;}if(data.error){restorePending();toast(data.error,'error');return;}historyEpoch++;renderMessage(data,true);if(pending&&data.client_id===pending.id&&Number(data.sender_id)===currentId){clearTimeout(pending.timer);pending=null;if(input)input.disabled=false;if(send)send.disabled=false;input?.focus();}};
   socket.onclose=event=>{status(event.code===4403?'Access denied':'Reconnecting…',false);restorePending();if(!closed&&event.code!==4403)reconnectTimer=setTimeout(connect,Math.min(1000*2**retry++,15000));};
   socket.onerror=()=>status('Connection unavailable',false);
  }
@@ -1078,8 +1111,8 @@
  }
  if(input){if(mode==='group')document.getElementById('chat-form').addEventListener('submit',sendMessage);else send?.addEventListener('click',sendMessage);input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing)sendMessage(event);});}
  window.addEventListener('pagehide',()=>{closed=true;clearTimeout(reconnectTimer);if(pending)clearTimeout(pending.timer);socket?.close();});
- document.addEventListener('visibilitychange',()=>{refreshEditWindow();if(!document.hidden)syncHistory();});
- if(messages){messages.scrollTop=messages.scrollHeight;connect();setInterval(syncHistory,15000);}icons();
+ document.addEventListener('visibilitychange',()=>{refreshEditWindow();if(!document.hidden){syncHistory();syncMembers();}});
+ if(messages){messages.scrollTop=messages.scrollHeight;connect();setInterval(syncHistory,15000);syncMembers();setInterval(syncMembers,15000);}icons();
 })();
 
 </script><script src="{% static 'js/member_chat_receipts.js' %}"></script>{% endblock %}

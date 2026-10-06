@@ -1,0 +1,19 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Accounts Dashboard - Cybexel{% endblock %}
+{% block content %}
+<div class="accounts-section-heading"><div><span class="accounts-eyebrow">FINANCIAL OVERVIEW</span><h2>Accounts Overview</h2></div><span class="accounts-period">{{ period_label|default:'Current month' }}</span></div>
+<div class="accounts-stats-grid">
+  <article class="accounts-stat"><div class="accounts-stat-top"><h3>Total Income</h3><i data-lucide="arrow-down-left" aria-hidden="true"></i></div><p class="accounts-stat-value income">{% if account_summary %}₹{{ account_summary.income|floatformat:2 }}{% else %}—{% endif %}</p><span>Income recorded for this period</span></article>
+  <article class="accounts-stat"><div class="accounts-stat-top"><h3>Total Expenses</h3><i data-lucide="arrow-up-right" aria-hidden="true"></i></div><p class="accounts-stat-value expense">{% if account_summary %}₹{{ account_summary.expenses|floatformat:2 }}{% else %}—{% endif %}</p><span>Expenses recorded for this period</span></article>
+  <article class="accounts-stat"><div class="accounts-stat-top"><h3>Net Movement</h3><i data-lucide="wallet" aria-hidden="true"></i></div><p class="accounts-stat-value balance">{% if account_summary %}₹{{ account_summary.net_movement|floatformat:2 }}{% else %}—{% endif %}</p><span>Income minus expenses</span></article>
+  <article class="accounts-stat"><div class="accounts-stat-top"><h3>Total Sales</h3><i data-lucide="receipt-text" aria-hidden="true"></i></div><p class="accounts-stat-value sales">{% if account_summary %}₹{{ account_summary.sales|floatformat:2 }}{% else %}—{% endif %}</p><span>Sales recorded for this period</span></article>
+</div>
+<section class="accounts-panel" aria-labelledby="accountsTransactionsHeading">
+  <div class="accounts-panel-heading"><div><span class="accounts-eyebrow">LATEST ENTRIES</span><h2 id="accountsTransactionsHeading">Recent Transactions</h2></div><span class="accounts-muted">{{ recent_transactions|length }} entries</span></div>
+  <div class="accounts-table-scroll" tabindex="0" role="region" aria-label="Recent transactions, scroll to see all columns">
+    <table class="accounts-table"><caption class="accounts-sr-only">Recent income and expense transactions for the selected period</caption><thead><tr><th scope="col">Date</th><th scope="col">Description</th><th scope="col">Category</th><th scope="col">Type</th><th scope="col" class="amount">Amount</th></tr></thead>
+      <tbody>{% for item in recent_transactions %}<tr><td class="nowrap">{{ item.date|date:'d M Y' }}</td><td class="description-cell">{{ item.description }}</td><td>{{ item.category }}</td><td><span class="accounts-badge {% if item.kind == 'income' %}income{% else %}expense{% endif %}">{{ item.kind|capfirst }}</span></td><td class="amount">₹{{ item.amount|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="5"><div class="accounts-empty"><span class="accounts-empty-icon"><i data-lucide="receipt-text" aria-hidden="true"></i></span><h3>No transactions yet</h3><p>Your income and expense entries will appear here.</p></div></td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

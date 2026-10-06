@@ -1,6 +1,17 @@
 {% load static %}
 
 <style>
+/* Keep same-origin page changes continuous without a cross-fade. */
+@view-transition { navigation: auto; }
+::view-transition-group(root) { animation-duration: 0s; }
+::view-transition-old(root), ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+::view-transition-old(root) { display: none; }
+html { background: #08070b; color-scheme: dark; }
+.sidebar-nav { scroll-behavior: auto !important; }
+
 
 /* =========================================================
 
@@ -685,29 +696,53 @@
 }
 
 .sidebar-notification-icon {
+
     position: relative;
+
     height: 22px;
+
     overflow: visible;
+
 }
+
 .sidebar-notification-badge {
+
     position: absolute;
+
     top: -8px;
+
     right: -9px;
+
     display: inline-flex;
+
     align-items: center;
+
     justify-content: center;
+
     min-width: 17px;
+
     height: 17px;
+
     padding: 0 4px;
+
     box-sizing: border-box;
+
     border: 2px solid #17121f;
+
     border-radius: 999px;
+
     background: #ef4444;
+
     color: #ffffff;
+
     font-size: 9px;
+
     font-weight: 700;
+
     line-height: 1;
+
     pointer-events: none;
+
 }
 
 </style>
@@ -953,7 +988,6 @@
             </span>
 
             <span>Google Meet</span>
-           
 
         </a>
 
@@ -966,7 +1000,9 @@
 >
 
     <span class="sidebar-icon sidebar-reminder-icon">
+
         <i data-lucide="calendar-clock" aria-hidden="true"></i>
+
     </span>
 
     <span>Reminders</span>
@@ -986,6 +1022,7 @@
     <span class="sidebar-icon sidebar-notification-icon">
 
         <i data-lucide="bell" aria-hidden="true"></i>
+
 {% if teamlead_unread_count %}
 
         <span class="sidebar-notification-badge">
@@ -1358,7 +1395,7 @@
 
         height: 100%;
 
-        object-fit: cover;
+        object-fit: contain;
 
     }
 
@@ -1409,70 +1446,136 @@
 </script>
 
 <style>
+
 /* Keep navigation aligned within the sidebar at every screen size. */
+
 .glass-sidebar .sidebar-item {
+
     width: calc(100% - 8px);
+
     flex-shrink: 0;
+
     border: 1px solid transparent;
+
     border-radius: 14px;
+
 }
+
 .glass-sidebar .sidebar-item.active {
+
     color: #ffffff;
+
     background: linear-gradient(110deg, #603b9f, #393d76);
+
     border-color: rgba(179,145,245,.42);
+
 }
+
 .glass-sidebar .sidebar-item.active .sidebar-icon { color: #ffffff; }
+
 .glass-sidebar .sidebar-reminder-icon svg {
+
     width: 17px;
+
     height: 17px;
+
 }
+
 .glass-sidebar .sidebar-item:focus-visible {
+
     outline: 2px solid #b794f6;
+
     outline-offset: -2px;
+
 }
+
 @media (max-width: 768px) {
+
     .glass-sidebar { max-width: min(82vw, 300px); }
+
 }
+
 </style>
 
 <script>
+
 (function () {
+
     const sidebar = document.getElementById('sidebar');
+
     const nav = sidebar && sidebar.querySelector('.sidebar-nav');
+
     if (!nav) return;
+
     const links = Array.from(nav.querySelectorAll('a.sidebar-item'));
+
     const key = 'teamlead-sidebar-scroll';
+
     const savePosition = () => {
+
         try { sessionStorage.setItem(key, String(nav.scrollTop)); } catch (_) {}
+
     };
+
     const markCurrent = () => {
+
         links.forEach(link => {
+
             if (link.classList.contains('active')) link.setAttribute('aria-current', 'page');
+
             else link.removeAttribute('aria-current');
+
         });
+
     };
+
     markCurrent();
-    requestAnimationFrame(() => {
+    const restorePosition = () => {
+
         try {
+
             const saved = sessionStorage.getItem(key);
+
             if (saved !== null && Number.isFinite(Number(saved))) nav.scrollTop = Number(saved);
+
         } catch (_) {}
+
         const active = nav.querySelector('.sidebar-item.active');
+
         if (active) {
+
             const itemRect = active.getBoundingClientRect();
+
             const navRect = nav.getBoundingClientRect();
+
             if (itemRect.top < navRect.top + 8) nav.scrollTop -= navRect.top + 8 - itemRect.top;
+
             else if (itemRect.bottom > navRect.bottom - 8) nav.scrollTop += itemRect.bottom - navRect.bottom + 8;
+
         }
+
         savePosition();
-    });
+    };
+    restorePosition();
+    requestAnimationFrame(restorePosition);
+    window.addEventListener('pageshow', restorePosition);
+    window.addEventListener('pagereveal', restorePosition);
     nav.addEventListener('scroll', savePosition, {passive: true});
+
     window.addEventListener('pagehide', savePosition);
+
     links.forEach(link => link.addEventListener('click', event => {
+
         if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+
         savePosition();
+
         links.forEach(item => item.classList.toggle('active', item === link));
+
         markCurrent();
+
     }));
+
 })();
+
 </script>

@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Accounts - Cybexel{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/accounts.css' %}">
+  <script src="https://unpkg.com/lucide@latest" defer></script>
+  <script src="{% static 'js/accounts.js' %}" defer></script>
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="accounts-workspace">
+  <a class="accounts-skip" href="#accountsMain">Skip to content</a>
+  {% include 'components/accounts_sidebar.html' %}
+  <main id="accountsMain" class="accounts-main" tabindex="-1">
+    <div class="accounts-shell">
+      <header class="accounts-header">
+        <div>
+          <p class="accounts-eyebrow">CYBEXEL ACCOUNTS PANEL</p>
+          <h1>{% block page_heading %}ACCOUNTS DASHBOARD{% endblock %}</h1>
+          <p class="accounts-description">{% block page_description %}Manage income, expenses and sales from one place.{% endblock %}</p>
+        </div>
+        <div class="accounts-header-meta"><i data-lucide="calendar-days" aria-hidden="true"></i><span>{% now 'd M Y' %}</span></div>
+      </header>
+      <div class="accounts-content">{% block content %}{% endblock %}</div>
+    </div>
+  </main>
+  {% include 'components/toast_notification.html' %}
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
