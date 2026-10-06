@@ -34,6 +34,30 @@ class Conversation(models.Model):
         return f"{self.user1.name} - {self.user2.name}"
 
 
+# class ChatMessage(models.Model):
+#     conversation = models.ForeignKey(
+#         Conversation,
+#         on_delete=models.CASCADE,
+#         related_name="messages",
+#     )
+
+#     sender = models.ForeignKey(
+#         User,
+#         on_delete=models.CASCADE,
+#         related_name="sent_chat_messages",
+#     )
+
+#     content = models.TextField()
+
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     class Meta:
+#         ordering = ["created_at"]
+
+#     def __str__(self):
+#         return f"{self.sender.name}: {self.content[:30]}"
+
+
 class ChatMessage(models.Model):
     conversation = models.ForeignKey(
         Conversation,
@@ -50,9 +74,14 @@ class ChatMessage(models.Model):
     content = models.TextField()
 
     created_at = models.DateTimeField(auto_now_add=True)
+    edited_at = models.DateTimeField(null=True, blank=True)
+    deleted_for_everyone = models.BooleanField(default=False)
+    hidden_for = models.ManyToManyField(User, blank=True, related_name="%(app_label)s_%(class)s_hidden_messages")
 
     class Meta:
         ordering = ["created_at"]
 
     def __str__(self):
         return f"{self.sender.name}: {self.content[:30]}"
+
+    

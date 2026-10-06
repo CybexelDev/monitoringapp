@@ -1,5 +1,184 @@
+# from django.urls import path, re_path
+# from . import views
+
+# urlpatterns = [
+#     path("", views.index, name="index"),
+#     path("login/", views.login_view, name="login_view"),
+#     path("admin_login", views.admin_login, name="admin_login"),
+#     path("admin_logout/", views.admin_logout, name="admin_logout"),
+#     path("admin_dashboard", views.admin_dashboard, name="admin_dashboard"),
+#     path(
+#         "delete-department/<int:pk>/", views.delete_department, name="delete_department"
+#     ),
+#     path("delete-team/<int:pk>/", views.delete_team, name="delete_team"),
+#     path(
+#         "admin_usermanagement", views.admin_usermanagement, name="admin_usermanagement"
+#     ),
+#     path("delete/<int:id>/", views.delete_user, name="delete_user"),
+#     path("edit-user/", views.edit_user, name="edit_user"),
+#     path("add-contact/", views.add_contact, name="add_contact"),
+#     path("admin_reports/", views.admin_reports, name="admin_reports"),
+#     path("admin-chat/", views.admin_chat, name="admin_chat"),
+#     path("admin_profile/", views.admin_profile, name="admin_profile"),
+#     path("teammember_project/", views.teammember_project, name="teammember_project"),
+#     path(
+#         "project/<int:pk>/update-status/",
+#         views.update_project_status,
+#         name="update_project_status",
+#     ),
+#     path(
+#         "api/logged-in-user/",
+#         views.get_logged_in_user_api,
+#         name="get_logged_in_user_api",
+#     ),
+#     path("api/update-activity/", views.update_activity, name="update_activity"),
+#     path(
+#         "api/user-status/<int:user_id>/", views.get_user_status, name="get_user_status"
+#     ),
+#     path("teamlead/dashboard/", views.teamlead_dashboard, name="teamlead_dashboard"),
+#     path("teamlead_reports", views.teamlead_reports, name="teamlead_reports"),
+#     path(
+#         "teamlead/edit-member/",
+#         views.teamlead_edit_member,
+#         name="teamlead_edit_member",
+#     ),
+#     path(
+#         "teamlead_project_assigning",
+#         views.teamlead_project_assigning,
+#         name="teamlead_project_assigning",
+#     ),
+#     path(
+#         "projects/edit/<int:pk>/", views.project_assign_edit, name="project_assign_edit"
+#     ),
+#     path(
+#         "projects/delete/<int:pk>/",
+#         views.project_assign_delete,
+#         name="project_assign_delete",
+#     ),
+#     path(
+#         "teamlead/announcements/",
+#         views.teamlead_announcements,
+#         name="teamlead_announcements",
+#     ),
+#     path("teamlead_repository/", views.teamlead_repository, name="teamlead_repository"),
+#     path(
+#         "teamlead_repository/delete/<int:pk>/",
+#         views.teamlead_repository_delete,
+#         name="teamlead_repository_delete",
+#     ),
+#     path("teamlead_profile/", views.teamlead_profile, name="teamlead_profile"),
+#     path(
+#         "teamlead_google_meet/",
+#         views.teamlead_google_meet,
+#         name="teamlead_google_meet",
+#     ),
+#     path("teamlead_chat/", views.teamlead_chat, name="teamlead_chat"),
+#     path(
+#         "teamlead_chat/<int:user_id>/",
+#         views.teamlead_chat_room,
+#         name="teamlead_chat_room",
+#     ),
+#     path(
+#         "teamlead_chat/group/<int:group_id>/",
+#         views.teamlead_group_chat_view,
+#         name="teamlead_group_chat_view",
+#     ),
+#     path("teamlead_notepad/", views.teamlead_notepad, name="teamlead_notepad"),
+#     path(
+#         "teamlead_notepad/delete/<int:pk>/",
+#         views.teamlead_notepad_delete,
+#         name="teamlead_notepad_delete",
+#     ),
+#     path("teamlead_task/", views.teamlead_task, name="teamlead_task"),
+#     path(
+#         "teamlead_task/update/<int:task_id>/",
+#         views.update_task_teamlead,
+#         name="update_task_teamlead",
+#     ),
+#     path(
+#         "teamlead_task/delete/<int:task_id>/",
+#         views.delete_task_teamlead,
+#         name="delete_task_teamlead",
+#     ),
+#     path("forgot-password/", views.forgot_password, name="forgot_password"),
+#     path("verify-otp/", views.verify_otp, name="verify_otp"),
+#     path("reset-password/", views.reset_password, name="reset_password"),
+#     path("teamlead/logout/", views.teamlead_logout, name="teamlead_logout"),
+#     # path("teammember_chat/", views.teammember_chat, name="teammember_chat"),
+#     path("chat/", views.teammember_chat, name="teammember_chat"),
+#     path("chat/<int:user_id>/", views.chat_room, name="chat_room"),
+#     path("chat/group/<int:group_id>/", views.group_chat_view, name="group_chat_view"),
+#     path(
+#         "teamlead/notifications/",
+#         views.teamlead_notifications,
+#         name="teamlead_notifications",
+#     ),
+#     path(
+#         "teamlead/notifications/read-all/",
+#         views.teamlead_notifications_read_all,
+#         name="teamlead_notifications_read_all",
+#     ),
+#     path(
+#         "teamlead/notifications/<int:notification_id>/open/",
+#         views.teamlead_notification_open,
+#         name="teamlead_notification_open",
+#     ),
+#     path(
+#         "teamlead/reminders/",
+#         views.teamlead_reminders,
+#         name="teamlead_reminders",
+#     ),
+#     # <---TEAM MEMBERS--->
+#     path("teammember/logout/", views.teammember_logout, name="teammember_logout"),
+#         path(
+#         "teammember_task/update/<int:task_id>/", views.update_task, name="update_task"
+#     ),
+#     path(
+#         "teammember_task/delete/<int:task_id>/", views.delete_task, name="delete_task"
+#     ),
+#         path(
+#         "teammember_repository/",
+#         views.teammember_repository,
+#         name="teammember_repository",
+#     ),
+#     path("teammember_profile/", views.teammember_profile, name="teammember_profile"),
+#     path("teammember_task/", views.teammember_task, name="teammember_task"),
+#     path(
+#         "teammember_repository/delete/<int:pk>/",
+#         views.teammember_repository_delete,
+#         name="teammember_repository_delete",
+#     ),
+#     path("teammember_notepad/", views.teammember_notepad, name="teammember_notepad"),
+#     path(
+#         "teammember_notepad/delete/<int:pk>/",
+#         views.teammember_notepad_delete,
+#         name="teammember_notepad_delete",
+#     ),
+#     path(
+#         "teammember_google_meet/",
+#         views.teammember_google_meet,
+#         name="teammember_google_meet",
+#     ),
+#         path(
+#         "teammember/dashboard/", views.teammember_dashboard, name="teammember_dashboard"
+#     ),
+#         path("teammember_reports/", views.teammember_reports, name="teammember_reports"),
+#     path("teammember/announcements/", views.teammember_announcements, name="teammember_announcements"),
+# path("teammember/announcements/<int:pk>/seen/", views.teammember_announcement_seen, name="teammember_announcement_seen"),
+# path("teammember/reminders/", views.teammember_reminders, name="teammember_reminders"),
+
+# path("teammember/notifications/", views.teammember_notifications, name="teammember_notifications"),
+# path("teammember/notifications/read-all/", views.teammember_notifications_read_all, name="teammember_notifications_read_all"),
+# path("teammember/notifications/<int:notification_id>/open/", views.teammember_notification_open, name="teammember_notification_open"),
+
+
+# ]
+
+
+
 from django.urls import path, re_path
 from . import views
+from . import chat_receipts
 
 urlpatterns = [
     path("", views.index, name="index"),
@@ -35,18 +214,12 @@ urlpatterns = [
     path(
         "api/user-status/<int:user_id>/", views.get_user_status, name="get_user_status"
     ),
-    path(
-        "teammember_task/update/<int:task_id>/", views.update_task, name="update_task"
-    ),
-    path(
-        "teammember_task/delete/<int:task_id>/", views.delete_task, name="delete_task"
-    ),
     path("teamlead/dashboard/", views.teamlead_dashboard, name="teamlead_dashboard"),
     path("teamlead_reports", views.teamlead_reports, name="teamlead_reports"),
     path(
-    "teamlead/edit-member/",
-    views.teamlead_edit_member,
-    name="teamlead_edit_member",
+        "teamlead/edit-member/",
+        views.teamlead_edit_member,
+        name="teamlead_edit_member",
     ),
     path(
         "teamlead_project_assigning",
@@ -62,14 +235,10 @@ urlpatterns = [
         name="project_assign_delete",
     ),
     path(
-        "teammember/dashboard/", views.teammember_dashboard, name="teammember_dashboard"
+        "teamlead/announcements/",
+        views.teamlead_announcements,
+        name="teamlead_announcements",
     ),
-    
-    path(
-    "teamlead/announcements/",
-    views.teamlead_announcements,
-    name="teamlead_announcements"
-),
     path("teamlead_repository/", views.teamlead_repository, name="teamlead_repository"),
     path(
         "teamlead_repository/delete/<int:pk>/",
@@ -78,23 +247,21 @@ urlpatterns = [
     ),
     path("teamlead_profile/", views.teamlead_profile, name="teamlead_profile"),
     path(
-    "teamlead_google_meet/",
-    views.teamlead_google_meet,
-    name="teamlead_google_meet",
-),
-
+        "teamlead_google_meet/",
+        views.teamlead_google_meet,
+        name="teamlead_google_meet",
+    ),
     path("teamlead_chat/", views.teamlead_chat, name="teamlead_chat"),
     path(
-    "teamlead_chat/<int:user_id>/",
-    views.teamlead_chat_room,
-    name="teamlead_chat_room",
-),
-
-path(
-    "teamlead_chat/group/<int:group_id>/",
-    views.teamlead_group_chat_view,
-    name="teamlead_group_chat_view",
-),
+        "teamlead_chat/<int:user_id>/",
+        views.teamlead_chat_room,
+        name="teamlead_chat_room",
+    ),
+    path(
+        "teamlead_chat/group/<int:group_id>/",
+        views.teamlead_group_chat_view,
+        name="teamlead_group_chat_view",
+    ),
     path("teamlead_notepad/", views.teamlead_notepad, name="teamlead_notepad"),
     path(
         "teamlead_notepad/delete/<int:pk>/",
@@ -112,7 +279,45 @@ path(
         views.delete_task_teamlead,
         name="delete_task_teamlead",
     ),
+    path("forgot-password/", views.forgot_password, name="forgot_password"),
+    path("verify-otp/", views.verify_otp, name="verify_otp"),
+    path("reset-password/", views.reset_password, name="reset_password"),
+    path("teamlead/logout/", views.teamlead_logout, name="teamlead_logout"),
+    # path("teammember_chat/", views.teammember_chat, name="teammember_chat"),
+    path("chat/", views.teammember_chat, name="teammember_chat"),
+    path("chat/<int:user_id>/", views.teammember_chat_room, name="teammember_chat_room"),
+    path("chat/<int:user_id>/", views.teammember_chat_room, name="chat_room"),
+    path("chat/group/<int:group_id>/", views.teammember_group_chat, name="teammember_group_chat"),
+    path("chat/group/<int:group_id>/", views.teammember_group_chat, name="group_chat_view"),
     path(
+        "teamlead/notifications/",
+        views.teamlead_notifications,
+        name="teamlead_notifications",
+    ),
+    path(
+        "teamlead/notifications/read-all/",
+        views.teamlead_notifications_read_all,
+        name="teamlead_notifications_read_all",
+    ),
+    path(
+        "teamlead/notifications/<int:notification_id>/open/",
+        views.teamlead_notification_open,
+        name="teamlead_notification_open",
+    ),
+    path(
+        "teamlead/reminders/",
+        views.teamlead_reminders,
+        name="teamlead_reminders",
+    ),
+    # <---TEAM MEMBERS--->
+    path("teammember/logout/", views.teammember_logout, name="teammember_logout"),
+        path(
+        "teammember_task/update/<int:task_id>/", views.update_task, name="update_task"
+    ),
+    path(
+        "teammember_task/delete/<int:task_id>/", views.delete_task, name="delete_task"
+    ),
+        path(
         "teammember_repository/",
         views.teammember_repository,
         name="teammember_repository",
@@ -125,33 +330,41 @@ path(
         name="teammember_repository_delete",
     ),
     path("teammember_notepad/", views.teammember_notepad, name="teammember_notepad"),
-    path("forgot-password/", views.forgot_password, name="forgot_password"),
-    path("verify-otp/", views.verify_otp, name="verify_otp"),
-    path("reset-password/", views.reset_password, name="reset_password"),
-    path("teamlead/logout/", views.teamlead_logout, name="teamlead_logout"),
-    path("teammember/logout/", views.teammember_logout, name="teammember_logout"),
-    # path("teammember_chat/", views.teammember_chat, name="teammember_chat"),
-    path("chat/", views.teammember_chat, name="teammember_chat"),
-    path("chat/<int:user_id>/", views.chat_room, name="chat_room"),
-    path("chat/group/<int:group_id>/", views.group_chat_view, name="group_chat_view"),
     path(
-    "teamlead/notifications/",
-    views.teamlead_notifications,
-    name="teamlead_notifications",
+        "teammember_notepad/delete/<int:pk>/",
+        views.teammember_notepad_delete,
+        name="teammember_notepad_delete",
+    ),
+    path(
+        "teammember_google_meet/",
+        views.teammember_google_meet,
+        name="teammember_google_meet",
+    ),
+        path(
+        "teammember/dashboard/", views.teammember_dashboard, name="teammember_dashboard"
+    ),
+        path("teammember_reports/", views.teammember_reports, name="teammember_reports"),
+    path("teammember/announcements/", views.teammember_announcements, name="teammember_announcements"),
+path("teammember/announcements/<int:pk>/seen/", views.teammember_announcement_seen, name="teammember_announcement_seen"),
+path("teammember/reminders/", views.teammember_reminders, name="teammember_reminders"),
+
+path("teammember/notifications/", views.teammember_notifications, name="teammember_notifications"),
+path("teammember/notifications/read-all/", views.teammember_notifications_read_all, name="teammember_notifications_read_all"),
+path("teammember/notifications/<int:notification_id>/open/", views.teammember_notification_open, name="teammember_notification_open"),
+
+path(
+    "api/chat/meta/",
+    chat_receipts.chat_meta,
+    name="chat_meta",
 ),
 path(
-    "teamlead/notifications/read-all/",
-    views.teamlead_notifications_read_all,
-    name="teamlead_notifications_read_all",
+    "api/chat/read/",
+    chat_receipts.chat_mark_read,
+    name="chat_mark_read",
 ),
-path(
-    "teamlead/notifications/<int:notification_id>/open/",
-    views.teamlead_notification_open,
-    name="teamlead_notification_open",
-),
-path(
-    "teamlead/reminders/",
-    views.teamlead_reminders,
-    name="teamlead_reminders",
-),
+
 ]
+
+
+
+

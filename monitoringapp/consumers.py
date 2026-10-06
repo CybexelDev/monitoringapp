@@ -167,46 +167,54 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 
 
-class GroupChatConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        self.group_id = self.scope['url_route']['kwargs']['group_id']
-        self.room_group_name = f"group_{self.group_id}"
+# class GroupChatConsumer(AsyncWebsocketConsumer):
+#     async def connect(self):
+#         self.group_id = self.scope['url_route']['kwargs']['group_id']
+#         self.room_group_name = f"group_{self.group_id}"
 
-        await self.channel_layer.group_add(self.room_group_name, self.channel_name)
-        await self.accept()
+#         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+#         await self.accept()
 
-    async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+#     async def disconnect(self, close_code):
+#         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
-    async def receive(self, text_data):
-        from .models import Group, GroupMessage, User  # ✅ lazy import
+#     async def receive(self, text_data):
+#         from .models import Group, GroupMessage, User  # ✅ lazy import
 
-        data = json.loads(text_data)
-        message = data.get('message')
-        sender_id = data.get('sender_id')
+#         data = json.loads(text_data)
+#         message = data.get('message')
+#         sender_id = data.get('sender_id')
 
-        if not message or not sender_id:
-            return
+#         if not message or not sender_id:
+#             return
 
-        group = await database_sync_to_async(Group.objects.get)(id=self.group_id)
-        sender = await database_sync_to_async(User.objects.get)(id=sender_id)
+#         group = await database_sync_to_async(Group.objects.get)(id=self.group_id)
+#         sender = await database_sync_to_async(User.objects.get)(id=sender_id)
 
-        # Save message
-        group_message = await database_sync_to_async(GroupMessage.objects.create)(
-            group=group, sender=sender, message=message
-        )
+#         # Save message
+#         group_message = await database_sync_to_async(GroupMessage.objects.create)(
+#             group=group, sender=sender, message=message
+#         )
 
-        # Broadcast to group
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': group_message.message,
-                'sender': sender.name,
-                'sender_id': sender.id,
-                'timestamp': group_message.timestamp.isoformat()
-            }
-        )
+#         # Broadcast to group
+#         await self.channel_layer.group_send(
+#             self.room_group_name,
+#             {
+#                 'type': 'chat_message',
+#                 'message': group_message.message,
+#                 'sender': sender.name,
+#                 'sender_id': sender.id,
+#                 'timestamp': group_message.timestamp.isoformat()
+#             }
+#         )
 
-    async def chat_message(self, event):
-        await self.send(text_data=json.dumps(event))
+#     async def chat_message(self, event):
+#         await self.send(text_data=json.dumps(event))
+
+
+from chat.consumers import LeadGroupChatConsumer
+
+
+class GroupChatConsumer(LeadGroupChatConsumer):
+    """Team Lead group chat with shared live updates."""
+    pass

@@ -2523,272 +2523,533 @@ def teamlead_announcements(request):
     )
 
 
-
-
+@never_cache
 def teamlead_chat(request):
     user_id = request.session.get("user_id")
-    if not user_id:
-        return redirect("login_view")
 
-    current_user = get_object_or_404(User, id=user_id)
+    position = (
+        str(request.session.get("position", ""))
+        .strip()
+        .lower()
+        .replace(" ", "_")
+    )
 
-    # Bring current user to the top of the list
-    users = list(User.objects.exclude(id=current_user.id))
-    users.sort(key=lambda u: u.name.lower())
+    if not user_id or position != "team_lead":
+        return redirect("index")
 
-    extra_contacts = ExtraContact.objects.all()
-    groups = Group.objects.filter(memberships__user=current_user).distinct()
+    current_user = get_object_or_404(User, pk=user_id)
 
-    # Handle Create Group from modal
-    if request.method == "POST" and request.POST.get("action") == "create_group":
-        group_name = request.POST.get("group_name")
-        member_ids = request.POST.getlist("members")  # list of user ids
+    if request.method == "POST":
+        action = request.POST.get("action")
 
-        if group_name:
-            with transaction.atomic():
-                # ✅ Create group with required created_by field
-                group = Group.objects.create(name=group_name, created_by=current_user)
+        if action == "create_group":
+            return _member_chat_create_group(
+                request,
+                current_user,
+                group_view_name="teamlead_group_chat_view",
+            )
 
-                # Add creator as group member
-                GroupMember.objects.create(group=group, user=current_user)
+        return _member_chat_error("Invalid action.")
 
-                # Add other selected members
-                for uid in member_ids:
-                    user = User.objects.get(id=uid)
-                    GroupMember.objects.get_or_create(group=group, user=user)
+    context = _member_chat_context(current_user)
+    context["user_role"] = "team_lead"
 
-            messages.success(request, f"Group '{group_name}' created successfully!")
-            return redirect("teammember_chat")
-        else:
-            messages.error(request, "Please provide a group name.")
-
-    context = {
-        "current_user": current_user,
-        "users": users,
-        "extra_contacts": extra_contacts,
-        "role": "teammember",
-        "groups": groups,
-    }
-
-    return render(request, 'team_lead/teamlead_chat.html', context)
+    return render(
+        request,
+        "team_lead/teamlead_chat.html",
+        context,
+    )
 
 
 
+# @never_cache
+# def teamlead_chat_room(request, user_id):
+#     from .member_chat_actions import chat_history, chat_action
+
+#     user_id_session = request.session.get("user_id")
+
+#     if not user_id_session:
+#         return redirect("login_view")
+
+#     current_user = get_object_or_404(
+#         User,
+#         id=user_id_session
+#     )
+
+#     other_user = get_object_or_404(
+#         User,
+#         id=user_id
+#     )
+
+#     # =========================================================
+#     # CHAT APP CONVERSATION
+#     # =========================================================
+
+#     user1 = current_user
+#     user2 = other_user
+
+#     if current_user.pk == other_user.pk:
+#         return redirect('teamlead_chat')
+#     conversation = Conversation.objects.filter(
+#         Q(user1=current_user, user2=other_user) | Q(user1=other_user, user2=current_user)
+#     ).order_by('pk').first()
+#     if conversation is None:
+#         user1, user2 = sorted([current_user, other_user], key=lambda user: user.pk)
+#         conversation, _ = Conversation.objects.get_or_create(user1=user1, user2=user2)
+#     if request.GET.get('messages') == '1':
+#         return chat_history(request, current_user, conversation)
+#     if request.method == 'POST' and request.POST.get('action') in {
+#         'edit_message', 'delete_for_me', 'delete_for_everyone', 'clear_chat'
+#     }:
+#         return chat_action(request, current_user, conversation)
+
+#     # =========================================================
+#     # MESSAGES
+#     # =========================================================
+
+#     messages_list = conversation.messages.exclude(hidden_for=current_user).select_related(
+#         "sender"
+#     ).order_by("created_at")
+
+#     # =========================================================
+#     # SIDEBAR USERS
+#     # =========================================================
+
+#     users = User.objects.exclude(
+#         id=current_user.id
+#     ).order_by("name")
+
+#     # Existing groups
+#     groups = Group.objects.filter(
+#         memberships__user=current_user
+#     ).distinct()
+
+#     context = {
+#         "room": conversation,
+#         "current_user": current_user,
+#         "other_user": other_user,
+#         "messages": messages_list,
+#         "users": users,
+#         "groups": groups,
+#     }
+
+#     return render(
+#         request,
+#         "team_lead/teamlead_chat_room.html",
+#         context
+#     )
+
+
+@never_cache
 def teamlead_chat_room(request, user_id):
+    from .member_chat_actions import chat_action
 
-    user_id_session = request.session.get("user_id")
+    session_user_id = request.session.get("user_id")
 
-    if not user_id_session:
-        return redirect("login_view")
+    position = (
+        str(request.session.get("position", ""))
+        .strip()
+        .lower()
+        .replace(" ", "_")
+    )
+
+    if not session_user_id or position != "team_lead":
+        return redirect("index")
 
     current_user = get_object_or_404(
         User,
-        id=user_id_session
+        pk=session_user_id,
     )
 
     other_user = get_object_or_404(
         User,
-        id=user_id
+        pk=user_id,
     )
 
-    # =========================================================
-    # CHAT APP CONVERSATION
-    # =========================================================
+    if current_user.pk == other_user.pk:
+        return redirect("teamlead_chat")
 
-    user1 = current_user
-    user2 = other_user
+    # Preserve existing conversations in either user ordering.
+    room = (
+        Conversation.objects.filter(
+            Q(user1=current_user, user2=other_user)
+            | Q(user1=other_user, user2=current_user)
+        )
+        .order_by("pk")
+        .first()
+    )
 
-    # Keep the same user order
-    # so duplicate conversations are avoided.
-    if user1.id > user2.id:
-        user1, user2 = user2, user1
-
-    conversation = Conversation.objects.filter(
-        user1=user1,
-        user2=user2
-    ).first()
-
-    if not conversation:
-        conversation = Conversation.objects.create(
-            user1=user1,
-            user2=user2
+    if room is None:
+        first, second = sorted(
+            [current_user, other_user],
+            key=lambda person: person.pk,
         )
 
-    # =========================================================
-    # MESSAGES
-    # =========================================================
+        room, _ = Conversation.objects.get_or_create(
+            user1=first,
+            user2=second,
+        )
 
-    messages_list = conversation.messages.select_related(
-        "sender"
-    ).order_by("created_at")
+    if request.method == "POST":
+        action = request.POST.get("action")
 
-    # =========================================================
-    # SIDEBAR USERS
-    # =========================================================
+        if action == "create_group":
+            return _member_chat_create_group(
+                request,
+                current_user,
+                group_view_name="teamlead_group_chat_view",
+            )
 
-    users = User.objects.exclude(
-        id=current_user.id
-    ).order_by("name")
+        return chat_action(
+            request,
+            current_user,
+            room,
+            group=False,
+        )
 
-    # Existing groups
-    groups = Group.objects.filter(
-        memberships__user=current_user
-    ).distinct()
+    messages_qs = (
+        room.messages
+        .exclude(hidden_for=current_user)
+        .select_related("sender")
+        .order_by("created_at", "pk")
+    )
 
-    context = {
-        "room": conversation,
-        "current_user": current_user,
+    # Used by the chat UI to reconcile messages without refreshing.
+    if request.GET.get("messages") == "1":
+        return JsonResponse({
+            "ok": True,
+            "items": [
+                _member_chat_payload(message)
+                for message in messages_qs
+            ],
+        })
+
+    context = _member_chat_context(current_user)
+
+    context.update({
+        "user_role": "team_lead",
+        "room": room,
         "other_user": other_user,
-        "messages": messages_list,
-        "users": users,
-        "groups": groups,
-    }
+        "messages": messages_qs,
+    })
 
     return render(
         request,
         "team_lead/teamlead_chat_room.html",
-        context
+        context,
     )
 
+@never_cache
 def teamlead_group_chat_view(request, group_id):
+    import logging
+
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+
+    from .chat_receipts import broadcast_chat_activity
+    from .member_chat_actions import chat_action
+
     user_id = request.session.get("user_id")
 
-    if not user_id:
-        return redirect("login_view")
-
-    current_user = get_object_or_404(
-        User,
-        id=user_id
+    position = (
+        str(request.session.get("position", ""))
+        .strip()
+        .lower()
+        .replace(" ", "_")
     )
 
-    group = get_object_or_404(
-        Group,
-        id=group_id
+    if not user_id or position != "team_lead":
+        return redirect("index")
+
+    current_user = get_object_or_404(User, pk=user_id)
+    group = get_object_or_404(Group, pk=group_id)
+
+    membership = get_object_or_404(
+        GroupMember,
+        group=group,
+        user=current_user,
     )
 
-    messages_qs = GroupMessage.objects.filter(
-        group=group
-    ).order_by("timestamp")
-
-    members = GroupMember.objects.filter(
-        group=group
-    ).select_related("user")
-
-    all_users = User.objects.exclude(
-        id__in=[member.user.id for member in members]
+    can_manage = (
+        group.created_by_id == current_user.pk
+        or membership.role == "admin"
     )
 
-    users = list(
-        User.objects.exclude(id=current_user.id)
-    )
+    def member_state():
+        current_membership = GroupMember.objects.filter(
+            group=group,
+            user=current_user,
+        ).first()
 
-    users.sort(
-        key=lambda user: user.name.lower()
-    )
+        permitted = bool(
+            current_membership
+            and (
+                group.created_by_id == current_user.pk
+                or current_membership.role == "admin"
+            )
+        )
 
-    extra_contacts = ExtraContact.objects.all()
+        entries = list(
+            GroupMember.objects.filter(group=group)
+            .select_related("user")
+            .order_by("user__name", "pk")
+        )
 
-    groups = Group.objects.filter(
-        memberships__user=current_user
-    ).distinct()
+        available_users = []
 
-    # -----------------------------
-    # ADD MEMBER / REMOVE MEMBER
-    # -----------------------------
+        if permitted:
+            available_users = [
+                {
+                    "id": person.pk,
+                    "name": person.name,
+                }
+                for person in User.objects.exclude(
+                    group_memberships__group=group
+                ).order_by("name", "pk")
+            ]
+
+        return {
+            "ok": True,
+            "can_manage": permitted,
+            "count": len(entries),
+            "members": [
+                {
+                    "id": entry.user_id,
+                    "name": entry.user.name,
+                    "role": entry.role,
+                    "is_creator": (
+                        entry.user_id == group.created_by_id
+                    ),
+                    "is_self": (
+                        entry.user_id == current_user.pk
+                    ),
+                    "profile": (
+                        entry.user.profile_image.url
+                        if entry.user.profile_image
+                        else None
+                    ),
+                }
+                for entry in entries
+            ],
+            "all_users": available_users,
+        }
+
+    def notify_members():
+        layer = get_channel_layer()
+
+        if layer:
+            try:
+                async_to_sync(layer.group_send)(
+                    f"group_{group.pk}",
+                    {"type": "chat_change"},
+                )
+            except Exception:
+                logging.getLogger(__name__).exception(
+                    "Group membership update delivery failed."
+                )
+
+        async_to_sync(broadcast_chat_activity)(
+            True,
+            group.pk,
+        )
+
     if request.method == "POST":
+        action = request.POST.get("action", "")
 
-        action = request.POST.get("action")
-
-        if action == "add_member":
-
-            new_user_id = request.POST.get("user_id")
-
-            new_user = get_object_or_404(
-                User,
-                id=new_user_id
-            )
-
-            GroupMember.objects.get_or_create(
-                group=group,
-                user=new_user
-            )
-
-            messages.success(
+        if action == "create_group":
+            return _member_chat_create_group(
                 request,
-                f"{new_user.name} added to {group.name}."
+                current_user,
+                group_view_name="teamlead_group_chat_view",
             )
 
-            return redirect(
-                "teamlead_group_chat_view",
-                group_id=group.id
+        if action in {
+            "edit_message",
+            "delete_for_me",
+            "delete_for_everyone",
+            "clear_chat",
+        }:
+            return chat_action(
+                request,
+                current_user,
+                group,
+                group=True,
             )
 
-        elif action == "remove_member":
+        if action not in {
+            "add_member",
+            "remove_member",
+            "make_admin",
+            "remove_admin",
+        }:
+            return _member_chat_error("Invalid action.")
 
-            rem_user_id = request.POST.get("user_id")
+        if not can_manage:
+            return _member_chat_error(
+                "Only the group creator or an admin "
+                "can manage members.",
+                403,
+            )
 
-            member = get_object_or_404(
+        try:
+            target_id = int(
+                request.POST.get("user_id", "")
+            )
+        except (ValueError, TypeError):
+            return _member_chat_error(
+                "Select a valid member."
+            )
+
+        with transaction.atomic():
+            # Serialize membership changes for this group.
+            locked_group = (
+                Group.objects.select_for_update()
+                .get(pk=group.pk)
+            )
+
+            membership = get_object_or_404(
                 GroupMember,
                 group=group,
-                user_id=rem_user_id
+                user=current_user,
             )
 
-            member.delete()
+            if (
+                locked_group.created_by_id != current_user.pk
+                and membership.role != "admin"
+            ):
+                return _member_chat_error(
+                    "You no longer have permission "
+                    "to manage this group.",
+                    403,
+                )
 
-            messages.warning(
-                request,
-                "Member removed successfully."
-            )
+            if action == "add_member":
+                target_user = get_object_or_404(
+                    User,
+                    pk=target_id,
+                )
 
-            return redirect(
-                "teamlead_group_chat_view",
-                group_id=group.id
-            )
+                _, created = (
+                    GroupMember.objects.get_or_create(
+                        group=group,
+                        user=target_user,
+                    )
+                )
 
-    context = {
+                notice = (
+                    f"{target_user.name} added to the group."
+                    if created
+                    else f"{target_user.name} is already a member."
+                )
+
+            else:
+                target = get_object_or_404(
+                    GroupMember.objects.select_related("user"),
+                    group=group,
+                    user_id=target_id,
+                )
+
+                if target_id == locked_group.created_by_id:
+                    return _member_chat_error(
+                        "The group creator cannot be "
+                        "removed or demoted."
+                    )
+
+                if target_id == current_user.pk:
+                    return _member_chat_error(
+                        "You cannot remove yourself or "
+                        "change your own admin role here."
+                    )
+
+                if action == "remove_member":
+                    member_count = (
+                        GroupMember.objects.filter(
+                            group=group
+                        ).count()
+                    )
+
+                    if member_count <= 2:
+                        return _member_chat_error(
+                            "Keep at least two people "
+                            "in the group."
+                        )
+
+                    name = target.user.name
+                    target.delete()
+
+                    notice = (
+                        f"{name} removed from the group."
+                    )
+
+                else:
+                    target.role = (
+                        "admin"
+                        if action == "make_admin"
+                        else "member"
+                    )
+
+                    target.save(update_fields=["role"])
+
+                    notice = (
+                        f"{target.user.name} is now an admin."
+                        if action == "make_admin"
+                        else (
+                            "Admin access removed for "
+                            f"{target.user.name}."
+                        )
+                    )
+
+            transaction.on_commit(notify_members)
+
+        return JsonResponse({
+            **member_state(),
+            "message": notice,
+        })
+
+    if request.GET.get("members") == "1":
+        return JsonResponse(member_state())
+
+    messages_qs = (
+        GroupMessage.objects.filter(group=group)
+        .exclude(hidden_for=current_user)
+        .select_related("sender")
+        .order_by("timestamp", "pk")
+    )
+
+    if request.GET.get("messages") == "1":
+        return JsonResponse({
+            "ok": True,
+            "items": [
+                _member_chat_payload(message, True)
+                for message in messages_qs
+            ],
+        })
+
+    context = _member_chat_context(current_user)
+
+    context.update({
+        "user_role": "team_lead",
         "group": group,
         "messages": messages_qs,
-        "members": members,
-        "all_users": all_users,
-        "current_user": current_user,
-        "users": users,
-        "extra_contacts": extra_contacts,
-        "groups": groups,
-        "user_role": "team_lead",
-    }
+        "members": (
+            GroupMember.objects.filter(group=group)
+            .select_related("user")
+            .order_by("user__name", "pk")
+        ),
+        "all_users": (
+            User.objects.exclude(
+                group_memberships__group=group
+            ).order_by("name", "pk")
+        ),
+        "can_manage_group": can_manage,
+    })
 
     return render(
         request,
         "team_lead/teamlead_group_chat.html",
-        context
+        context,
     )
 
-
-
-# # ✅ List of all team members (chat sidebar)
-# def teammember_chat(request):
-#     user_id = request.session.get("user_id")
-#     if not user_id:
-#         return redirect("login_view")
-#
-#     current_user = get_object_or_404(User, id=user_id)
-#
-#     # Bring current user to the top of the list
-#     users = list(User.objects.exclude(id=current_user.id))
-#     users.sort(key=lambda u: u.name.lower())
-#
-#     extra_contacts = ExtraContact.objects.all()
-#     # ✅ Fetch groups where the current user is a member
-#     groups = Group.objects.filter(memberships__user=current_user).distinct()
-#
-#     context = {
-#         "current_user": current_user,
-#         "users": users,
-#         "extra_contacts": extra_contacts,
-#         "groups": groups,
-#         "role": "teammember",
-#     }
-#     return render(request, "teammember_chat.html", context)
 
 
 def teammember_chat(request):
@@ -2964,100 +3225,253 @@ def group_chat_view(request, group_id):
     return render(request, 'group_chat.html', context)
 
 
+
 # @never_cache
 # def teammember_dashboard(request):
 #     # ❌ Redirect if not logged in or invalid session
-#     if not request.session.get("user_id") or request.session.get("position") != "team_member":
+#     if (
+#         not request.session.get("user_id")
+#         or request.session.get("position") != "team_member"
+#     ):
 #         return redirect("login_view")
 
 #     # ✅ Fetch logged-in team member
 #     try:
-#         team_member = User.objects.get(id=request.session['user_id'])
+#         team_member = User.objects.get(
+#             id=request.session["user_id"]
+#         )
 #     except User.DoesNotExist:
 #         request.session.flush()
 #         return redirect("login_view")
 
 #     team_name = team_member.team
 
-#     # 🕒 Convert login time from session
-#     login_time_str = request.session.get('login_time')
+#     # =========================================================
+#     # 🕒 LOGIN TIME
+#     # =========================================================
+#     login_time_str = request.session.get("login_time")
 #     login_time = parse_datetime(login_time_str) if login_time_str else None
+
 #     if login_time:
 #         if is_naive(login_time):
 #             login_time = make_aware(login_time)
 #         login_time = localtime(login_time)
 
-#     # 🕗 Fetch configurable report submission windows from DB
-#     morning_setting = ReportTimeSetting.objects.filter(report_type='morning').first()
-#     evening_setting = ReportTimeSetting.objects.filter(report_type='evening').first()
+#     # =========================================================
+#     # 📅 TODAY'S DAY
+#     # Monday = 0
+#     # Tuesday = 1
+#     # ...
+#     # Saturday = 5
+#     # Sunday = 6
+#     # =========================================================
+#     current_datetime = localtime()
+#     today = current_datetime.date()
+#     current_day = today.weekday()
 
-#     # Default/fallback times
-#     morning_start = morning_setting.start_time if morning_setting else time(9, 30)
-#     morning_end = morning_setting.end_time if morning_setting else time(10, 30)
-#     evening_start = evening_setting.start_time if evening_setting else time(17, 0)
-#     evening_end = evening_setting.end_time if evening_setting else time(18, 15)
+#     # Use the lead of this member's team.
+#     team_lead = None
+#     if team_member.team_id:
+#         team_lead = User.objects.filter(
+#             team_id=team_member.team_id,
+#             job_Position__iexact="Team Lead",
+#         ).first()
 
-#     # 📝 Handle report submissions
+#     morning_setting = None
+#     evening_setting = None
+#     morning_on_leave = False
+#     evening_on_leave = False
+
+#     if team_lead:
+#         today_leave = TeamReportLeave.objects.filter(
+#             team_lead=team_lead,
+#             date=today,
+#         ).first()
+
+#         morning_on_leave = bool(today_leave and today_leave.morning_leave)
+#         evening_on_leave = bool(today_leave and today_leave.evening_leave)
+
+#         if not morning_on_leave:
+#             morning_setting = ReportDateSchedule.objects.filter(
+#                 team_lead=team_lead,
+#                 date=today,
+#                 report_type="morning",
+#                 is_active=True,
+#             ).first()
+
+#         if not evening_on_leave:
+#             evening_setting = ReportDateSchedule.objects.filter(
+#                 team_lead=team_lead,
+#                 date=today,
+#                 report_type="evening",
+#                 is_active=True,
+#             ).first()
+
+#     # =========================================================
+#     # 🌅 MORNING REPORT TIME
+#     # =========================================================
+#     morning_start = (
+#         morning_setting.start_time
+#         if morning_setting
+#         else None
+#     )
+
+#     morning_end = (
+#         morning_setting.end_time
+#         if morning_setting
+#         else None
+#     )
+
+#     # =========================================================
+#     # 🌇 EVENING REPORT TIME
+#     # =========================================================
+#     evening_start = (
+#         evening_setting.start_time
+#         if evening_setting
+#         else None
+#     )
+
+#     evening_end = (
+#         evening_setting.end_time
+#         if evening_setting
+#         else None
+#     )
+
+#     # =========================================================
+#     # 📝 HANDLE REPORT SUBMISSIONS
+#     # =========================================================
 #     if request.method == "POST":
 #         now_time = localtime().time()
 
-#         # 🌅 Morning report submission
-#         if 'morning_submit' in request.POST:
-#             if is_within_time_range(morning_start, morning_end, now_time):
+#         # =====================================================
+#         # 🌅 MORNING REPORT
+#         # =====================================================
+#         if "morning_submit" in request.POST:
+
+#             # No schedule configured for today
+#             if not morning_setting:
+#                 messages.error(
+#                     request,
+#                     "Morning report submission is not available today."
+#                 )
+
+#             elif is_within_time_range(
+#                 morning_start,
+#                 morning_end,
+#                 now_time
+#             ):
 #                 report_text = request.POST.get("morning_report")
 #                 status = request.POST.get("morning_status")
 
 #                 if report_text and status:
 #                     MorningReport.objects.create(
 #                         user=team_member,
-#                         department=str(team_member.department.name) if team_member.department else "Unassigned",
-#                         team=str(team_member.team.name) if team_member.team else "Unassigned",
+#                         department=(
+#                             str(team_member.department.name)
+#                             if team_member.department
+#                             else "Unassigned"
+#                         ),
+#                         team=(
+#                             str(team_member.team.name)
+#                             if team_member.team
+#                             else "Unassigned"
+#                         ),
 #                         report_text=report_text,
-#                         status=status
+#                         status=status,
 #                     )
-#                     messages.success(request, "Morning report submitted successfully.")
-#                     return redirect('teammember_dashboard')
+
+#                     messages.success(
+#                         request,
+#                         "Morning report submitted successfully."
+#                     )
+
+#                     return redirect("teammember_dashboard")
+
 #                 else:
-#                     messages.error(request, "Please fill in all fields before submitting.")
+#                     messages.error(
+#                         request,
+#                         "Please fill in all fields before submitting."
+#                     )
+
 #             else:
 #                 messages.error(
 #                     request,
 #                     f"You can only submit morning reports between "
-#                     f"{morning_start.strftime('%I:%M %p')} and {morning_end.strftime('%I:%M %p')}."
+#                     f"{morning_start.strftime('%I:%M %p')} and "
+#                     f"{morning_end.strftime('%I:%M %p')}."
 #                 )
 
-#         # 🌇 Evening report submission
-#         elif 'evening_submit' in request.POST:
-#             if is_within_time_range(evening_start, evening_end, now_time):
+#         # =====================================================
+#         # 🌇 EVENING REPORT
+#         # =====================================================
+#         elif "evening_submit" in request.POST:
+
+#             # No schedule configured for today
+#             if not evening_setting:
+#                 messages.error(
+#                     request,
+#                     "Evening report submission is not available today."
+#                 )
+
+#             elif is_within_time_range(
+#                 evening_start,
+#                 evening_end,
+#                 now_time
+#             ):
 #                 report_text = request.POST.get("evening_report")
 #                 status = request.POST.get("evening_status")
 
 #                 if report_text and status:
 #                     EveningReport.objects.create(
 #                         user=team_member,
-#                         department=str(team_member.department.name) if team_member.department else "Unassigned",
-#                         team=str(team_member.team.name) if team_member.team else "Unassigned",
+#                         department=(
+#                             str(team_member.department.name)
+#                             if team_member.department
+#                             else "Unassigned"
+#                         ),
+#                         team=(
+#                             str(team_member.team.name)
+#                             if team_member.team
+#                             else "Unassigned"
+#                         ),
 #                         report_text=report_text,
-#                         status=status
+#                         status=status,
 #                     )
-#                     messages.success(request, "Evening report submitted successfully.")
-#                     return redirect('teammember_dashboard')
+
+#                     messages.success(
+#                         request,
+#                         "Evening report submitted successfully."
+#                     )
+
+#                     return redirect("teammember_dashboard")
+
 #                 else:
-#                     messages.error(request, "Please fill in all fields before submitting.")
+#                     messages.error(
+#                         request,
+#                         "Please fill in all fields before submitting."
+#                     )
+
 #             else:
 #                 messages.error(
 #                     request,
 #                     f"You can only submit evening reports between "
-#                     f"{evening_start.strftime('%I:%M %p')} and {evening_end.strftime('%I:%M %p')}."
+#                     f"{evening_start.strftime('%I:%M %p')} and "
+#                     f"{evening_end.strftime('%I:%M %p')}."
 #                 )
 
-#     # 📊 Fetch reports submitted in the last 24 hours
+#     # =========================================================
+#     # 📊 FETCH REPORTS FROM LAST 24 HOURS
+#     # =========================================================
 #     report_cutoff = now() - timedelta(hours=24)
 
 #     morning_reports = MorningReport.objects.filter(
 #         user=team_member,
 #         created_at__gte=report_cutoff
-#     ).values("report_text", "status", "created_at")
+#     ).values(
+#         "report_text",
+#         "status",
+#         "created_at"
+#     )
 
 #     for r in morning_reports:
 #         r["type"] = "Morning"
@@ -3065,67 +3479,91 @@ def group_chat_view(request, group_id):
 #     evening_reports = EveningReport.objects.filter(
 #         user=team_member,
 #         created_at__gte=report_cutoff
-#     ).values("report_text", "status", "created_at")
+#     ).values(
+#         "report_text",
+#         "status",
+#         "created_at"
+#     )
 
 #     for r in evening_reports:
 #         r["type"] = "Evening"
 
-#     # Combine & sort all reports
+#     # =========================================================
+#     # 🔄 COMBINE + SORT REPORTS
+#     # =========================================================
 #     all_reports = sorted(
 #         list(morning_reports) + list(evening_reports),
 #         key=lambda x: x["created_at"],
 #         reverse=True
 #     )
 
-# #     announcements = Announcement.objects.filter(
-# #     created_by__department=team_member.department,
-# #     created_by__job_Position__iexact="Team Lead",
-# #     created_at__gte=now() - timedelta(hours=12)
-# # ).order_by('-created_at')
-
-#     # ---------------------------------
-#     # 📢 Team Member Announcements
-#     # ---------------------------------
-#     # Show only announcements specifically assigned
-#     # to the currently logged-in Team Member.
-#     # announcements = Announcement.objects.filter(
-#     #     recipients__recipient=team_member,
-#     #     created_at__gte=now() - timedelta(hours=12)
-#     # ).distinct().order_by('-created_at')
-
-
-
+#     # =========================================================
+#     # 📢 TEAM MEMBER ANNOUNCEMENTS
+#     # =========================================================
 #     announcements = Announcement.objects.filter(
 #         recipients__recipient=team_member,
 #         is_active=True,
 #         created_at__gte=now() - timedelta(hours=12)
-#     ).distinct().order_by('-created_at')
+#     ).distinct().order_by("-created_at")
 
-#         # ---------------------------------
-#     # 👁️ Automatically mark announcements as Seen
-#     # ---------------------------------
-#     unread_recipients = AnnouncementRecipient.objects.filter(
-#         recipient=team_member,
-#         announcement_id__in=[ann.id for ann in announcements],
-#         read_at__isnull=True
+#     # Seen is recorded only when the member selects an announcement card.
+#     # Loading the dashboard does not change read receipts.
+
+#     # =========================================================
+#     # 🧭 RENDER DASHBOARD
+#     # =========================================================
+#     return render(
+#         request,
+#         "team_member/teammember_dashboard.html",
+#         {
+#             "announcements": announcements,
+
+#             # Report availability
+#             "morning_allowed": (
+#                 is_within_time_range(
+#                     morning_start,
+#                     morning_end
+#                 )
+#                 if morning_start and morning_end
+#                 else False
+#             ),
+
+#             "evening_allowed": (
+#                 is_within_time_range(
+#                     evening_start,
+#                     evening_end
+#                 )
+#                 if evening_start and evening_end
+#                 else False
+#             ),
+
+#             # Login
+#             "login_time": login_time,
+
+#             # Reports
+#             "all_reports": all_reports,
+
+#             # Morning timing
+#             "morning_start": morning_start,
+#             "morning_end": morning_end,
+
+#             # Evening timing
+#             "evening_start": evening_start,
+#             "evening_end": evening_end,
+
+#             # Optional extra context
+#             "current_day": current_day,
+#             "team_lead": team_lead,
+#             "morning_on_leave": morning_on_leave,
+#             "evening_on_leave": evening_on_leave,
+#         },
 #     )
 
-#     if unread_recipients.exists():
-#         unread_recipients.update(read_at=localtime())
 
-#     # 🧭 Render dashboard
-#     return render(request, 'team_member/teammember_dashboard.html', {
-#         'announcements': announcements,
-#         'morning_allowed': is_within_time_range(morning_start, morning_end),
-#         'evening_allowed': is_within_time_range(evening_start, evening_end),
-#         'login_time': login_time,
-#         'all_reports': all_reports,
-#         'morning_start': morning_start,
-#         'morning_end': morning_end,
-#         'evening_start': evening_start,
-#         'evening_end': evening_end,
-#     })
-
+# Replace ONLY teammember_dashboard(), including its @never_cache decorator.
+# Keep the existing Lead dashboard, other functions and imports.
+# These models already exist in your project; add this import only if missing.
+from .models import ReportDateSchedule, ReportDefaultSchedule, TeamReportLeave
 
 @never_cache
 def teammember_dashboard(request):
@@ -3141,7 +3579,7 @@ def teammember_dashboard(request):
         team_member = User.objects.get(
             id=request.session["user_id"]
         )
-    except User.DoesNotExist:
+    except (User.DoesNotExist, ValueError, TypeError):
         request.session.flush()
         return redirect("login_view")
 
@@ -3151,7 +3589,10 @@ def teammember_dashboard(request):
     # 🕒 LOGIN TIME
     # =========================================================
     login_time_str = request.session.get("login_time")
-    login_time = parse_datetime(login_time_str) if login_time_str else None
+    try:
+        login_time = parse_datetime(login_time_str) if login_time_str else None
+    except (ValueError, TypeError):
+        login_time = None
 
     if login_time:
         if is_naive(login_time):
@@ -3178,65 +3619,39 @@ def teammember_dashboard(request):
             job_Position__iexact="Team Lead",
         ).first()
 
-    morning_setting = None
-    evening_setting = None
-    morning_on_leave = False
-    evening_on_leave = False
+    today_leave = (
+        TeamReportLeave.objects.filter(team_lead=team_lead, date=today).first()
+        if team_lead else None
+    )
+    morning_on_leave = bool(today_leave and today_leave.morning_leave)
+    evening_on_leave = bool(today_leave and today_leave.evening_leave)
 
-    if team_lead:
-        today_leave = TeamReportLeave.objects.filter(
-            team_lead=team_lead,
-            date=today,
+    def get_today_schedule(report_type, on_leave):
+        # This follows the same precedence as the Team Lead dashboard.
+        if team_lead is None or on_leave:
+            return None
+        date_setting = ReportDateSchedule.objects.filter(
+            team_lead=team_lead, date=today, report_type=report_type,
         ).first()
+        if date_setting is not None:
+            # An explicitly disabled date must not fall back to default timings.
+            return date_setting if date_setting.is_active else None
+        kinds = ("saturday", "regular") if today.weekday() == 5 else ("regular",)
+        for kind in kinds:
+            default_setting = ReportDefaultSchedule.objects.filter(
+                team_lead=team_lead, effective_from__lte=today,
+                day_kind=kind, report_type=report_type,
+            ).order_by("-effective_from", "-id").first()
+            if default_setting is not None:
+                return default_setting if default_setting.is_active else None
+        return None
 
-        morning_on_leave = bool(today_leave and today_leave.morning_leave)
-        evening_on_leave = bool(today_leave and today_leave.evening_leave)
-
-        if not morning_on_leave:
-            morning_setting = ReportDateSchedule.objects.filter(
-                team_lead=team_lead,
-                date=today,
-                report_type="morning",
-                is_active=True,
-            ).first()
-
-        if not evening_on_leave:
-            evening_setting = ReportDateSchedule.objects.filter(
-                team_lead=team_lead,
-                date=today,
-                report_type="evening",
-                is_active=True,
-            ).first()
-
-    # =========================================================
-    # 🌅 MORNING REPORT TIME
-    # =========================================================
-    morning_start = (
-        morning_setting.start_time
-        if morning_setting
-        else None
-    )
-
-    morning_end = (
-        morning_setting.end_time
-        if morning_setting
-        else None
-    )
-
-    # =========================================================
-    # 🌇 EVENING REPORT TIME
-    # =========================================================
-    evening_start = (
-        evening_setting.start_time
-        if evening_setting
-        else None
-    )
-
-    evening_end = (
-        evening_setting.end_time
-        if evening_setting
-        else None
-    )
+    morning_setting = get_today_schedule("morning", morning_on_leave)
+    evening_setting = get_today_schedule("evening", evening_on_leave)
+    morning_start = morning_setting.start_time if morning_setting else None
+    morning_end = morning_setting.end_time if morning_setting else None
+    evening_start = evening_setting.start_time if evening_setting else None
+    evening_end = evening_setting.end_time if evening_setting else None
 
     # =========================================================
     # 📝 HANDLE REPORT SUBMISSIONS
@@ -3250,7 +3665,9 @@ def teammember_dashboard(request):
         if "morning_submit" in request.POST:
 
             # No schedule configured for today
-            if not morning_setting:
+            if morning_on_leave:
+                messages.warning(request, "Morning report is marked as leave/holiday today.")
+            elif not morning_setting:
                 messages.error(
                     request,
                     "Morning report submission is not available today."
@@ -3261,10 +3678,10 @@ def teammember_dashboard(request):
                 morning_end,
                 now_time
             ):
-                report_text = request.POST.get("morning_report")
+                report_text = request.POST.get("morning_report", "").strip()
                 status = request.POST.get("morning_status")
 
-                if report_text and status:
+                if report_text and status in {"Pending", "In Progress", "Completed"}:
                     MorningReport.objects.create(
                         user=team_member,
                         department=(
@@ -3308,7 +3725,9 @@ def teammember_dashboard(request):
         elif "evening_submit" in request.POST:
 
             # No schedule configured for today
-            if not evening_setting:
+            if evening_on_leave:
+                messages.warning(request, "Evening report is marked as leave/holiday today.")
+            elif not evening_setting:
                 messages.error(
                     request,
                     "Evening report submission is not available today."
@@ -3319,10 +3738,10 @@ def teammember_dashboard(request):
                 evening_end,
                 now_time
             ):
-                report_text = request.POST.get("evening_report")
+                report_text = request.POST.get("evening_report", "").strip()
                 status = request.POST.get("evening_status")
 
-                if report_text and status:
+                if report_text and status in {"Pending", "In Progress", "Completed"}:
                     EveningReport.objects.create(
                         user=team_member,
                         department=(
@@ -3360,31 +3779,34 @@ def teammember_dashboard(request):
                     f"{evening_end.strftime('%I:%M %p')}."
                 )
 
+    if request.method == "POST":
+        return redirect("teammember_dashboard")
+
     # =========================================================
     # 📊 FETCH REPORTS FROM LAST 24 HOURS
     # =========================================================
     report_cutoff = now() - timedelta(hours=24)
 
-    morning_reports = MorningReport.objects.filter(
+    morning_reports = list(MorningReport.objects.filter(
         user=team_member,
         created_at__gte=report_cutoff
     ).values(
         "report_text",
         "status",
         "created_at"
-    )
+    ))
 
     for r in morning_reports:
         r["type"] = "Morning"
 
-    evening_reports = EveningReport.objects.filter(
+    evening_reports = list(EveningReport.objects.filter(
         user=team_member,
         created_at__gte=report_cutoff
     ).values(
         "report_text",
         "status",
         "created_at"
-    )
+    ))
 
     for r in evening_reports:
         r["type"] = "Evening"
@@ -3407,21 +3829,8 @@ def teammember_dashboard(request):
         created_at__gte=now() - timedelta(hours=12)
     ).distinct().order_by("-created_at")
 
-    # =========================================================
-    # 👁️ AUTOMATICALLY MARK ANNOUNCEMENTS AS SEEN
-    # =========================================================
-    unread_recipients = AnnouncementRecipient.objects.filter(
-        recipient=team_member,
-        announcement_id__in=[
-            ann.id for ann in announcements
-        ],
-        read_at__isnull=True
-    )
-
-    if unread_recipients.exists():
-        unread_recipients.update(
-            read_at=localtime()
-        )
+    # Seen is recorded only when the member selects an announcement card.
+    # Loading the dashboard does not change read receipts.
 
     # =========================================================
     # 🧭 RENDER DASHBOARD
@@ -3430,6 +3839,8 @@ def teammember_dashboard(request):
         request,
         "team_member/teammember_dashboard.html",
         {
+            "user": team_member,
+            "team_name": team_name,
             "announcements": announcements,
 
             # Report availability
@@ -3473,302 +3884,6 @@ def teammember_dashboard(request):
         },
     )
 
-# @never_cache
-# def teamlead_reports(request):
-#     if (
-#         not request.session.get("user_id")
-#         or request.session.get("position") != "team_lead"
-#     ):
-#         return redirect("index")
-
-#     team_lead = get_object_or_404(
-#         User,
-#         id=request.session["user_id"]
-#     )
-
-#     show_all = request.GET.get("all") == "1"
-#     filter_date_str = request.GET.get("date")
-
-#     if filter_date_str:
-#         try:
-#             filter_date = datetime.strptime(
-#                 filter_date_str, "%Y-%m-%d"
-#             ).date()
-#         except ValueError:
-#             messages.error(request, "Invalid date format.")
-#             return redirect("teamlead_reports")
-#     else:
-#         filter_date = None
-
-#     morning_reports = MorningReport.objects.filter(
-#         team=team_lead.team
-#     ).select_related("user")
-
-#     evening_reports = EveningReport.objects.filter(
-#         team=team_lead.team
-#     ).select_related("user")
-
-#     if not show_all:
-#         selected_date = filter_date or localtime().date()
-#         morning_reports = morning_reports.filter(
-#             created_at__date=selected_date
-#         )
-#         evening_reports = evening_reports.filter(
-#             created_at__date=selected_date
-#         )
-
-#     if "export" in request.GET:
-#         wb = Workbook()
-#         ws = wb.active
-#         ws.title = "Team Reports"
-
-#         ws.append([
-#             "Date", "Time", "Report Type", "Name",
-#             "Team", "Department", "Report", "Status"
-#         ])
-
-#         for reports, report_type in (
-#             (morning_reports, "Morning"),
-#             (evening_reports, "Evening"),
-#         ):
-#             for report in reports:
-#                 report_time = localtime(report.created_at)
-
-#                 ws.append([
-#                     report_time.strftime("%Y-%m-%d"),
-#                     report_time.strftime("%I:%M %p"),
-#                     report_type,
-#                     str(report.user.name),
-#                     str(report.team or ""),
-#                     str(report.department or ""),
-#                     str(report.report_text or ""),
-#                     str(report.status or ""),
-#                 ])
-
-#         for cell in ws[1]:
-#             cell.alignment = Alignment(
-#                 horizontal="center",
-#                 vertical="center"
-#             )
-
-#         for row in ws.iter_rows(min_row=2, min_col=7, max_col=7):
-#             for cell in row:
-#                 cell.alignment = Alignment(
-#                     wrap_text=True,
-#                     vertical="top"
-#                 )
-
-#         for column, width in enumerate(
-#             [15, 12, 14, 22, 20, 22, 50, 16],
-#             start=1
-#         ):
-#             ws.column_dimensions[
-#                 get_column_letter(column)
-#             ].width = width
-
-#         response = HttpResponse(
-#             content_type=(
-#                 "application/vnd.openxmlformats-officedocument."
-#                 "spreadsheetml.sheet"
-#             )
-#         )
-#         response["Content-Disposition"] = (
-#             'attachment; filename="team_reports.xlsx"'
-#         )
-
-#         wb.save(response)
-#         return response
-
-#     return render(
-#         request,
-#         "team_lead/teamlead_reports.html",
-#         {
-#             "morning_reports": morning_reports,
-#             "evening_reports": evening_reports,
-#             "show_all": show_all,
-#             "filter_date": filter_date,
-#         }
-#     )
-
-# @never_cache
-# def teamlead_reports(request):
-#     if (
-#         not request.session.get("user_id")
-#         or request.session.get("position") != "team_lead"
-#     ):
-#         return redirect("index")
-
-#     team_lead = get_object_or_404(
-#         User,
-#         id=request.session["user_id"]
-#     )
-
-#     report_tab = request.GET.get("tab", "members")
-#     if report_tab not in ("my", "members"):
-#         report_tab = "members"
-
-#     show_all = request.GET.get("all") == "1"
-#     filter_date_str = request.GET.get("date")
-#     filter_date = None
-
-#     if filter_date_str:
-#         try:
-#             filter_date = datetime.strptime(
-#                 filter_date_str,
-#                 "%Y-%m-%d"
-#             ).date()
-#         except ValueError:
-#             messages.error(request, "Invalid date format.")
-#             return redirect("teamlead_reports")
-
-#     if report_tab == "my":
-#         report_filters = {"user": team_lead}
-#     else:
-#         report_filters = {
-#             "user__team_id": team_lead.team_id,
-#             "user__job_Position__iexact": "Team Member",
-#         }
-
-#     morning_reports = MorningReport.objects.filter(
-#         **report_filters
-#     ).select_related("user").order_by("-created_at")
-
-#     evening_reports = EveningReport.objects.filter(
-#         **report_filters
-#     ).select_related("user").order_by("-created_at")
-
-#     if not show_all:
-#         selected_date = filter_date or localtime().date()
-#         morning_reports = morning_reports.filter(
-#             created_at__date=selected_date
-#         )
-#         evening_reports = evening_reports.filter(
-#             created_at__date=selected_date
-#         )
-#     report_date = filter_date or localtime().date()
-#     report_day_leave = None
-
-#     if not show_all:
-#         report_day_leave = TeamReportLeave.objects.filter(
-#             team_lead=team_lead,
-#             date=report_date,
-#         ).first()
-        
-#     holiday_users = []
-
-#     if report_day_leave:
-#         if report_tab == "my":
-#             holiday_users = [team_lead]
-#         elif team_lead.team_id:
-#             holiday_users = list(
-#                 User.objects.filter(
-#                     team_id=team_lead.team_id,
-#                     job_Position__iexact="Team Member",
-#                 ).order_by("name")
-#             )
-
-#     if "export" in request.GET:
-#         wb = Workbook()
-#         ws = wb.active
-#         ws.title = (
-#             "My Reports"
-#             if report_tab == "my"
-#             else "Team Members Reports"
-#         )
-
-#         ws.append([
-#             "Date", "Time", "Report Type", "Name",
-#             "Team", "Department", "Report", "Status"
-#         ])
-
-#         for reports, report_type in (
-#             (morning_reports, "Morning"),
-#             (evening_reports, "Evening"),
-#         ):
-#             for report in reports:
-#                 report_time = localtime(report.created_at)
-
-#                 ws.append([
-#                     report_time.strftime("%Y-%m-%d"),
-#                     report_time.strftime("%I:%M %p"),
-#                     report_type,
-#                     str(report.user.name),
-#                     str(report.team or ""),
-#                     str(report.department or ""),
-#                     str(report.report_text or ""),
-#                     str(report.status or ""),
-#                 ])
-#         if report_day_leave:
-#             for report_type, is_holiday in (
-#                 ("Morning", report_day_leave.morning_leave),
-#                 ("Evening", report_day_leave.evening_leave),
-#             ):
-#                 if is_holiday:
-#                     for person in holiday_users:
-#                         ws.append([
-#                             report_date.strftime("%Y-%m-%d"),
-#                             "",
-#                             report_type,
-#                             str(person.name),
-#                             str(person.team.name) if person.team else "",
-#                             str(person.department.name) if person.department else "",
-#                             report_day_leave.reason or "Holiday",
-#                             "Holiday",
-#                         ])
-
-#         for cell in ws[1]:
-#             cell.alignment = Alignment(
-#                 horizontal="center",
-#                 vertical="center"
-#             )
-
-#         for row in ws.iter_rows(min_row=2, min_col=7, max_col=7):
-#             for cell in row:
-#                 cell.alignment = Alignment(
-#                     wrap_text=True,
-#                     vertical="top"
-#                 )
-
-#         for column, width in enumerate(
-#             [15, 12, 14, 22, 20, 22, 50, 16],
-#             start=1
-#         ):
-#             ws.column_dimensions[
-#                 get_column_letter(column)
-#             ].width = width
-
-#         response = HttpResponse(
-#             content_type=(
-#                 "application/vnd.openxmlformats-officedocument."
-#                 "spreadsheetml.sheet"
-#             )
-#         )
-#         filename = (
-#             "my_reports.xlsx"
-#             if report_tab == "my"
-#             else "team_members_reports.xlsx"
-#         )
-#         response["Content-Disposition"] = (
-#             f'attachment; filename="{filename}"'
-#         )
-
-#         wb.save(response)
-#         return response
-
-#     return render(
-#         request,
-#         "team_lead/teamlead_reports.html",
-#         {
-#             "morning_reports": morning_reports,
-#             "evening_reports": evening_reports,
-#             "show_all": show_all,
-#             "filter_date": filter_date,
-#             "report_tab": report_tab,
-#             "report_date": report_date,
-#             "report_day_leave": report_day_leave,
-#             "holiday_users": holiday_users,
-#         }
-#     )
 
 
 @never_cache
@@ -4022,24 +4137,7 @@ def project_assign_delete(request, pk):
     messages.success(request, "Project deleted successfully.")
     return redirect("teamlead_project_assigning")
 
-@never_cache
-def teammember_project(request):
-    user_id = request.session.get("user_id")
-    if not user_id:   # if session expired or user logged out
-        return redirect("index")
 
-    user = get_object_or_404(User, id=user_id)
-    projects = ProjectAssign.objects.filter(assign_to=user).order_by("-assigned_date")
-
-    if request.method == "POST":
-        project_id = request.POST.get("project_id")
-        status = request.POST.get("status")
-        project = get_object_or_404(ProjectAssign, id=project_id, assign_to=user)
-        project.status = status
-        project.save()
-        return redirect("teammember_project")
-
-    return render(request, "team_member/teammember_project.html", {"projects": projects})
 def update_project_status(request, pk):
     user_id = request.session.get("user_id")  
     if not user_id:
@@ -4068,9 +4166,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-# Replace ONLY your existing teamlead_notepad function (including @never_cache).
-# Keep your existing Notepad/User, render/redirect/get_object_or_404,
-# messages and never_cache imports. Keep teamlead_notepad_delete unchanged.
 
 @never_cache
 def teamlead_notepad(request):
@@ -4155,51 +4250,100 @@ def teamlead_notepad_delete(request, pk):
     }))
 
 
-
+# Replace ONLY teammember_notepad (including its @never_cache decorator),
+# then add teammember_notepad_delete below it. Keep all other views unchanged.
+from urllib.parse import urlencode
+from django.db.models import Q
+from django.core.paginator import Paginator
+from django.http import HttpResponseBadRequest, JsonResponse
+from django.urls import reverse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib import messages
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST
 
 @never_cache
 def teammember_notepad(request):
     user_id = request.session.get("user_id")
-    if not user_id:   # 🔒 No session → back to index
+    if not user_id or request.session.get("position") != "team_member":
         return redirect("index")
-
-    user = get_object_or_404(User, id=user_id)
-
-    # All notes for this user
-    all_notes = Notepad.objects.filter(user=user).order_by("-updated_at")
-
-    # Pagination (4 notes per page)
-    paginator = Paginator(all_notes, 4)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-
-    # Note to edit/view
-    note_id = request.GET.get("note_id")
+    user = get_object_or_404(User, pk=user_id)
+    owned = Notepad.objects.filter(user=user)
+    params = request.POST if request.method == "POST" else request.GET
+    query = params.get("q", "").strip()[:200]
+    sort = params.get("sort", "updated")
+    orderings = {"updated": ("-updated_at", "-id"), "created": ("-created_at", "-id"), "title": ("title", "id")}
+    if sort not in orderings:
+        sort = "updated"
+    notes = owned
+    if query:
+        notes = notes.filter(Q(title__icontains=query) | Q(content__icontains=query))
+    page_obj = Paginator(notes.order_by(*orderings[sort]), 4).get_page(params.get("page"))
+    selected_id = request.POST.get("note_id") if request.method == "POST" else None
     note = None
-    if note_id:
+    if selected_id:
         try:
-            note = Notepad.objects.get(id=note_id, user=user)
-        except Notepad.DoesNotExist:
-            note = None  # Invalid ID → open new note
-
+            selected_id = int(selected_id)
+        except (ValueError, TypeError):
+            return HttpResponseBadRequest("Invalid note ID.")
+        note = get_object_or_404(owned, pk=selected_id)
+    error = ""
+    title = note.title if note else ""
+    content = (note.content or "") if note else ""
     if request.method == "POST":
-        note_id_post = request.POST.get("note_id")
-        title = request.POST.get("title") or "Untitled"
-        content = request.POST.get("content")
-
-        if note_id_post:
-            # Update existing note
-            note = get_object_or_404(Notepad, id=note_id_post, user=user)
-            note.title = title
-            note.content = content
-            note.save()
+        title = request.POST.get("title", "").strip() or "Untitled"
+        content = request.POST.get("content", "")
+        if len(title) > 255:
+            error = "Title must be 255 characters or fewer."
+        elif not content.strip():
+            error = "Write some content before saving the note."
         else:
-            # Create new note
-            note = Notepad.objects.create(user=user, title=title, content=content)
+            if note:
+                note.title, note.content = title, content
+                note.save()
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                    return JsonResponse({
+                        "ok": True, "id": note.pk, "title": note.title,
+                        "content": note.content or "",
+                        "updated_at": timezone.localtime(note.updated_at).strftime("%d %b %Y, %I:%M %p"),
+                    })
+                messages.success(request, "Note updated successfully.")
+            else:
+                note = Notepad.objects.create(user=user, title=title, content=content)
+                messages.success(request, "Note created successfully.")
+            return redirect(reverse("teammember_notepad") + "?" + urlencode({
+                "q": query if selected_id else "", "sort": sort if selected_id else "updated", "page": page_obj.number if selected_id else 1,
+            }))
+    if error and selected_id and request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": error}, status=400)
+    response = render(request, "team_member/teammember_notepad.html", {
+        "note": None, "page_obj": page_obj, "query": query, "sort": sort,
+        "form_title": title if not selected_id else "", "form_content": content if not selected_id else "", "note_error": error,
+        "total_notes": owned.count(),
+    })
+    if error:
+        response.status_code = 400
+    return response
 
-        return redirect(f"{request.path}?note_id={note.id}")
 
-    return render(request, "team_member/teammember_notepad.html", {"note": note, "page_obj": page_obj})
+@never_cache
+@require_POST
+def teammember_notepad_delete(request, pk):
+    user_id = request.session.get("user_id")
+    if not user_id or request.session.get("position") != "team_member":
+        return redirect("index")
+    user = get_object_or_404(User, pk=user_id)
+    note = get_object_or_404(Notepad, pk=pk, user=user)
+    note.delete()
+    messages.success(request, "Note deleted successfully.")
+    sort = request.POST.get("sort", "updated")
+    if sort not in {"updated", "created", "title"}:
+        sort = "updated"
+    return redirect(reverse("teammember_notepad") + "?" + urlencode({
+        "q": request.POST.get("q", "").strip()[:200],
+        "sort": sort, "page": request.POST.get("page", "1"),
+    }))
 
 
 
@@ -4254,61 +4398,62 @@ def teamlead_repository_delete(request, pk):
 from django.shortcuts import redirect, get_object_or_404
 from django.views.decorators.cache import never_cache
 
-@never_cache
-def teammember_repository(request):
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return redirect("index")
+# @never_cache
+# def teammember_repository(request):
+#     user_id = request.session.get("user_id")
+#     if not user_id:
+#         return redirect("index")
 
-    user = get_object_or_404(User, id=user_id)
+#     user = get_object_or_404(User, id=user_id)
 
-    # ✅ If user has no department, assign fallback
-    department = user.department if hasattr(user, "department") and user.department else Department.objects.first()
+#     # ✅ If user has no department, assign fallback
+#     department = user.department if hasattr(user, "department") and user.department else Department.objects.first()
 
-    if request.method == "POST":
-        title = request.POST.get("title")
-        description = request.POST.get("description")
-        link = request.POST.get("link")
-        file = request.FILES.get("file")
+#     if request.method == "POST":
+#         title = request.POST.get("title")
+#         description = request.POST.get("description")
+#         link = request.POST.get("link")
+#         file = request.FILES.get("file")
 
-        # ✅ Make sure department is not None before saving
-        if not department:
-            return render(request, "team_member/teammember_repository.html", {
-                "error": "No department found for this user or in database."
-            })
+#         # ✅ Make sure department is not None before saving
+#         if not department:
+#             return render(request, "team_member/teammember_repository.html", {
+#                 "error": "No department found for this user or in database."
+#             })
 
-        Knowledge.objects.create(
-            department=department,
-            user=user,
-            title=title,
-            description=description,
-            link=link,
-            file=file
-        )
+#         Knowledge.objects.create(
+#             department=department,
+#             user=user,
+#             title=title,
+#             description=description,
+#             link=link,
+#             file=file
+#         )
 
-        return redirect("teammember_repository")
+#         return redirect("teammember_repository")
 
-    # ✅ Fetch repository items department-wise
-    knowledge_items = Knowledge.objects.filter(department=department).order_by("-created_at")
+#     # ✅ Fetch repository items department-wise
+#     knowledge_items = Knowledge.objects.filter(department=department).order_by("-created_at")
 
-    return render(request, "team_member/teammember_repository.html", {
-        "knowledge_items": knowledge_items
-    })
+#     return render(request, "team_member/teammember_repository.html", {
+#         "knowledge_items": knowledge_items
+#     })
 
 
-@never_cache
-def teammember_repository_delete(request, pk):
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return redirect("index")  # redirect to login page
+# @never_cache
+# def teammember_repository_delete(request, pk):
+#     user_id = request.session.get("user_id")
+#     if not user_id:
+#         return redirect("index")  # redirect to login page
 
-    user = get_object_or_404(User, id=user_id)
-    department = user.department if hasattr(user, "department") and user.department else Department.objects.first()
-    resource = get_object_or_404(Knowledge, id=pk, department=department)
+#     user = get_object_or_404(User, id=user_id)
+#     department = user.department if hasattr(user, "department") and user.department else Department.objects.first()
+#     resource = get_object_or_404(Knowledge, id=pk, department=department)
 
-    # Allow both GET and POST delete
-    resource.delete()
-    return redirect("teammember_repository")
+#     # Allow both GET and POST delete
+#     resource.delete()
+#     return redirect("teammember_repository")
+
 @never_cache
 def teamlead_profile(request):
     user_id = request.session.get("user_id")
@@ -4346,110 +4491,332 @@ def teamlead_profile(request):
     response["Expires"] = "0"
     return response
 
+
+# Add these imports only if they are missing in monitoringapp/views.py.
+from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET, require_POST
+from .models import User, AnnouncementRecipient
+
+
 @never_cache
-def teammember_profile(request):
+@require_GET
+def teammember_announcements(request):
+    """Show active announcements addressed to the signed-in member."""
     user_id = request.session.get("user_id")
-    if not user_id:
+    if not user_id or request.session.get("position") != "team_member":
         return redirect("index")
 
-    user = get_object_or_404(User, id=user_id)
+    user = get_object_or_404(User, pk=user_id)
+    recipients = AnnouncementRecipient.objects.filter(
+        recipient=user,
+        announcement__is_active=True,
+        announcement__created_by__job_Position__iexact="Team Lead",
+    ).select_related("announcement", "announcement__created_by")
+    page_obj = Paginator(
+        recipients.order_by("-announcement__created_at", "-pk"), 10
+    ).get_page(request.GET.get("page"))
+    return render(request, "team_member/teammember_announcements.html", {
+        "user": user,
+        "page_obj": page_obj,
+        "unread_count": recipients.filter(read_at__isnull=True).count(),
+    })
 
-    if request.method == "POST":
-        action = request.POST.get("action")
 
-        # Profile image AJAX upload
-        if action == "edit_profile" and request.FILES.get("profile_image"):
-            user.profile_image = request.FILES["profile_image"]
-            user.save()
+# Add missing imports at the top of monitoringapp/views.py.
+# User and GoogleMeeting are already used by your existing views.
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET
 
-            # Check if AJAX
-            if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                return JsonResponse({
-                    "success": True,
-                    "image_url": user.profile_image.url
-                })
 
-            # fallback redirect for normal form submit
-            messages.success(request, "Profile image updated successfully!")
-            return redirect("teammember_profile")
+# Add this NEW function at the top level of views.py.
+# Keep your existing teamlead_google_meet() function unchanged.
+@never_cache
+@require_GET
+def teammember_google_meet(request):
+    user_id = request.session.get("user_id")
+    if not user_id or request.session.get("position") != "team_member":
+        return redirect("index")
 
-        # Normal form update (other details)
-        elif action == "edit_profile":
-            user.name = request.POST.get("name")
-            user.email = request.POST.get("email")
-            user.phone = request.POST.get("phone")
-            user.work_location = request.POST.get("work_location")
+    user = get_object_or_404(User, pk=user_id)
+    # Show only meetings where the current member was invited.
+    # The same records are used on the Team Lead page: no copying needed.
+    meetings = GoogleMeeting.objects.filter(
+        participants=user,
+    ).select_related(
+        "created_by",
+    ).prefetch_related(
+        "participants",
+    ).distinct().order_by(
+        "-date", "-time", "-id",
+    )
+    return render(request, "team_member/teammember_google_meet.html", {
+        "user": user,
+        "meetings": meetings,
+    })
 
-            if "profile_image" in request.FILES:
-                user.profile_image = request.FILES["profile_image"]
 
-            user.save()
-            messages.success(request, "Profile updated successfully!")
-            return redirect("teammember_profile")
+# Add missing imports to monitoringapp/views.py; keep existing model imports.
+from datetime import datetime
+from django.contrib import messages
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.timezone import localtime
+from django.views.decorators.cache import never_cache
+from openpyxl import Workbook
+from openpyxl.styles import Alignment
+from openpyxl.utils import get_column_letter
 
-    return render(request, "team_member/teammember_profile.html", {"user": user})
+
+# Add this NEW function at the top level. Keep existing views unchanged.
+@never_cache
+def teammember_reports(request):
+    """Current member reports, team holidays, and matching Excel export."""
+    if (
+        not request.session.get("user_id")
+        or request.session.get("position") != "team_member"
+    ):
+        return redirect("index")
+
+    user = get_object_or_404(User, id=request.session["user_id"])
+    report_tab = "my"
+    # Resolve the same team lead used by the existing Member dashboard.
+    team_lead = None
+    if user.team_id:
+        team_lead = User.objects.filter(
+            team_id=user.team_id, job_Position__iexact="Team Lead",
+        ).first()
+
+    show_all = request.GET.get("all") == "1" and not request.GET.get("date")
+    filter_date = None
+    filter_date_str = request.GET.get("date")
+    if filter_date_str:
+        try:
+            filter_date = datetime.strptime(filter_date_str, "%Y-%m-%d").date()
+        except ValueError:
+            messages.error(request, "Invalid date format.")
+            return redirect("teammember_reports")
+
+    report_date = filter_date or localtime().date()
+    report_filters = {"user": user}
+
+    morning_reports = MorningReport.objects.filter(
+        **report_filters
+    ).select_related("user").order_by("-created_at")
+    evening_reports = EveningReport.objects.filter(
+        **report_filters
+    ).select_related("user").order_by("-created_at")
+
+    report_day_leave = None
+    holiday_users = []
+    if not show_all:
+        morning_reports = morning_reports.filter(created_at__date=report_date)
+        evening_reports = evening_reports.filter(created_at__date=report_date)
+        if team_lead:
+            report_day_leave = TeamReportLeave.objects.filter(
+                team_lead=team_lead, date=report_date
+            ).first()
+        if report_day_leave and (
+            report_day_leave.morning_leave or report_day_leave.evening_leave
+        ):
+            holiday_users = [user]
+
+    if "export" in request.GET:
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "My Reports" if report_tab == "my" else "Team Members Reports"
+        ws.append([
+            "Date", "Time", "Report Type", "Name",
+            "Team", "Department", "Report", "Status",
+        ])
+
+        for reports, report_type in (
+            (morning_reports, "Morning"),
+            (evening_reports, "Evening"),
+        ):
+            for report in reports:
+                report_time = localtime(report.created_at)
+                ws.append([
+                    report_time.strftime("%Y-%m-%d"),
+                    report_time.strftime("%I:%M %p"),
+                    report_type,
+                    str(report.user.name),
+                    str(report.team or ""),
+                    str(report.department or ""),
+                    str(report.report_text or ""),
+                    str(report.status or ""),
+                ])
+
+        if report_day_leave:
+            for report_type, is_holiday in (
+                ("Morning", report_day_leave.morning_leave),
+                ("Evening", report_day_leave.evening_leave),
+            ):
+                if is_holiday:
+                    for person in holiday_users:
+                        ws.append([
+                            report_date.strftime("%Y-%m-%d"),
+                            "",
+                            report_type,
+                            str(person.name),
+                            str(person.team.name) if person.team else "",
+                            str(person.department.name) if person.department else "",
+                            report_day_leave.reason or "Holiday",
+                            "Holiday",
+                        ])
+
+        for row in ws.iter_rows():
+            for cell in row:
+                if isinstance(cell.value, str) and cell.value.startswith(("=", "+", "-", "@")):
+                    cell.value = "'" + cell.value
+
+        for cell in ws[1]:
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+        for row in ws.iter_rows(min_row=2, min_col=7, max_col=7):
+            for cell in row:
+                cell.alignment = Alignment(wrap_text=True, vertical="top")
+        for column, width in enumerate(
+            [15, 12, 14, 22, 20, 22, 50, 16], start=1
+        ):
+            ws.column_dimensions[get_column_letter(column)].width = width
+
+        response = HttpResponse(
+            content_type=(
+                "application/vnd.openxmlformats-officedocument."
+                "spreadsheetml.sheet"
+            )
+        )
+        filename = (
+            "my_reports.xlsx" if report_tab == "my"
+            else "team_members_reports.xlsx"
+        )
+        response["Content-Disposition"] = (
+            f'attachment; filename="{filename}"'
+        )
+        wb.save(response)
+        return response
+
+    return render(
+        request,
+        "team_member/teammember_reports.html",
+        {
+            "user": user,
+            "morning_reports": morning_reports,
+            "evening_reports": evening_reports,
+            "show_all": show_all,
+            "filter_date": filter_date,
+            "report_tab": report_tab,
+            "report_date": report_date,
+            "report_day_leave": report_day_leave,
+            "holiday_users": holiday_users,
+        },
+    )
+
+
+
+
+# Keep your existing User and Task model imports.
+# Add these imports only if they are missing from views.py.
+from django.contrib import messages
+from django.db.models import Q
+from django.http import HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST
+
+
 @never_cache
 def teammember_task(request):
     user_id = request.session.get("user_id")
-    if not user_id:   # 🔒 session expired or logged out
-        return redirect("index")   # safer than showing error
-
-    user = get_object_or_404(User, id=user_id)
-
-    # ✅ Only tasks created by this logged-in user
-    tasks = Task.objects.filter(created_by=user).order_by("-created_at")
+    if not user_id or request.session.get("position") != "team_member":
+        return redirect("index")
+    user = get_object_or_404(User, pk=user_id)
 
     if request.method == "POST":
-        title = request.POST.get("title")
-        description = request.POST.get("description")
-        if title:  # prevent empty titles
-            Task.objects.create(
-                title=title,
-                description=description,
-                assigned_to=user,   # optional: assign to self
-                created_by=user     # track who created it
-            )
+        title = request.POST.get("title", "").strip()
+        description = request.POST.get("description", "").strip()
+        if not title:
+            messages.error(request, "Please enter a task title.")
+            return redirect("teammember_task")
+        Task.objects.create(
+            title=title,
+            description=description,
+            assigned_to=user,
+            created_by=user,
+            status="pending",
+            progress=0,
+        )
+        messages.success(request, "Your task has been created successfully.")
         return redirect("teammember_task")
 
-    return render(request, "team_member/teammember_task.html", {"tasks": tasks})
+    # Include older personal tasks that have no assignee.
+    personal_filter = Q(created_by=user) & (
+        Q(assigned_to=user) | Q(assigned_to__isnull=True)
+    )
+    received_filter = Q(assigned_to=user) & ~Q(created_by=user)
+    tasks = Task.objects.filter(personal_filter | received_filter).select_related(
+        "created_by", "assigned_to"
+    ).order_by("-created_at", "-id")
+    my_tasks = tasks.filter(personal_filter)
+    assigned_tasks = tasks.filter(received_filter)
+    return render(request, "team_member/teammember_task.html", {
+        "user": user,
+        "tasks": tasks,
+        "my_tasks": my_tasks,
+        "assigned_tasks": assigned_tasks,
+        "total_tasks": tasks.count(),
+        "pending_tasks": tasks.filter(status="pending").count(),
+        "completed_tasks": tasks.filter(status="completed").count(),
+    })
 
 
-# TEAM MEMBER UPDATE TASK
-def update_task(request, task_id):
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return redirect("login_view")
+# @never_cache
+# @require_POST
+# def update_task(request, task_id):
+#     user_id = request.session.get("user_id")
+#     if not user_id or request.session.get("position") != "team_member":
+#         return redirect("index")
+#     user = get_object_or_404(User, pk=user_id)
+#     # Members may update received tasks and their own personal tasks.
+#     permitted = Task.objects.filter(
+#         Q(assigned_to=user) |
+#         (Q(created_by=user) & Q(assigned_to__isnull=True))
+#     )
+#     task = get_object_or_404(permitted, pk=task_id)
+#     status = request.POST.get("status", "")
+#     progress_by_status = {"pending": 0, "in_progress": 50, "completed": 100}
+#     if status not in progress_by_status:
+#         return HttpResponseBadRequest("Invalid task status.")
+#     task.status = status
+#     task.progress = progress_by_status[status]
+#     task.save()
+#     messages.success(request, "Task status updated successfully.")
+#     tab = "my" if task.created_by_id == user.pk else "assigned"
+#     return redirect(reverse("teammember_task") + "?tab=" + tab)
 
-    user = User.objects.get(id=user_id)
 
-    # ✅ Only allow updating tasks created by this user
-    task = get_object_or_404(Task, id=task_id, created_by=user)
-
-    if request.method == "POST":
-        status = request.POST.get("status")
-        task.status = status
-        # Update progress based on status
-        task.progress = {"pending": 0, "in_progress": 50, "completed": 100}.get(status, 0)
-        task.save()
-
-    return redirect("teammember_task")
-
-
-# TEAM MEMBER DELETE TASK
+@never_cache
+@require_POST
 def delete_task(request, task_id):
     user_id = request.session.get("user_id")
-    if not user_id:
-        return redirect("login_view")
-
-    user = User.objects.get(id=user_id)
-
-    # ✅ Only allow deletion of tasks created by this user
-    task = get_object_or_404(Task, id=task_id, created_by=user)
-
-    if request.method == "POST":
-        task.delete()
-
+    if not user_id or request.session.get("position") != "team_member":
+        return redirect("index")
+    user = get_object_or_404(User, pk=user_id)
+    # A member cannot delete a task assigned by their team lead.
+    personal_tasks = Task.objects.filter(created_by=user).filter(
+        Q(assigned_to=user) | Q(assigned_to__isnull=True)
+    )
+    task = get_object_or_404(personal_tasks, pk=task_id)
+    task.delete()
+    messages.success(request, "Task deleted successfully.")
     return redirect("teammember_task")
+
+
 
 @never_cache
 def teamlead_task(request):
@@ -4983,7 +5350,7 @@ def teamlead_reminders(request):
             )
 
             if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-                from django.http import JsonResponse
+               
 
                 return JsonResponse({
                     "ok": True,
@@ -5115,3 +5482,727 @@ def teamlead_reminders(request):
             "reminders": month_reminders,
         },
     )
+
+
+# ADD this function at top level in monitoringapp/views.py.
+# Keep teamlead_reminders and _parse_reminder_datetime as they are.
+# Add only missing imports from this block.
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods
+from .models import User, TeamLeadReminder
+
+
+# ADD these functions to monitoringapp/views.py; keep all Lead functions.
+# Add only missing imports.
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST
+from .models import User, TeamLeadNotification
+from .member_notifications import sync_member_notifications
+
+def _notification_teammember(request):
+    if (
+        not request.session.get("user_id")
+        or request.session.get("position") != "team_member"
+    ):
+        return None
+
+    return User.objects.filter(
+        pk=request.session["user_id"]
+    ).first()
+
+@never_cache
+def teammember_notifications(request):
+    team_member = _notification_teammember(request)
+
+    if team_member is None:
+        return redirect("login_view")
+
+    sync_member_notifications(team_member)
+
+    notifications = TeamLeadNotification.objects.filter(
+        recipient=team_member
+    ).order_by("-created_at", "-id")
+
+    if request.GET.get("counts") == "1":
+        return JsonResponse({"ok": True, "unread_count": notifications.filter(is_read=False, is_archived=False).count()})
+
+    return render(
+        request,
+        "team_member/teammember_notifications.html",
+        {
+            "user": team_member,
+            "items": notifications,
+            "unread_count": notifications.filter(
+                is_read=False,
+                is_archived=False,
+            ).count(),
+        },
+    )
+
+
+
+# Add missing imports once at module level in monitoringapp/views.py.
+# Replace ONLY the nine existing functions below, including their decorators.
+# _notify_member_operation is a NEW helper: add it once above these functions.
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+def _notify_member_operation(user, kind, title, message, route):
+    return TeamLeadNotification.objects.create(
+        recipient=user, kind=kind, title=title, message=message, url=reverse(route),
+    )
+
+@never_cache
+def teammember_project(request):
+    user_id = request.session.get("user_id")
+    if not user_id:   # if session expired or user logged out
+        return redirect("index")
+
+    user = get_object_or_404(User, id=user_id)
+    projects = ProjectAssign.objects.filter(assign_to=user).order_by("-assigned_date")
+
+    if request.method == "POST":
+        project_id = request.POST.get("project_id")
+        status = request.POST.get("status")
+        project = get_object_or_404(ProjectAssign, id=project_id, assign_to=user)
+        if status not in dict(ProjectAssign.STATUS_CHOICES):
+            messages.error(request, "Invalid status selected.")
+            return redirect("teammember_project")
+        project.status = status
+        project.save()
+        messages.success(request, f"Project status updated to {status}.")
+        return redirect("teammember_project")
+
+    return render(request, "team_member/teammember_project.html", {"projects": projects})
+
+
+@never_cache
+def teammember_repository(request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("index")
+
+    user = get_object_or_404(User, id=user_id)
+
+    # ✅ If user has no department, assign fallback
+    department = user.department if hasattr(user, "department") and user.department else Department.objects.first()
+
+    if request.method == "POST":
+        title = request.POST.get("title")
+        description = request.POST.get("description")
+        link = request.POST.get("link")
+        file = request.FILES.get("file")
+
+        if not (title or "").strip():
+            messages.error(request, "Please enter a resource title.")
+            return redirect("teammember_repository")
+
+        # ✅ Make sure department is not None before saving
+        if not department:
+            messages.error(request, "No department found for this user or in database.")
+            return redirect("teammember_repository")
+
+        Knowledge.objects.create(
+            department=department,
+            user=user,
+            title=title,
+            description=description,
+            link=link,
+            file=file
+        )
+
+        messages.success(request, "Resource added successfully.")
+        return redirect("teammember_repository")
+
+    # ✅ Fetch repository items department-wise
+    knowledge_items = Knowledge.objects.filter(department=department).order_by("-created_at")
+
+    return render(request, "team_member/teammember_repository.html", {
+        "knowledge_items": knowledge_items
+    })
+
+
+@require_POST
+@never_cache
+def teammember_repository_delete(request, pk):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("index")  # redirect to login page
+
+    user = get_object_or_404(User, id=user_id)
+    department = user.department if hasattr(user, "department") and user.department else Department.objects.first()
+    resource = get_object_or_404(Knowledge, id=pk, department=department)
+
+    # Delete only after the confirmation form submits.
+    resource.delete()
+    messages.success(request, "Resource deleted successfully.")
+    return redirect("teammember_repository")
+
+
+@never_cache
+def teammember_profile(request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("index")
+
+    user = get_object_or_404(User, id=user_id)
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        # Profile image AJAX upload
+        if action == "edit_profile" and request.FILES.get("profile_image"):
+            user.profile_image = request.FILES["profile_image"]
+            user.save()
+            _notify_member_operation(user, "profile", "Profile image updated", "Your profile image was updated.", "teammember_profile")
+
+            # Check if AJAX
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({
+                    "success": True,
+                    "image_url": user.profile_image.url
+                })
+
+            # fallback redirect for normal form submit
+            messages.success(request, "Profile image updated successfully!")
+            return redirect("teammember_profile")
+
+        # Normal form update (other details)
+        elif action == "edit_profile":
+            user.name = request.POST.get("name")
+            user.email = request.POST.get("email")
+            user.phone = request.POST.get("phone")
+            user.work_location = request.POST.get("work_location")
+
+            if "profile_image" in request.FILES:
+                user.profile_image = request.FILES["profile_image"]
+
+            user.save()
+            _notify_member_operation(user, "profile", "Profile updated", "Your profile details were updated.", "teammember_profile")
+            messages.success(request, "Profile updated successfully!")
+            return redirect("teammember_profile")
+
+    return render(request, "team_member/teammember_profile.html", {"user": user})
+
+
+@never_cache
+@require_POST
+def update_task(request, task_id):
+    user_id = request.session.get("user_id")
+    if not user_id or request.session.get("position") != "team_member":
+        return redirect("index")
+    user = get_object_or_404(User, pk=user_id)
+    # Members may update received tasks and their own personal tasks.
+    permitted = Task.objects.filter(
+        Q(assigned_to=user) |
+        (Q(created_by=user) & Q(assigned_to__isnull=True))
+    )
+    task = get_object_or_404(permitted, pk=task_id)
+    status = request.POST.get("status", "")
+    progress_by_status = {"pending": 0, "in_progress": 50, "completed": 100}
+    if status not in progress_by_status:
+        messages.error(request, "Invalid task status.")
+        return redirect("teammember_task")
+    task.status = status
+    task.progress = progress_by_status[status]
+    task.save()
+    messages.success(request, "Task status updated successfully.")
+    tab = "my" if task.created_by_id == user.pk else "assigned"
+    return redirect(reverse("teammember_task") + "?tab=" + tab)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def teammember_reminders(request):
+    user_id = request.session.get("user_id")
+    if not user_id or request.session.get("position") != "team_member":
+        return redirect("index")
+    team_member = get_object_or_404(User, pk=user_id)
+
+    # All reads and writes are restricted to this member.
+    reminders = TeamLeadReminder.objects.filter(owner=team_member)
+
+    # The shared Member sidebar polls this endpoint while the site is open.
+    # It does not consume or change the background processor's notified_at field.
+    if request.method == "GET" and request.GET.get("alerts") == "1":
+        due = reminders.filter(
+            is_completed=False, remind_at__lte=reminder_timezone.now()
+        ).order_by("-remind_at", "-pk")[:100]
+        return JsonResponse({"ok": True, "items": [{
+            "id": item.pk,
+            "title": item.title,
+            "remind_at": item.remind_at.isoformat(),
+            "event_at": reminder_timezone.localtime(item.event_at).strftime("%d %b %Y, %I:%M %p"),
+        } for item in due]})
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        reminder = None
+
+        if action in {"update", "delete", "complete", "reopen"}:
+            reminder = get_object_or_404(
+                reminders,
+                pk=request.POST.get("reminder_id"),
+            )
+
+        if action == "delete":
+            reminder.delete()
+            reminder_messages.success(request, "Reminder deleted.")
+            return redirect("teammember_reminders")
+
+        if action in {"complete", "reopen"}:
+            reminder.is_completed = action == "complete"
+            reminder.save(
+                update_fields=["is_completed", "updated_at"]
+            )
+
+            response_message = (
+                "Reminder completed."
+                if reminder.is_completed
+                else "Reminder reopened."
+            )
+
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({
+                    "ok": True,
+                    "id": reminder.pk,
+                    "is_completed": reminder.is_completed,
+                    "message": response_message,
+                })
+
+            reminder_messages.success(
+                request,
+                response_message,
+            )
+            return redirect("teammember_reminders")
+
+        if action not in {"create", "update"}:
+            reminder_messages.error(request, "Invalid reminder action.")
+            return redirect("teammember_reminders")
+
+        title = request.POST.get("title", "").strip()
+        description = request.POST.get("description", "").strip()
+        event_at = _parse_reminder_datetime(
+            request.POST.get("event_at")
+        )
+        remind_at = _parse_reminder_datetime(
+            request.POST.get("remind_at")
+        )
+
+        if not title or len(title) > 180:
+            reminder_messages.error(
+                request,
+                "Enter a title with a maximum of 180 characters.",
+            )
+            return redirect("teammember_reminders")
+
+        if event_at is None or remind_at is None:
+            reminder_messages.error(
+                request,
+                "Enter valid event and reminder dates and times.",
+            )
+            return redirect("teammember_reminders")
+
+        if remind_at > event_at:
+            reminder_messages.error(
+                request,
+                "Reminder time must be on or before the event time.",
+            )
+            return redirect("teammember_reminders")
+
+        if remind_at <= reminder_timezone.now():
+            reminder_messages.error(
+                request,
+                "Choose a future reminder time.",
+            )
+            return redirect("teammember_reminders")
+
+        if reminder is None:
+            reminder = TeamLeadReminder(owner=team_member)
+
+        # Changing the dates allows a new notification to be scheduled.
+        schedule_changed = (
+            reminder.pk is None
+            or reminder.event_at != event_at
+            or reminder.remind_at != remind_at
+        )
+
+        reminder.title = title
+        reminder.description = description
+        reminder.event_at = event_at
+        reminder.remind_at = remind_at
+
+        if schedule_changed:
+            reminder.notified_at = None
+            reminder.notification = None
+            reminder.is_completed = False
+
+        reminder.save()
+
+        reminder_messages.success(
+            request,
+            "Reminder created."
+            if action == "create"
+            else "Reminder updated.",
+        )
+        return redirect("teammember_reminders")
+
+    today = reminder_timezone.localdate()
+
+    try:
+        selected_month = reminder_datetime.strptime(
+            request.GET.get("month", today.strftime("%Y-%m")),
+            "%Y-%m",
+        ).date()
+    except (ValueError, TypeError):
+        selected_month = today.replace(day=1)
+
+    month_reminders = reminders.filter(
+        event_at__year=selected_month.year,
+        event_at__month=selected_month.month,
+    ).order_by("event_at", "id")
+
+    calendar_items = []
+
+    for reminder in month_reminders:
+        local_event = reminder_timezone.localtime(reminder.event_at)
+        local_remind = reminder_timezone.localtime(reminder.remind_at)
+
+        calendar_items.append({
+            "id": reminder.pk,
+            "title": reminder.title,
+            "description": reminder.description,
+            "date": local_event.strftime("%Y-%m-%d"),
+            "event_at": local_event.strftime("%Y-%m-%dT%H:%M"),
+            "remind_at": local_remind.strftime("%Y-%m-%dT%H:%M"),
+            "is_completed": reminder.is_completed,
+            "event_at_iso": reminder.event_at.isoformat(),
+            "remind_at_iso": reminder.remind_at.isoformat(),
+        })
+
+    return render(
+        request,
+        "team_member/teammember_reminders.html",
+        {
+            "user": team_member,
+            "selected_month": selected_month.strftime("%Y-%m"),
+            "month_label": selected_month.strftime("%B %Y"),
+            "calendar_weeks": calendar.monthcalendar(
+                selected_month.year,
+                selected_month.month,
+            ),
+            "calendar_items": calendar_items,
+            "today": today.isoformat(),
+            "reminders": month_reminders,
+        },
+    )
+
+
+@require_POST
+def teammember_notifications_read_all(request):
+    team_member = _notification_teammember(request)
+
+    if team_member is None:
+        return redirect("login_view")
+
+    TeamLeadNotification.objects.filter(
+        recipient=team_member,
+        is_read=False,
+        is_archived=False,
+    ).update(is_read=True)
+
+    messages.success(request, "All notifications marked as read.")
+    return redirect("teammember_notifications")
+
+
+@require_POST
+def teammember_notification_open(request, notification_id):
+    team_member = _notification_teammember(request)
+
+    if team_member is None:
+        return redirect("login_view")
+
+    notification = get_object_or_404(
+        TeamLeadNotification,
+        pk=notification_id,
+        recipient=team_member,
+    )
+
+    action = request.POST.get("action", "open")
+
+    changes = {
+        "mark_read": {"is_read": True},
+        "mark_unread": {"is_read": False},
+        "archive": {"is_archived": True},
+        "restore": {"is_archived": False},
+    }
+
+    if action in changes:
+        TeamLeadNotification.objects.filter(
+            pk=notification.pk,
+            recipient=team_member,
+        ).update(**changes[action])
+
+        labels = {"mark_read": "Notification marked as read.", "mark_unread": "Notification marked as unread.", "archive": "Notification archived.", "restore": "Notification restored."}
+        messages.success(request, labels[action])
+        return redirect("teammember_notifications")
+
+    if action != "open":
+        return redirect("teammember_notifications")
+
+    if not notification.is_read:
+        notification.is_read = True
+        notification.save(update_fields=["is_read"])
+
+    # Older member notifications may contain Lead links: route them by category.
+    routes = {
+        "meeting": "teammember_google_meet", "profile": "teammember_profile",
+        "announcement": "teammember_announcements", "project": "teammember_project",
+        "task": "teammember_task", "note": "teammember_notepad",
+        "resource": "teammember_repository", "report": "teammember_reports",
+        "schedule": "teammember_dashboard", "reminder": "teammember_reminders",
+    }
+    route = routes.get(notification.kind)
+    if route:
+        target = reverse(route)
+        # Preserve a reminder's date query only for the correct Member page.
+        if notification.url and notification.url.split("?", 1)[0] == target:
+            target = notification.url
+        return redirect(target)
+    return redirect("teammember_notifications")
+
+
+@never_cache
+@require_POST
+def teammember_announcement_seen(request, pk):
+    """Opening a member's own announcement records its first read time."""
+    user_id = request.session.get("user_id")
+    if not user_id or request.session.get("position") != "team_member":
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
+
+    # Recipient ownership is required: knowing an announcement ID is insufficient.
+    recipients = AnnouncementRecipient.objects.filter(
+        recipient_id=user_id,
+        announcement__is_active=True,
+        announcement__created_by__job_Position__iexact="Team Lead",
+    )
+    row = get_object_or_404(
+        recipients.select_related("announcement", "announcement__created_by"),
+        announcement_id=pk,
+    )
+    # Keep the first read timestamp; repeated views must not overwrite it.
+    first_seen = recipients.filter(announcement_id=pk, read_at__isnull=True).update(read_at=timezone.now())
+    if first_seen:
+        member = get_object_or_404(User, pk=user_id)
+        TeamLeadNotification.objects.get_or_create(
+            event_key=f"announcement-seen:{pk}:{user_id}",
+            defaults={
+                "recipient": row.announcement.created_by, "kind": "announcement",
+                "title": "Announcement seen",
+                "message": f"{member.name} saw your announcement: {row.announcement.title}",
+                "url": reverse("teamlead_announcements"),
+            },
+        )
+    announcement = row.announcement
+    author = announcement.created_by
+    author_name = author.name or author.username
+    created = timezone.localtime(announcement.created_at).strftime("%d %b %Y, %I:%M %p")
+    return JsonResponse({
+        "ok": True,
+        "title": announcement.title or "Team Announcement",
+        "message": announcement.message,
+        "meta": f"Posted by {author_name} · {created}",
+        "unread_count": recipients.filter(read_at__isnull=True).count(),
+    })
+
+
+"""Team Member chat pages, sharing Lead conversations and group messages."""
+from django.db import transaction
+from django.db.models import Q
+from django.http import JsonResponse, HttpResponseForbidden
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.views.decorators.cache import never_cache
+from chat.models import Conversation
+from .models import User, Group, GroupMember, GroupMessage, ExtraContact
+from .member_chat_actions import chat_action
+
+
+def _member_chat_member(request):
+    position = str(request.session.get('position', '')).strip().lower().replace(' ', '_')
+    if position != 'team_member' or not request.session.get('user_id'):
+        return None
+    return get_object_or_404(User, pk=request.session['user_id'])
+
+
+def _member_chat_context(user):
+    return {'current_user': user, 'user': user,
+            'users': User.objects.exclude(pk=user.pk).order_by('name', 'pk'),
+            'groups': Group.objects.filter(memberships__user=user).distinct().order_by('name'),
+            'extra_contacts': ExtraContact.objects.all(), 'user_role': 'team_member'}
+
+
+def _member_chat_error(message, status=400):
+    return JsonResponse({'ok': False, 'message': message}, status=status)
+
+
+def _member_chat_create_group(request, user , group_view_name="teammember_group_chat"):
+    name = request.POST.get('group_name', '').strip()
+    ids = request.POST.getlist('members')
+    if not name or len(name) > 150:
+        return _member_chat_error('Enter a group name of 150 characters or fewer.')
+    try:
+        ids = set(int(value) for value in ids) - {user.pk}
+    except (ValueError, TypeError):
+        return _member_chat_error('Select valid group members.')
+    if not ids:
+        return _member_chat_error('Select at least one other member (two people including you).')
+    people = list(User.objects.filter(pk__in=ids))
+    if len(people) != len(ids):
+        return _member_chat_error('One of the selected members no longer exists.')
+    with transaction.atomic():
+        group = Group.objects.create(name=name, created_by=user)
+        GroupMember.objects.create(group=group, user=user, role='admin')
+        GroupMember.objects.bulk_create([GroupMember(group=group, user=person) for person in people])
+    return JsonResponse({'ok': True, 'message': 'Group created successfully.',
+                         'url': reverse(group_view_name, args=[group.pk])})
+
+
+def _member_chat_payload(message, group=False):
+    sender = message.sender
+    return {'message_id': message.pk, 'message': message.message if group else message.content,
+            'sender_id': sender.pk, 'sender': sender.name,
+            'sender_profile': sender.profile_image.url if sender.profile_image else None,
+            'timestamp': (message.timestamp if group else message.created_at).isoformat(),
+            'edited_at': message.edited_at.isoformat() if message.edited_at else None,
+            'deleted': message.deleted_for_everyone}
+
+
+@never_cache
+def teammember_chat(request):
+    user = _member_chat_member(request)
+    if user is None:
+        return redirect('index')
+    if request.method == 'POST':
+        return _member_chat_create_group(request, user) if request.POST.get('action') == 'create_group' else _member_chat_error('Invalid action.')
+    return render(request, 'team_member/teammember_chat.html', _member_chat_context(user))
+
+
+@never_cache
+def teammember_chat_room(request, user_id):
+    user = _member_chat_member(request)
+    if user is None:
+        return redirect('index')
+    other = get_object_or_404(User, pk=user_id)
+    if user.pk == other.pk:
+        return redirect('teammember_chat')
+    # Find either ordering so older conversations and their messages remain visible.
+    room = Conversation.objects.filter(Q(user1=user, user2=other) | Q(user1=other, user2=user)).order_by('pk').first()
+    if room is None:
+        first, second = sorted([user, other], key=lambda person: person.pk)
+        room, _ = Conversation.objects.get_or_create(user1=first, user2=second)
+    if request.method == 'POST':
+        return _member_chat_create_group(request, user) if request.POST.get('action') == 'create_group' else chat_action(request, user, room, False)
+    messages_qs = room.messages.exclude(hidden_for=user).select_related('sender').order_by('created_at', 'pk')
+    if request.GET.get('messages') == '1':
+        return JsonResponse({'ok': True, 'items': [_member_chat_payload(message) for message in messages_qs]})
+    context = _member_chat_context(user)
+    context.update(room=room, other_user=other, messages=messages_qs)
+    return render(request, 'team_member/teammember_chat_room.html', context)
+
+@never_cache
+def teammember_group_chat(request, group_id):
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+    import logging
+
+    user = _member_chat_member(request)
+    if user is None:
+        return redirect('index')
+    group = get_object_or_404(Group, pk=group_id)
+    membership = get_object_or_404(GroupMember, group=group, user=user)
+    can_manage = group.created_by_id == user.pk or membership.role == 'admin'
+
+    def member_state():
+        current = GroupMember.objects.filter(group=group, user=user).first()
+        permitted = bool(current and (group.created_by_id == user.pk or current.role == 'admin'))
+        entries = list(GroupMember.objects.filter(group=group).select_related('user').order_by('user__name', 'pk'))
+        return {
+            'ok': True, 'can_manage': permitted, 'count': len(entries),
+            'members': [{
+                'id': entry.user_id, 'name': entry.user.name,
+                'role': entry.role, 'is_creator': entry.user_id == group.created_by_id,
+                'is_self': entry.user_id == user.pk,
+                'profile': entry.user.profile_image.url if entry.user.profile_image else None,
+            } for entry in entries],
+            'all_users': [{'id': person.pk, 'name': person.name} for person in
+                          User.objects.exclude(group_memberships__group=group).order_by('name', 'pk')] if permitted else [],
+        }
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+        if action == 'create_group':
+            return _member_chat_create_group(request, user)
+        if action in {'edit_message', 'delete_for_me', 'delete_for_everyone', 'clear_chat'}:
+            return chat_action(request, user, group, True)
+        if action not in {'add_member', 'remove_member', 'make_admin', 'remove_admin'}:
+            return _member_chat_error('Invalid action.')
+        if not can_manage:
+            return _member_chat_error('Only the group creator or an admin can manage members.', 403)
+        try:
+            target_id = int(request.POST.get('user_id', ''))
+        except (ValueError, TypeError):
+            return _member_chat_error('Select a valid member.')
+        with transaction.atomic():
+            Group.objects.select_for_update().get(pk=group.pk)
+            # Check permission again after obtaining the same lock used by all membership changes.
+            membership = get_object_or_404(GroupMember, group=group, user=user)
+            if group.created_by_id != user.pk and membership.role != 'admin':
+                return _member_chat_error('You no longer have permission to manage this group.', 403)
+            if action == 'add_member':
+                target_user = get_object_or_404(User, pk=target_id)
+                _, created = GroupMember.objects.get_or_create(group=group, user=target_user)
+                notice = f'{target_user.name} added to the group.' if created else f'{target_user.name} is already a member.'
+            else:
+                target = get_object_or_404(GroupMember.objects.select_related('user'), group=group, user_id=target_id)
+                if target_id == group.created_by_id:
+                    return _member_chat_error('The group creator cannot be removed or demoted.')
+                if target_id == user.pk:
+                    return _member_chat_error('You cannot remove yourself or change your own admin role here.')
+                if action == 'remove_member':
+                    if GroupMember.objects.filter(group=group).count() <= 2:
+                        return _member_chat_error('Keep at least two people in the group.')
+                    name = target.user.name
+                    target.delete()
+                    notice = f'{name} removed from the group.'
+                else:
+                    target.role = 'admin' if action == 'make_admin' else 'member'
+                    target.save(update_fields=['role'])
+                    notice = f'{target.user.name} is now an admin.' if action == 'make_admin' else f'Admin access removed for {target.user.name}.'
+
+            def notify_members():
+                layer = get_channel_layer()
+                if layer:
+                    try:
+                        async_to_sync(layer.group_send)(f'group_{group.pk}', {'type': 'chat_change'})
+                    except Exception:
+                        logging.getLogger(__name__).exception('Membership broadcast failed; member polling will reconcile.')
+            transaction.on_commit(notify_members)
+        return JsonResponse({**member_state(), 'message': notice})
+
+    if request.GET.get('members') == '1':
+        return JsonResponse(member_state())
+    messages_qs = GroupMessage.objects.filter(group=group).exclude(hidden_for=user).select_related('sender').order_by('timestamp', 'pk')
+    if request.GET.get('messages') == '1':
+        return JsonResponse({'ok': True, 'items': [_member_chat_payload(message, True) for message in messages_qs]})
+    context = _member_chat_context(user)
+    context.update(group=group, messages=messages_qs,
+                   members=GroupMember.objects.filter(group=group).select_related('user').order_by('user__name', 'pk'),
+                   all_users=User.objects.exclude(group_memberships__group=group).order_by('name', 'pk'),
+                   can_manage_group=can_manage)
+    return render(request, 'team_member/teammember_group_chat.html', context)

@@ -987,14 +987,79 @@ class GroupMember(models.Model):
         return f"{self.user.name} in {self.group.name}"
 
 
+# class GroupMessage(models.Model):
+#     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='messages')
+#     sender = models.ForeignKey('User', on_delete=models.CASCADE)
+#     message = models.TextField()
+#     timestamp = models.DateTimeField(default=timezone.now)
+
+#     def __str__(self):
+#         return f"{self.sender.name}: {self.message[:30]}"
+
+
 class GroupMessage(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey('User', on_delete=models.CASCADE)
     message = models.TextField()
     timestamp = models.DateTimeField(default=timezone.now)
+    edited_at = models.DateTimeField(null=True, blank=True)
+    deleted_for_everyone = models.BooleanField(default=False)
+    hidden_for = models.ManyToManyField(User, blank=True, related_name="%(app_label)s_%(class)s_hidden_messages")
 
     def __str__(self):
         return f"{self.sender.name}: {self.message[:30]}"
+
+class ChatReadState(models.Model):
+    user = models.ForeignKey(
+        "monitoringapp.User",
+        on_delete=models.CASCADE,
+        related_name="chat_read_states",
+    )
+
+    conversation = models.ForeignKey(
+        "chat.Conversation",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="read_states",
+    )
+
+    group = models.ForeignKey(
+        "monitoringapp.Group",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="read_states",
+    )
+
+    last_read_id = models.PositiveBigIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "conversation"],
+                name="unique_user_conversation_read",
+            ),
+            models.UniqueConstraint(
+                fields=["user", "group"],
+                name="unique_user_group_read",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(
+                        conversation__isnull=False,
+                        group__isnull=True,
+                    )
+                    | models.Q(
+                        conversation__isnull=True,
+                        group__isnull=False,
+                    )
+                ),
+                name="chat_read_exactly_one_target",
+            ),
+        ]
+
 
 
 class GoogleMeeting(models.Model):
@@ -1170,3 +1235,62 @@ class TeamLeadReminder(models.Model):
 
     def __str__(self):
         return self.title
+
+
+from django.test import TestCase
+from django.urls import reverse
+from monitoringapp.models import User, Group, GroupMember
+from chat.models import Conversation
+
+
+class MemberChatTests(TestCase):
+    def setUp(self):
+        self.member = self.person('member', 'Team Member')
+        self.lead = self.person('lead', 'Team Lead')
+        self.outsider = self.person('outsider', 'Team Member')
+        session = self.client.session
+        session['user_id'] = self.member.pk
+        session['position'] = 'team_member'
+        session.save()
+
+    def person(self, name, position):
+        return User.objects.create(name=name, employee_id=name, email=f'{name}@example.com',
+                                   username=name, password='unused', job_Position=position,
+                                   designation='Developer')
+
+    def test_reuses_existing_lead_conversation(self):
+        room = Conversation.objects.create(user1=self.lead, user2=self.member)
+        response = self.client.get(reverse('chat_room', args=[self.lead.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['room'].pk, room.pk)
+        self.assertEqual(Conversation.objects.count(), 1)
+
+    def test_group_requires_another_person(self):
+        response = self.client.post(reverse('teammember_chat'), {'action': 'create_group', 'group_name': 'Demo'})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Group.objects.count(), 0)
+
+    def test_create_group_deduplicates_members_and_sets_creator_admin(self):
+        response = self.client.post(reverse('teammember_chat'),
+                                    {'action': 'create_group', 'group_name': 'Demo', 'members': [self.lead.pk, self.lead.pk]})
+        self.assertTrue(response.json()['ok'])
+        group = Group.objects.get()
+        self.assertEqual(group.memberships.count(), 2)
+        self.assertEqual(group.memberships.get(user=self.member).role, 'admin')
+
+    def test_nonmember_cannot_read_group(self):
+        group = Group.objects.create(name='Private', created_by=self.lead)
+        GroupMember.objects.create(group=group, user=self.lead)
+        response = self.client.get(reverse('group_chat_view', args=[group.pk]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_regular_member_cannot_manage_group(self):
+        group = Group.objects.create(name='Demo', created_by=self.lead)
+        GroupMember.objects.create(group=group, user=self.lead, role='admin')
+        GroupMember.objects.create(group=group, user=self.member)
+        response = self.client.post(reverse('group_chat_view', args=[group.pk]),
+                                    {'action': 'add_member', 'user_id': self.outsider.pk})
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(group.memberships.count(), 2)
+
+
