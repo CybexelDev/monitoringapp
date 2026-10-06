@@ -541,6 +541,67 @@ def admin_profile(request):
     response["Expires"] = "0"
     return response
 
+# @never_cache
+# def login_view(request):
+#     # Already logged in → redirect
+#     if request.session.get("user_id") and request.session.get("position"):
+#         position = request.session["position"]
+#         if position == "team_lead":
+#             return redirect("teamlead_dashboard")
+#         elif position == "management":
+#             return redirect("admin_dashboard")
+#         else:
+#             return redirect("teammember_dashboard")
+
+#     if request.method == "POST":
+#         username = request.POST.get("username", "").strip()
+#         password = request.POST.get("password", "").strip()
+
+#         # Fetch user from DB
+#         try:
+#             user = User.objects.get(username=username)
+#         except User.DoesNotExist:
+#             messages.error(request, "Invalid username or password")
+#             return render(request, "user_login.html")
+
+#         # Check hashed password
+#         if not check_password(password, user.password):
+#             messages.error(request, "Invalid username or password")
+#             return render(request, "user_login.html")
+
+#         # ✅ Update user status and last login time (normalize status explicitly)
+#         now = timezone.now()
+#         user.status = "active"                # canonical value (no spaces, lowercase)
+#         user.last_login_time = now
+#         user.last_activity = now
+
+#         # if model happens to have is_active (boolean), keep it in sync
+#         if hasattr(user, "is_active"):
+#             try:
+#                 setattr(user, "is_active", True)
+#             except Exception:
+#                 pass
+
+#         user.save()
+
+#         # Normalize DB position
+#         db_position = user.job_Position.strip().lower().replace(" ", "_")
+
+#         # Save session
+#         request.session["user_id"] = user.id
+#         request.session["position"] = db_position
+#         request.session["login_time"] = str(now)
+
+#         # Redirect based on DB position only
+#         if db_position == "team_lead":
+#             return redirect("teamlead_dashboard")
+#         elif db_position == "management":
+#             return redirect("admin_dashboard")
+#         else:
+#             return redirect("teammember_dashboard")
+
+#     return render(request, "user_login.html")
+
 @never_cache
 def login_view(request):
     # Already logged in → redirect
@@ -548,6 +609,8 @@ def login_view(request):
         position = request.session["position"]
         if position == "team_lead":
             return redirect("teamlead_dashboard")
+        elif str(position).strip().lower().replace(" ", "_") in {"accounts", "accounts_team"}:
+            return redirect("accounts_dashboard")
         elif position == "management":
             return redirect("admin_dashboard")
         else:
@@ -595,21 +658,14 @@ def login_view(request):
         # Redirect based on DB position only
         if db_position == "team_lead":
             return redirect("teamlead_dashboard")
+        elif db_position in {"accounts", "accounts_team"}:
+            return redirect("accounts_dashboard")
         elif db_position == "management":
             return redirect("admin_dashboard")
         else:
             return redirect("teammember_dashboard")
 
     return render(request, "user_login.html")
-
-# def get_logged_in_user_api(request):
-#     if request.session.get("user_id"):
-#         try:
-#             user = User.objects.get(id=request.session["user_id"])
-#             return JsonResponse({"name": user.name, "job_position": user.job_Position})
-#         except User.DoesNotExist:
-#             pass
-#     return JsonResponse({"name": None})
 
 
 
@@ -6206,3 +6262,1795 @@ def teammember_group_chat(request, group_id):
                    all_users=User.objects.exclude(group_memberships__group=group).order_by('name', 'pk'),
                    can_manage_group=can_manage)
     return render(request, 'team_member/teammember_group_chat.html', context)
+
+
+
+
+
+# <----------------------------ACCOUNTS TEAM ()--------------------->
+# Add these imports near the top of monitoringapp/views.py if missing.
+from django.http import HttpResponseForbidden
+from django.views.decorators.http import require_GET, require_POST
+
+
+# Add these functions at the bottom of monitoringapp/views.py.
+# Existing imports supply User, render, redirect, never_cache and timezone.
+@never_cache
+@require_GET
+def accounts_dashboard(request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login_view")
+
+    current_user = User.objects.filter(pk=user_id).first()
+    if current_user is None:
+        request.session.flush()
+        return redirect("login_view")
+
+    # Check the stored role as well as the session role.
+    allowed_roles = {"accounts", "accounts_team"}
+    database_role = str(current_user.job_Position or "").strip().lower().replace(" ", "_")
+    session_role = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
+    if database_role not in allowed_roles or session_role not in allowed_roles:
+        return HttpResponseForbidden("You do not have access to the Accounts dashboard.")
+
+    return render(request, "accounts/dashboard.html", {
+        "current_user": current_user,
+        "accounts_active": "dashboard",
+        "period_label": timezone.localdate().strftime("%B %Y"),
+        "account_summary": None,
+        "recent_transactions": [],
+    })
+
+
+@never_cache
+@require_POST
+def accounts_logout(request):
+    user_id = request.session.get("user_id")
+    session_role = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
+    if user_id and session_role not in {"accounts", "accounts_team"}:
+        return HttpResponseForbidden("Use your own account's logout option.")
+
+    if user_id:
+        User.objects.filter(pk=user_id).update(
+            status="inactive",
+            last_logout_time=timezone.now(),
+        )
+
+    request.session.flush()
+    return redirect("login_view")
+
+
+# Add these imports near the top of monitoringapp/views.py if missing.
+from decimal import Decimal
+from django.db.models import Sum
+from .forms import AccountsIncomeForm
+from .models import AccountsIncome
+
+
+# Add these functions at the bottom of monitoringapp/views.py.
+# Existing imports supply User, Q, Paginator, JsonResponse,
+# HttpResponseForbidden, render, redirect, messages, timezone,
+# never_cache, and require_GET/require_POST from the Accounts setup.
+from django.views.decorators.http import require_http_methods
+
+
+def _accounts_user(request):
+    """Return an Accounts user only when both DB and session roles match."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return None
+    user = User.objects.filter(pk=user_id).first()
+    if user is None:
+        return None
+    roles = {"accounts", "accounts_team"}
+    database_role = str(user.job_Position or "").strip().lower().replace(" ", "_")
+    session_role = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
+    return user if database_role in roles and session_role in roles else None
+
+
+from pathlib import Path
+from django.db import transaction
+from django.db.models import F, Q
+from django.http import FileResponse, JsonResponse
+from django.urls import reverse
+from .models import AccountsIncome, AccountsIncomeHistory
+from .forms import AccountsIncomeForm
+from django.contrib import messages
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST, require_http_methods
+
+
+def _income_snapshot(entry):
+    return {
+        "date": entry.date.isoformat(), "category": entry.category,
+        "amount": str(entry.amount),
+        "payment_method": entry.get_payment_method_display(),
+        "description": entry.description, "reference": entry.reference,
+        "receipt": Path(entry.receipt.name).name if entry.receipt else "",
+    }
+
+
+def _income_audit(entry, actor, action, before=None):
+    before = before or {}
+    after = {} if action == "deleted" else _income_snapshot(entry)
+    changes = {key: {"before": before.get(key, ""), "after": after.get(key, "")}
+               for key in (before.keys() | after.keys()) if before.get(key, "") != after.get(key, "")}
+    if changes or action != "updated":
+        AccountsIncomeHistory.objects.create(income=entry, income_number=entry.pk,
+            actor=actor, actor_name=getattr(actor, "name", "") or str(actor),
+            action=action, changes=changes)
+
+
+def _income_duplicate(form, exclude_pk=None):
+    values = form.cleaned_data
+    matches = AccountsIncome.objects.all()
+    if exclude_pk:
+        matches = matches.exclude(pk=exclude_pk)
+    if values.get("reference"):
+        matches = matches.filter(reference__iexact=values["reference"])
+    else:
+        matches = matches.filter(date=values["date"], amount=values["amount"],
+            category__iexact=values["category"])
+    return matches.exists()
+
+
+def _income_duplicate_response():
+    return JsonResponse({"ok": False, "duplicate": True,
+        "message": "A similar income or the same reference already exists. Review it before saving again."}, status=409)
+
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_income(request):
+    import calendar
+    import re
+    from datetime import date
+    from decimal import Decimal
+    from io import BytesIO
+
+    from django.core.paginator import Paginator
+    from django.db.models import Q, Sum
+    from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+    from django.shortcuts import redirect, render
+    from django.utils import timezone
+
+    if not request.session.get("user_id"):
+        return redirect("login_view")
+    current_user = _accounts_user(request)
+    if current_user is None:
+        return HttpResponseForbidden("You do not have access to Accounts income.")
+
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    form = AccountsIncomeForm(request.POST if request.method == "POST" else None,
+        request.FILES if request.method == "POST" else None)
+    if request.method == "POST" and form.is_valid():
+        if _income_duplicate(form) and request.POST.get("confirm_duplicate") != "1":
+            if is_ajax:
+                return _income_duplicate_response()
+            form.add_error(None, "A similar income already exists. Review the entry and use Save Anyway to confirm.")
+        else:
+            with transaction.atomic():
+                income = form.save(commit=False)
+                income.created_by = current_user
+                income.save()
+                _income_audit(income, current_user, "created")
+            if is_ajax:
+                return JsonResponse({"ok": True, "message": "Income added successfully.", "id": income.pk}, status=201)
+            messages.success(request, "Income added successfully.")
+            return redirect("accounts_income")
+
+    if request.method == "POST" and is_ajax:
+        return JsonResponse({
+            "ok": False,
+            "message": "Please correct the highlighted fields.",
+            "errors": form.errors.get_json_data(),
+        }, status=400)
+
+    today = timezone.localdate()
+    month_start = today.replace(day=1)
+    month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
+    all_entries = AccountsIncome.objects.select_related("created_by")
+    entries = all_entries
+    query = request.GET.get("q", "").strip()[:200]
+    if query:
+        entries = entries.filter(
+            Q(category__icontains=query)
+            | Q(description__icontains=query)
+            | Q(reference__icontains=query)
+        )
+
+    category_filter = request.GET.get("category", "").strip()[:100]
+    if category_filter:
+        entries = entries.filter(category__iexact=category_filter)
+
+    period = request.GET.get("period", "all").strip()
+    selected_date = request.GET.get("date", "").strip() or today.isoformat()
+    selected_month = request.GET.get("month", "").strip() or today.strftime("%Y-%m")
+    from_date = request.GET.get("start", "").strip()
+    to_date = request.GET.get("end", "").strip()
+    range_start = range_end = None
+    filter_error = ""
+
+    def read_date(value):
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            raise ValueError("Invalid date format.")
+        return date.fromisoformat(value)
+
+    try:
+        if period == "weekly":
+            anchor = read_date(selected_date)
+            monday_ordinal = max(date.min.toordinal(), anchor.toordinal() - anchor.weekday())
+            range_start = date.fromordinal(monday_ordinal)
+            range_end = date.fromordinal(min(date.max.toordinal(), monday_ordinal + 6))
+        elif period == "monthly":
+            if not re.fullmatch(r"\d{4}-\d{2}", selected_month):
+                raise ValueError("Invalid month format.")
+            year, month = map(int, selected_month.split("-"))
+            range_start = date(year, month, 1)
+            range_end = date(year, month, calendar.monthrange(year, month)[1])
+        elif period == "custom":
+            if not from_date or not to_date:
+                raise ValueError("Choose both From Date and To Date.")
+            range_start, range_end = read_date(from_date), read_date(to_date)
+            if range_start > range_end:
+                raise ValueError("From Date must be on or before To Date.")
+        elif period != "all":
+            raise ValueError("Choose a valid period.")
+    except (ValueError, OverflowError) as error:
+        filter_error = (
+            str(error) if period == "custom"
+            else "Choose a valid date, month or period."
+        )
+        range_start = range_end = None
+        entries = entries.none()
+
+    if range_start is not None and not filter_error:
+        entries = entries.filter(date__range=(range_start, range_end))
+    entries = entries.order_by("-date", "-id")
+
+    def income_total(queryset):
+        return queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+    # Export the entire filtered queryset before applying pagination.
+    if request.method == "GET" and request.GET.get("export") == "xlsx" and not filter_error:
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+        from openpyxl.utils import get_column_letter
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Income"
+        headers = ["Date", "Category", "Description", "Payment Method", "Reference", "Recorded By", "Amount (INR)"]
+        sheet.append(headers)
+        total = Decimal("0.00")
+        for entry in entries.iterator():
+            creator = getattr(entry.created_by, "name", "") or "—"
+            sheet.append([
+                entry.date, entry.category, entry.description,
+                entry.get_payment_method_display(), entry.reference or "—",
+                creator, entry.amount,
+            ])
+            row = sheet.max_row
+            # User-entered strings must remain text, including values starting with '='.
+            for column in range(2, 7):
+                cell = sheet.cell(row, column)
+                cell.value = str(cell.value or "")
+                cell.data_type = "s"
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
+            sheet.cell(row, 1).number_format = "dd mmm yyyy"
+            for column in (7,):
+                sheet.cell(row, column).number_format = "#,##0.00"
+            total += entry.amount
+
+        last_data_row = sheet.max_row
+        sheet.append(["Total", None, None, None, None, None, total])
+        total_row = sheet.max_row
+        sheet.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=6)
+        for column in (7,):
+            sheet.cell(total_row, column).number_format = "#,##0.00"
+        for cell in sheet[1]:
+            cell.fill = PatternFill("solid", fgColor="5B32A7")
+            cell.font = Font(color="FFFFFF", bold=True)
+            cell.alignment = Alignment(vertical="center")
+        for cell in sheet[total_row]:
+            cell.fill = PatternFill("solid", fgColor="EDE9FE")
+            cell.font = Font(bold=True)
+        for column, width in enumerate([18, 25, 50, 22, 25, 25, 20], start=1):
+            sheet.column_dimensions[get_column_letter(column)].width = width
+        sheet.row_dimensions[1].height = 26
+        sheet.freeze_panes = "A2"
+        sheet.auto_filter.ref = f"A1:G{last_data_row}"
+        sheet.sheet_view.showGridLines = False
+        output = BytesIO()
+        workbook.save(output)
+        workbook.close()
+        response = HttpResponse(
+            output.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f'attachment; filename="income_{today.isoformat()}.xlsx"'
+        response["Cache-Control"] = "no-store"
+        return response
+
+    page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
+    return render(request, "accounts/income.html", {
+        "current_user": current_user,
+        "accounts_active": "income",
+        "form": form,
+        "query": query,
+        "period": period,
+        "selected_date": selected_date,
+        "selected_month": selected_month,
+        "from_date": from_date,
+        "to_date": to_date,
+        "range_start": range_start,
+        "range_end": range_end,
+        "filter_error": filter_error,
+        "has_filters": bool(query or period != "all" or category_filter),
+        "category_filter": category_filter,
+        "categories": all_entries.order_by("category").values_list("category", flat=True).distinct(),
+        "page_obj": page_obj,
+        "total_entries": entries.count(),
+        "total_income": income_total(entries),
+        "today_income": income_total(all_entries.filter(date=today)),
+        "month_income": income_total(all_entries.filter(date__range=(month_start, month_end))),
+        "month_label": month_start.strftime("%B %Y"),
+    }, status=400 if request.method == "POST" or filter_error else 200)
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_income_edit(request, pk):
+    actor = _accounts_user(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        entry = AccountsIncome.objects.select_for_update().filter(pk=pk).first()
+        if entry is None:
+            return JsonResponse({"ok": False, "message": "This income no longer exists."}, status=404)
+        if request.method == "GET":
+            return JsonResponse({"ok": True, "item": {
+                "date": entry.date.isoformat(), "category": entry.category,
+                "amount": str(entry.amount),
+                "payment_method": entry.payment_method,
+                "description": entry.description, "reference": entry.reference,
+            }, "receipt_url": reverse("accounts_income_receipt", args=[entry.pk]) if entry.receipt else ""})
+        before = _income_snapshot(entry)
+        form = AccountsIncomeForm(request.POST, request.FILES, instance=entry)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        # Recheck duplicates when identifying fields change.
+        identifying = {"date", "category", "amount", "reference"}
+        if any(str(form.cleaned_data.get(key) or "") != before.get(key, "") for key in identifying) and _income_duplicate(form, entry.pk) and request.POST.get("confirm_duplicate") != "1":
+            return _income_duplicate_response()
+        entry = form.save(commit=False)
+        if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
+            entry.receipt = ""
+        entry.save()
+        _income_audit(entry, actor, "updated", before)
+    return JsonResponse({"ok": True, "message": "Income updated successfully.", "id": entry.pk})
+
+
+@never_cache
+@require_POST
+def accounts_income_delete(request, pk):
+    actor = _accounts_user(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        entry = AccountsIncome.objects.select_for_update().filter(pk=pk).first()
+        if entry is None:
+            return JsonResponse({"ok": False, "message": "This income no longer exists."}, status=404)
+        _income_audit(entry, actor, "deleted", _income_snapshot(entry))
+        entry.delete()
+    return JsonResponse({"ok": True, "message": "Income deleted successfully.", "id": pk})
+
+
+@never_cache
+@require_http_methods(["GET"])
+def accounts_income_receipt(request, pk):
+    if _accounts_user(request) is None:
+        return JsonResponse({"ok": False, "message": "Accounts access required."}, status=403)
+    entry = AccountsIncome.objects.filter(pk=pk).first()
+    if entry is None or not entry.receipt:
+        return JsonResponse({"ok": False, "message": "Receipt not available."}, status=404)
+    try:
+        handle = entry.receipt.open("rb")
+    except (FileNotFoundError, OSError):
+        return JsonResponse({"ok": False, "message": "Receipt file not available."}, status=404)
+    suffix = Path(entry.receipt.name).suffix.lower()
+    mime = {".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}.get(suffix, "application/octet-stream")
+    response = FileResponse(handle, as_attachment=request.GET.get("download") == "1",
+        filename=f"income_{pk}_receipt{suffix}", content_type=mime)
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@never_cache
+@require_http_methods(["GET"])
+def accounts_income_history(request, pk):
+    if _accounts_user(request) is None:
+        return JsonResponse({"ok": False, "message": "Accounts access required."}, status=403)
+    if not AccountsIncome.objects.filter(pk=pk).exists():
+        return JsonResponse({"ok": False, "message": "This income no longer exists."}, status=404)
+    items = AccountsIncomeHistory.objects.filter(income_id=pk)[:50]
+    return JsonResponse({"ok": True, "items": [{"action": item.get_action_display(),
+        "actor": item.actor_name or "—", "time": timezone.localtime(item.created_at).strftime("%d %b %Y, %I:%M %p"),
+        "changes": item.changes} for item in items]})
+
+
+
+
+# monitoringapp/views.py: add these imports near the top only if missing.
+from decimal import Decimal
+from django.db.models import Q, Sum
+from django.core.paginator import Paginator
+from django.http import JsonResponse, HttpResponseForbidden
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST
+from .forms import AccountsExpenseForm
+from .models import AccountsExpense
+
+# @never_cache
+# @require_http_methods(["GET", "POST"])
+# def accounts_expenses(request):
+#     import calendar
+#     import re
+#     from datetime import date
+#     from decimal import Decimal
+#     from io import BytesIO
+
+#     from django.core.paginator import Paginator
+#     from django.db.models import Q, Sum
+#     from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+#     from django.shortcuts import redirect, render
+#     from django.utils import timezone
+
+#     if not request.session.get("user_id"):
+#         return redirect("login_view")
+#     current_user = _accounts_user(request)
+#     if current_user is None:
+#         return HttpResponseForbidden("You do not have access to Accounts expense.")
+
+#     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+#     form = AccountsExpenseForm(request.POST if request.method == "POST" else None)
+#     if request.method == "POST" and form.is_valid():
+#         expense = form.save(commit=False)
+#         expense.created_by = current_user
+#         expense.save()
+#         if is_ajax:
+#             return JsonResponse({
+#                 "ok": True,
+#                 "message": "Expense added successfully.",
+#                 "id": expense.pk,
+#             }, status=201)
+#         messages.success(request, "Expense added successfully.")
+#         return redirect("accounts_expenses")
+
+#     if request.method == "POST" and is_ajax:
+#         return JsonResponse({
+#             "ok": False,
+#             "message": "Please correct the highlighted fields.",
+#             "errors": form.errors.get_json_data(),
+#         }, status=400)
+
+#     today = timezone.localdate()
+#     month_start = today.replace(day=1)
+#     month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
+#     all_entries = AccountsExpense.objects.select_related("created_by")
+#     entries = all_entries
+#     query = request.GET.get("q", "").strip()[:200]
+#     if query:
+#         entries = entries.filter(
+#             Q(category__icontains=query)
+#             | Q(description__icontains=query)
+#             | Q(reference__icontains=query)
+#             | Q(paid_to__icontains=query)
+#         )
+
+#     period = request.GET.get("period", "all").strip()
+#     selected_date = request.GET.get("date", "").strip() or today.isoformat()
+#     selected_month = request.GET.get("month", "").strip() or today.strftime("%Y-%m")
+#     from_date = request.GET.get("start", "").strip()
+#     to_date = request.GET.get("end", "").strip()
+#     range_start = range_end = None
+#     filter_error = ""
+
+#     def read_date(value):
+#         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+#             raise ValueError("Invalid date format.")
+#         return date.fromisoformat(value)
+
+#     try:
+#         if period == "weekly":
+#             anchor = read_date(selected_date)
+#             monday_ordinal = max(date.min.toordinal(), anchor.toordinal() - anchor.weekday())
+#             range_start = date.fromordinal(monday_ordinal)
+#             range_end = date.fromordinal(min(date.max.toordinal(), monday_ordinal + 6))
+#         elif period == "monthly":
+#             if not re.fullmatch(r"\d{4}-\d{2}", selected_month):
+#                 raise ValueError("Invalid month format.")
+#             year, month = map(int, selected_month.split("-"))
+#             range_start = date(year, month, 1)
+#             range_end = date(year, month, calendar.monthrange(year, month)[1])
+#         elif period == "custom":
+#             if not from_date or not to_date:
+#                 raise ValueError("Choose both From Date and To Date.")
+#             range_start, range_end = read_date(from_date), read_date(to_date)
+#             if range_start > range_end:
+#                 raise ValueError("From Date must be on or before To Date.")
+#         elif period != "all":
+#             raise ValueError("Choose a valid period.")
+#     except (ValueError, OverflowError) as error:
+#         filter_error = (
+#             str(error) if period == "custom"
+#             else "Choose a valid date, month or period."
+#         )
+#         range_start = range_end = None
+#         entries = entries.none()
+
+#     if range_start is not None and not filter_error:
+#         entries = entries.filter(date__range=(range_start, range_end))
+#     entries = entries.order_by("-date", "-id")
+
+#     def expense_total(queryset):
+#         return queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+#     # Export the entire filtered queryset before applying pagination.
+#     if request.method == "GET" and request.GET.get("export") == "xlsx" and not filter_error:
+#         from openpyxl import Workbook
+#         from openpyxl.styles import Alignment, Font, PatternFill
+#         from openpyxl.utils import get_column_letter
+
+#         workbook = Workbook()
+#         sheet = workbook.active
+#         sheet.title = "Expenses"
+#         headers = ["Date", "Category", "Description", "Paid To", "Payment Method", "Reference", "Recorded By", "Amount (INR)"]
+#         sheet.append(headers)
+#         total = Decimal("0.00")
+#         for entry in entries.iterator():
+#             creator = getattr(entry.created_by, "name", "") or "—"
+#             sheet.append([
+#                 entry.date, entry.category, entry.description, entry.paid_to or "—",
+#                 entry.get_payment_method_display(), entry.reference or "—",
+#                 creator, entry.amount,
+#             ])
+#             row = sheet.max_row
+#             # User-entered strings must remain text, including values starting with '='.
+#             for column in range(2, 8):
+#                 cell = sheet.cell(row, column)
+#                 cell.value = str(cell.value or "")
+#                 cell.data_type = "s"
+#                 cell.alignment = Alignment(vertical="top", wrap_text=True)
+#             sheet.cell(row, 1).number_format = "dd mmm yyyy"
+#             sheet.cell(row, 8).number_format = "#,##0.00"
+#             total += entry.amount
+
+#         last_data_row = sheet.max_row
+#         sheet.append(["Total", None, None, None, None, None, None, total])
+#         total_row = sheet.max_row
+#         sheet.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=7)
+#         sheet.cell(total_row, 8).number_format = "#,##0.00"
+#         for cell in sheet[1]:
+#             cell.fill = PatternFill("solid", fgColor="5B32A7")
+#             cell.font = Font(color="FFFFFF", bold=True)
+#             cell.alignment = Alignment(vertical="center")
+#         for cell in sheet[total_row]:
+#             cell.fill = PatternFill("solid", fgColor="EDE9FE")
+#             cell.font = Font(bold=True)
+#         for column, width in enumerate([18, 25, 50, 25, 22, 25, 25, 20], start=1):
+#             sheet.column_dimensions[get_column_letter(column)].width = width
+#         sheet.row_dimensions[1].height = 26
+#         sheet.freeze_panes = "A2"
+#         sheet.auto_filter.ref = f"A1:H{last_data_row}"
+#         sheet.sheet_view.showGridLines = False
+#         output = BytesIO()
+#         workbook.save(output)
+#         workbook.close()
+#         response = HttpResponse(
+#             output.getvalue(),
+#             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+#         )
+#         response["Content-Disposition"] = f'attachment; filename="expense_{today.isoformat()}.xlsx"'
+#         response["Cache-Control"] = "no-store"
+#         return response
+
+#     page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
+#     return render(request, "accounts/expenses.html", {
+#         "current_user": current_user,
+#         "accounts_active": "expenses",
+#         "form": form,
+#         "query": query,
+#         "period": period,
+#         "selected_date": selected_date,
+#         "selected_month": selected_month,
+#         "from_date": from_date,
+#         "to_date": to_date,
+#         "range_start": range_start,
+#         "range_end": range_end,
+#         "filter_error": filter_error,
+#         "has_filters": bool(query or period != "all"),
+#         "page_obj": page_obj,
+#         "total_entries": entries.count(),
+#         "total_expense": expense_total(entries),
+#         "today_expense": expense_total(all_entries.filter(date=today)),
+#         "month_expense": expense_total(all_entries.filter(date__range=(month_start, month_end))),
+#         "month_label": month_start.strftime("%B %Y"),
+#     }, status=400 if request.method == "POST" or filter_error else 200)
+
+# @never_cache
+# @require_http_methods(["GET", "POST"])
+# def accounts_expense_edit(request, pk):
+#     if _accounts_user(request) is None:
+#         return JsonResponse({
+#             "ok": False, "message": "Please log in with an Accounts account."
+#         }, status=403 if request.session.get("user_id") else 401)
+
+#     # Accounts users manage the same shared ledger.
+#     expense = AccountsExpense.objects.filter(pk=pk).first()
+#     if expense is None:
+#         return JsonResponse({
+#             "ok": False, "message": "This expense entry no longer exists."
+#         }, status=404)
+
+#     if request.method == "GET":
+#         return JsonResponse({
+#             "ok": True,
+#             "item": {
+#                 "id": expense.pk,
+#                 "date": expense.date.isoformat(),
+#                 "category": expense.category,
+#                 "amount": str(expense.amount),
+#                 "payment_method": expense.payment_method,
+#                 "description": expense.description,
+#                 "reference": expense.reference or "",
+#                 "paid_to": expense.paid_to or "",
+#             },
+#         })
+
+#     form = AccountsExpenseForm(request.POST, instance=expense)
+#     if not form.is_valid():
+#         return JsonResponse({
+#             "ok": False,
+#             "message": "Please correct the highlighted fields.",
+#             "errors": form.errors.get_json_data(),
+#         }, status=400)
+
+#     # The form excludes created_by, so editing preserves the original creator.
+#     expense = form.save()
+#     return JsonResponse({
+#         "ok": True, "message": "Expense updated successfully.", "id": expense.pk,
+#     })
+
+# @never_cache
+# @require_POST
+# def accounts_expense_delete(request, pk):
+#     if _accounts_user(request) is None:
+#         return JsonResponse({
+#             "ok": False, "message": "Please log in with an Accounts account."
+#         }, status=403 if request.session.get("user_id") else 401)
+
+#     deleted_count, _ = AccountsExpense.objects.filter(pk=pk).delete()
+#     if not deleted_count:
+#         return JsonResponse({
+#             "ok": False, "message": "This expense entry no longer exists."
+#         }, status=404)
+
+#     return JsonResponse({
+#         "ok": True, "message": "Expense deleted successfully.", "id": pk,
+#     })
+
+
+from pathlib import Path
+from django.db import transaction
+from django.db.models import F, Q
+from django.http import FileResponse, JsonResponse
+from django.urls import reverse
+from .models import AccountsExpenseHistory
+
+
+def _expense_snapshot(entry):
+    return {
+        "date": entry.date.isoformat(), "category": entry.category,
+        "amount": str(entry.amount), "paid_amount": str(entry.effective_paid_amount),
+        "payment_method": entry.get_payment_method_display(), "paid_to": entry.paid_to,
+        "description": entry.description, "reference": entry.reference,
+        "receipt": Path(entry.receipt.name).name if entry.receipt else "",
+    }
+
+
+def _expense_audit(entry, actor, action, before=None):
+    before = before or {}
+    after = {} if action == "deleted" else _expense_snapshot(entry)
+    changes = {key: {"before": before.get(key, ""), "after": after.get(key, "")}
+               for key in (before.keys() | after.keys()) if before.get(key, "") != after.get(key, "")}
+    if changes or action != "updated":
+        AccountsExpenseHistory.objects.create(expense=entry, expense_number=entry.pk,
+            actor=actor, actor_name=getattr(actor, "name", "") or str(actor),
+            action=action, changes=changes)
+
+
+def _expense_duplicate(form, exclude_pk=None):
+    values = form.cleaned_data
+    matches = AccountsExpense.objects.all()
+    if exclude_pk:
+        matches = matches.exclude(pk=exclude_pk)
+    if values.get("reference"):
+        matches = matches.filter(reference__iexact=values["reference"])
+    else:
+        matches = matches.filter(date=values["date"], amount=values["amount"],
+            category__iexact=values["category"], paid_to__iexact=values.get("paid_to", ""))
+    return matches.exists()
+
+
+def _expense_duplicate_response():
+    return JsonResponse({"ok": False, "duplicate": True,
+        "message": "A similar expense or the same reference already exists. Review it before saving again."}, status=409)
+
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_expenses(request):
+    import calendar
+    import re
+    from datetime import date
+    from decimal import Decimal
+    from io import BytesIO
+
+    from django.core.paginator import Paginator
+    from django.db.models import Q, Sum
+    from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+    from django.shortcuts import redirect, render
+    from django.utils import timezone
+
+    if not request.session.get("user_id"):
+        return redirect("login_view")
+    current_user = _accounts_user(request)
+    if current_user is None:
+        return HttpResponseForbidden("You do not have access to Accounts expense.")
+
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    form = AccountsExpenseForm(request.POST if request.method == "POST" else None,
+        request.FILES if request.method == "POST" else None)
+    if request.method == "POST" and form.is_valid():
+        if _expense_duplicate(form) and request.POST.get("confirm_duplicate") != "1":
+            if is_ajax:
+                return _expense_duplicate_response()
+            form.add_error(None, "A similar expense already exists. Review the entry and use Save Anyway to confirm.")
+        else:
+            with transaction.atomic():
+                expense = form.save(commit=False)
+                expense.created_by = current_user
+                expense.save()
+                _expense_audit(expense, current_user, "created")
+            if is_ajax:
+                return JsonResponse({"ok": True, "message": "Expense added successfully.", "id": expense.pk}, status=201)
+            messages.success(request, "Expense added successfully.")
+            return redirect("accounts_expenses")
+
+    if request.method == "POST" and is_ajax:
+        return JsonResponse({
+            "ok": False,
+            "message": "Please correct the highlighted fields.",
+            "errors": form.errors.get_json_data(),
+        }, status=400)
+
+    today = timezone.localdate()
+    month_start = today.replace(day=1)
+    month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
+    all_entries = AccountsExpense.objects.select_related("created_by")
+    entries = all_entries
+    query = request.GET.get("q", "").strip()[:200]
+    if query:
+        entries = entries.filter(
+            Q(category__icontains=query)
+            | Q(description__icontains=query)
+            | Q(reference__icontains=query)
+            | Q(paid_to__icontains=query)
+        )
+
+    category_filter = request.GET.get("category", "").strip()[:100]
+    payment_filter = request.GET.get("status", "").strip()
+    if category_filter:
+        entries = entries.filter(category__iexact=category_filter)
+    if payment_filter == "paid":
+        entries = entries.filter(Q(paid_amount__isnull=True) | Q(paid_amount=F("amount")))
+    elif payment_filter == "pending":
+        entries = entries.filter(paid_amount=0)
+    elif payment_filter == "partial":
+        entries = entries.filter(paid_amount__gt=0, paid_amount__lt=F("amount"))
+    else:
+        payment_filter = ""
+
+    period = request.GET.get("period", "all").strip()
+    selected_date = request.GET.get("date", "").strip() or today.isoformat()
+    selected_month = request.GET.get("month", "").strip() or today.strftime("%Y-%m")
+    from_date = request.GET.get("start", "").strip()
+    to_date = request.GET.get("end", "").strip()
+    range_start = range_end = None
+    filter_error = ""
+
+    def read_date(value):
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            raise ValueError("Invalid date format.")
+        return date.fromisoformat(value)
+
+    try:
+        if period == "weekly":
+            anchor = read_date(selected_date)
+            monday_ordinal = max(date.min.toordinal(), anchor.toordinal() - anchor.weekday())
+            range_start = date.fromordinal(monday_ordinal)
+            range_end = date.fromordinal(min(date.max.toordinal(), monday_ordinal + 6))
+        elif period == "monthly":
+            if not re.fullmatch(r"\d{4}-\d{2}", selected_month):
+                raise ValueError("Invalid month format.")
+            year, month = map(int, selected_month.split("-"))
+            range_start = date(year, month, 1)
+            range_end = date(year, month, calendar.monthrange(year, month)[1])
+        elif period == "custom":
+            if not from_date or not to_date:
+                raise ValueError("Choose both From Date and To Date.")
+            range_start, range_end = read_date(from_date), read_date(to_date)
+            if range_start > range_end:
+                raise ValueError("From Date must be on or before To Date.")
+        elif period != "all":
+            raise ValueError("Choose a valid period.")
+    except (ValueError, OverflowError) as error:
+        filter_error = (
+            str(error) if period == "custom"
+            else "Choose a valid date, month or period."
+        )
+        range_start = range_end = None
+        entries = entries.none()
+
+    if range_start is not None and not filter_error:
+        entries = entries.filter(date__range=(range_start, range_end))
+    entries = entries.order_by("-date", "-id")
+
+    def expense_total(queryset):
+        return queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+    # Export the entire filtered queryset before applying pagination.
+    if request.method == "GET" and request.GET.get("export") == "xlsx" and not filter_error:
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+        from openpyxl.utils import get_column_letter
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Expenses"
+        headers = ["Date", "Category", "Description", "Paid To", "Payment Method", "Reference", "Recorded By", "Total Amount (INR)", "Paid Amount (INR)", "Balance (INR)", "Status"]
+        sheet.append(headers)
+        total = paid_total = balance_total = Decimal("0.00")
+        for entry in entries.iterator():
+            creator = getattr(entry.created_by, "name", "") or "—"
+            sheet.append([
+                entry.date, entry.category, entry.description, entry.paid_to or "—",
+                entry.get_payment_method_display(), entry.reference or "—",
+                creator, entry.amount, entry.effective_paid_amount, entry.balance_amount, entry.payment_status_label,
+            ])
+            row = sheet.max_row
+            # User-entered strings must remain text, including values starting with '='.
+            for column in range(2, 8):
+                cell = sheet.cell(row, column)
+                cell.value = str(cell.value or "")
+                cell.data_type = "s"
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
+            sheet.cell(row, 1).number_format = "dd mmm yyyy"
+            for column in (8, 9, 10):
+                sheet.cell(row, column).number_format = "#,##0.00"
+            sheet.cell(row, 11).data_type = "s"
+            paid_total += entry.effective_paid_amount
+            balance_total += entry.balance_amount
+            total += entry.amount
+
+        last_data_row = sheet.max_row
+        sheet.append(["Total", None, None, None, None, None, None, total, paid_total, balance_total, None])
+        total_row = sheet.max_row
+        sheet.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=7)
+        for column in (8, 9, 10):
+            sheet.cell(total_row, column).number_format = "#,##0.00"
+        for cell in sheet[1]:
+            cell.fill = PatternFill("solid", fgColor="5B32A7")
+            cell.font = Font(color="FFFFFF", bold=True)
+            cell.alignment = Alignment(vertical="center")
+        for cell in sheet[total_row]:
+            cell.fill = PatternFill("solid", fgColor="EDE9FE")
+            cell.font = Font(bold=True)
+        for column, width in enumerate([18, 25, 50, 25, 22, 25, 25, 20, 20, 20, 20], start=1):
+            sheet.column_dimensions[get_column_letter(column)].width = width
+        sheet.row_dimensions[1].height = 26
+        sheet.freeze_panes = "A2"
+        sheet.auto_filter.ref = f"A1:K{last_data_row}"
+        sheet.sheet_view.showGridLines = False
+        output = BytesIO()
+        workbook.save(output)
+        workbook.close()
+        response = HttpResponse(
+            output.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f'attachment; filename="expense_{today.isoformat()}.xlsx"'
+        response["Cache-Control"] = "no-store"
+        return response
+
+    page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
+    return render(request, "accounts/expenses.html", {
+        "current_user": current_user,
+        "accounts_active": "expenses",
+        "form": form,
+        "query": query,
+        "period": period,
+        "selected_date": selected_date,
+        "selected_month": selected_month,
+        "from_date": from_date,
+        "to_date": to_date,
+        "range_start": range_start,
+        "range_end": range_end,
+        "filter_error": filter_error,
+        "has_filters": bool(query or period != "all" or category_filter or payment_filter),
+        "category_filter": category_filter,
+        "payment_filter": payment_filter,
+        "categories": all_entries.order_by("category").values_list("category", flat=True).distinct(),
+        "page_obj": page_obj,
+        "total_entries": entries.count(),
+        "total_expense": expense_total(entries),
+        "today_expense": expense_total(all_entries.filter(date=today)),
+        "month_expense": expense_total(all_entries.filter(date__range=(month_start, month_end))),
+        "month_label": month_start.strftime("%B %Y"),
+    }, status=400 if request.method == "POST" or filter_error else 200)
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_expense_edit(request, pk):
+    actor = _accounts_user(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        entry = AccountsExpense.objects.select_for_update().filter(pk=pk).first()
+        if entry is None:
+            return JsonResponse({"ok": False, "message": "This expense no longer exists."}, status=404)
+        if request.method == "GET":
+            return JsonResponse({"ok": True, "item": {
+                "date": entry.date.isoformat(), "category": entry.category,
+                "amount": str(entry.amount), "paid_amount": str(entry.effective_paid_amount),
+                "payment_method": entry.payment_method, "paid_to": entry.paid_to,
+                "description": entry.description, "reference": entry.reference,
+            }, "receipt_url": reverse("accounts_expense_receipt", args=[entry.pk]) if entry.receipt else ""})
+        before = _expense_snapshot(entry)
+        form = AccountsExpenseForm(request.POST, request.FILES, instance=entry)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        # Recheck duplicates when identifying fields change; editing only paid amount is safe.
+        identifying = {"date", "category", "amount", "paid_to", "reference"}
+        if any(str(form.cleaned_data.get(key) or "") != before.get(key, "") for key in identifying) and _expense_duplicate(form, entry.pk) and request.POST.get("confirm_duplicate") != "1":
+            return _expense_duplicate_response()
+        entry = form.save(commit=False)
+        if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
+            entry.receipt = ""
+        entry.save()
+        _expense_audit(entry, actor, "updated", before)
+    return JsonResponse({"ok": True, "message": "Expense updated successfully.", "id": entry.pk})
+
+
+@never_cache
+@require_POST
+def accounts_expense_delete(request, pk):
+    actor = _accounts_user(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        entry = AccountsExpense.objects.select_for_update().filter(pk=pk).first()
+        if entry is None:
+            return JsonResponse({"ok": False, "message": "This expense no longer exists."}, status=404)
+        _expense_audit(entry, actor, "deleted", _expense_snapshot(entry))
+        entry.delete()
+    return JsonResponse({"ok": True, "message": "Expense deleted successfully.", "id": pk})
+
+
+@never_cache
+@require_http_methods(["GET"])
+def accounts_expense_receipt(request, pk):
+    if _accounts_user(request) is None:
+        return JsonResponse({"ok": False, "message": "Accounts access required."}, status=403)
+    entry = AccountsExpense.objects.filter(pk=pk).first()
+    if entry is None or not entry.receipt:
+        return JsonResponse({"ok": False, "message": "Receipt not available."}, status=404)
+    try:
+        handle = entry.receipt.open("rb")
+    except (FileNotFoundError, OSError):
+        return JsonResponse({"ok": False, "message": "Receipt file not available."}, status=404)
+    suffix = Path(entry.receipt.name).suffix.lower()
+    mime = {".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}.get(suffix, "application/octet-stream")
+    response = FileResponse(handle, as_attachment=request.GET.get("download") == "1",
+        filename=f"expense_{pk}_receipt{suffix}", content_type=mime)
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@never_cache
+@require_http_methods(["GET"])
+def accounts_expense_history(request, pk):
+    if _accounts_user(request) is None:
+        return JsonResponse({"ok": False, "message": "Accounts access required."}, status=403)
+    if not AccountsExpense.objects.filter(pk=pk).exists():
+        return JsonResponse({"ok": False, "message": "This expense no longer exists."}, status=404)
+    items = AccountsExpenseHistory.objects.filter(expense_id=pk)[:50]
+    return JsonResponse({"ok": True, "items": [{"action": item.get_action_display(),
+        "actor": item.actor_name or "—", "time": timezone.localtime(item.created_at).strftime("%d %b %Y, %I:%M %p"),
+        "changes": item.changes} for item in items]})
+
+
+from decimal import Decimal
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import F, Q, Sum
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.shortcuts import redirect, render
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST
+from .models import AccountsSale
+from .forms import AccountsSaleForm
+
+
+def _sale_duplicate(form, exclude_pk=None):
+    values = form.cleaned_data
+    matches = AccountsSale.objects.all()
+    if exclude_pk is not None:
+        matches = matches.exclude(pk=exclude_pk)
+    invoice = values.get("invoice_number", "").strip()
+    if invoice:
+        matches = matches.filter(invoice_number__iexact=invoice)
+    else:
+        matches = matches.filter(date=values["date"], amount=values["amount"],
+            customer_name__iexact=values["customer_name"])
+    return matches.exists()
+
+
+def _sale_duplicate_response():
+    return JsonResponse({"ok": False, "duplicate": True,
+        "message": "A similar sale or the same invoice already exists. Review it before saving again."}, status=409)
+
+
+# @never_cache
+# @require_http_methods(["GET", "POST"])
+# def accounts_sales(request):
+#     import calendar
+#     import re
+#     from datetime import date
+#     from io import BytesIO
+
+#     if not request.session.get("user_id"):
+#         return redirect("login_view")
+#     current_user = _accounts_user(request)
+#     if current_user is None:
+#         return HttpResponseForbidden("You do not have access to Accounts sales.")
+#     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+#     form = AccountsSaleForm(request.POST if request.method == "POST" else None)
+#     if request.method == "POST" and form.is_valid():
+#         if _sale_duplicate(form) and request.POST.get("confirm_duplicate") != "1":
+#             if is_ajax:
+#                 return _sale_duplicate_response()
+#             form.add_error(None, "A similar sale already exists. Review it and use Save Anyway to confirm.")
+#         else:
+#             sale = form.save(commit=False)
+#             sale.created_by = current_user
+#             sale.save()
+#             if is_ajax:
+#                 return JsonResponse({"ok": True, "message": "Sale added successfully.", "id": sale.pk}, status=201)
+#             messages.success(request, "Sale added successfully.")
+#             return redirect("accounts_sales")
+#     if request.method == "POST" and is_ajax:
+#         return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+#             "errors": form.errors.get_json_data()}, status=400)
+
+#     today = timezone.localdate()
+#     month_start = today.replace(day=1)
+#     month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
+#     all_entries = AccountsSale.objects.select_related("created_by")
+#     entries = all_entries
+#     query = request.GET.get("q", "").strip()[:200]
+#     status_filter = request.GET.get("status", "").strip()
+#     if status_filter not in {"", "paid", "partial", "unpaid"}:
+#         status_filter = ""
+#     if query:
+#         entries = entries.filter(Q(customer_name__icontains=query) |
+#             Q(invoice_number__icontains=query) | Q(description__icontains=query))
+#     if status_filter == "paid":
+#         entries = entries.filter(received_amount=F("amount"))
+#     elif status_filter == "partial":
+#         entries = entries.filter(received_amount__gt=0, received_amount__lt=F("amount"))
+#     elif status_filter == "unpaid":
+#         entries = entries.filter(received_amount=0)
+
+#     period = request.GET.get("period", "all").strip()
+#     selected_date = request.GET.get("date", "").strip() or today.isoformat()
+#     selected_month = request.GET.get("month", "").strip() or today.strftime("%Y-%m")
+#     from_date = request.GET.get("start", "").strip()
+#     to_date = request.GET.get("end", "").strip()
+#     range_start = range_end = None
+#     filter_error = ""
+
+#     def read_date(value):
+#         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+#             raise ValueError("Invalid date format.")
+#         return date.fromisoformat(value)
+
+#     try:
+#         if period == "weekly":
+#             anchor = read_date(selected_date)
+#             monday_ordinal = max(date.min.toordinal(), anchor.toordinal() - anchor.weekday())
+#             range_start = date.fromordinal(monday_ordinal)
+#             range_end = date.fromordinal(min(date.max.toordinal(), monday_ordinal + 6))
+#         elif period == "monthly":
+#             if not re.fullmatch(r"\d{4}-\d{2}", selected_month):
+#                 raise ValueError("Invalid month format.")
+#             year, month = map(int, selected_month.split("-"))
+#             range_start = date(year, month, 1)
+#             range_end = date(year, month, calendar.monthrange(year, month)[1])
+#         elif period == "custom":
+#             if not from_date or not to_date:
+#                 raise ValueError("Choose both From Date and To Date.")
+#             range_start, range_end = read_date(from_date), read_date(to_date)
+#             if range_start > range_end:
+#                 raise ValueError("From Date must be on or before To Date.")
+#         elif period != "all":
+#             raise ValueError("Choose a valid period.")
+#     except (ValueError, OverflowError) as error:
+#         filter_error = (
+#             str(error) if period == "custom"
+#             else "Choose a valid date, month or period."
+#         )
+#         range_start = range_end = None
+#         entries = entries.none()
+
+#     if range_start is not None and not filter_error:
+#         entries = entries.filter(date__range=(range_start, range_end))
+#     entries = entries.order_by("-date", "-id")
+
+#     totals = entries.aggregate(sales=Sum("amount"), received=Sum("received_amount"))
+#     total_sales = totals["sales"] or Decimal("0.00")
+#     total_received = totals["received"] or Decimal("0.00")
+#     total_balance = total_sales - total_received
+
+#     # Export all matching rows, before pagination.
+#     if request.method == "GET" and request.GET.get("export") == "xlsx" and not filter_error:
+#         from openpyxl import Workbook
+#         from openpyxl.styles import Alignment, Font, PatternFill
+#         from openpyxl.utils import get_column_letter
+#         workbook = Workbook()
+#         sheet = workbook.active
+#         sheet.title = "Sales"
+#         sheet.append(["Date", "Customer", "Invoice", "Description", "Sale Amount (INR)",
+#             "Received (INR)", "Balance (INR)", "Status", "Recorded By"])
+#         for entry in entries.iterator():
+#             sheet.append([entry.date, entry.customer_name, entry.invoice_number or "—",
+#                 entry.description, entry.amount, entry.received_amount, entry.balance_amount,
+#                 entry.payment_status_label, getattr(entry.created_by, "name", "") or "—"])
+#             row = sheet.max_row
+#             for column in (2, 3, 4, 8, 9):
+#                 cell = sheet.cell(row, column)
+#                 cell.value = str(cell.value or "")
+#                 cell.data_type = "s"
+#                 cell.alignment = Alignment(vertical="top", wrap_text=True)
+#             sheet.cell(row, 1).number_format = "dd mmm yyyy"
+#             for column in (5, 6, 7):
+#                 sheet.cell(row, column).number_format = "#,##0.00"
+#         last_data_row = sheet.max_row
+#         sheet.append(["Total", None, None, None, total_sales, total_received, total_balance, None, None])
+#         sheet.merge_cells(start_row=sheet.max_row, start_column=1, end_row=sheet.max_row, end_column=4)
+#         for cell in sheet[1]:
+#             cell.fill = PatternFill("solid", fgColor="5B32A7")
+#             cell.font = Font(color="FFFFFF", bold=True)
+#         for cell in sheet[sheet.max_row]:
+#             cell.fill = PatternFill("solid", fgColor="EDE9FE")
+#             cell.font = Font(bold=True)
+#         for column in (5, 6, 7):
+#             sheet.cell(sheet.max_row, column).number_format = "#,##0.00"
+#         for column, width in enumerate([18, 30, 25, 50, 22, 22, 22, 22, 28], start=1):
+#             sheet.column_dimensions[get_column_letter(column)].width = width
+#         sheet.row_dimensions[1].height = 26
+#         sheet.freeze_panes = "A2"
+#         sheet.auto_filter.ref = f"A1:I{last_data_row}"
+#         sheet.sheet_view.showGridLines = False
+#         output = BytesIO()
+#         workbook.save(output)
+#         workbook.close()
+#         response = HttpResponse(output.getvalue(),
+#             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+#         response["Content-Disposition"] = f'attachment; filename="sales_{today.isoformat()}.xlsx"'
+#         response["Cache-Control"] = "no-store"
+#         return response
+
+#     page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
+#     def sales_total(queryset):
+#         return queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+#     return render(request, "accounts/sales.html", {
+#         "current_user": current_user, "accounts_active": "sales", "form": form,
+#         "query": query, "status_filter": status_filter,
+#         "has_filters": bool(query or status_filter or period != "all"),
+#         "period": period, "selected_date": selected_date, "selected_month": selected_month,
+#         "from_date": from_date, "to_date": to_date, "range_start": range_start,
+#         "range_end": range_end, "filter_error": filter_error,
+#         "page_obj": page_obj, "total_entries": entries.count(), "total_sales": total_sales,
+#         "total_received": total_received, "total_balance": total_balance,
+#         "month_sales": sales_total(all_entries.filter(date__range=(month_start, month_end))),
+#         "today_sales": sales_total(all_entries.filter(date=today)),
+#         "month_label": month_start.strftime("%B %Y"),
+#     }, status=400 if request.method == "POST" or filter_error else 200)
+
+
+# @never_cache
+# @require_http_methods(["GET", "POST"])
+# def accounts_sale_edit(request, pk):
+#     if _accounts_user(request) is None:
+#         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+#             status=403 if request.session.get("user_id") else 401)
+#     with transaction.atomic():
+#         sale = AccountsSale.objects.select_for_update().filter(pk=pk).first()
+#         if sale is None:
+#             return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
+#         if request.method == "GET":
+#             return JsonResponse({"ok": True, "item": {
+#                 "date": sale.date.isoformat(), "customer_name": sale.customer_name,
+#                 "invoice_number": sale.invoice_number, "description": sale.description,
+#                 "amount": str(sale.amount), "received_amount": str(sale.received_amount)}})
+#         before = {"date": sale.date.isoformat(), "customer_name": sale.customer_name,
+#             "invoice_number": sale.invoice_number, "amount": str(sale.amount)}
+#         form = AccountsSaleForm(request.POST, instance=sale)
+#         if not form.is_valid():
+#             return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+#                 "errors": form.errors.get_json_data()}, status=400)
+#         if (any(str(form.cleaned_data.get(key) or "") != value for key, value in before.items())
+#                 and _sale_duplicate(form, sale.pk) and request.POST.get("confirm_duplicate") != "1"):
+#             return _sale_duplicate_response()
+#         sale = form.save()
+#     return JsonResponse({"ok": True, "message": "Sale updated successfully.", "id": sale.pk})
+
+
+# @never_cache
+# @require_POST
+# def accounts_sale_delete(request, pk):
+#     if _accounts_user(request) is None:
+#         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+#             status=403 if request.session.get("user_id") else 401)
+#     deleted_count, _ = AccountsSale.objects.filter(pk=pk).delete()
+#     if not deleted_count:
+#         return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
+#     return JsonResponse({"ok": True, "message": "Sale deleted successfully.", "id": pk})
+
+from decimal import Decimal
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import F, Q, Sum
+from django.http import FileResponse, HttpResponse, HttpResponseForbidden, JsonResponse
+from django.shortcuts import redirect, render
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST
+from django.urls import reverse
+from pathlib import Path
+from .models import AccountsSale, AccountsSalePayment
+from .forms import AccountsSaleForm, AccountsSalePaymentForm
+
+
+def _sale_duplicate(form, exclude_pk=None):
+    values = form.cleaned_data
+    matches = AccountsSale.objects.all()
+    if exclude_pk is not None:
+        matches = matches.exclude(pk=exclude_pk)
+    invoice = values.get("invoice_number", "").strip()
+    if invoice:
+        matches = matches.filter(invoice_number__iexact=invoice)
+    else:
+        matches = matches.filter(date=values["date"], amount=values["amount"],
+            customer_name__iexact=values["customer_name"])
+    return matches.exists()
+
+
+def _sale_duplicate_response():
+    return JsonResponse({"ok": False, "duplicate": True,
+        "message": "A similar sale or the same invoice already exists. Review it before saving again."}, status=409)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_sales(request):
+    import calendar
+    import re
+    from datetime import date
+    from io import BytesIO
+
+    if not request.session.get("user_id"):
+        return redirect("login_view")
+    current_user = _accounts_user(request)
+    if current_user is None:
+        return HttpResponseForbidden("You do not have access to Accounts sales.")
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    form = AccountsSaleForm(request.POST if request.method == "POST" else None, request.FILES if request.method == "POST" else None)
+    if request.method == "POST" and form.is_valid():
+        if _sale_duplicate(form) and request.POST.get("confirm_duplicate") != "1":
+            if is_ajax:
+                return _sale_duplicate_response()
+            form.add_error(None, "A similar sale already exists. Review it and use Save Anyway to confirm.")
+        else:
+            with transaction.atomic():
+                sale = form.save(commit=False)
+                sale.created_by = current_user
+                sale.save()
+                if sale.received_amount > 0:
+                    AccountsSalePayment.objects.create(sale=sale, date=sale.date,
+                        amount=sale.received_amount, created_by=current_user, payment_method="other",
+                        note="Initial received amount at sale creation.")
+            if is_ajax:
+                return JsonResponse({"ok": True, "message": "Sale added successfully.", "id": sale.pk}, status=201)
+            messages.success(request, "Sale added successfully.")
+            return redirect("accounts_sales")
+    if request.method == "POST" and is_ajax:
+        return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+            "errors": form.errors.get_json_data()}, status=400)
+
+    today = timezone.localdate()
+    month_start = today.replace(day=1)
+    month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
+    all_entries = AccountsSale.objects.select_related("created_by")
+    entries = all_entries
+    query = request.GET.get("q", "").strip()[:200]
+    status_filter = request.GET.get("status", "").strip()
+    if status_filter not in {"", "paid", "partial", "unpaid", "overdue"}:
+        status_filter = ""
+    if query:
+        entries = entries.filter(Q(customer_name__icontains=query) |
+            Q(invoice_number__icontains=query) | Q(description__icontains=query))
+    if status_filter == "paid":
+        entries = entries.filter(received_amount=F("amount"))
+    elif status_filter == "partial":
+        entries = entries.filter(received_amount__gt=0, received_amount__lt=F("amount"))
+    elif status_filter == "unpaid":
+        entries = entries.filter(received_amount=0)
+
+    if status_filter == "overdue":
+        entries = entries.filter(due_date__lt=today, received_amount__lt=F("amount"))
+
+    period = request.GET.get("period", "all").strip()
+    selected_date = request.GET.get("date", "").strip() or today.isoformat()
+    selected_month = request.GET.get("month", "").strip() or today.strftime("%Y-%m")
+    from_date = request.GET.get("start", "").strip()
+    to_date = request.GET.get("end", "").strip()
+    range_start = range_end = None
+    filter_error = ""
+
+    def read_date(value):
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            raise ValueError("Invalid date format.")
+        return date.fromisoformat(value)
+
+    try:
+        if period == "weekly":
+            anchor = read_date(selected_date)
+            monday_ordinal = max(date.min.toordinal(), anchor.toordinal() - anchor.weekday())
+            range_start = date.fromordinal(monday_ordinal)
+            range_end = date.fromordinal(min(date.max.toordinal(), monday_ordinal + 6))
+        elif period == "monthly":
+            if not re.fullmatch(r"\d{4}-\d{2}", selected_month):
+                raise ValueError("Invalid month format.")
+            year, month = map(int, selected_month.split("-"))
+            range_start = date(year, month, 1)
+            range_end = date(year, month, calendar.monthrange(year, month)[1])
+        elif period == "custom":
+            if not from_date or not to_date:
+                raise ValueError("Choose both From Date and To Date.")
+            range_start, range_end = read_date(from_date), read_date(to_date)
+            if range_start > range_end:
+                raise ValueError("From Date must be on or before To Date.")
+        elif period != "all":
+            raise ValueError("Choose a valid period.")
+    except (ValueError, OverflowError) as error:
+        filter_error = (
+            str(error) if period == "custom"
+            else "Choose a valid date, month or period."
+        )
+        range_start = range_end = None
+        entries = entries.none()
+
+    if range_start is not None and not filter_error:
+        entries = entries.filter(date__range=(range_start, range_end))
+    entries = entries.order_by("-date", "-id")
+
+    totals = entries.aggregate(sales=Sum("amount"), received=Sum("received_amount"))
+    total_sales = totals["sales"] or Decimal("0.00")
+    total_received = totals["received"] or Decimal("0.00")
+    total_balance = total_sales - total_received
+
+    # Export all matching rows, before pagination.
+    if request.method == "GET" and request.GET.get("export") == "xlsx" and not filter_error:
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+        from openpyxl.utils import get_column_letter
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Sales"
+        sheet.append(["Date", "Customer", "Invoice", "Description", "Sale Amount (INR)",
+            "Received (INR)", "Balance (INR)", "Status", "Recorded By", "Due Date", "Overdue"])
+        for entry in entries.iterator():
+            sheet.append([entry.date, entry.customer_name, entry.invoice_number or "—",
+                entry.description, entry.amount, entry.received_amount, entry.balance_amount,
+                entry.payment_status_label, getattr(entry.created_by, "name", "") or "—", entry.due_date, "Yes" if entry.is_overdue else "No"])
+            row = sheet.max_row
+            for column in (2, 3, 4, 8, 9, 11):
+                cell = sheet.cell(row, column)
+                cell.value = str(cell.value or "")
+                cell.data_type = "s"
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
+            sheet.cell(row, 10).number_format = "dd mmm yyyy"
+            sheet.cell(row, 1).number_format = "dd mmm yyyy"
+            for column in (5, 6, 7):
+                sheet.cell(row, column).number_format = "#,##0.00"
+        last_data_row = sheet.max_row
+        sheet.append(["Total", None, None, None, total_sales, total_received, total_balance, None, None, None, None])
+        sheet.merge_cells(start_row=sheet.max_row, start_column=1, end_row=sheet.max_row, end_column=4)
+        for cell in sheet[1]:
+            cell.fill = PatternFill("solid", fgColor="5B32A7")
+            cell.font = Font(color="FFFFFF", bold=True)
+        for cell in sheet[sheet.max_row]:
+            cell.fill = PatternFill("solid", fgColor="EDE9FE")
+            cell.font = Font(bold=True)
+        for column in (5, 6, 7):
+            sheet.cell(sheet.max_row, column).number_format = "#,##0.00"
+        for column, width in enumerate([18, 30, 25, 50, 22, 22, 22, 22, 28, 18, 14], start=1):
+            sheet.column_dimensions[get_column_letter(column)].width = width
+        sheet.row_dimensions[1].height = 26
+        sheet.freeze_panes = "A2"
+        sheet.auto_filter.ref = f"A1:K{last_data_row}"
+        sheet.sheet_view.showGridLines = False
+        output = BytesIO()
+        workbook.save(output)
+        workbook.close()
+        response = HttpResponse(output.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = f'attachment; filename="sales_{today.isoformat()}.xlsx"'
+        response["Cache-Control"] = "no-store"
+        return response
+
+    page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
+    def sales_total(queryset):
+        return queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+    return render(request, "accounts/sales.html", {
+        "current_user": current_user, "accounts_active": "sales", "form": form,
+        "query": query, "status_filter": status_filter,
+        "has_filters": bool(query or status_filter or period != "all"),
+        "period": period, "selected_date": selected_date, "selected_month": selected_month,
+        "from_date": from_date, "to_date": to_date, "range_start": range_start,
+        "range_end": range_end, "filter_error": filter_error,
+        "page_obj": page_obj, "total_entries": entries.count(), "total_sales": total_sales,
+        "total_received": total_received, "total_balance": total_balance,
+        "month_sales": sales_total(all_entries.filter(date__range=(month_start, month_end))),
+        "today_sales": sales_total(all_entries.filter(date=today)),
+        "month_label": month_start.strftime("%B %Y"),
+    }, status=400 if request.method == "POST" or filter_error else 200)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_sale_edit(request, pk):
+    if _accounts_user(request) is None:
+        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        sale = AccountsSale.objects.select_for_update().filter(pk=pk).first()
+        if sale is None:
+            return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
+        if request.method == "GET":
+            return JsonResponse({"ok": True, "item": {
+                "date": sale.date.isoformat(), "customer_name": sale.customer_name,
+                "invoice_number": sale.invoice_number, "description": sale.description,
+                "amount": str(sale.amount), "due_date": sale.due_date.isoformat() if sale.due_date else ""},
+                "invoice_url": reverse("accounts_sale_invoice", args=[sale.pk]) if sale.invoice_file else "",
+                "received_amount": str(sale.received_amount)})
+        before = {"date": sale.date.isoformat(), "customer_name": sale.customer_name,
+            "invoice_number": sale.invoice_number, "amount": str(sale.amount)}
+        form = AccountsSaleForm(request.POST, request.FILES, instance=sale)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        if (any(str(form.cleaned_data.get(key) or "") != value for key, value in before.items())
+                and _sale_duplicate(form, sale.pk) and request.POST.get("confirm_duplicate") != "1"):
+            return _sale_duplicate_response()
+        sale = form.save(commit=False)
+        if request.POST.get("remove_invoice") == "1" and not request.FILES.get("invoice_file"):
+            sale.invoice_file = ""
+        sale.save()
+    return JsonResponse({"ok": True, "message": "Sale updated successfully.", "id": sale.pk})
+
+
+@never_cache
+@require_POST
+def accounts_sale_delete(request, pk):
+    if _accounts_user(request) is None:
+        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+            status=403 if request.session.get("user_id") else 401)
+    deleted_count, _ = AccountsSale.objects.filter(pk=pk).delete()
+    if not deleted_count:
+        return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
+    return JsonResponse({"ok": True, "message": "Sale deleted successfully.", "id": pk})
+
+
+@never_cache
+@require_http_methods(["GET"])
+def accounts_sale_invoice(request, pk):
+    if _accounts_user(request) is None:
+        return JsonResponse({"ok": False, "message": "Accounts access required."}, status=403)
+    sale = AccountsSale.objects.filter(pk=pk).first()
+    if sale is None or not sale.invoice_file:
+        return JsonResponse({"ok": False, "message": "Invoice not available."}, status=404)
+    try:
+        handle = sale.invoice_file.open("rb")
+    except (OSError, FileNotFoundError):
+        return JsonResponse({"ok": False, "message": "Invoice file not available."}, status=404)
+    suffix = Path(sale.invoice_file.name).suffix.lower()
+    mime = {".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}.get(suffix, "application/octet-stream")
+    response = FileResponse(handle, as_attachment=request.GET.get("download") == "1",
+        filename=f"sale_{pk}_invoice{suffix}", content_type=mime)
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_sale_payments(request, pk):
+    actor = _accounts_user(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Accounts access required."}, status=403)
+    with transaction.atomic():
+        sale = AccountsSale.objects.select_for_update().filter(pk=pk).first()
+        if sale is None:
+            return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
+        if request.method == "POST":
+            form = AccountsSalePaymentForm(request.POST)
+            if not form.is_valid():
+                return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                    "errors": form.errors.get_json_data()}, status=400)
+            token = form.cleaned_data["request_token"]
+            existing = AccountsSalePayment.objects.filter(request_token=token).first()
+            if existing:
+                if existing.sale_id != pk or any(getattr(existing, key) != form.cleaned_data[key]
+                        for key in ("date", "amount", "payment_method", "reference", "note")):
+                    return JsonResponse({"ok": False, "message": "This payment request changed. Close and reopen Payments."}, status=409)
+                return JsonResponse({"ok": True, "message": "Payment already recorded.", "id": existing.pk})
+            if form.cleaned_data["date"] < sale.date:
+                form.add_error("date", "Payment date cannot be before the sale date.")
+            if form.cleaned_data["date"] > timezone.localdate():
+                form.add_error("date", "Use the date the payment was received; future payments cannot be recorded.")
+            if form.cleaned_data["amount"] > sale.balance_amount:
+                form.add_error("amount", "Payment cannot exceed the outstanding balance.")
+            if form.errors:
+                return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                    "errors": form.errors.get_json_data()}, status=400)
+            payment = form.save(commit=False)
+            payment.sale, payment.created_by, payment.request_token = sale, actor, token
+            changed = AccountsSale.objects.filter(pk=pk,
+                received_amount__lte=F("amount") - payment.amount).update(
+                    received_amount=F("received_amount") + payment.amount, updated_at=timezone.now())
+            if not changed:
+                return JsonResponse({"ok": False, "message": "Balance changed. Close and reopen Payments."}, status=409)
+            payment.save()
+            return JsonResponse({"ok": True, "message": "Payment recorded successfully.", "id": payment.pk})
+        items = list(sale.payments.select_related("created_by").all())
+        recorded = sum((item.amount for item in items), Decimal("0.00"))
+        return JsonResponse({"ok": True, "customer": sale.customer_name,
+            "received": str(sale.received_amount), "balance": str(sale.balance_amount),
+            "opening_received": str(sale.received_amount - recorded),
+            "today": timezone.localdate().isoformat(), "sale_date": sale.date.isoformat(),
+            "items": [{"date": item.date.isoformat(), "amount": str(item.amount),
+                "method": item.get_payment_method_display(), "reference": item.reference,
+                "note": item.note, "actor": getattr(item.created_by, "name", "") or "—"} for item in items]})
+
+
+
+
+
+# monitoringapp/views.py: add these imports near the top only if missing.
+from datetime import date as accounts_date, timedelta as accounts_timedelta
+from decimal import Decimal
+from django.db.models import Sum
+from django.http import HttpResponse, HttpResponseForbidden
+from django.shortcuts import render, redirect
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+from openpyxl.utils import get_column_letter
+from .models import AccountsIncome, AccountsExpense, AccountsSale
+
+# Append the helpers and view below your existing Accounts functions.
+# Keep _accounts_user() and existing views unchanged.
+
+
+def _accounts_report_range(params, today):
+    period = params.get("period", "monthly")
+    if period not in {"weekly", "monthly", "custom"}:
+        period = "monthly"
+    anchor = today
+    start = today.replace(day=1)
+    end = today
+    error = ""
+    try:
+        raw_anchor = params.get("date", "")
+        anchor = accounts_date.fromisoformat(raw_anchor) if raw_anchor else today
+        if period == "weekly":
+            start = anchor - accounts_timedelta(days=anchor.weekday())
+            end = start + accounts_timedelta(days=6)
+        elif period == "monthly":
+            start = anchor.replace(day=1)
+            next_month = (
+                start.replace(year=start.year + 1, month=1)
+                if start.month == 12
+                else start.replace(month=start.month + 1)
+            )
+            end = next_month - accounts_timedelta(days=1)
+        else:
+            start = accounts_date.fromisoformat(params.get("start", ""))
+            end = accounts_date.fromisoformat(params.get("end", ""))
+        if end < start:
+            error = "End date must be on or after the start date."
+        elif (end - start).days > 365:
+            error = "Select a date range of 366 days or fewer."
+    except (ValueError, TypeError, OverflowError):
+        error = "Enter valid dates for the selected report period."
+    return period, anchor, start, end, error
+
+
+def _accounts_report_data(start, end):
+    income = AccountsIncome.objects.filter(date__range=(start, end))
+    expenses = AccountsExpense.objects.filter(date__range=(start, end))
+    sales = AccountsSale.objects.filter(date__range=(start, end))
+    zero = Decimal("0.00")
+    income_total = income.aggregate(total=Sum("amount"))["total"] or zero
+    expense_total = expenses.aggregate(total=Sum("amount"))["total"] or zero
+    sale_totals = sales.aggregate(total=Sum("amount"), received=Sum("received_amount"))
+    sales_total = sale_totals["total"] or zero
+    received_total = sale_totals["received"] or zero
+
+    income_days = {
+        item["date"]: item["total"]
+        for item in income.order_by().values("date").annotate(total=Sum("amount"))
+    }
+    expense_days = {
+        item["date"]: item["total"]
+        for item in expenses.order_by().values("date").annotate(total=Sum("amount"))
+    }
+    sale_days = {
+        item["date"]: item
+        for item in sales.order_by().values("date").annotate(
+            total=Sum("amount"), received=Sum("received_amount")
+        )
+    }
+    daily_rows = []
+    for offset in range((end - start).days + 1):
+        day = start + accounts_timedelta(days=offset)
+        day_income = income_days.get(day, zero)
+        day_expense = expense_days.get(day, zero)
+        day_sale = sale_days.get(day, {})
+        day_total = day_sale.get("total", zero)
+        day_received = day_sale.get("received", zero)
+        daily_rows.append({
+            "date": day,
+            "income": day_income,
+            "expenses": day_expense,
+            "net_movement": day_income - day_expense,
+            "sales": day_total,
+            "received": day_received,
+            "outstanding": day_total - day_received,
+        })
+    return {
+        "income_total": income_total,
+        "expense_total": expense_total,
+        "net_movement": income_total - expense_total,
+        "sales_total": sales_total,
+        "received_total": received_total,
+        "outstanding_total": sales_total - received_total,
+        "income_count": income.count(),
+        "expense_count": expenses.count(),
+        "sales_count": sales.count(),
+        "daily_rows": daily_rows,
+    }
+
+
+def _accounts_report_excel(data, start, end):
+    workbook = Workbook()
+    summary = workbook.active
+    summary.title = "Summary"
+    summary.append(["Accounts Report", "Value"])
+    summary.append(["Start Date", start])
+    summary.append(["End Date", end])
+    summary.append(["Income (INR)", data["income_total"]])
+    summary.append(["Expenses (INR)", data["expense_total"]])
+    summary.append(["Net Movement (INR)", data["net_movement"]])
+    summary.append(["Sales (INR)", data["sales_total"]])
+    summary.append(["Received Against Sales (INR)", data["received_total"]])
+    summary.append(["Outstanding Against Sales (INR)", data["outstanding_total"]])
+    summary.append(["Income Entries", data["income_count"]])
+    summary.append(["Expense Entries", data["expense_count"]])
+    summary.append(["Sales Entries", data["sales_count"]])
+    summary.append(["Calculation", "Net Movement = Income - Expenses. Sales are shown separately."])
+    summary.append(["Sales Payments", "Received/outstanding reflect current values of sales dated within this range."])
+    summary["B2"].number_format = summary["B3"].number_format = "dd mmm yyyy"
+    for row in range(4, 10):
+        summary.cell(row, 2).number_format = '#,##0.00'
+
+    daily = workbook.create_sheet("Daily Breakdown")
+    daily.append(["Date", "Income (INR)", "Expenses (INR)", "Net Movement (INR)",
+                  "Sales (INR)", "Received (INR)", "Outstanding (INR)"])
+    for item in data["daily_rows"]:
+        daily.append([item["date"], item["income"], item["expenses"], item["net_movement"],
+                      item["sales"], item["received"], item["outstanding"]])
+        daily.cell(daily.max_row, 1).number_format = "dd mmm yyyy"
+        for column in range(2, 8):
+            daily.cell(daily.max_row, column).number_format = '#,##0.00'
+
+    for sheet in workbook.worksheets:
+        sheet.freeze_panes = "A2"
+        sheet.auto_filter.ref = sheet.dimensions
+        for cell in sheet[1]:
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill("solid", fgColor="5B3B87")
+            cell.alignment = Alignment(vertical="center")
+        sheet.row_dimensions[1].height = 25
+        for column in range(1, sheet.max_column + 1):
+            sheet.column_dimensions[get_column_letter(column)].width = (
+                36 if sheet.title == "Summary" else 24
+            )
+    summary.column_dimensions["B"].width = 75
+    summary["B13"].alignment = Alignment(wrap_text=True)
+    summary["B14"].alignment = Alignment(wrap_text=True)
+    summary.row_dimensions[13].height = summary.row_dimensions[14].height = 34
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = (
+        f'attachment; filename="accounts_report_{start.isoformat()}_{end.isoformat()}.xlsx"'
+    )
+    workbook.save(response)
+    return response
+
+
+@never_cache
+@require_GET
+def accounts_reports(request):
+    if not request.session.get("user_id"):
+        return redirect("login_view")
+    current_user = _accounts_user(request)
+    if current_user is None:
+        return HttpResponseForbidden("You do not have access to Accounts reports.")
+    period, anchor, start, end, error = _accounts_report_range(
+        request.GET, timezone.localdate()
+    )
+    data = None if error else _accounts_report_data(start, end)
+    if request.GET.get("export") == "xlsx" and not error:
+        return _accounts_report_excel(data, start, end)
+    return render(request, "accounts/reports.html", {
+        "current_user": current_user,
+        "accounts_active": "reports",
+        "period": period,
+        "anchor_date": anchor,
+        "start_date": start,
+        "end_date": end,
+        "report_error": error,
+        "report": data,
+    }, status=400 if error else 200)

@@ -1,0 +1,130 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% block accounts_page_class %}accounts-sales-page{% endblock %}
+{% block title %}Sales - Cybexel Accounts{% endblock %}
+{% block page_heading %}SALES{% endblock %}
+{% block page_description %}Record sales and track customer payments.{% endblock %}
+{% block content %}
+<div id="accountsSalePage">
+  <div id="saleFeedback" role="status" class="sale-feedback" hidden></div>
+  <div id="saleSnapshot">
+    <div class="sale-summary-grid">
+      <article class="accounts-stat"><div class="accounts-stat-top"><h3>{% if has_filters %}Matching Sales{% else %}Total Sales{% endif %}</h3><i data-lucide="shopping-bag" aria-hidden="true"></i></div><p class="accounts-stat-value sale-total">₹{{ total_sales|floatformat:2 }}</p><span>Total value of listed sales</span></article>
+      <article class="accounts-stat"><div class="accounts-stat-top"><h3>Received</h3><i data-lucide="wallet" aria-hidden="true"></i></div><p class="accounts-stat-value sale-received">₹{{ total_received|floatformat:2 }}</p><span>Payments received for matching sales</span></article>
+      <article class="accounts-stat"><div class="accounts-stat-top"><h3>Outstanding</h3><i data-lucide="clock" aria-hidden="true"></i></div><p class="accounts-stat-value sale-outstanding">₹{{ total_balance|floatformat:2 }}</p><span>Balance for matching sales</span></article>
+    </div>
+    <div class="sale-period-totals"><span>This month: <strong>₹{{ month_sales|floatformat:2 }}</strong> · {{ month_label }}</span><span>Today: <strong>₹{{ today_sales|floatformat:2 }}</strong></span><span>These two totals include all sales.</span></div>
+    <section class="accounts-panel" aria-labelledby="saleListHeading">
+      <div class="accounts-panel-heading"><div><span class="accounts-eyebrow">SALES LEDGER</span><h2 id="saleListHeading">Sales Entries</h2></div><div class="sale-heading-actions"><span class="accounts-muted">{{ total_entries }} entr{{ total_entries|pluralize:'y,ies' }}</span><button type="button" id="saleAddButton" class="sale-button"><i data-lucide="plus" aria-hidden="true"></i>Add Sale</button></div></div>
+      <form id="saleSearchForm" class="sale-filter-form" aria-label="Filter and export sale" method="get" action="{% url 'accounts_sales' %}" role="search">
+        <div class="sale-filter-grid">
+          <div class="sale-field"><label for="saleSearch">Search</label><div class="sale-search-input"><i data-lucide="search" aria-hidden="true"></i><input class="accounts-input" id="saleSearch" name="q" type="search" maxlength="200" value="{{ query }}" placeholder="Customer, invoice or description"></div></div>
+          <div class="sale-field"><label for="salePeriod">Period</label><select class="accounts-input" id="salePeriod" name="period"><option value="all"{% if period == 'all' %} selected{% endif %}>All dates</option><option value="weekly"{% if period == 'weekly' %} selected{% endif %}>Weekly</option><option value="monthly"{% if period == 'monthly' %} selected{% endif %}>Monthly</option><option value="custom"{% if period == 'custom' %} selected{% endif %}>Custom range</option></select></div>
+          <div class="sale-field"><label for="saleStatusFilter">Payment status</label><select class="accounts-input" id="saleStatusFilter" name="status"><option value="">All statuses</option><option value="paid"{% if status_filter == 'paid' %} selected{% endif %}>Paid</option><option value="partial"{% if status_filter == 'partial' %} selected{% endif %}>Partially Paid</option><option value="overdue"{% if status_filter == 'overdue' %} selected{% endif %}>Overdue</option><option value="unpaid"{% if status_filter == 'unpaid' %} selected{% endif %}>Unpaid</option></select></div>
+          <div class="sale-field" data-sale-period="weekly"{% if period != 'weekly' %} hidden{% endif %}><label for="saleWeekDate">Date within the week</label><input class="accounts-input" id="saleWeekDate" name="date" type="date" value="{{ selected_date }}"></div>
+          <div class="sale-field" data-sale-period="monthly"{% if period != 'monthly' %} hidden{% endif %}><label for="saleMonth">Month</label><input class="accounts-input" id="saleMonth" name="month" type="month" value="{{ selected_month }}"></div>
+          <div class="sale-field" data-sale-period="custom"{% if period != 'custom' %} hidden{% endif %}><label for="saleFrom">From Date</label><input class="accounts-input" id="saleFrom" name="start" type="date" value="{{ from_date }}"></div>
+          <div class="sale-field" data-sale-period="custom"{% if period != 'custom' %} hidden{% endif %}><label for="saleTo">To Date</label><input class="accounts-input" id="saleTo" name="end" type="date" value="{{ to_date }}"></div>
+        </div>
+        <div class="sale-filter-footer"><div class="sale-filter-description">{% if range_start and not filter_error %}{{ range_start|date:'d M Y' }} – {{ range_end|date:'d M Y' }}{% else %}Choose a period and apply filters.{% endif %}<span>Weekly: Monday–Sunday. Export includes every matching entry.</span></div><div class="sale-filter-actions"><a class="sale-reset" href="{% url 'accounts_sales' %}" data-sale-page>Reset</a><button type="submit" class="sale-button sale-button-secondary">Apply</button><button type="submit" name="export" value="xlsx" class="sale-button sale-button-export" id="saleExportButton"><i data-lucide="file-spreadsheet" aria-hidden="true"></i><span>Export to Excel</span></button></div></div>
+      </form>
+      {% if filter_error %}<div class="sale-form-error" role="alert">{{ filter_error }}</div>{% endif %}
+      <div class="accounts-table-scroll" tabindex="0" role="region" aria-label="Sale entries, scroll to see all columns">
+        <table class="accounts-table sale-table"><caption class="accounts-sr-only">Sales ledger, newest sale dates first</caption><thead><tr><th scope="col">Date</th><th scope="col">Customer / Description</th><th scope="col">Invoice</th><th scope="col">Due date</th><th scope="col" class="amount">Sale amount</th><th scope="col" class="amount">Received</th><th scope="col" class="amount">Balance</th><th scope="col">Status</th><th scope="col">Recorded By</th><th scope="col" class="sale-actions-heading">Actions</th></tr></thead>
+          <tbody>{% for entry in page_obj %}<tr><td class="nowrap">{{ entry.date|date:'d M Y' }}</td><td class="description-cell"><strong>{{ entry.customer_name }}</strong><p>{{ entry.description }}</p></td><td class="sale-reference">{{ entry.invoice_number|default:'—' }}</td><td class="nowrap">{{ entry.due_date|date:'d M Y'|default:'—' }}{% if entry.is_overdue %}<span class="sale-overdue">Overdue</span>{% endif %}</td><td class="amount">₹{{ entry.amount|floatformat:2 }}</td><td class="amount">₹{{ entry.received_amount|floatformat:2 }}</td><td class="amount">₹{{ entry.balance_amount|floatformat:2 }}</td><td><span class="sale-payment-badge {{ entry.payment_status }}">{{ entry.payment_status_label }}</span></td><td>{{ entry.created_by.name|default:'—' }}</td><td><div class="sale-row-actions">
+            <button type="button" class="sale-icon-button" data-sale-view aria-label="View {{ entry.customer_name }}" title="View sale"><i data-lucide="eye" aria-hidden="true"></i></button>
+            <button type="button" class="sale-icon-button" data-sale-edit="{% url 'accounts_sale_edit' entry.pk %}" aria-label="Edit {{ entry.customer_name }}" title="Edit sale"><i data-lucide="pencil" aria-hidden="true"></i></button>
+            <button type="button" class="sale-icon-button" data-sale-payments="{% url 'accounts_sale_payments' entry.pk %}" title="Payments and history" aria-label="Payments for {{ entry.customer_name }}"><i data-lucide="wallet" aria-hidden="true"></i></button>
+            <button type="button" class="sale-icon-button sale-icon-delete" data-sale-delete="{% url 'accounts_sale_delete' entry.pk %}" data-sale-category="{{ entry.customer_name }}" aria-label="Delete {{ entry.customer_name }}" title="Delete sale"><i data-lucide="trash-2" aria-hidden="true"></i></button>
+          </div>
+            <template class="sale-view-template">
+              <div class="sale-view-amount"><span>Sale amount</span><strong>₹{{ entry.amount|floatformat:2 }}</strong></div>
+              <dl class="sale-view-details">
+                <div><dt>Received</dt><dd>₹{{ entry.received_amount|floatformat:2 }}</dd></div>
+                <div><dt>Balance</dt><dd>₹{{ entry.balance_amount|floatformat:2 }}</dd></div>
+                <div class="sale-view-wide"><dt>Payment status</dt><dd><span class="sale-payment-badge {{ entry.payment_status }}">{{ entry.payment_status_label }}</span></dd></div>
+                <div><dt>Date</dt><dd>{{ entry.date|date:'d M Y' }}</dd></div>
+                <div><dt>Customer</dt><dd>{{ entry.customer_name }}</dd></div>
+                <div><dt>Invoice</dt><dd>{{ entry.invoice_number|default:'—' }}</dd></div>
+                <div class="sale-view-wide"><dt>Recorded by</dt><dd>{{ entry.created_by.name|default:'—' }}</dd></div>
+                <div class="sale-view-wide"><dt>Description</dt><dd>{{ entry.description|default:'—' }}</dd></div>
+                <div><dt>Due date</dt><dd>{{ entry.due_date|date:'d M Y'|default:'—' }}{% if entry.is_overdue %}<span class="sale-overdue">Overdue</span>{% endif %}</dd></div>
+                <div class="sale-view-wide"><dt>Invoice attachment</dt><dd>{% if entry.invoice_file %}<div class="sale-invoice-actions"><a class="sale-button sale-button-secondary" target="_blank" rel="noopener" href="{% url 'accounts_sale_invoice' entry.pk %}">View Invoice</a><a class="sale-button sale-button-secondary" href="{% url 'accounts_sale_invoice' entry.pk %}?download=1">Download</a></div>{% else %}No invoice attached{% endif %}</dd></div>
+              </dl>
+            </template>
+          </td></tr>{% empty %}<tr><td colspan="10"><div class="accounts-empty"><span class="accounts-empty-icon"><i data-lucide="wallet" aria-hidden="true"></i></span><h3>{% if has_filters %}No matching sale{% else %}No sales recorded yet{% endif %}</h3><p>{% if has_filters %}Try another search term.{% else %}Add your first entry using the Add Sale button.{% endif %}</p></div></td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+      {% if page_obj.paginator.num_pages > 1 %}<nav class="sale-pagination" aria-label="Sale pages"><span class="accounts-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_previous %}<a class="sale-button sale-button-secondary" data-sale-page href="?q={{ query|urlencode }}&amp;status={{ status_filter|urlencode }}&amp;period={{ period|urlencode }}&amp;date={{ selected_date|urlencode }}&amp;month={{ selected_month|urlencode }}&amp;start={{ from_date|urlencode }}&amp;end={{ to_date|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}{% if page_obj.has_next %}<a class="sale-button sale-button-secondary" data-sale-page href="?q={{ query|urlencode }}&amp;status={{ status_filter|urlencode }}&amp;period={{ period|urlencode }}&amp;date={{ selected_date|urlencode }}&amp;month={{ selected_month|urlencode }}&amp;start={{ from_date|urlencode }}&amp;end={{ to_date|urlencode }}&amp;page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></nav>{% endif %}
+    </section>
+  </div>
+</div>
+  <dialog id="saleAddDialog" class="sale-dialog" aria-labelledby="saleEntryHeading" data-form-errors="{% if form.errors %}1{% else %}0{% endif %}">
+    <div class="accounts-panel-heading"><div><span class="accounts-eyebrow">NEW ENTRY</span><h2 id="saleEntryHeading">Add Sale</h2></div><button type="button" class="sale-icon-button" data-sale-close aria-label="Close Add Sale"><i data-lucide="x" aria-hidden="true"></i></button></div>
+    <form id="accountsSaleForm" method="post" enctype="multipart/form-data" action="{% url 'accounts_sales' %}">
+      {% csrf_token %}
+      <input type="hidden" name="confirm_duplicate" value="0">
+      <div class="sale-form-error" id="saleFormError" role="alert" {% if not form.non_field_errors %}hidden{% endif %}>{{ form.non_field_errors }}</div>
+      <div class="sale-duplicate-box" role="alert" hidden><p data-sale-duplicate-message></p><button type="button" class="sale-button sale-button-secondary" data-sale-duplicate-cancel>Review Entry</button><button type="button" class="sale-button" data-sale-duplicate-confirm>Save Anyway</button></div>
+      <div class="sale-form-grid">
+        {% for field in form %}
+        <div class="sale-field{% if field.name == 'description' %} sale-field-wide{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span aria-hidden="true"> *</span>{% endif %}</label>
+          {{ field }}
+          <div class="sale-field-error" id="error_{{ field.name }}" data-field-error="{{ field.name }}">{% for error in field.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="sale-form-footer"><span class="accounts-muted">Fields marked * are required.</span><button type="submit" class="sale-button" id="saleSaveButton"><i data-lucide="plus" aria-hidden="true"></i><span>Save Sale</span></button></div>
+    </form>
+  </dialog>
+
+<dialog id="saleEditDialog" class="sale-dialog" aria-labelledby="saleEditTitle">
+  <header class="sale-dialog-header"><div><span class="accounts-eyebrow">SALES ENTRY</span><h2 id="saleEditTitle">Edit Sale</h2></div><button type="button" class="sale-icon-button" data-sale-close aria-label="Close edit popup"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <form id="saleEditForm" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="confirm_duplicate" value="0">
+    <div id="saleEditError" class="sale-form-error" role="alert" hidden></div>
+    <div class="sale-duplicate-box" role="alert" hidden><p data-sale-duplicate-message></p><button type="button" class="sale-button sale-button-secondary" data-sale-duplicate-cancel>Review Entry</button><button type="button" class="sale-button" data-sale-duplicate-confirm>Save Anyway</button></div>
+    <p class="accounts-muted">Record new receipts through Payments. Received totals cannot be changed here.</p>
+    <div id="saleCurrentInvoice" class="sale-invoice-actions" hidden><a class="sale-button sale-button-secondary" target="_blank" rel="noopener">View current invoice</a><label><input type="checkbox" name="remove_invoice" value="1"> Remove invoice</label></div>
+    <div id="saleEditFields" class="sale-form-grid"></div>
+    <footer class="sale-dialog-footer"><button type="button" class="sale-button sale-button-secondary" data-sale-close>Cancel</button><button type="submit" class="sale-button" id="saleUpdateButton">Save Changes</button></footer>
+  </form>
+</dialog>
+<dialog id="saleDeleteDialog" class="sale-dialog sale-dialog-small" aria-labelledby="saleDeleteTitle" aria-describedby="saleDeleteDescription">
+  <header class="sale-dialog-header"><div><span class="accounts-eyebrow">CONFIRM DELETE</span><h2 id="saleDeleteTitle">Delete Sale?</h2></div><button type="button" class="sale-icon-button" data-sale-close aria-label="Close delete confirmation"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <p id="saleDeleteDescription" class="sale-delete-description">Delete <strong id="saleDeleteCategory"></strong>? This sale and its payment history will be removed, and sales totals will change. This cannot be undone.</p>
+  <div id="saleDeleteError" class="sale-form-error" role="alert" hidden></div>
+  <footer class="sale-dialog-footer"><button type="button" class="sale-button sale-button-secondary" data-sale-close autofocus>Cancel</button><button type="button" class="sale-button sale-button-danger" id="saleDeleteButton">Delete Sale</button></footer>
+</dialog>
+
+<dialog id="saleViewDialog" class="sale-dialog sale-view-dialog" aria-labelledby="saleViewTitle">
+  <header class="sale-dialog-header">
+    <div><span class="accounts-eyebrow">SALES ENTRY</span><h2 id="saleViewTitle">Sale Details</h2></div>
+    <button type="button" class="sale-icon-button" data-sale-close aria-label="Close sale details"><i data-lucide="x" aria-hidden="true"></i></button>
+  </header>
+  <div id="saleViewContent"></div>
+  <footer class="sale-dialog-footer"><button type="button" class="sale-button sale-button-secondary" data-sale-close>Close</button></footer>
+</dialog>
+
+<dialog id="salePaymentsDialog" class="sale-dialog" aria-labelledby="salePaymentsTitle">
+  <header class="sale-dialog-header"><div><span class="accounts-eyebrow">CUSTOMER PAYMENTS</span><h2 id="salePaymentsTitle">Payments</h2></div><button type="button" class="sale-icon-button" data-sale-close aria-label="Close Payments"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <div id="salePaymentSummary" class="sale-payment-summary"></div>
+  <form id="salePaymentForm" method="post">
+    {% csrf_token %}<input type="hidden" name="request_token">
+    <div id="salePaymentError" class="sale-form-error" role="alert" hidden></div>
+    <div class="sale-form-grid">
+      <div class="sale-field"><label for="salePaymentDate">Received date *</label><input id="salePaymentDate" type="date" name="date" class="accounts-input" required><div id="payment_error_date" data-field-error="date" class="sale-field-error"></div></div>
+      <div class="sale-field"><label for="salePaymentAmount">Amount (₹) *</label><input id="salePaymentAmount" name="amount" type="number" min="0.01" step="0.01" class="accounts-input" required><div id="payment_error_amount" data-field-error="amount" class="sale-field-error"></div></div>
+      <div class="sale-field"><label for="salePaymentMethod">Payment method *</label><select id="salePaymentMethod" name="payment_method" class="accounts-input"><option value="bank_transfer">Bank Transfer</option><option value="cash">Cash</option><option value="upi">UPI</option><option value="card">Card</option><option value="other">Other</option></select><div id="payment_error_payment_method" data-field-error="payment_method" class="sale-field-error"></div></div>
+      <div class="sale-field"><label for="salePaymentReference">Reference</label><input id="salePaymentReference" name="reference" maxlength="150" class="accounts-input"><div id="payment_error_reference" data-field-error="reference" class="sale-field-error"></div></div>
+      <div class="sale-field sale-field-wide"><label for="salePaymentNote">Note</label><textarea id="salePaymentNote" name="note" rows="2" class="accounts-input"></textarea><div id="payment_error_note" data-field-error="note" class="sale-field-error"></div></div>
+    </div>
+    <footer class="sale-dialog-footer"><button type="submit" id="salePaymentSaveButton" class="sale-button">Record Payment</button></footer>
+  </form>
+  <h3 class="sale-payment-history-title">Payment History</h3>
+  <div id="salePaymentHistory" class="sale-payment-history"></div>
+  <footer class="sale-dialog-footer"><button type="button" class="sale-button sale-button-secondary" data-sale-close>Close</button></footer>
+</dialog>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% block accounts_page_class %}accounts-expense-page{% endblock %}
+{% block title %}Expenses - Cybexel Accounts{% endblock %}
+{% block page_heading %}EXPENSES{% endblock %}
+{% block page_description %}Record expenses and keep track of your payments.{% endblock %}
+{% block content %}
+<div id="accountsExpensePage">
+  <div id="expenseFeedback" role="status" class="expense-feedback" hidden></div>
+  <div id="expenseSnapshot">
+    <div class="expense-summary-grid">
+      <article class="accounts-stat"><div class="accounts-stat-top"><h3>{% if has_filters %}Matching Expenses{% else %}Total Expenses{% endif %}</h3><i data-lucide="wallet" aria-hidden="true"></i></div><p class="accounts-stat-value expense-total">₹{{ total_expense|floatformat:2 }}</p><span>{% if has_filters %}Total for the selected filters{% else %}All recorded expense{% endif %}</span></article>
+      <article class="accounts-stat"><div class="accounts-stat-top"><h3>This Month</h3><i data-lucide="calendar-days" aria-hidden="true"></i></div><p class="accounts-stat-value balance">₹{{ month_expense|floatformat:2 }}</p><span>{{ month_label }} · all entries</span></article>
+      <article class="accounts-stat"><div class="accounts-stat-top"><h3>Today</h3><i data-lucide="sun" aria-hidden="true"></i></div><p class="accounts-stat-value sales">₹{{ today_expense|floatformat:2 }}</p><span>Expense recorded for today's date</span></article>
+    </div>
+    <section class="accounts-panel" aria-labelledby="expenseListHeading">
+      <div class="accounts-panel-heading"><div><span class="accounts-eyebrow">EXPENSE LEDGER</span><h2 id="expenseListHeading">Expense Entries</h2></div><div class="expense-heading-actions"><span class="accounts-muted">{{ total_entries }} entr{{ total_entries|pluralize:'y,ies' }}</span><button type="button" id="expenseAddButton" class="expense-button"><i data-lucide="plus" aria-hidden="true"></i>Add Expense</button></div></div>
+      <form id="expenseSearchForm" class="expense-filter-form" aria-label="Filter and export expense" method="get" action="{% url 'accounts_expenses' %}" role="search">
+        <div class="expense-filter-grid">
+          <div class="expense-field"><label for="expenseSearch">Search</label><div class="expense-search-input"><i data-lucide="search" aria-hidden="true"></i><input class="accounts-input" id="expenseSearch" name="q" type="search" maxlength="200" value="{{ query }}" placeholder="Category, paid to or reference"></div></div>
+          <div class="expense-field"><label for="expensePeriod">Period</label><select class="accounts-input" id="expensePeriod" name="period"><option value="all"{% if period == 'all' %} selected{% endif %}>All dates</option><option value="weekly"{% if period == 'weekly' %} selected{% endif %}>Weekly</option><option value="monthly"{% if period == 'monthly' %} selected{% endif %}>Monthly</option><option value="custom"{% if period == 'custom' %} selected{% endif %}>Custom range</option></select></div>
+
+          <div class="expense-field"><label for="expenseCategoryFilter">Category</label><select class="accounts-input" id="expenseCategoryFilter" name="category"><option value="">All categories</option>{% for category in categories %}<option value="{{ category }}"{% if category_filter == category %} selected{% endif %}>{{ category }}</option>{% endfor %}</select></div>
+          <div class="expense-field"><label for="expenseStatusFilter">Payment status</label><select class="accounts-input" id="expenseStatusFilter" name="status"><option value="">All statuses</option><option value="paid"{% if payment_filter == 'paid' %} selected{% endif %}>Paid</option><option value="pending"{% if payment_filter == 'pending' %} selected{% endif %}>Pending</option><option value="partial"{% if payment_filter == 'partial' %} selected{% endif %}>Partially Paid</option></select></div>
+          <div class="expense-field" data-expense-period="weekly"{% if period != 'weekly' %} hidden{% endif %}><label for="expenseWeekDate">Date within the week</label><input class="accounts-input" id="expenseWeekDate" name="date" type="date" value="{{ selected_date }}"></div>
+          <div class="expense-field" data-expense-period="monthly"{% if period != 'monthly' %} hidden{% endif %}><label for="expenseMonth">Month</label><input class="accounts-input" id="expenseMonth" name="month" type="month" value="{{ selected_month }}"></div>
+          <div class="expense-field" data-expense-period="custom"{% if period != 'custom' %} hidden{% endif %}><label for="expenseFrom">From Date</label><input class="accounts-input" id="expenseFrom" name="start" type="date" value="{{ from_date }}"></div>
+          <div class="expense-field" data-expense-period="custom"{% if period != 'custom' %} hidden{% endif %}><label for="expenseTo">To Date</label><input class="accounts-input" id="expenseTo" name="end" type="date" value="{{ to_date }}"></div>
+        </div>
+        <div class="expense-filter-footer"><div class="expense-filter-description">{% if range_start and not filter_error %}{{ range_start|date:'d M Y' }} – {{ range_end|date:'d M Y' }}{% else %}Choose a period and apply filters.{% endif %}<span>Weekly: Monday–Sunday. Export includes every matching entry.</span></div><div class="expense-filter-actions"><a class="expense-reset" href="{% url 'accounts_expenses' %}" data-expense-page>Reset</a><button type="submit" class="expense-button expense-button-secondary">Apply</button><button type="submit" name="export" value="xlsx" class="expense-button expense-button-export" id="expenseExportButton"><i data-lucide="file-spreadsheet" aria-hidden="true"></i><span>Export to Excel</span></button></div></div>
+      </form>
+      {% if filter_error %}<div class="expense-form-error" role="alert">{{ filter_error }}</div>{% endif %}
+      <div class="accounts-table-scroll" tabindex="0" role="region" aria-label="Expense entries, scroll to see all columns">
+        <table class="accounts-table expense-table"><caption class="accounts-sr-only">Expense ledger, most recent expense dates first</caption><thead><tr><th scope="col">Date</th><th scope="col">Category / Description</th><th scope="col">Paid To</th><th scope="col">Payment</th><th scope="col">Reference</th><th scope="col">Recorded By</th><th scope="col" class="amount">Amount</th><th scope="col" class="amount">Paid</th><th scope="col" class="amount">Balance</th><th scope="col">Status</th><th scope="col" class="expense-actions-heading">Actions</th></tr></thead>
+          <tbody>{% for entry in page_obj %}<tr><td class="nowrap">{{ entry.date|date:'d M Y' }}</td><td class="description-cell"><strong>{{ entry.category }}</strong><p>{{ entry.description }}</p></td><td class="expense-paid-to">{{ entry.paid_to|default:'—' }}</td><td class="nowrap">{{ entry.get_payment_method_display }}</td><td class="expense-reference">{{ entry.reference|default:'—' }}</td><td>{{ entry.created_by.name|default:'—' }}</td><td class="amount">₹{{ entry.amount|floatformat:2 }}</td><td class="amount">₹{{ entry.effective_paid_amount|floatformat:2 }}</td><td class="amount">₹{{ entry.balance_amount|floatformat:2 }}</td><td><span class="expense-status {{ entry.payment_status }}">{{ entry.payment_status_label }}</span></td><td><div class="expense-row-actions">
+            <button type="button" class="expense-icon-button" data-expense-view aria-label="View {{ entry.category }}" title="View expense"><i data-lucide="eye" aria-hidden="true"></i></button>
+            <button type="button" class="expense-icon-button" data-expense-edit="{% url 'accounts_expense_edit' entry.pk %}" aria-label="Edit {{ entry.category }}" title="Edit expense"><i data-lucide="pencil" aria-hidden="true"></i></button>
+            <button type="button" class="expense-icon-button" data-expense-history="{% url 'accounts_expense_history' entry.pk %}" aria-label="History of {{ entry.category }}" title="Edit history"><i data-lucide="history" aria-hidden="true"></i></button>
+            <button type="button" class="expense-icon-button expense-icon-delete" data-expense-delete="{% url 'accounts_expense_delete' entry.pk %}" data-expense-category="{{ entry.category }}" aria-label="Delete {{ entry.category }}" title="Delete expense"><i data-lucide="trash-2" aria-hidden="true"></i></button>
+          </div>
+            <template class="expense-view-template">
+              <div class="expense-view-amount"><span>Expense amount</span><strong>₹{{ entry.amount|floatformat:2 }}</strong></div>
+              <dl class="expense-view-details">
+                <div><dt>Paid amount</dt><dd>₹{{ entry.effective_paid_amount|floatformat:2 }}</dd></div>
+                <div><dt>Balance</dt><dd>₹{{ entry.balance_amount|floatformat:2 }}</dd></div>
+                <div><dt>Payment status</dt><dd><span class="expense-status {{ entry.payment_status }}">{{ entry.payment_status_label }}</span></dd></div>
+                <div><dt>Date</dt><dd>{{ entry.date|date:'d M Y' }}</dd></div>
+                <div><dt>Category</dt><dd>{{ entry.category }}</dd></div>
+                <div><dt>Paid to</dt><dd>{{ entry.paid_to|default:'—' }}</dd></div>
+                <div><dt>Payment method</dt><dd>{{ entry.get_payment_method_display }}</dd></div>
+                <div><dt>Reference</dt><dd>{{ entry.reference|default:'—' }}</dd></div>
+                <div class="expense-view-wide"><dt>Recorded by</dt><dd>{{ entry.created_by.name|default:'—' }}</dd></div>
+                <div class="expense-view-wide"><dt>Description</dt><dd>{{ entry.description|default:'—' }}</dd></div>
+                <div class="expense-view-wide"><dt>Bill / Receipt</dt><dd>{% if entry.receipt %}<div class="expense-receipt-actions"><a class="expense-button expense-button-secondary" href="{% url 'accounts_expense_receipt' entry.pk %}" target="_blank" rel="noopener">View Receipt</a><a class="expense-button expense-button-secondary" href="{% url 'accounts_expense_receipt' entry.pk %}?download=1">Download</a></div>{% else %}No receipt attached{% endif %}</dd></div>
+              </dl>
+            </template>
+          </td></tr>{% empty %}<tr><td colspan="11"><div class="accounts-empty"><span class="accounts-empty-icon"><i data-lucide="wallet" aria-hidden="true"></i></span><h3>{% if has_filters %}No matching expense{% else %}No expense recorded yet{% endif %}</h3><p>{% if has_filters %}Try another search term.{% else %}Add your first entry using the Add Expense button.{% endif %}</p></div></td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+      {% if page_obj.paginator.num_pages > 1 %}<nav class="expense-pagination" aria-label="Expense pages"><span class="accounts-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_previous %}<a class="expense-button expense-button-secondary" data-expense-page href="?q={{ query|urlencode }}&amp;category={{ category_filter|urlencode }}&amp;status={{ payment_filter|urlencode }}&amp;period={{ period|urlencode }}&amp;date={{ selected_date|urlencode }}&amp;month={{ selected_month|urlencode }}&amp;start={{ from_date|urlencode }}&amp;end={{ to_date|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}{% if page_obj.has_next %}<a class="expense-button expense-button-secondary" data-expense-page href="?q={{ query|urlencode }}&amp;category={{ category_filter|urlencode }}&amp;status={{ payment_filter|urlencode }}&amp;period={{ period|urlencode }}&amp;date={{ selected_date|urlencode }}&amp;month={{ selected_month|urlencode }}&amp;start={{ from_date|urlencode }}&amp;end={{ to_date|urlencode }}&amp;page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></nav>{% endif %}
+    </section>
+  </div>
+</div>
+  <dialog id="expenseAddDialog" class="expense-dialog" aria-labelledby="expenseEntryHeading" data-form-errors="{% if form.errors %}1{% else %}0{% endif %}">
+    <div class="accounts-panel-heading"><div><span class="accounts-eyebrow">NEW ENTRY</span><h2 id="expenseEntryHeading">Add Expense</h2></div><button type="button" class="expense-icon-button" data-expense-close aria-label="Close Add Expense"><i data-lucide="x" aria-hidden="true"></i></button></div>
+    <form id="accountsExpenseForm" method="post" enctype="multipart/form-data" action="{% url 'accounts_expenses' %}">
+      {% csrf_token %}
+      <input type="hidden" name="confirm_duplicate" value="0">
+      <div class="expense-form-error" id="expenseFormError" role="alert" {% if not form.non_field_errors %}hidden{% endif %}>{{ form.non_field_errors }}</div>
+      <div class="expense-duplicate-box" role="alert" hidden><p data-expense-duplicate-message></p><button type="button" class="expense-button expense-button-secondary" data-expense-duplicate-cancel>Review Entry</button><button type="button" class="expense-button" data-expense-duplicate-confirm>Save Anyway</button></div>
+      <div class="expense-form-grid">
+        {% for field in form %}
+        <div class="expense-field{% if field.name == 'description' or field.name == 'receipt' %} expense-field-wide{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span aria-hidden="true"> *</span>{% endif %}</label>
+          {{ field }}
+          <div class="expense-field-error" id="error_{{ field.name }}" data-field-error="{{ field.name }}">{% for error in field.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="expense-form-footer"><span class="accounts-muted">Fields marked * are required.</span><button type="submit" class="expense-button" id="expenseSaveButton"><i data-lucide="plus" aria-hidden="true"></i><span>Save Expense</span></button></div>
+    </form>
+  </dialog>
+
+<dialog id="expenseEditDialog" class="expense-dialog" aria-labelledby="expenseEditTitle">
+  <header class="expense-dialog-header"><div><span class="accounts-eyebrow">EXPENSE ENTRY</span><h2 id="expenseEditTitle">Edit Expense</h2></div><button type="button" class="expense-icon-button" data-expense-close aria-label="Close edit popup"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <form id="expenseEditForm" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+      <input type="hidden" name="confirm_duplicate" value="0">
+    <div id="expenseEditError" class="expense-form-error" role="alert" hidden></div>
+    <div class="expense-duplicate-box" role="alert" hidden><p data-expense-duplicate-message></p><button type="button" class="expense-button expense-button-secondary" data-expense-duplicate-cancel>Review Entry</button><button type="button" class="expense-button" data-expense-duplicate-confirm>Save Anyway</button></div>
+    <div id="expenseCurrentReceipt" class="expense-current-receipt" hidden><a target="_blank" rel="noopener" class="expense-button expense-button-secondary" data-expense-current-receipt>View Current Receipt</a><label><input type="checkbox" name="remove_receipt" value="1"> Remove current receipt</label></div>
+    <div id="expenseEditFields" class="expense-form-grid"></div>
+    <footer class="expense-dialog-footer"><button type="button" class="expense-button expense-button-secondary" data-expense-close>Cancel</button><button type="submit" class="expense-button" id="expenseUpdateButton">Save Changes</button></footer>
+  </form>
+</dialog>
+<dialog id="expenseDeleteDialog" class="expense-dialog expense-dialog-small" aria-labelledby="expenseDeleteTitle" aria-describedby="expenseDeleteDescription">
+  <header class="expense-dialog-header"><div><span class="accounts-eyebrow">CONFIRM DELETE</span><h2 id="expenseDeleteTitle">Delete Expense?</h2></div><button type="button" class="expense-icon-button" data-expense-close aria-label="Close delete confirmation"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <p id="expenseDeleteDescription" class="expense-delete-description">Delete <strong id="expenseDeleteCategory"></strong>? This entry will be removed and expense totals will change. This cannot be undone.</p>
+  <div id="expenseDeleteError" class="expense-form-error" role="alert" hidden></div>
+  <footer class="expense-dialog-footer"><button type="button" class="expense-button expense-button-secondary" data-expense-close autofocus>Cancel</button><button type="button" class="expense-button expense-button-danger" id="expenseDeleteButton">Delete Expense</button></footer>
+</dialog>
+
+<dialog id="expenseViewDialog" class="expense-dialog expense-view-dialog" aria-labelledby="expenseViewTitle">
+  <header class="expense-dialog-header">
+    <div><span class="accounts-eyebrow">EXPENSE ENTRY</span><h2 id="expenseViewTitle">Expense Details</h2></div>
+    <button type="button" class="expense-icon-button" data-expense-close aria-label="Close expense details"><i data-lucide="x" aria-hidden="true"></i></button>
+  </header>
+  <div id="expenseViewContent"></div>
+  <footer class="expense-dialog-footer"><button type="button" class="expense-button expense-button-secondary" data-expense-close>Close</button></footer>
+</dialog>
+
+<dialog id="expenseHistoryDialog" class="expense-dialog" aria-labelledby="expenseHistoryTitle">
+  <header class="expense-dialog-header"><div><span class="accounts-eyebrow">ACTIVITY LOG</span><h2 id="expenseHistoryTitle">Expense History</h2></div><button type="button" class="expense-icon-button" data-expense-close aria-label="Close expense history"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <p class="accounts-muted">Latest 50 changes · History starts after this upgrade.</p>
+  <div id="expenseHistoryContent" class="expense-history-list"></div>
+  <footer class="expense-dialog-footer"><button type="button" class="expense-button expense-button-secondary" data-expense-close>Close</button></footer>
+</dialog>
+{% endblock %}

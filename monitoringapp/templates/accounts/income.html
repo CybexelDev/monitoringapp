@@ -1,0 +1,111 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% block accounts_page_class %}accounts-income-page{% endblock %}
+{% block title %}Income - Cybexel Accounts{% endblock %}
+{% block page_heading %}INCOME{% endblock %}
+{% block page_description %}Record income and keep track of your receipts.{% endblock %}
+{% block content %}
+<div id="accountsIncomePage">
+  <div id="incomeFeedback" role="status" class="income-feedback" hidden></div>
+  <div id="incomeSnapshot">
+    <div class="income-summary-grid">
+      <article class="accounts-stat"><div class="accounts-stat-top"><h3>{% if has_filters %}Matching Income{% else %}Total Income{% endif %}</h3><i data-lucide="wallet" aria-hidden="true"></i></div><p class="accounts-stat-value income">₹{{ total_income|floatformat:2 }}</p><span>{% if has_filters %}Total for the selected filters{% else %}All recorded income{% endif %}</span></article>
+      <article class="accounts-stat"><div class="accounts-stat-top"><h3>This Month</h3><i data-lucide="calendar-days" aria-hidden="true"></i></div><p class="accounts-stat-value balance">₹{{ month_income|floatformat:2 }}</p><span>{{ month_label }} · all entries</span></article>
+      <article class="accounts-stat"><div class="accounts-stat-top"><h3>Today</h3><i data-lucide="sun" aria-hidden="true"></i></div><p class="accounts-stat-value sales">₹{{ today_income|floatformat:2 }}</p><span>Income recorded for today's date</span></article>
+    </div>
+    <section class="accounts-panel" aria-labelledby="incomeListHeading">
+      <div class="accounts-panel-heading"><div><span class="accounts-eyebrow">INCOME LEDGER</span><h2 id="incomeListHeading">Income Entries</h2></div><div class="income-heading-actions"><span class="accounts-muted">{{ total_entries }} entr{{ total_entries|pluralize:'y,ies' }}</span><button type="button" id="incomeAddButton" class="income-button"><i data-lucide="plus" aria-hidden="true"></i>Add Income</button></div></div>
+      <form id="incomeSearchForm" class="income-filter-form" aria-label="Filter and export income" method="get" action="{% url 'accounts_income' %}" role="search">
+        <div class="income-filter-grid">
+          <div class="income-field"><label for="incomeSearch">Search</label><div class="income-search-input"><i data-lucide="search" aria-hidden="true"></i><input class="accounts-input" id="incomeSearch" name="q" type="search" maxlength="200" value="{{ query }}" placeholder="Category, description or reference"></div></div>
+          <div class="income-field"><label for="incomePeriod">Period</label><select class="accounts-input" id="incomePeriod" name="period"><option value="all"{% if period == 'all' %} selected{% endif %}>All dates</option><option value="weekly"{% if period == 'weekly' %} selected{% endif %}>Weekly</option><option value="monthly"{% if period == 'monthly' %} selected{% endif %}>Monthly</option><option value="custom"{% if period == 'custom' %} selected{% endif %}>Custom range</option></select></div>
+          <div class="income-field"><label for="incomeCategoryFilter">Category</label><select class="accounts-input" id="incomeCategoryFilter" name="category"><option value="">All categories</option>{% for category in categories %}<option value="{{ category }}"{% if category_filter == category %} selected{% endif %}>{{ category }}</option>{% endfor %}</select></div>
+          <div class="income-field" data-income-period="weekly"{% if period != 'weekly' %} hidden{% endif %}><label for="incomeWeekDate">Date within the week</label><input class="accounts-input" id="incomeWeekDate" name="date" type="date" value="{{ selected_date }}"></div>
+          <div class="income-field" data-income-period="monthly"{% if period != 'monthly' %} hidden{% endif %}><label for="incomeMonth">Month</label><input class="accounts-input" id="incomeMonth" name="month" type="month" value="{{ selected_month }}"></div>
+          <div class="income-field" data-income-period="custom"{% if period != 'custom' %} hidden{% endif %}><label for="incomeFrom">From Date</label><input class="accounts-input" id="incomeFrom" name="start" type="date" value="{{ from_date }}"></div>
+          <div class="income-field" data-income-period="custom"{% if period != 'custom' %} hidden{% endif %}><label for="incomeTo">To Date</label><input class="accounts-input" id="incomeTo" name="end" type="date" value="{{ to_date }}"></div>
+        </div>
+        <div class="income-filter-footer"><div class="income-filter-description">{% if range_start and not filter_error %}{{ range_start|date:'d M Y' }} – {{ range_end|date:'d M Y' }}{% else %}Choose a period and apply filters.{% endif %}<span>Weekly: Monday–Sunday. Export includes every matching entry.</span></div><div class="income-filter-actions"><a class="income-reset" href="{% url 'accounts_income' %}" data-income-page>Reset</a><button type="submit" class="income-button income-button-secondary">Apply</button><button type="submit" name="export" value="xlsx" class="income-button income-button-export" id="incomeExportButton"><i data-lucide="file-spreadsheet" aria-hidden="true"></i><span>Export to Excel</span></button></div></div>
+      </form>
+      {% if filter_error %}<div class="income-form-error" role="alert">{{ filter_error }}</div>{% endif %}
+      <div class="accounts-table-scroll" tabindex="0" role="region" aria-label="Income entries, scroll to see all columns">
+        <table class="accounts-table income-table"><caption class="accounts-sr-only">Income ledger, most recent income dates first</caption><thead><tr><th scope="col">Date</th><th scope="col">Category / Description</th><th scope="col">Payment</th><th scope="col">Reference</th><th scope="col">Recorded By</th><th scope="col" class="amount">Amount</th><th scope="col" class="income-actions-heading">Actions</th></tr></thead>
+          <tbody>{% for entry in page_obj %}<tr><td class="nowrap">{{ entry.date|date:'d M Y' }}</td><td class="description-cell"><strong>{{ entry.category }}</strong><p>{{ entry.description }}</p></td><td class="nowrap">{{ entry.get_payment_method_display }}</td><td class="income-reference">{{ entry.reference|default:'—' }}</td><td>{{ entry.created_by.name|default:'—' }}</td><td class="amount">₹{{ entry.amount|floatformat:2 }}</td><td><div class="income-row-actions">
+            <button type="button" class="income-icon-button" data-income-view aria-label="View {{ entry.category }}" title="View income"><i data-lucide="eye" aria-hidden="true"></i></button>
+            <button type="button" class="income-icon-button" data-income-edit="{% url 'accounts_income_edit' entry.pk %}" aria-label="Edit {{ entry.category }}" title="Edit income"><i data-lucide="pencil" aria-hidden="true"></i></button>
+            <button type="button" class="income-icon-button" data-income-history="{% url 'accounts_income_history' entry.pk %}" aria-label="History of {{ entry.category }}" title="Edit history"><i data-lucide="history" aria-hidden="true"></i></button>
+            <button type="button" class="income-icon-button income-icon-delete" data-income-delete="{% url 'accounts_income_delete' entry.pk %}" data-income-category="{{ entry.category }}" aria-label="Delete {{ entry.category }}" title="Delete income"><i data-lucide="trash-2" aria-hidden="true"></i></button>
+          </div>
+            <template class="income-view-template">
+              <div class="income-view-amount"><span>Income amount</span><strong>₹{{ entry.amount|floatformat:2 }}</strong></div>
+              <dl class="income-view-details">
+                <div><dt>Date</dt><dd>{{ entry.date|date:'d M Y' }}</dd></div>
+                <div><dt>Category</dt><dd>{{ entry.category }}</dd></div>
+                <div><dt>Payment method</dt><dd>{{ entry.get_payment_method_display }}</dd></div>
+                <div><dt>Reference</dt><dd>{{ entry.reference|default:'—' }}</dd></div>
+                <div class="income-view-wide"><dt>Recorded by</dt><dd>{{ entry.created_by.name|default:'—' }}</dd></div>
+                <div class="income-view-wide"><dt>Description</dt><dd>{{ entry.description|default:'—' }}</dd></div>
+                <div class="income-view-wide"><dt>Receipt / Proof</dt><dd>{% if entry.receipt %}<div class="income-receipt-actions"><a class="income-button income-button-secondary" href="{% url 'accounts_income_receipt' entry.pk %}" target="_blank" rel="noopener">View Receipt</a><a class="income-button income-button-secondary" href="{% url 'accounts_income_receipt' entry.pk %}?download=1">Download</a></div>{% else %}No receipt attached{% endif %}</dd></div>
+              </dl>
+            </template>
+          </td></tr>{% empty %}<tr><td colspan="7"><div class="accounts-empty"><span class="accounts-empty-icon"><i data-lucide="wallet" aria-hidden="true"></i></span><h3>{% if has_filters %}No matching income{% else %}No income recorded yet{% endif %}</h3><p>{% if has_filters %}Try another search term.{% else %}Add your first entry using the Add Income button.{% endif %}</p></div></td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+      {% if page_obj.paginator.num_pages > 1 %}<nav class="income-pagination" aria-label="Income pages"><span class="accounts-muted">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_previous %}<a class="income-button income-button-secondary" data-income-page href="?q={{ query|urlencode }}&amp;category={{ category_filter|urlencode }}&amp;period={{ period|urlencode }}&amp;date={{ selected_date|urlencode }}&amp;month={{ selected_month|urlencode }}&amp;start={{ from_date|urlencode }}&amp;end={{ to_date|urlencode }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}{% if page_obj.has_next %}<a class="income-button income-button-secondary" data-income-page href="?q={{ query|urlencode }}&amp;category={{ category_filter|urlencode }}&amp;period={{ period|urlencode }}&amp;date={{ selected_date|urlencode }}&amp;month={{ selected_month|urlencode }}&amp;start={{ from_date|urlencode }}&amp;end={{ to_date|urlencode }}&amp;page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></nav>{% endif %}
+    </section>
+  </div>
+</div>
+  <dialog id="incomeAddDialog" class="income-dialog" aria-labelledby="incomeEntryHeading" data-form-errors="{% if form.errors %}1{% else %}0{% endif %}">
+    <div class="accounts-panel-heading"><div><span class="accounts-eyebrow">NEW ENTRY</span><h2 id="incomeEntryHeading">Add Income</h2></div><button type="button" class="income-icon-button" data-income-close aria-label="Close Add Income"><i data-lucide="x" aria-hidden="true"></i></button></div>
+    <form id="accountsIncomeForm" method="post" enctype="multipart/form-data" action="{% url 'accounts_income' %}">
+      {% csrf_token %}
+      <input type="hidden" name="confirm_duplicate" value="0">
+      <div class="income-form-error" id="incomeFormError" role="alert" {% if not form.non_field_errors %}hidden{% endif %}>{{ form.non_field_errors }}</div>
+      <div class="income-duplicate-box" role="alert" hidden><p data-income-duplicate-message></p><button type="button" class="income-button income-button-secondary" data-income-duplicate-cancel>Review Entry</button><button type="button" class="income-button" data-income-duplicate-confirm>Save Anyway</button></div>
+      <div class="income-form-grid">
+        {% for field in form %}
+        <div class="income-field{% if field.name == 'description' %} income-field-wide{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span aria-hidden="true"> *</span>{% endif %}</label>
+          {{ field }}
+          <div class="income-field-error" id="error_{{ field.name }}" data-field-error="{{ field.name }}">{% for error in field.errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="income-form-footer"><span class="accounts-muted">Fields marked * are required.</span><button type="submit" class="income-button" id="incomeSaveButton"><i data-lucide="plus" aria-hidden="true"></i><span>Save Income</span></button></div>
+    </form>
+  </dialog>
+
+<dialog id="incomeEditDialog" class="income-dialog" aria-labelledby="incomeEditTitle">
+  <header class="income-dialog-header"><div><span class="accounts-eyebrow">INCOME ENTRY</span><h2 id="incomeEditTitle">Edit Income</h2></div><button type="button" class="income-icon-button" data-income-close aria-label="Close edit popup"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <form id="incomeEditForm" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="confirm_duplicate" value="0">
+    <div id="incomeEditError" class="income-form-error" role="alert" hidden></div>
+    <div class="income-duplicate-box" role="alert" hidden><p data-income-duplicate-message></p><button type="button" class="income-button income-button-secondary" data-income-duplicate-cancel>Review Entry</button><button type="button" class="income-button" data-income-duplicate-confirm>Save Anyway</button></div>
+    <div id="incomeCurrentReceipt" class="income-current-receipt" hidden><a class="income-button income-button-secondary" target="_blank" rel="noopener">View current receipt</a><label><input type="checkbox" name="remove_receipt" value="1"> Remove receipt</label></div>
+    <div id="incomeEditFields" class="income-form-grid"></div>
+    <footer class="income-dialog-footer"><button type="button" class="income-button income-button-secondary" data-income-close>Cancel</button><button type="submit" class="income-button" id="incomeUpdateButton">Save Changes</button></footer>
+  </form>
+</dialog>
+<dialog id="incomeDeleteDialog" class="income-dialog income-dialog-small" aria-labelledby="incomeDeleteTitle" aria-describedby="incomeDeleteDescription">
+  <header class="income-dialog-header"><div><span class="accounts-eyebrow">CONFIRM DELETE</span><h2 id="incomeDeleteTitle">Delete Income?</h2></div><button type="button" class="income-icon-button" data-income-close aria-label="Close delete confirmation"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <p id="incomeDeleteDescription" class="income-delete-description">Delete <strong id="incomeDeleteCategory"></strong>? This entry will be removed and income totals will change. This cannot be undone.</p>
+  <div id="incomeDeleteError" class="income-form-error" role="alert" hidden></div>
+  <footer class="income-dialog-footer"><button type="button" class="income-button income-button-secondary" data-income-close autofocus>Cancel</button><button type="button" class="income-button income-button-danger" id="incomeDeleteButton">Delete Income</button></footer>
+</dialog>
+
+<dialog id="incomeViewDialog" class="income-dialog income-view-dialog" aria-labelledby="incomeViewTitle">
+  <header class="income-dialog-header">
+    <div><span class="accounts-eyebrow">INCOME ENTRY</span><h2 id="incomeViewTitle">Income Details</h2></div>
+    <button type="button" class="income-icon-button" data-income-close aria-label="Close income details"><i data-lucide="x" aria-hidden="true"></i></button>
+  </header>
+  <div id="incomeViewContent"></div>
+  <footer class="income-dialog-footer"><button type="button" class="income-button income-button-secondary" data-income-close>Close</button></footer>
+</dialog>
+<dialog id="incomeHistoryDialog" class="income-dialog" aria-labelledby="incomeHistoryTitle">
+  <header class="income-dialog-header"><div><span class="accounts-eyebrow">ACTIVITY LOG</span><h2 id="incomeHistoryTitle">Income History</h2></div><button type="button" class="income-icon-button" data-income-close aria-label="Close income history"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <p class="accounts-muted">Latest 50 changes · History starts after this upgrade.</p>
+  <div id="incomeHistoryContent" class="income-history-list"></div>
+  <footer class="income-dialog-footer"><button type="button" class="income-button income-button-secondary" data-income-close>Close</button></footer>
+</dialog>
+{% endblock %}

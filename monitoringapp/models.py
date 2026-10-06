@@ -1294,3 +1294,365 @@ class MemberChatTests(TestCase):
         self.assertEqual(group.memberships.count(), 2)
 
 
+#<--------------ACCOUNTS TEAM--------------->
+
+# Replace the old AccountsIncome class with this entire block.
+from pathlib import Path
+from uuid import uuid4
+from decimal import Decimal
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+from django.core.validators import MinValueValidator
+from django.utils.deconstruct import deconstructible
+
+@deconstructible
+class IncomeReceiptStorage(FileSystemStorage):
+    def __init__(self):
+        super().__init__(location=Path(settings.BASE_DIR) / "private_income_receipts")
+
+def income_receipt_upload_path(instance, filename):
+    return f"receipts/{uuid4().hex}{Path(filename).suffix.lower()}"
+
+from django.db import models
+from django.utils import timezone
+
+class AccountsIncome(models.Model):
+    PAYMENT_METHODS = [
+        ("cash", "Cash"),
+        ("bank_transfer", "Bank Transfer"),
+        ("upi", "UPI"),
+        ("card", "Card"),
+        ("other", "Other"),
+    ]
+
+    date = models.DateField(default=timezone.localdate)
+    category = models.CharField(max_length=100)
+    amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHODS,
+        default="bank_transfer",
+    )
+    receipt = models.FileField(upload_to=income_receipt_upload_path, storage=IncomeReceiptStorage(), blank=True)
+    description = models.TextField()
+    reference = models.CharField(max_length=150, blank=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accounts_income_entries",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date", "-id"]
+        indexes = [
+            models.Index(fields=["date"], name="accounts_income_date_idx"),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(amount__gt=0),
+                name="accounts_income_amount_gt_zero",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.date} | {self.category} | {self.amount}"
+
+class AccountsIncomeHistory(models.Model):
+    income = models.ForeignKey(AccountsIncome, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="history")
+    income_number = models.PositiveBigIntegerField()
+    actor = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="income_history_actions")
+    actor_name = models.CharField(max_length=255, blank=True)
+    action = models.CharField(max_length=10, choices=[("created", "Created"), ("updated", "Updated"), ("deleted", "Deleted")])
+    changes = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+
+
+
+# monitoringapp/models.py: add these imports at the top only if missing.
+from decimal import Decimal
+from django.core.validators import MinValueValidator
+
+
+# # Append this class BELOW AccountsIncome. Keep all existing models unchanged.
+# # Your existing models.py already imports models, timezone and defines User.
+# class AccountsExpense(models.Model):
+#     PAYMENT_METHODS = [
+#         ("cash", "Cash"),
+#         ("bank_transfer", "Bank Transfer"),
+#         ("upi", "UPI"),
+#         ("card", "Card"),
+#         ("other", "Other"),
+#     ]
+
+#     date = models.DateField(default=timezone.localdate)
+#     category = models.CharField(max_length=100)
+#     amount = models.DecimalField(
+#         max_digits=14,
+#         decimal_places=2,
+#         validators=[MinValueValidator(Decimal("0.01"))],
+#     )
+#     payment_method = models.CharField(
+#         max_length=20,
+#         choices=PAYMENT_METHODS,
+#         default="bank_transfer",
+#     )
+#     paid_to = models.CharField(max_length=150, blank=True)
+#     description = models.TextField()
+#     reference = models.CharField(max_length=150, blank=True)
+#     created_by = models.ForeignKey(
+#         User,
+#         on_delete=models.SET_NULL,
+#         null=True,
+#         blank=True,
+#         related_name="accounts_expense_entries",
+#     )
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+
+#     class Meta:
+#         ordering = ["-date", "-id"]
+#         indexes = [
+#             models.Index(fields=["date"], name="accounts_expense_date_idx"),
+#         ]
+#         constraints = [
+#             models.CheckConstraint(
+#                 condition=models.Q(amount__gt=0),
+#                 name="accounts_expense_amount_gt_zero",
+#             ),
+#         ]
+
+#     def __str__(self):
+#         return f"{self.date} | {self.category} | {self.amount}"
+
+# Replace the old AccountsExpense class with this entire block.
+from pathlib import Path
+from uuid import uuid4
+from decimal import Decimal
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+from django.core.validators import MinValueValidator
+from django.utils.deconstruct import deconstructible
+
+@deconstructible
+class ExpenseReceiptStorage(FileSystemStorage):
+    def __init__(self):
+        super().__init__(location=Path(settings.BASE_DIR) / "private_expense_receipts")
+
+def expense_receipt_upload_path(instance, filename):
+    return f"receipts/{uuid4().hex}{Path(filename).suffix.lower()}"
+
+class AccountsExpense(models.Model):
+    PAYMENT_METHODS = [
+        ("cash", "Cash"),
+        ("bank_transfer", "Bank Transfer"),
+        ("upi", "UPI"),
+        ("card", "Card"),
+        ("other", "Other"),
+    ]
+
+    date = models.DateField(default=timezone.localdate)
+    category = models.CharField(max_length=100)
+    amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHODS,
+        default="bank_transfer",
+    )
+    # NULL means fully paid for existing entries created before this upgrade.
+    paid_amount = models.DecimalField(max_digits=14, decimal_places=2, null=True, blank=True,
+        validators=[MinValueValidator(Decimal("0.00"))])
+    receipt = models.FileField(upload_to=expense_receipt_upload_path,
+        storage=ExpenseReceiptStorage(), blank=True)
+    paid_to = models.CharField(max_length=150, blank=True)
+    description = models.TextField()
+    reference = models.CharField(max_length=150, blank=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accounts_expense_entries",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date", "-id"]
+        indexes = [
+            models.Index(fields=["date"], name="accounts_expense_date_idx"),
+        ]
+        constraints = [
+            models.CheckConstraint(condition=(models.Q(paid_amount__isnull=True) |
+                (models.Q(paid_amount__gte=0) & models.Q(paid_amount__lte=models.F("amount")))),
+                name="expense_paid_amount_valid"),
+            models.CheckConstraint(
+                condition=models.Q(amount__gt=0),
+                name="accounts_expense_amount_gt_zero",
+            ),
+        ]
+
+    @property
+    def effective_paid_amount(self):
+        return self.amount if self.paid_amount is None else self.paid_amount
+
+    @property
+    def balance_amount(self):
+        return self.amount - self.effective_paid_amount
+
+    @property
+    def payment_status(self):
+        if self.effective_paid_amount == self.amount:
+            return "paid"
+        return "pending" if self.effective_paid_amount == 0 else "partial"
+
+    @property
+    def payment_status_label(self):
+        return {"paid": "Paid", "pending": "Pending", "partial": "Partially Paid"}[self.payment_status]
+
+    def __str__(self):
+        return f"{self.date} | {self.category} | {self.amount}"
+
+class AccountsExpenseHistory(models.Model):
+    expense = models.ForeignKey(AccountsExpense, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="history")
+    expense_number = models.PositiveBigIntegerField()
+    actor = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="expense_history_actions")
+    actor_name = models.CharField(max_length=255, blank=True)
+    action = models.CharField(max_length=10, choices=[("created", "Created"), ("updated", "Updated"), ("deleted", "Deleted")])
+    changes = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+
+
+
+# monitoringapp/models.py: add these imports at the top only if missing.
+from decimal import Decimal
+from django.core.validators import MinValueValidator
+from pathlib import Path
+from uuid import uuid4
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
+from django.utils.deconstruct import deconstructible
+
+@deconstructible
+class SalesInvoiceStorage(FileSystemStorage):
+    def __init__(self):
+        super().__init__(location=Path(settings.BASE_DIR) / "private_sales_invoices")
+
+def sales_invoice_upload_path(instance, filename):
+    return f"invoices/{uuid4().hex}{Path(filename).suffix.lower()}"
+
+from django.db import models
+from django.utils import timezone
+from decimal import Decimal
+from django.core.validators import MinValueValidator
+class AccountsSale(models.Model):
+    date = models.DateField(default=timezone.localdate)
+    customer_name = models.CharField(max_length=150)
+    invoice_number = models.CharField(max_length=100, blank=True)
+    due_date = models.DateField(null=True, blank=True)
+    invoice_file = models.FileField(upload_to=sales_invoice_upload_path, storage=SalesInvoiceStorage(), blank=True)
+    description = models.TextField()
+    amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    received_amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00"))],
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accounts_sales_entries",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-date", "-id"]
+        indexes = [
+            models.Index(fields=["date"], name="accounts_sale_date_idx"),
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(amount__gt=0),
+                name="accounts_sale_amount_gt_zero",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(received_amount__gte=0),
+                name="accounts_sale_received_gte_zero",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(received_amount__lte=models.F("amount")),
+                name="accounts_sale_received_lte_amt",
+            ),
+        ]
+
+    @property
+    def balance_amount(self):
+        return self.amount - self.received_amount
+
+    @property
+    def is_overdue(self):
+        return bool(self.due_date and self.due_date < timezone.localdate() and self.balance_amount > 0)
+
+    @property
+    def payment_status(self):
+        if self.received_amount == self.amount:
+            return "paid"
+        if self.received_amount > 0:
+            return "partial"
+        return "unpaid"
+
+    @property
+    def payment_status_label(self):
+        return {
+            "paid": "Paid",
+            "partial": "Partially Paid",
+            "unpaid": "Unpaid",
+        }[self.payment_status]
+
+    def __str__(self):
+        return f"{self.date} | {self.customer_name} | {self.amount}"
+
+
+class AccountsSalePayment(models.Model):
+    sale = models.ForeignKey(AccountsSale, on_delete=models.CASCADE, related_name="payments")
+    date = models.DateField(default=timezone.localdate)
+    amount = models.DecimalField(max_digits=14, decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))])
+    payment_method = models.CharField(max_length=20, choices=[("cash", "Cash"),
+        ("bank_transfer", "Bank Transfer"), ("upi", "UPI"), ("card", "Card"), ("other", "Other")], default="bank_transfer")
+    reference = models.CharField(max_length=150, blank=True)
+    note = models.TextField(blank=True)
+    request_token = models.UUIDField(default=uuid4, unique=True, editable=False)
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="accounts_sale_payments")
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering = ["-date", "-created_at", "-pk"]
+        constraints = [models.CheckConstraint(condition=models.Q(amount__gt=0), name="sale_payment_amount_positive")]

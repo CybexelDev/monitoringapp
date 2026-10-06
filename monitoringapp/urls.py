@@ -363,8 +363,56 @@ path(
     name="chat_mark_read",
 ),
 
+#<----------------------ACCOUNTS TEAM--------------------->
+
+path("accounts/dashboard/", views.accounts_dashboard, name="accounts_dashboard"),
+path("accounts/logout/", views.accounts_logout, name="accounts_logout"),
+path("accounts/income/", views.accounts_income, name="accounts_income"),
+path(
+    "accounts/income/<int:pk>/edit/",
+    views.accounts_income_edit,
+    name="accounts_income_edit",
+),
+path(
+    "accounts/income/<int:pk>/delete/",
+    views.accounts_income_delete,
+    name="accounts_income_delete",
+),
+path(
+    "accounts/expenses/",
+    views.accounts_expenses,
+    name="accounts_expenses",
+),
+path(
+    "accounts/expenses/<int:pk>/edit/",
+    views.accounts_expense_edit,
+    name="accounts_expense_edit",
+),
+path(
+    "accounts/expenses/<int:pk>/delete/",
+    views.accounts_expense_delete,
+    name="accounts_expense_delete",
+),
+path(
+    "accounts/sales/",
+    views.accounts_sales,
+    name="accounts_sales",
+),
+path(
+    "accounts/sales/<int:pk>/edit/",
+    views.accounts_sale_edit,
+    name="accounts_sale_edit",
+),
+path(
+    "accounts/sales/<int:pk>/delete/",
+    views.accounts_sale_delete,
+    name="accounts_sale_delete",
+),
+path("accounts/expenses/<int:pk>/receipt/", views.accounts_expense_receipt, name="accounts_expense_receipt"),
+path("accounts/expenses/<int:pk>/history/", views.accounts_expense_history, name="accounts_expense_history"),
+path("accounts/income/<int:pk>/receipt/", views.accounts_income_receipt, name="accounts_income_receipt"),
+path("accounts/income/<int:pk>/history/", views.accounts_income_history, name="accounts_income_history"),
+path("accounts/sales/<int:pk>/invoice/", views.accounts_sale_invoice, name="accounts_sale_invoice"),
+path("accounts/sales/<int:pk>/payments/", views.accounts_sale_payments, name="accounts_sale_payments"),
+
 ]
-
-
-
-

@@ -1,3 +1,6 @@
+/* Accounts bundle: load once from accounts/base.html. */
+
+/* Shared layout and sidebar */
 /* Shared Accounts theme, based on the existing Team Lead dashboard. */
 :root{color-scheme:dark;--accounts-bg:#08080d;--accounts-muted:#96939e;--accounts-purple:#a78bfa;--accounts-border:rgba(255,255,255,.10);--accounts-sidebar-width:270px}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%}body.accounts-workspace{overflow:hidden;background:radial-gradient(circle at 15% 10%,rgba(92,47,145,.16),transparent 28%),radial-gradient(circle at 85% 15%,rgba(40,88,160,.12),transparent 30%),var(--accounts-bg);color:#fff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px}button,a,input{font:inherit}button{color:inherit}a{color:inherit}button:disabled{cursor:default}svg{width:19px;height:19px;flex:none}a:focus-visible,button:focus-visible,[tabindex]:focus-visible{outline:2px solid #b794f6;outline-offset:3px}[hidden]{display:none!important}
@@ -16,3 +19,599 @@
 @media(max-width:480px){.accounts-stats-grid{gap:10px}.accounts-stat{padding:15px;border-radius:16px}.accounts-stat h3{font-size:9px;letter-spacing:.5px}.accounts-stat-value{margin:18px 0 10px}.accounts-section-heading,.accounts-panel-heading{align-items:flex-start;flex-wrap:wrap}.accounts-eyebrow{font-size:9px;letter-spacing:1.5px}.accounts-table{min-width:580px}.accounts-table td,.accounts-table th{padding:13px 12px}.accounts-header{padding:20px 16px}}
 @media(max-width:359px){.accounts-stats-grid{grid-template-columns:minmax(0,1fr)}}
 @media(prefers-reduced-motion:reduce){.accounts-sidebar{transition:none}}
+
+
+/* Income */
+/* Income page additions; the shared Accounts base owns the theme. */
+.income-entry-panel{margin-bottom:24px}.income-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px}.income-field{min-width:0}.income-field-wide{grid-column:1/-1}.income-field label{display:block;margin-bottom:8px;color:#b9b0c6;font-size:12px;font-weight:600}.income-field label>span{color:#c4b5fd}.accounts-input{width:100%;min-width:0;min-height:44px;padding:11px 13px;border:1px solid rgba(255,255,255,.10);border-radius:10px;background:#100e17;color:#ede7f5;font:inherit;font-size:13px;outline:none}.accounts-input:focus{border-color:#a783ce;box-shadow:0 0 0 2px rgba(167,131,206,.08)}.accounts-input::placeholder{color:#716b7c}.accounts-input[aria-invalid=true]{border-color:#ef8d9a}.income-field textarea{resize:vertical;min-height:88px}.income-field select{color-scheme:dark}.income-field-error{color:#ffadb5;font-size:11px;line-height:1.5;margin-top:6px}.income-field-error:empty{display:none}.income-form-error{padding:12px;margin-bottom:16px;color:#ffadb5;background:rgba(255,141,153,.07);border:1px solid rgba(255,141,153,.15);border-radius:10px;font-size:12px}.income-form-error ul{margin:0;padding-left:18px}.income-form-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px}.income-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:10px 16px;border:1px solid rgba(179,145,245,.35);border-radius:10px;background:linear-gradient(120deg,#7042b5,#5145a5);color:#fff;font-size:12px;font-weight:650;text-decoration:none;cursor:pointer}.income-button:hover{filter:brightness(1.08)}.income-button:disabled{opacity:.6;cursor:wait}.income-button svg{width:16px;height:16px}.income-button-secondary{background:#241b31;border-color:rgba(179,145,245,.20);color:#d6c4ed}.income-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px}.income-search-form{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}.income-search-input{position:relative;flex:1;min-width:180px;max-width:480px}.income-search-input>svg{position:absolute;top:14px;left:13px;width:16px;height:16px;color:#a394b5;pointer-events:none}.income-search-input input{padding-left:38px}.income-reset{font-size:12px;color:#c4b5fd;padding:10px 6px}.income-table{min-width:800px}.income-table strong{display:block;color:#e2d9ef;font-size:12px}.income-table td p{margin:5px 0 0;font-size:11px;color:#96909f;max-width:320px;white-space:pre-wrap;overflow-wrap:anywhere}.income-reference{max-width:170px;overflow-wrap:anywhere}.income-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap}.income-pagination>div{display:flex;gap:8px}.income-feedback{padding:12px 16px;margin-bottom:18px;background:#241b31;border:1px solid rgba(179,145,245,.20);border-radius:10px;color:#ddd0ef;font-size:12px}.income-feedback[data-type=error]{color:#ffadb5;border-color:rgba(255,141,153,.2)}
+@media(max-width:900px){.income-summary-grid{gap:12px}.income-summary-grid .accounts-stat{padding:16px}}
+@media(max-width:600px){.income-form-grid{grid-template-columns:minmax(0,1fr)}.income-summary-grid{grid-template-columns:minmax(0,1fr)}.income-form-footer{align-items:stretch;flex-direction:column}.income-form-footer .income-button{width:100%}.income-search-input{max-width:none;min-width:0;flex-basis:100%}.income-pagination{align-items:flex-start}.income-field-wide{grid-column:auto}}
+
+/* Compact row actions and native modal popups. */
+.income-actions-heading{text-align:right}.income-row-actions{display:flex;justify-content:flex-end;gap:7px;white-space:nowrap}.income-icon-button{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;border:1px solid rgba(179,145,245,.22);border-radius:9px;background:#241b31;color:#d6c4ed;cursor:pointer}.income-icon-button svg{width:15px;height:15px}.income-icon-button:hover{background:#352548}.income-icon-delete{color:#f2a5b0;border-color:rgba(242,165,176,.18);background:rgba(242,165,176,.05)}.income-icon-delete:hover{background:rgba(242,165,176,.12)}.income-icon-button:disabled{opacity:.5;cursor:wait}.income-button:focus-visible,.income-icon-button:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
+.income-dialog{box-sizing:border-box;width:min(620px,calc(100vw - 32px));max-height:calc(100dvh - 40px);padding:24px;overflow:auto;overscroll-behavior:contain;border:1px solid #514063;border-radius:18px;background:#17131f;color:#ede7f5;box-shadow:0 24px 70px rgba(0,0,0,.35);color-scheme:dark}.income-dialog::backdrop{background:rgba(12,9,18,.28);backdrop-filter:blur(3px)}.income-dialog-small{width:min(430px,calc(100vw - 32px))}.income-dialog-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}.income-dialog-header h2{margin:6px 0 0;font-size:20px}.income-dialog-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:24px}.income-delete-description{font-size:13px;line-height:1.8;color:#b9b0c6;overflow-wrap:anywhere}.income-delete-description strong{color:#ede7f5}.income-button-danger{background:#823347;border-color:#aa5268}.income-dialog form{margin:0}
+@media(max-width:600px){.income-dialog{padding:20px;max-height:calc(100dvh - 24px)}.income-dialog-footer .income-button{flex:1}.income-table{min-width:900px}}
+
+.income-heading-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.income-filter-grid{display:grid;grid-template-columns:minmax(220px,2fr) repeat(3,minmax(150px,1fr));gap:14px}.income-filter-form{margin-bottom:20px}.income-filter-grid .income-search-input{max-width:none}.income-filter-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:16px}.income-filter-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.income-filter-description{font-size:12px;color:#d6c4ed}.income-filter-description span{display:block;color:#96909f;margin-top:5px;font-size:11px}.income-filter-grid select{color-scheme:dark}.income-dialog .accounts-panel-heading{margin-bottom:22px}
+@media(max-width:1100px){.income-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.income-filter-grid{grid-template-columns:minmax(0,1fr)}.income-filter-actions{width:100%}.income-filter-actions .income-button{flex:1}.income-heading-actions{width:100%;justify-content:space-between}}
+
+
+/* Expenses */
+/* Expense page additions; the shared Accounts base owns the theme. */
+.expense-entry-panel{margin-bottom:24px}.expense-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px}.expense-field{min-width:0}.expense-field-wide{grid-column:1/-1}.expense-field label{display:block;margin-bottom:8px;color:#b9b0c6;font-size:12px;font-weight:600}.expense-field label>span{color:#c4b5fd}.expense-field textarea{resize:vertical;min-height:88px}.expense-field select{color-scheme:dark}.expense-field-error{color:#ffadb5;font-size:11px;line-height:1.5;margin-top:6px}.expense-field-error:empty{display:none}.expense-form-error{padding:12px;margin-bottom:16px;color:#ffadb5;background:rgba(255,141,153,.07);border:1px solid rgba(255,141,153,.15);border-radius:10px;font-size:12px}.expense-form-error ul{margin:0;padding-left:18px}.expense-form-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px}.expense-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:10px 16px;border:1px solid rgba(179,145,245,.35);border-radius:10px;background:linear-gradient(120deg,#7042b5,#5145a5);color:#fff;font-size:12px;font-weight:650;text-decoration:none;cursor:pointer}.expense-button:hover{filter:brightness(1.08)}.expense-button:disabled{opacity:.6;cursor:wait}.expense-button svg{width:16px;height:16px}.expense-button-secondary{background:#241b31;border-color:rgba(179,145,245,.20);color:#d6c4ed}.expense-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px}.expense-search-form{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}.expense-search-input{position:relative;flex:1;min-width:180px;max-width:480px}.expense-search-input>svg{position:absolute;top:14px;left:13px;width:16px;height:16px;color:#a394b5;pointer-events:none}.expense-search-input input{padding-left:38px}.expense-reset{font-size:12px;color:#c4b5fd;padding:10px 6px}.expense-table{min-width:800px}.expense-table strong{display:block;color:#e2d9ef;font-size:12px}.expense-table td p{margin:5px 0 0;font-size:11px;color:#96909f;max-width:320px;white-space:pre-wrap;overflow-wrap:anywhere}.expense-reference{max-width:170px;overflow-wrap:anywhere}.expense-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap}.expense-pagination>div{display:flex;gap:8px}.expense-feedback{padding:12px 16px;margin-bottom:18px;background:#241b31;border:1px solid rgba(179,145,245,.20);border-radius:10px;color:#ddd0ef;font-size:12px}.expense-feedback[data-type=error]{color:#ffadb5;border-color:rgba(255,141,153,.2)}
+@media(max-width:900px){.expense-summary-grid{gap:12px}.expense-summary-grid .accounts-stat{padding:16px}}
+@media(max-width:600px){.expense-form-grid{grid-template-columns:minmax(0,1fr)}.expense-summary-grid{grid-template-columns:minmax(0,1fr)}.expense-form-footer{align-items:stretch;flex-direction:column}.expense-form-footer .expense-button{width:100%}.expense-search-input{max-width:none;min-width:0;flex-basis:100%}.expense-pagination{align-items:flex-start}.expense-field-wide{grid-column:auto}}
+
+/* Compact row actions and native modal popups. */
+.expense-actions-heading{text-align:right}.expense-row-actions{display:flex;justify-content:flex-end;gap:7px;white-space:nowrap}.expense-icon-button{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;border:1px solid rgba(179,145,245,.22);border-radius:9px;background:#241b31;color:#d6c4ed;cursor:pointer}.expense-icon-button svg{width:15px;height:15px}.expense-icon-button:hover{background:#352548}.expense-icon-delete{color:#f2a5b0;border-color:rgba(242,165,176,.18);background:rgba(242,165,176,.05)}.expense-icon-delete:hover{background:rgba(242,165,176,.12)}.expense-icon-button:disabled{opacity:.5;cursor:wait}.expense-button:focus-visible,.expense-icon-button:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
+.expense-dialog{box-sizing:border-box;width:min(620px,calc(100vw - 32px));max-height:calc(100dvh - 40px);padding:24px;overflow:auto;overscroll-behavior:contain;border:1px solid #514063;border-radius:18px;background:#17131f;color:#ede7f5;box-shadow:0 24px 70px rgba(0,0,0,.35);color-scheme:dark}.expense-dialog::backdrop{background:rgba(12,9,18,.28);backdrop-filter:blur(3px)}.expense-dialog-small{width:min(430px,calc(100vw - 32px))}.expense-dialog-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}.expense-dialog-header h2{margin:6px 0 0;font-size:20px}.expense-dialog-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:24px}.expense-delete-description{font-size:13px;line-height:1.8;color:#b9b0c6;overflow-wrap:anywhere}.expense-delete-description strong{color:#ede7f5}.expense-button-danger{background:#823347;border-color:#aa5268}.expense-dialog form{margin:0}
+@media(max-width:600px){.expense-dialog{padding:20px;max-height:calc(100dvh - 24px)}.expense-dialog-footer .expense-button{flex:1}.expense-table{min-width:900px}}
+
+.expense-payee{max-width:180px;overflow-wrap:anywhere}.expense-table{min-width:1050px}.expense-total{color:#f1b49e}
+
+
+/* Sales */
+/* Sale page additions; the shared Accounts base owns the theme. */
+.sale-entry-panel{margin-bottom:24px}.sale-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px}.sale-field{min-width:0}.sale-field-wide{grid-column:1/-1}.sale-field label{display:block;margin-bottom:8px;color:#b9b0c6;font-size:12px;font-weight:600}.sale-field label>span{color:#c4b5fd}.sale-field textarea{resize:vertical;min-height:88px}.sale-field select{color-scheme:dark}.sale-field-error{color:#ffadb5;font-size:11px;line-height:1.5;margin-top:6px}.sale-field-error:empty{display:none}.sale-form-error{padding:12px;margin-bottom:16px;color:#ffadb5;background:rgba(255,141,153,.07);border:1px solid rgba(255,141,153,.15);border-radius:10px;font-size:12px}.sale-form-error ul{margin:0;padding-left:18px}.sale-form-footer{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px}.sale-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:10px 16px;border:1px solid rgba(179,145,245,.35);border-radius:10px;background:linear-gradient(120deg,#7042b5,#5145a5);color:#fff;font-size:12px;font-weight:650;text-decoration:none;cursor:pointer}.sale-button:hover{filter:brightness(1.08)}.sale-button:disabled{opacity:.6;cursor:wait}.sale-button svg{width:16px;height:16px}.sale-button-secondary{background:#241b31;border-color:rgba(179,145,245,.20);color:#d6c4ed}.sale-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px}.sale-search-form{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}.sale-search-input{position:relative;flex:1;min-width:180px;max-width:480px}.sale-search-input>svg{position:absolute;top:14px;left:13px;width:16px;height:16px;color:#a394b5;pointer-events:none}.sale-search-input input{padding-left:38px}.sale-reset{font-size:12px;color:#c4b5fd;padding:10px 6px}.sale-table{min-width:800px}.sale-table strong{display:block;color:#e2d9ef;font-size:12px}.sale-table td p{margin:5px 0 0;font-size:11px;color:#96909f;max-width:320px;white-space:pre-wrap;overflow-wrap:anywhere}.sale-reference{max-width:170px;overflow-wrap:anywhere}.sale-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;flex-wrap:wrap}.sale-pagination>div{display:flex;gap:8px}.sale-feedback{padding:12px 16px;margin-bottom:18px;background:#241b31;border:1px solid rgba(179,145,245,.20);border-radius:10px;color:#ddd0ef;font-size:12px}.sale-feedback[data-type=error]{color:#ffadb5;border-color:rgba(255,141,153,.2)}
+@media(max-width:900px){.sale-summary-grid{gap:12px}.sale-summary-grid .accounts-stat{padding:16px}}
+@media(max-width:600px){.sale-form-grid{grid-template-columns:minmax(0,1fr)}.sale-summary-grid{grid-template-columns:minmax(0,1fr)}.sale-form-footer{align-items:stretch;flex-direction:column}.sale-form-footer .sale-button{width:100%}.sale-search-input{max-width:none;min-width:0;flex-basis:100%}.sale-pagination{align-items:flex-start}.sale-field-wide{grid-column:auto}}
+
+/* Compact row actions and native modal popups. */
+.sale-actions-heading{text-align:right}.sale-row-actions{display:flex;justify-content:flex-end;gap:7px;white-space:nowrap}.sale-icon-button{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;border:1px solid rgba(179,145,245,.22);border-radius:9px;background:#241b31;color:#d6c4ed;cursor:pointer}.sale-icon-button svg{width:15px;height:15px}.sale-icon-button:hover{background:#352548}.sale-icon-delete{color:#f2a5b0;border-color:rgba(242,165,176,.18);background:rgba(242,165,176,.05)}.sale-icon-delete:hover{background:rgba(242,165,176,.12)}.sale-icon-button:disabled{opacity:.5;cursor:wait}.sale-button:focus-visible,.sale-icon-button:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
+.sale-dialog{box-sizing:border-box;width:min(620px,calc(100vw - 32px));max-height:calc(100dvh - 40px);padding:24px;overflow:auto;overscroll-behavior:contain;border:1px solid #514063;border-radius:18px;background:#17131f;color:#ede7f5;box-shadow:0 24px 70px rgba(0,0,0,.35);color-scheme:dark}.sale-dialog::backdrop{background:rgba(12,9,18,.28);backdrop-filter:blur(3px)}.sale-dialog-small{width:min(430px,calc(100vw - 32px))}.sale-dialog-header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}.sale-dialog-header h2{margin:6px 0 0;font-size:20px}.sale-dialog-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:24px}.sale-delete-description{font-size:13px;line-height:1.8;color:#b9b0c6;overflow-wrap:anywhere}.sale-delete-description strong{color:#ede7f5}.sale-button-danger{background:#823347;border-color:#aa5268}.sale-dialog form{margin:0}
+@media(max-width:600px){.sale-dialog{padding:20px;max-height:calc(100dvh - 24px)}.sale-dialog-footer .sale-button{flex:1}.sale-table{min-width:900px}}
+
+.sale-payee{max-width:180px;overflow-wrap:anywhere}.sale-table{min-width:1050px}.sale-total{color:#f1b49e}
+
+.sale-total{color:#c4b5fd}.sale-received{color:#99d4c4}.sale-outstanding{color:#eac17b}.sale-table{min-width:1150px}.sale-status-filter{width:auto;max-width:220px;color-scheme:dark}.sale-period-totals{display:flex;flex-wrap:wrap;gap:10px 24px;color:#a9a0b7;font-size:12px;margin:-6px 0 24px}.sale-period-totals strong{color:#ddd0ef;font-variant-numeric:tabular-nums}.sale-payment-badge{display:inline-flex;align-items:center;justify-content:center;padding:5px 9px;border:1px solid;border-radius:6px;font-size:10px;font-weight:650;white-space:nowrap}.sale-payment-badge.paid{color:#99d4c4;background:rgba(153,212,196,.07);border-color:rgba(153,212,196,.2)}.sale-payment-badge.partial{color:#eac17b;background:rgba(234,193,123,.07);border-color:rgba(234,193,123,.2)}.sale-payment-badge.unpaid{color:#f2a5b0;background:rgba(242,165,176,.07);border-color:rgba(242,165,176,.2)}
+@media(max-width:600px){.sale-status-filter{width:100%;max-width:none}.sale-period-totals{flex-direction:column;gap:8px}}
+
+
+/* Shared calendar */
+.accounts-calendar-control{position:relative;display:flex;align-items:center}.accounts-calendar-control .accounts-input{padding-right:46px;cursor:pointer;color-scheme:dark}.accounts-calendar-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:8px;background:transparent;color:#c4b5fd;display:grid;place-items:center;cursor:pointer}.accounts-calendar-toggle:hover{background:#2d213d}.accounts-calendar-toggle svg{width:17px;height:17px}.accounts-calendar{box-sizing:border-box;position:fixed;inset:auto;margin:0;width:310px;max-width:calc(100vw - 24px);padding:16px;border:1px solid #49365f;border-radius:18px;color:#e7dff0;background:linear-gradient(145deg,#241936,#111019 70%);box-shadow:0 18px 45px rgba(0,0,0,.35);font-family:inherit;font-size:13px;z-index:10000}.accounts-calendar[hidden]{display:none!important}.accounts-calendar button{font:inherit;color:inherit;cursor:pointer}.accounts-calendar-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}.accounts-calendar-nav{width:36px;height:36px;border:1px solid #49365f;border-radius:10px;background:#251c32}.accounts-calendar-title{border:0;background:transparent;font-weight:700!important;padding:9px 12px;border-radius:8px}.accounts-calendar-title:hover{background:#302040}.accounts-calendar-weekdays,.accounts-calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}.accounts-calendar-weekdays span{padding:6px 0;text-align:center;font-size:10px;color:#9990a7;font-weight:700}.accounts-calendar-day{height:35px;border:1px solid transparent;border-radius:9px;background:transparent;font-size:12px!important}.accounts-calendar-day:hover{background:#302040}.accounts-calendar-day.today{border-color:#6250a8}.accounts-calendar-day.selected{background:#7c3aed;color:#fff;border-color:#9b6af0}.accounts-calendar-months{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.accounts-calendar-month{height:45px;border:1px solid #49365f;border-radius:9px;background:#251c32}.accounts-calendar-month:hover{background:#382448}.accounts-calendar-month.selected{background:#7c3aed;border-color:#9b6af0;color:#fff}.accounts-calendar-footer{display:flex;justify-content:space-between;align-items:center;margin-top:15px;padding-top:12px;border-top:1px solid #33283d}.accounts-calendar-footer button{border:0;background:transparent;color:#c4b5fd;font-size:12px;font-weight:650;padding:7px 5px}.accounts-calendar button:focus-visible,.accounts-calendar-toggle:focus-visible{outline:2px solid #c4b5fd;outline-offset:2px}.accounts-calendar-nav:disabled{opacity:.4;cursor:default}
+
+
+/* Income: Team Lead Report button styling; shared Accounts assets remain in use. */
+.accounts-income-page .accounts-header {
+  position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+.accounts-income-page .accounts-header h1 {font-size:clamp(34px,4vw,52px);line-height:1;letter-spacing:-2px}
+.accounts-income-page .accounts-header .accounts-eyebrow {letter-spacing:3px;margin-bottom:15px}
+.accounts-income-page .accounts-panel-heading h2 {font-weight:800}
+.accounts-income-page .accounts-panel-heading .accounts-eyebrow {margin-bottom:6px;font-size:9px;letter-spacing:2.5px}
+.accounts-income-page .income-button {
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:42px;padding:0 15px;border-radius:12px;color:#fff;
+  text-decoration:none;font-size:11px;font-weight:700;line-height:1.4;
+  border:1px solid rgba(167,139,250,.35);
+  background:linear-gradient(135deg,#7c4bd4,#5b32a7);
+  box-shadow:0 10px 25px rgba(124,75,212,.18);
+  transition:transform .22s ease,background .22s ease,border-color .22s ease;
+}
+.accounts-income-page .income-button:hover:not(:disabled) {
+  filter:none;transform:translateY(-2px);border-color:rgba(139,92,246,.35);
+}
+.accounts-income-page .income-button svg {width:16px;height:16px}
+.accounts-income-page .income-button-secondary,
+.accounts-income-page .income-reset {
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);
+  box-shadow:none;color:#fff;
+}
+.accounts-income-page .income-button-secondary:hover:not(:disabled),
+.accounts-income-page .income-reset:hover {background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.35)}
+.accounts-income-page .income-button-export {
+  background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.20);
+  color:#9ee7ba;box-shadow:none;white-space:nowrap;
+}
+.accounts-income-page .income-button-export:hover:not(:disabled) {
+  background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.35);
+}
+.accounts-income-page .income-button-danger {background:#823347;border-color:#aa5268;box-shadow:none}
+.accounts-income-page .income-button:disabled {opacity:.6;transform:none;cursor:wait}
+.accounts-income-page .income-reset {
+  display:inline-flex;align-items:center;justify-content:center;min-height:42px;
+  padding:0 15px;border-radius:12px;font-size:11px;font-weight:700;text-decoration:none;
+}
+.accounts-income-page .income-filter-form {
+  padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:16px;
+  background:rgba(255,255,255,.025);
+}
+.accounts-income-page .income-filter-grid {grid-template-columns:repeat(12,minmax(0,1fr));align-items:end}
+.accounts-income-page .income-filter-grid>.income-field {grid-column:span 3}
+.accounts-income-page .income-filter-grid>.income-field:first-child {grid-column:span 6}
+.accounts-income-page .income-search-input {width:100%;min-width:0;max-width:none}
+.accounts-income-page .income-filter-footer {align-items:center;gap:14px}
+.accounts-income-page .income-filter-description {min-width:0;flex:1 1 260px;line-height:1.6;overflow-wrap:anywhere}
+.accounts-income-page .income-filter-actions {justify-content:flex-end;gap:8px}
+.accounts-income-page .income-heading-actions {gap:12px}
+.accounts-income-page .income-icon-button {border-radius:10px;background:rgba(139,92,246,.09);border-color:rgba(167,139,250,.22)}
+.accounts-income-page .income-icon-delete {background:rgba(242,165,176,.05);border-color:rgba(242,165,176,.18)}
+.accounts-income-page .income-icon-button:hover {background:rgba(139,92,246,.18)}
+.accounts-income-page .income-icon-delete:hover {background:rgba(242,165,176,.12)}
+.accounts-income-page .accounts-table-scroll {max-height:420px;max-height:min(420px,60dvh);max-width:100%}
+.accounts-income-page .income-table {min-width:900px}
+.accounts-income-page .income-table th:last-child {text-align:right;width:104px}
+.accounts-income-page .income-row-actions {align-items:center;gap:8px}
+.accounts-income-page .income-dialog {background:linear-gradient(145deg,#21182b,#111019);border-color:rgba(167,139,250,.22);border-radius:20px}
+.accounts-income-page .income-dialog .accounts-input {background:#100e17}
+.accounts-income-page .income-dialog-footer {flex-wrap:wrap}
+@media(max-width:1100px) {
+  .accounts-income-page .income-filter-grid>.income-field {grid-column:span 6}
+  .accounts-income-page .income-filter-grid>.income-field:first-child {grid-column:span 12}
+}
+@media(max-width:600px) {
+  .accounts-income-page .accounts-header h1 {font-size:32px;letter-spacing:-1px}
+  .accounts-income-page .accounts-header .accounts-eyebrow {letter-spacing:1.5px}
+  .accounts-income-page .income-filter-form {padding:14px}
+  .accounts-income-page .income-filter-grid {grid-template-columns:minmax(0,1fr)}
+  .accounts-income-page .income-filter-grid>.income-field,
+  .accounts-income-page .income-filter-grid>.income-field:first-child {grid-column:auto}
+  .accounts-income-page .income-filter-actions {display:grid;grid-template-columns:auto auto minmax(0,1fr);width:100%;gap:7px}
+  .accounts-income-page .income-filter-actions .income-button,
+  .accounts-income-page .income-reset {padding:0 10px;min-width:0}
+  .accounts-income-page .income-heading-actions {width:100%;justify-content:space-between}
+  .accounts-income-page .income-table td,.accounts-income-page .income-table th {padding:13px 12px}
+  .accounts-income-page .income-dialog-footer .income-button {flex:1;min-width:100px}
+}
+@media(max-width:340px) {
+  .accounts-income-page .income-filter-actions {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .accounts-income-page .income-button-export {grid-column:1/-1}
+}
+@media(prefers-reduced-motion:reduce) {
+  .accounts-income-page .income-button {transition:none}
+  .accounts-income-page .income-button:hover:not(:disabled) {transform:none}
+}
+
+/* Income filter alignment: hidden date fields do not reserve columns. */
+.accounts-income-page .income-filter-grid {
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px;
+}
+.accounts-income-page .income-filter-grid>.income-field {
+  flex:1 1 190px;min-width:0;
+}
+.accounts-income-page .income-filter-grid>.income-field:first-child {
+  flex:2 1 340px;
+}
+.accounts-income-page .income-filter-grid .accounts-input {
+  height:44px;min-height:44px;box-sizing:border-box;
+}
+.accounts-income-page .income-search-input>svg {
+  top:50%;transform:translateY(-50%);
+}
+.accounts-income-page .income-filter-footer {
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:16px;margin-top:18px;
+}
+.accounts-income-page .income-filter-actions {
+  flex-shrink:0;margin-left:auto;align-items:center;
+}
+.accounts-income-page .income-filter-description {margin:0;line-height:1.6}
+@media(max-width:600px) {
+  .accounts-income-page .income-filter-grid {display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+  .accounts-income-page .income-filter-grid>.income-field {width:100%;grid-column:auto}
+  .accounts-income-page .income-filter-grid>.income-field:first-child {grid-column:auto}
+  .accounts-income-page .income-filter-description {flex-basis:100%}
+  .accounts-income-page .income-filter-actions {margin-left:0;width:100%}
+}
+
+/* Income read-only detail popup and three aligned row actions. */
+.accounts-income-page .income-table th:last-child {width:144px;min-width:144px}
+.accounts-income-page .income-row-actions {gap:7px}
+.accounts-income-page .income-view-dialog {width:min(600px,calc(100vw - 32px))}
+.accounts-income-page .income-view-amount {padding:18px 20px;border-radius:14px;border:1px solid rgba(167,139,250,.20);background:rgba(139,92,246,.08);margin-bottom:20px}
+.accounts-income-page .income-view-amount span {display:block;color:#b9b0c6;font-size:11px;margin-bottom:8px}
+.accounts-income-page .income-view-amount strong {display:block;font-size:26px;color:#c4b5fd;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.accounts-income-page .income-view-details {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px;margin:0}
+.accounts-income-page .income-view-details>div {min-width:0}
+.accounts-income-page .income-view-details dt {font-size:11px;color:#96909f;margin-bottom:7px}
+.accounts-income-page .income-view-details dd {margin:0;color:#e2d9ef;font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.accounts-income-page .income-view-wide {grid-column:1/-1}
+@media(max-width:480px) {
+  .accounts-income-page .income-view-details {grid-template-columns:minmax(0,1fr);gap:16px}
+  .accounts-income-page .income-view-wide {grid-column:auto}
+  .accounts-income-page .income-view-amount {padding:16px}
+}
+
+/* Expenses shares the Income layout and controls. */
+/* Expense: Team Lead Report button styling; shared Accounts assets remain in use. */
+.accounts-expense-page .accounts-header {
+  position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+.accounts-expense-page .accounts-header h1 {font-size:clamp(34px,4vw,52px);line-height:1;letter-spacing:-2px}
+.accounts-expense-page .accounts-header .accounts-eyebrow {letter-spacing:3px;margin-bottom:15px}
+.accounts-expense-page .accounts-panel-heading h2 {font-weight:800}
+.accounts-expense-page .accounts-panel-heading .accounts-eyebrow {margin-bottom:6px;font-size:9px;letter-spacing:2.5px}
+.accounts-expense-page .expense-button {
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:42px;padding:0 15px;border-radius:12px;color:#fff;
+  text-decoration:none;font-size:11px;font-weight:700;line-height:1.4;
+  border:1px solid rgba(167,139,250,.35);
+  background:linear-gradient(135deg,#7c4bd4,#5b32a7);
+  box-shadow:0 10px 25px rgba(124,75,212,.18);
+  transition:transform .22s ease,background .22s ease,border-color .22s ease;
+}
+.accounts-expense-page .expense-button:hover:not(:disabled) {
+  filter:none;transform:translateY(-2px);border-color:rgba(139,92,246,.35);
+}
+.accounts-expense-page .expense-button svg {width:16px;height:16px}
+.accounts-expense-page .expense-button-secondary,
+.accounts-expense-page .expense-reset {
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);
+  box-shadow:none;color:#fff;
+}
+.accounts-expense-page .expense-button-secondary:hover:not(:disabled),
+.accounts-expense-page .expense-reset:hover {background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.35)}
+.accounts-expense-page .expense-button-export {
+  background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.20);
+  color:#9ee7ba;box-shadow:none;white-space:nowrap;
+}
+.accounts-expense-page .expense-button-export:hover:not(:disabled) {
+  background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.35);
+}
+.accounts-expense-page .expense-button-danger {background:#823347;border-color:#aa5268;box-shadow:none}
+.accounts-expense-page .expense-button:disabled {opacity:.6;transform:none;cursor:wait}
+.accounts-expense-page .expense-reset {
+  display:inline-flex;align-items:center;justify-content:center;min-height:42px;
+  padding:0 15px;border-radius:12px;font-size:11px;font-weight:700;text-decoration:none;
+}
+.accounts-expense-page .expense-filter-form {
+  padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:16px;
+  background:rgba(255,255,255,.025);
+}
+.accounts-expense-page .expense-filter-grid {grid-template-columns:repeat(12,minmax(0,1fr));align-items:end}
+.accounts-expense-page .expense-filter-grid>.expense-field {grid-column:span 3}
+.accounts-expense-page .expense-filter-grid>.expense-field:first-child {grid-column:span 6}
+.accounts-expense-page .expense-search-input {width:100%;min-width:0;max-width:none}
+.accounts-expense-page .expense-filter-footer {align-items:center;gap:14px}
+.accounts-expense-page .expense-filter-description {min-width:0;flex:1 1 260px;line-height:1.6;overflow-wrap:anywhere}
+.accounts-expense-page .expense-filter-actions {justify-content:flex-end;gap:8px}
+.accounts-expense-page .expense-heading-actions {gap:12px}
+.accounts-expense-page .expense-icon-button {border-radius:10px;background:rgba(139,92,246,.09);border-color:rgba(167,139,250,.22)}
+.accounts-expense-page .expense-icon-delete {background:rgba(242,165,176,.05);border-color:rgba(242,165,176,.18)}
+.accounts-expense-page .expense-icon-button:hover {background:rgba(139,92,246,.18)}
+.accounts-expense-page .expense-icon-delete:hover {background:rgba(242,165,176,.12)}
+.accounts-expense-page .accounts-table-scroll {max-height:420px;max-height:min(420px,60dvh);max-width:100%}
+.accounts-expense-page .expense-table {min-width:900px}
+.accounts-expense-page .expense-table th:last-child {text-align:right;width:104px}
+.accounts-expense-page .expense-row-actions {align-items:center;gap:8px}
+.accounts-expense-page .expense-dialog {background:linear-gradient(145deg,#21182b,#111019);border-color:rgba(167,139,250,.22);border-radius:20px}
+.accounts-expense-page .expense-dialog .accounts-input {background:#100e17}
+.accounts-expense-page .expense-dialog-footer {flex-wrap:wrap}
+@media(max-width:1100px) {
+  .accounts-expense-page .expense-filter-grid>.expense-field {grid-column:span 6}
+  .accounts-expense-page .expense-filter-grid>.expense-field:first-child {grid-column:span 12}
+}
+@media(max-width:600px) {
+  .accounts-expense-page .accounts-header h1 {font-size:32px;letter-spacing:-1px}
+  .accounts-expense-page .accounts-header .accounts-eyebrow {letter-spacing:1.5px}
+  .accounts-expense-page .expense-filter-form {padding:14px}
+  .accounts-expense-page .expense-filter-grid {grid-template-columns:minmax(0,1fr)}
+  .accounts-expense-page .expense-filter-grid>.expense-field,
+  .accounts-expense-page .expense-filter-grid>.expense-field:first-child {grid-column:auto}
+  .accounts-expense-page .expense-filter-actions {display:grid;grid-template-columns:auto auto minmax(0,1fr);width:100%;gap:7px}
+  .accounts-expense-page .expense-filter-actions .expense-button,
+  .accounts-expense-page .expense-reset {padding:0 10px;min-width:0}
+  .accounts-expense-page .expense-heading-actions {width:100%;justify-content:space-between}
+  .accounts-expense-page .expense-table td,.accounts-expense-page .expense-table th {padding:13px 12px}
+  .accounts-expense-page .expense-dialog-footer .expense-button {flex:1;min-width:100px}
+}
+@media(max-width:340px) {
+  .accounts-expense-page .expense-filter-actions {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .accounts-expense-page .expense-button-export {grid-column:1/-1}
+}
+@media(prefers-reduced-motion:reduce) {
+  .accounts-expense-page .expense-button {transition:none}
+  .accounts-expense-page .expense-button:hover:not(:disabled) {transform:none}
+}
+
+/* Expense filter alignment: hidden date fields do not reserve columns. */
+.accounts-expense-page .expense-filter-grid {
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px;
+}
+.accounts-expense-page .expense-filter-grid>.expense-field {
+  flex:1 1 190px;min-width:0;
+}
+.accounts-expense-page .expense-filter-grid>.expense-field:first-child {
+  flex:2 1 340px;
+}
+.accounts-expense-page .expense-filter-grid .accounts-input {
+  height:44px;min-height:44px;box-sizing:border-box;
+}
+.accounts-expense-page .expense-search-input>svg {
+  top:50%;transform:translateY(-50%);
+}
+.accounts-expense-page .expense-filter-footer {
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:16px;margin-top:18px;
+}
+.accounts-expense-page .expense-filter-actions {
+  flex-shrink:0;margin-left:auto;align-items:center;
+}
+.accounts-expense-page .expense-filter-description {margin:0;line-height:1.6}
+@media(max-width:600px) {
+  .accounts-expense-page .expense-filter-grid {display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+  .accounts-expense-page .expense-filter-grid>.expense-field {width:100%;grid-column:auto}
+  .accounts-expense-page .expense-filter-grid>.expense-field:first-child {grid-column:auto}
+  .accounts-expense-page .expense-filter-description {flex-basis:100%}
+  .accounts-expense-page .expense-filter-actions {margin-left:0;width:100%}
+}
+
+/* Expense read-only detail popup and three aligned row actions. */
+.accounts-expense-page .expense-table th:last-child {width:144px;min-width:144px}
+.accounts-expense-page .expense-row-actions {gap:7px}
+.accounts-expense-page .expense-view-dialog {width:min(600px,calc(100vw - 32px))}
+.accounts-expense-page .expense-view-amount {padding:18px 20px;border-radius:14px;border:1px solid rgba(167,139,250,.20);background:rgba(139,92,246,.08);margin-bottom:20px}
+.accounts-expense-page .expense-view-amount span {display:block;color:#b9b0c6;font-size:11px;margin-bottom:8px}
+.accounts-expense-page .expense-view-amount strong {display:block;font-size:26px;color:#c4b5fd;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.accounts-expense-page .expense-view-details {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px;margin:0}
+.accounts-expense-page .expense-view-details>div {min-width:0}
+.accounts-expense-page .expense-view-details dt {font-size:11px;color:#96909f;margin-bottom:7px}
+.accounts-expense-page .expense-view-details dd {margin:0;color:#e2d9ef;font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.accounts-expense-page .expense-view-wide {grid-column:1/-1}
+@media(max-width:480px) {
+  .accounts-expense-page .expense-view-details {grid-template-columns:minmax(0,1fr);gap:16px}
+  .accounts-expense-page .expense-view-wide {grid-column:auto}
+  .accounts-expense-page .expense-view-amount {padding:16px}
+}
+
+.accounts-expense-page .expense-table{min-width:1050px}.accounts-expense-page .expense-paid-to{max-width:170px;overflow-wrap:anywhere}
+
+/* Expense filter controls: complete the shared Income spacing. */
+.accounts-expense-page .expense-heading-actions {
+  display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:14px;
+}
+.accounts-expense-page .expense-filter-actions {
+  display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:9px;
+}
+.accounts-expense-page .expense-filter-description {
+  font-size:12px;color:#d6c4ed;line-height:1.6;
+}
+.accounts-expense-page .expense-filter-description span {
+  display:block;margin-top:5px;color:#96909f;font-size:11px;line-height:1.5;
+}
+.accounts-expense-page .expense-filter-form {margin-bottom:20px}
+@media(max-width:600px) {
+  .accounts-expense-page .expense-heading-actions {width:100%;justify-content:space-between}
+  .accounts-expense-page .expense-filter-actions {
+    display:grid;grid-template-columns:auto auto minmax(0,1fr);width:100%;gap:8px;
+  }
+}
+@media(max-width:340px) {
+  .accounts-expense-page .expense-filter-actions {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .accounts-expense-page .expense-button-export {grid-column:1/-1}
+}
+
+/* Expense receipts, payment badges and history. */
+.accounts-expense-page .expense-table{min-width:1450px}
+.accounts-expense-page .expense-table th:last-child{min-width:180px;width:180px}
+.accounts-expense-page .expense-status{display:inline-flex;padding:5px 9px;border-radius:6px;font-size:10px;font-weight:700;white-space:nowrap;border:1px solid}
+.accounts-expense-page .expense-status.paid{color:#99d4c4;background:rgba(70,165,137,.10);border-color:rgba(70,165,137,.22)}
+.accounts-expense-page .expense-status.partial{color:#eac17b;background:rgba(218,163,64,.10);border-color:rgba(218,163,64,.22)}
+.accounts-expense-page .expense-status.pending{color:#f2a5b0;background:rgba(226,108,131,.09);border-color:rgba(226,108,131,.22)}
+.accounts-expense-page .expense-duplicate-box{padding:14px;border:1px solid rgba(218,163,64,.3);border-radius:12px;background:rgba(218,163,64,.07);margin-bottom:18px}
+.accounts-expense-page .expense-duplicate-box p{font-size:12px;line-height:1.6;color:#eac17b;margin:0 0 12px}
+.accounts-expense-page .expense-duplicate-box button{margin:0 6px 6px 0}
+.accounts-expense-page .expense-current-receipt{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 18px}
+.accounts-expense-page .expense-current-receipt label{color:#b9b0c6;font-size:12px}
+.accounts-expense-page .expense-receipt-actions{display:flex;gap:8px;flex-wrap:wrap}
+.accounts-expense-page .expense-history-list{display:grid;gap:12px}
+.accounts-expense-page .expense-history-card{padding:15px;border:1px solid rgba(167,139,250,.16);border-radius:12px;background:rgba(139,92,246,.04)}
+.accounts-expense-page .expense-history-card h3{margin:0 0 6px;color:#e2d9ef;font-size:13px}
+.accounts-expense-page .expense-history-card time{font-size:11px;color:#96909f}
+.accounts-expense-page .expense-history-card p{font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0 0;color:#b9b0c6}
+.accounts-expense-page .expense-field input[type=file]{height:auto;min-height:44px}
+.accounts-expense-page .expense-field input[type=file]::file-selector-button{background:#352548;color:#e2d9ef;border:0;border-radius:6px;padding:6px 10px;margin-right:10px;cursor:pointer}
+
+/* Income add-on controls, matching the existing Expenses theme. */
+.accounts-income-page .income-duplicate-box{padding:14px;border:1px solid rgba(218,163,64,.3);border-radius:12px;background:rgba(218,163,64,.07);margin-bottom:18px}
+.accounts-income-page .income-duplicate-box p{font-size:12px;line-height:1.6;color:#eac17b;margin:0 0 12px}
+.accounts-income-page .income-duplicate-box button{margin:0 6px 6px 0}
+.accounts-income-page .income-current-receipt{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 18px}
+.accounts-income-page .income-current-receipt label{color:#b9b0c6;font-size:12px}
+.accounts-income-page .income-receipt-actions{display:flex;gap:8px;flex-wrap:wrap}
+.accounts-income-page .income-history-list{display:grid;gap:12px}
+.accounts-income-page .income-history-card{padding:15px;border:1px solid rgba(167,139,250,.16);border-radius:12px;background:rgba(139,92,246,.04)}
+.accounts-income-page .income-history-card h3{margin:0 0 6px;color:#e2d9ef;font-size:13px}
+.accounts-income-page .income-history-card time{font-size:11px;color:#96909f}
+.accounts-income-page .income-history-card p{font-size:12px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0 0;color:#b9b0c6}
+.accounts-income-page .income-field input[type=file]{height:auto;min-height:44px}
+.accounts-income-page .income-field input[type=file]::file-selector-button{background:#352548;color:#e2d9ef;border:0;border-radius:6px;padding:6px 10px;margin-right:10px;cursor:pointer}
+
+.accounts-income-page .income-row-actions{gap:6px;flex-wrap:nowrap}.accounts-income-page .income-actions-heading{min-width:160px}
+
+/* Sales matches the existing Income / Expenses theme. */
+/* Sale: Team Lead Report button styling; shared Accounts assets remain in use. */
+.accounts-sales-page .accounts-header {
+  position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+.accounts-sales-page .accounts-header h1 {font-size:clamp(34px,4vw,52px);line-height:1;letter-spacing:-2px}
+.accounts-sales-page .accounts-header .accounts-eyebrow {letter-spacing:3px;margin-bottom:15px}
+.accounts-sales-page .accounts-panel-heading h2 {font-weight:800}
+.accounts-sales-page .accounts-panel-heading .accounts-eyebrow {margin-bottom:6px;font-size:9px;letter-spacing:2.5px}
+.accounts-sales-page .sale-button {
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:42px;padding:0 15px;border-radius:12px;color:#fff;
+  text-decoration:none;font-size:11px;font-weight:700;line-height:1.4;
+  border:1px solid rgba(167,139,250,.35);
+  background:linear-gradient(135deg,#7c4bd4,#5b32a7);
+  box-shadow:0 10px 25px rgba(124,75,212,.18);
+  transition:transform .22s ease,background .22s ease,border-color .22s ease;
+}
+.accounts-sales-page .sale-button:hover:not(:disabled) {
+  filter:none;transform:translateY(-2px);border-color:rgba(139,92,246,.35);
+}
+.accounts-sales-page .sale-button svg {width:16px;height:16px}
+.accounts-sales-page .sale-button-secondary,
+.accounts-sales-page .sale-reset {
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);
+  box-shadow:none;color:#fff;
+}
+.accounts-sales-page .sale-button-secondary:hover:not(:disabled),
+.accounts-sales-page .sale-reset:hover {background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.35)}
+.accounts-sales-page .sale-button-export {
+  background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.20);
+  color:#9ee7ba;box-shadow:none;white-space:nowrap;
+}
+.accounts-sales-page .sale-button-export:hover:not(:disabled) {
+  background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.35);
+}
+.accounts-sales-page .sale-button-danger {background:#823347;border-color:#aa5268;box-shadow:none}
+.accounts-sales-page .sale-button:disabled {opacity:.6;transform:none;cursor:wait}
+.accounts-sales-page .sale-reset {
+  display:inline-flex;align-items:center;justify-content:center;min-height:42px;
+  padding:0 15px;border-radius:12px;font-size:11px;font-weight:700;text-decoration:none;
+}
+.accounts-sales-page .sale-filter-form {
+  padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:16px;
+  background:rgba(255,255,255,.025);
+}
+.accounts-sales-page .sale-filter-grid {grid-template-columns:repeat(12,minmax(0,1fr));align-items:end}
+.accounts-sales-page .sale-filter-grid>.sale-field {grid-column:span 3}
+.accounts-sales-page .sale-filter-grid>.sale-field:first-child {grid-column:span 6}
+.accounts-sales-page .sale-search-input {width:100%;min-width:0;max-width:none}
+.accounts-sales-page .sale-filter-footer {align-items:center;gap:14px}
+.accounts-sales-page .sale-filter-description {min-width:0;flex:1 1 260px;line-height:1.6;overflow-wrap:anywhere}
+.accounts-sales-page .sale-filter-actions {justify-content:flex-end;gap:8px}
+.accounts-sales-page .sale-heading-actions {gap:12px}
+.accounts-sales-page .sale-icon-button {border-radius:10px;background:rgba(139,92,246,.09);border-color:rgba(167,139,250,.22)}
+.accounts-sales-page .sale-icon-delete {background:rgba(242,165,176,.05);border-color:rgba(242,165,176,.18)}
+.accounts-sales-page .sale-icon-button:hover {background:rgba(139,92,246,.18)}
+.accounts-sales-page .sale-icon-delete:hover {background:rgba(242,165,176,.12)}
+.accounts-sales-page .accounts-table-scroll {max-height:420px;max-height:min(420px,60dvh);max-width:100%}
+.accounts-sales-page .sale-table {min-width:900px}
+.accounts-sales-page .sale-table th:last-child {text-align:right;width:104px}
+.accounts-sales-page .sale-row-actions {align-items:center;gap:8px}
+.accounts-sales-page .sale-dialog {background:linear-gradient(145deg,#21182b,#111019);border-color:rgba(167,139,250,.22);border-radius:20px}
+.accounts-sales-page .sale-dialog .accounts-input {background:#100e17}
+.accounts-sales-page .sale-dialog-footer {flex-wrap:wrap}
+@media(max-width:1100px) {
+  .accounts-sales-page .sale-filter-grid>.sale-field {grid-column:span 6}
+  .accounts-sales-page .sale-filter-grid>.sale-field:first-child {grid-column:span 12}
+}
+@media(max-width:600px) {
+  .accounts-sales-page .accounts-header h1 {font-size:32px;letter-spacing:-1px}
+  .accounts-sales-page .accounts-header .accounts-eyebrow {letter-spacing:1.5px}
+  .accounts-sales-page .sale-filter-form {padding:14px}
+  .accounts-sales-page .sale-filter-grid {grid-template-columns:minmax(0,1fr)}
+  .accounts-sales-page .sale-filter-grid>.sale-field,
+  .accounts-sales-page .sale-filter-grid>.sale-field:first-child {grid-column:auto}
+  .accounts-sales-page .sale-filter-actions {display:grid;grid-template-columns:auto auto minmax(0,1fr);width:100%;gap:7px}
+  .accounts-sales-page .sale-filter-actions .sale-button,
+  .accounts-sales-page .sale-reset {padding:0 10px;min-width:0}
+  .accounts-sales-page .sale-heading-actions {width:100%;justify-content:space-between}
+  .accounts-sales-page .sale-table td,.accounts-sales-page .sale-table th {padding:13px 12px}
+  .accounts-sales-page .sale-dialog-footer .sale-button {flex:1;min-width:100px}
+}
+@media(max-width:340px) {
+  .accounts-sales-page .sale-filter-actions {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .accounts-sales-page .sale-button-export {grid-column:1/-1}
+}
+@media(prefers-reduced-motion:reduce) {
+  .accounts-sales-page .sale-button {transition:none}
+  .accounts-sales-page .sale-button:hover:not(:disabled) {transform:none}
+}
+
+/* Sale filter alignment: hidden date fields do not reserve columns. */
+.accounts-sales-page .sale-filter-grid {
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px;
+}
+.accounts-sales-page .sale-filter-grid>.sale-field {
+  flex:1 1 190px;min-width:0;
+}
+.accounts-sales-page .sale-filter-grid>.sale-field:first-child {
+  flex:2 1 340px;
+}
+.accounts-sales-page .sale-filter-grid .accounts-input {
+  height:44px;min-height:44px;box-sizing:border-box;
+}
+.accounts-sales-page .sale-search-input>svg {
+  top:50%;transform:translateY(-50%);
+}
+.accounts-sales-page .sale-filter-footer {
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:16px;margin-top:18px;
+}
+.accounts-sales-page .sale-filter-actions {
+  flex-shrink:0;margin-left:auto;align-items:center;
+}
+.accounts-sales-page .sale-filter-description {margin:0;line-height:1.6}
+@media(max-width:600px) {
+  .accounts-sales-page .sale-filter-grid {display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+  .accounts-sales-page .sale-filter-grid>.sale-field {width:100%;grid-column:auto}
+  .accounts-sales-page .sale-filter-grid>.sale-field:first-child {grid-column:auto}
+  .accounts-sales-page .sale-filter-description {flex-basis:100%}
+  .accounts-sales-page .sale-filter-actions {margin-left:0;width:100%}
+}
+
+/* Sale read-only detail popup and three aligned row actions. */
+.accounts-sales-page .sale-table th:last-child {width:144px;min-width:144px}
+.accounts-sales-page .sale-row-actions {gap:7px}
+.accounts-sales-page .sale-view-dialog {width:min(600px,calc(100vw - 32px))}
+.accounts-sales-page .sale-view-amount {padding:18px 20px;border-radius:14px;border:1px solid rgba(167,139,250,.20);background:rgba(139,92,246,.08);margin-bottom:20px}
+.accounts-sales-page .sale-view-amount span {display:block;color:#b9b0c6;font-size:11px;margin-bottom:8px}
+.accounts-sales-page .sale-view-amount strong {display:block;font-size:26px;color:#c4b5fd;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.accounts-sales-page .sale-view-details {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px;margin:0}
+.accounts-sales-page .sale-view-details>div {min-width:0}
+.accounts-sales-page .sale-view-details dt {font-size:11px;color:#96909f;margin-bottom:7px}
+.accounts-sales-page .sale-view-details dd {margin:0;color:#e2d9ef;font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.accounts-sales-page .sale-view-wide {grid-column:1/-1}
+@media(max-width:480px) {
+  .accounts-sales-page .sale-view-details {grid-template-columns:minmax(0,1fr);gap:16px}
+  .accounts-sales-page .sale-view-wide {grid-column:auto}
+  .accounts-sales-page .sale-view-amount {padding:16px}
+}
+
+
+/* Sale add-on controls, matching the existing Expenses theme. */
+.accounts-sales-page .sale-duplicate-box{padding:14px;border:1px solid rgba(218,163,64,.3);border-radius:12px;background:rgba(218,163,64,.07);margin-bottom:18px}
+.accounts-sales-page .sale-duplicate-box p{font-size:12px;line-height:1.6;color:#eac17b;margin:0 0 12px}
+.accounts-sales-page .sale-duplicate-box button{margin:0 6px 6px 0}
+
+.accounts-sales-page .sale-table{min-width:1200px}
+.accounts-sales-page .sale-row-actions{gap:6px;flex-wrap:nowrap}
+.accounts-sales-page .sale-actions-heading{min-width:130px;text-align:right}
+.accounts-sales-page .sale-dialog{width:min(680px,calc(100vw - 32px))}
+.accounts-sales-page .sale-dialog-small{width:min(430px,calc(100vw - 32px))}
+
+/* Sales heading and filter alignment. */
+.accounts-sales-page .sale-heading-actions {
+  display:flex;align-items:center;justify-content:flex-end;gap:14px;flex-wrap:wrap;
+}
+.accounts-sales-page .sale-heading-actions > .accounts-muted {white-space:nowrap}
+.accounts-sales-page .sale-filter-footer {
+  display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-top:16px;
+}
+.accounts-sales-page .sale-filter-description {
+  flex:1 1 260px;min-width:0;font-size:12px;line-height:1.6;color:#b9b0c6;
+}
+.accounts-sales-page .sale-filter-description span {
+  display:block;margin-top:5px;font-size:11px;color:#96909f;
+}
+.accounts-sales-page .sale-filter-actions {
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-left:auto;
+}
+@media(max-width:700px) {
+  .accounts-sales-page .sale-heading-actions {width:100%;justify-content:space-between}
+  .accounts-sales-page .sale-filter-description {flex-basis:100%}
+  .accounts-sales-page .sale-filter-actions {display:grid;grid-template-columns:auto auto minmax(0,1fr);width:100%;margin-left:0}
+}
+@media(max-width:420px) {
+  .accounts-sales-page .sale-filter-actions {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .accounts-sales-page .sale-button-export {grid-column:1/-1}
+}
+
+/* Sales invoice and payment details. */
+.accounts-sales-page .sale-table{min-width:1400px}
+.accounts-sales-page .sale-actions-heading{min-width:165px}
+.accounts-sales-page .sale-overdue{display:block;width:fit-content;margin-top:6px;padding:4px 7px;border-radius:6px;color:#f2a5b0;background:rgba(242,165,176,.08);border:1px solid rgba(242,165,176,.2);font-size:10px}
+.accounts-sales-page .sale-invoice-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.accounts-sales-page .sale-invoice-actions label{color:#b9b0c6;font-size:12px}
+.accounts-sales-page .sale-field input[type=file]{height:auto;min-height:44px}
+.accounts-sales-page .sale-field input[type=file]::file-selector-button{background:#352548;color:#e2d9ef;border:0;border-radius:6px;padding:6px 10px;margin-right:10px}
+.accounts-sales-page .sale-payment-summary{padding:12px 15px;border:1px solid rgba(167,139,250,.2);border-radius:10px;margin-bottom:20px;font-size:13px;color:#d9c8ed;line-height:1.7}
+.accounts-sales-page .sale-payment-history{display:grid;gap:10px;max-height:300px;overflow:auto;overscroll-behavior:contain}
+.accounts-sales-page .sale-payment-history-title{font-size:14px;margin-top:24px}
+.accounts-sales-page .sale-payment-card{padding:14px;border:1px solid rgba(167,139,250,.15);border-radius:10px;background:rgba(139,92,246,.04)}
+.accounts-sales-page .sale-payment-card strong{font-size:13px;color:#e2d9ef}
+.accounts-sales-page .sale-payment-card p{font-size:12px;color:#b9b0c6;margin:7px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
