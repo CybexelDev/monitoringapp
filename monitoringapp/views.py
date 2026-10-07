@@ -82,8 +82,11 @@ def admin_dashboard(request):
 
         departments = Department.objects.all()
         teams = Team.objects.all()
-        return render(request, "admin_dashboard.html", {"departments": departments, "teams": teams})
-
+        return render(
+            request,
+            "admin_panel/admin_dashboard.html",
+            {"departments": departments, "teams": teams},
+        )
     # Not allowed → redirect
     return redirect("admin_login")
 
@@ -6268,39 +6271,6 @@ def teammember_group_chat(request, group_id):
 
 
 # <----------------------------ACCOUNTS TEAM ()--------------------->
-# # Add these imports near the top of monitoringapp/views.py if missing.
-# from django.http import HttpResponseForbidden
-# from django.views.decorators.http import require_GET, require_POST
-
-
-# # Add these functions at the bottom of monitoringapp/views.py.
-# # Existing imports supply User, render, redirect, never_cache and timezone.
-# @never_cache
-# @require_GET
-# def accounts_dashboard(request):
-#     user_id = request.session.get("user_id")
-#     if not user_id:
-#         return redirect("login_view")
-
-#     current_user = User.objects.filter(pk=user_id).first()
-#     if current_user is None:
-#         request.session.flush()
-#         return redirect("login_view")
-
-#     # Check the stored role as well as the session role.
-#     allowed_roles = {"accounts", "accounts_team"}
-#     database_role = str(current_user.job_Position or "").strip().lower().replace(" ", "_")
-#     session_role = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
-#     if database_role not in allowed_roles or session_role not in allowed_roles:
-#         return HttpResponseForbidden("You do not have access to the Accounts dashboard.")
-
-#     return render(request, "accounts/dashboard.html", {
-#         "current_user": current_user,
-#         "accounts_active": "dashboard",
-#         "period_label": timezone.localdate().strftime("%B %Y"),
-#         "account_summary": None,
-#         "recent_transactions": [],
-#     })
 
 @never_cache
 @require_GET
@@ -6393,7 +6363,7 @@ def accounts_dashboard(request):
     recent.sort(key=lambda item: (item["date"], item["created_at"], item["pk"], item["kind"]), reverse=True)
     period_label = "All dates" if period == "all" else (
         f"{range_start:%d %b %Y} – {range_end:%d %b %Y}" if range_start else "Invalid date filter")
-    return render(request, "accounts/dashboard.html", {
+    return render(request, "accounts/accounts_dashboard.html", {
         "current_user": current_user, "accounts_active": "dashboard",
         "period": period, "selected_date": selected_date, "selected_month": selected_month,
         "from_date": from_date, "to_date": to_date, "filter_error": filter_error,
@@ -6746,7 +6716,7 @@ def accounts_income(request):
         return response
 
     page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
-    return render(request, "accounts/income.html", {
+    return render(request, "accounts/accounts_income.html", {
         "current_user": current_user,
         "accounts_active": "income",
         "form": form,
@@ -7138,7 +7108,7 @@ def accounts_expenses(request):
         return response
 
     page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
-    return render(request, "accounts/expenses.html", {
+    return render(request, "accounts/accounts_expenses.html", {
         "current_user": current_user,
         "accounts_active": "expenses",
         "form": form,
@@ -7515,7 +7485,7 @@ def accounts_sales(request):
     page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
     def sales_total(queryset):
         return queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
-    return render(request, "accounts/sales.html", {
+    return render(request, "accounts/accounts_sales.html", {
         "current_user": current_user, "accounts_active": "sales", "form": form,
         "query": query, "status_filter": status_filter,
         "has_filters": bool(query or status_filter or period != "all"),
@@ -7964,7 +7934,7 @@ def accounts_notifications(request):
         })
 
     from urllib.parse import urlencode
-    return render(request, "accounts/notifications.html", {
+    return render(request, "accounts/accounts_notifications.html", {
         "current_user": current_user,
         "accounts_active": "notifications",
         "page_obj": page_obj,
@@ -8466,7 +8436,7 @@ def accounts_reminders(request):
 
     return render(
         request,
-        "accounts/reminders.html",
+        "accounts/accounts_reminders.html",
         context,
     )
 
@@ -8547,7 +8517,7 @@ def accounts_notepad(request):
             }))
     if error and selected_id and request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return JsonResponse({"ok": False, "message": error}, status=400)
-    response = render(request, "accounts/notepad.html", {
+    response = render(request, "accounts/accounts_notepad.html", {
         "current_user": user, "accounts_active": "notepad",
         "note": None, "page_obj": page_obj, "query": query, "sort": sort,
         "form_title": title if not selected_id else "", "form_content": content if not selected_id else "", "note_error": error,
@@ -8693,7 +8663,7 @@ def accounts_profile(request):
         if is_ajax:
             return fail(error, form.errors.get_json_data())
 
-    return render(request, "accounts/profile.html", {
+    return render(request, "accounts/accounts_profile.html", {
         "current_user": user,
         "profile_user": user,
         "accounts_active": "profile",
