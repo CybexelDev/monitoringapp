@@ -1579,3 +1579,22 @@ html { background: #08070b; color-scheme: dark; }
 })();
 
 </script>
+<style>
+#sidebar .sidebar-item {
+  position: relative;
+}
+
+#sidebar .sidebar-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 20px;
+  border-radius: 2px;
+  background: #b99cff;
+  box-shadow: none;
+  pointer-events: none;
+}
+</style>
