@@ -56,3 +56,22 @@
     {% if logout_url %}<form method="post" action="{{ logout_url }}">{% csrf_token %}<button type="submit" class="accounts-nav-item accounts-logout"><i data-lucide="log-out" aria-hidden="true"></i><span>Logout</span></button></form>{% else %}<button type="button" class="accounts-nav-item accounts-logout" disabled title="Logout will be connected with Accounts login"><i data-lucide="log-out" aria-hidden="true"></i><span>Logout</span></button>{% endif %}
   </div>
 </aside>
+<style>
+#accountsSidebar .accounts-nav-item {
+  position: relative;
+}
+
+#accountsSidebar .accounts-nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 20px;
+  border-radius: 2px;
+  background: #b99cff;
+  box-shadow: none;
+  pointer-events: none;
+}
+</style>
