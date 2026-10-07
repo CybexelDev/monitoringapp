@@ -6433,12 +6433,6 @@ from decimal import Decimal
 from django.db.models import Sum
 from .forms import AccountsIncomeForm
 from .models import AccountsIncome
-
-
-# Add these functions at the bottom of monitoringapp/views.py.
-# Existing imports supply User, Q, Paginator, JsonResponse,
-# HttpResponseForbidden, render, redirect, messages, timezone,
-# never_cache, and require_GET/require_POST from the Accounts setup.
 from django.views.decorators.http import require_http_methods
 
 
@@ -7583,18 +7577,6 @@ def accounts_sale_edit(request, pk):
         "id": sale.pk,
     })
 
-# @never_cache
-# @require_POST
-# def accounts_sale_delete(request, pk):
-#     if _accounts_user(request) is None:
-#         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
-#             status=403 if request.session.get("user_id") else 401)
-#     deleted_count, _ = AccountsSale.objects.filter(pk=pk).delete()
-#     if not deleted_count:
-#         return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
-#     return JsonResponse({"ok": True, "message": "Sale deleted successfully.", "id": pk})
-
-
 @never_cache
 @require_POST
 def accounts_sale_delete(request, pk):
@@ -8622,7 +8604,6 @@ def _accounts_notepad_notification(user, note_title, action):
 # Append this code to monitoringapp/views.py.
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
-
 
 @never_cache
 @require_http_methods(["GET", "POST"])
