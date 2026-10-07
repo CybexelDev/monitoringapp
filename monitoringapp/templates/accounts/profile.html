@@ -1,0 +1,1217 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% block title %}Accounts Profile - Cybexel{% endblock %}
+{% block page_heading %}ACCOUNTS PROFILE{% endblock %}
+{% block page_description %}Manage your profile information and account details.{% endblock %}
+{% block extra_css %}<style>
+
+        /* =========================================================
+           PROFILE PAGE
+           SAME DASHBOARD UI
+        ========================================================= */
+
+        .profile-content {
+            padding: 38px 0 35px;
+        }
+
+        /* ---------------------------------------------------------
+           PROFILE TOP CARD
+        --------------------------------------------------------- */
+
+        .profile-main-card {
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr);
+            gap: 28px;
+
+            padding: 28px;
+
+            border-radius: 23px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+
+            border:
+                1px solid rgba(255, 255, 255, 0.09);
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.20),
+                inset 0 1px 0 rgba(255,255,255,0.035);
+
+            transition:
+                border-color 0.25s ease,
+                transform 0.25s ease;
+        }
+
+        .profile-main-card:hover {
+            border-color:
+                rgba(139, 92, 246, 0.23);
+
+            transform: translateY(-2px);
+        }
+
+
+        /* ---------------------------------------------------------
+           PROFILE IMAGE AREA
+        --------------------------------------------------------- */
+
+        .profile-image-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+
+            padding: 8px;
+        }
+
+        .profile-image-wrapper {
+            position: relative;
+
+            width: 150px;
+            height: 150px;
+
+            cursor: pointer;
+        }
+
+        .profile-image-wrapper::before {
+            content: "";
+
+            position: absolute;
+
+            inset: -8px;
+
+            border-radius: 50%;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(139, 92, 246, 0.45),
+                    rgba(56, 189, 248, 0.25)
+                );
+
+            filter: blur(12px);
+
+            opacity: 0.45;
+
+            pointer-events: none;
+        }
+
+        .profile-image-wrapper img {
+            position: relative;
+            z-index: 2;
+
+            width: 150px;
+            height: 150px;
+
+            object-fit: cover;
+
+            border-radius: 50%;
+
+            border:
+                4px solid rgba(139, 92, 246, 0.85);
+
+            box-shadow:
+                0 15px 40px rgba(0, 0, 0, 0.40),
+                0 0 0 1px rgba(255,255,255,0.08);
+        }
+
+/* ---------------------------------------------------------
+   PROFILE STATUS — GREEN DOT
+--------------------------------------------------------- */
+
+.profile-status {
+    position: absolute;
+
+    
+    left: 20px;
+    bottom: 9px;
+
+    z-index: 10;
+
+    width: 18px;
+    height: 18px;
+
+    border-radius: 50%;
+
+    background: #4ade80;
+
+    border: 3px solid #17151e;
+
+    box-shadow:
+        0 0 14px rgba(74, 222, 128, 0.9);
+}
+
+/* ---------------------------------------------------------
+   EDIT CAMERA BUTTON
+--------------------------------------------------------- */
+
+.profile-camera {
+    position: absolute;
+
+    right: -2px;
+    bottom: 12px;
+
+    z-index: 6;
+
+    width: 39px;
+    height: 39px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    color: #ffffff;
+
+    background:
+        linear-gradient(
+            135deg,
+            #7c4bd4,
+            #5b32a7
+        );
+
+    border:
+        2px solid #181620;
+
+    box-shadow:
+        0 8px 22px rgba(124,75,212,0.35);
+
+    pointer-events: none;
+}
+
+.profile-camera svg {
+    width: 18px;
+    height: 18px;
+}
+
+
+        /* ---------------------------------------------------------
+           PROFILE IMAGE TEXT
+        --------------------------------------------------------- */
+
+        .profile-image-hint {
+            margin-top: 18px;
+
+            color: #77727f;
+
+            font-size: 10px;
+
+            text-align: center;
+
+            line-height: 1.5;
+        }
+
+
+        /* ---------------------------------------------------------
+           PROFILE DETAILS
+        --------------------------------------------------------- */
+
+        .profile-details {
+            min-width: 0;
+        }
+
+        .profile-details-heading {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+
+            margin-bottom: 24px;
+        }
+
+        .profile-details-icon {
+            width: 52px;
+            height: 52px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 16px;
+
+            color: #c4b5fd;
+
+            background:
+                rgba(139, 92, 246, 0.11);
+
+            border:
+                1px solid rgba(139, 92, 246, 0.30);
+        }
+
+        .profile-details-icon svg {
+            width: 23px;
+            height: 23px;
+        }
+
+        .profile-details-heading h3 {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 18px;
+
+            font-weight: 800;
+        }
+
+        .profile-details-heading p {
+            margin: 5px 0 0;
+
+            color: #8f8c96;
+
+            font-size: 11px;
+        }
+
+
+        /* ---------------------------------------------------------
+           DETAILS GRID
+        --------------------------------------------------------- */
+
+        .profile-info-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 12px;
+        }
+
+        .profile-info-item {
+            min-width: 0;
+
+            padding: 15px 16px;
+
+            border-radius: 14px;
+
+            background:
+                rgba(7, 7, 11, 0.42);
+
+            border:
+                1px solid rgba(255,255,255,0.07);
+        }
+
+        .profile-info-label {
+            display: block;
+
+            margin-bottom: 6px;
+
+            color: #77727f;
+
+            font-size: 9px;
+
+            font-weight: 800;
+
+            letter-spacing: 1.4px;
+
+            text-transform: uppercase;
+        }
+
+        .profile-info-value {
+            display: block;
+
+            color: #dedbe2;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+
+        /* ---------------------------------------------------------
+           EDIT PROFILE CARD
+        --------------------------------------------------------- */
+
+        .profile-edit-card {
+            margin-top: 22px;
+
+            padding: 26px;
+
+            border-radius: 23px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(27, 26, 34, 0.90),
+                    rgba(16, 16, 22, 0.92)
+                );
+
+            border:
+                1px solid rgba(255,255,255,0.09);
+
+            box-shadow:
+                0 20px 50px rgba(0,0,0,0.20),
+                inset 0 1px 0 rgba(255,255,255,0.035);
+        }
+
+        .profile-edit-heading {
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+
+            margin-bottom: 24px;
+        }
+
+        .profile-edit-icon {
+            width: 52px;
+            height: 52px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 16px;
+
+            color: #67d5ff;
+
+            background:
+                rgba(56,189,248,0.09);
+
+            border:
+                1px solid rgba(56,189,248,0.25);
+        }
+
+        .profile-edit-icon svg {
+            width: 23px;
+            height: 23px;
+        }
+
+        .profile-edit-heading h3 {
+            margin: 0;
+
+            color: #ffffff;
+
+            font-size: 18px;
+
+            font-weight: 800;
+        }
+
+        .profile-edit-heading p {
+            margin: 5px 0 0;
+
+            color: #8f8c96;
+
+            font-size: 11px;
+        }
+
+
+        /* ---------------------------------------------------------
+           EDIT FORM
+        --------------------------------------------------------- */
+
+        .profile-form-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 17px;
+        }
+
+        .profile-form-group {
+            min-width: 0;
+        }
+
+        .profile-form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .profile-form-group label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            color: #8f8c96;
+
+            font-size: 10px;
+
+            font-weight: 700;
+        }
+
+        .profile-form-input {
+            width: 100%;
+
+            height: 52px;
+
+            padding:
+                0 15px;
+
+            border-radius: 14px;
+
+            outline: none;
+
+            color: #ffffff;
+
+            background:
+                rgba(7,7,11,0.50);
+
+            border:
+                1px solid rgba(255,255,255,0.10);
+
+            font-size: 12px;
+
+            transition:
+                border-color .25s ease,
+                box-shadow .25s ease;
+        }
+
+        .profile-form-input::placeholder {
+            color: #77737e;
+        }
+
+        .profile-form-input:focus {
+            border-color:
+                rgba(139,92,246,0.55);
+
+            box-shadow:
+                0 0 0 3px rgba(139,92,246,0.08);
+        }
+
+
+        /* ---------------------------------------------------------
+           SAVE BUTTON
+        --------------------------------------------------------- */
+
+        .profile-save-wrapper {
+            display: flex;
+
+            justify-content: flex-end;
+
+            margin-top: 22px;
+        }
+
+        .profile-save-button {
+            min-height: 50px;
+
+            padding:
+                0 24px;
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 8px;
+
+            border: none;
+
+            border-radius: 14px;
+
+            cursor: pointer;
+
+            color: #ffffff;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #7c4bd4,
+                    #5b32a7
+                );
+
+            box-shadow:
+                0 10px 25px rgba(124,75,212,0.18),
+                inset 0 1px 0 rgba(255,255,255,0.16);
+
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease;
+        }
+
+        .profile-save-button:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 14px 30px rgba(124,75,212,0.28),
+                inset 0 1px 0 rgba(255,255,255,0.16);
+        }
+
+        .profile-save-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+
+        /* ---------------------------------------------------------
+           RESPONSIVE
+        --------------------------------------------------------- */
+
+        @media (max-width: 1100px) {
+
+            .profile-main-card {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-image-section {
+                padding-bottom: 10px;
+            }
+
+        }
+
+
+        @media (max-width: 768px) {
+
+            .profile-content {
+                padding:
+                    28px 2px;
+            }
+
+            .profile-main-card {
+                padding: 18px;
+
+                border-radius: 20px;
+
+                gap: 20px;
+            }
+
+            .profile-edit-card {
+                padding: 18px;
+
+                border-radius: 20px;
+            }
+
+            .profile-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-form-group.full-width {
+                grid-column: auto;
+            }
+
+            .profile-save-wrapper {
+                justify-content: stretch;
+            }
+
+            .profile-save-button {
+                width: 100%;
+            }
+
+        }
+
+
+        @media (max-width: 480px) {
+
+            .profile-main-card {
+                padding: 15px;
+            }
+
+            .profile-edit-card {
+                padding: 15px;
+            }
+
+            .profile-image-wrapper,
+            .profile-image-wrapper img {
+                width: 130px;
+                height: 130px;
+            }
+
+            .profile-image-wrapper {
+                margin: 0 auto;
+            }
+
+            .profile-info-item {
+                padding: 13px 14px;
+            }
+
+        }
+
+    
+.accounts-profile *, .accounts-profile {box-sizing:border-box}
+.profile-content{padding:0 0 24px}
+.profile-photo-button{padding:0;border:0;background:transparent;color:inherit;display:block;cursor:pointer}
+.profile-photo-button:focus-visible,.profile-save-button:focus-visible{outline:2px solid #c4b5fd;outline-offset:6px}
+.profile-photo-button:disabled,.profile-save-button:disabled{opacity:.65;cursor:wait}
+.profile-initial{position:relative;z-index:2;display:grid;place-items:center;width:150px;height:150px;border-radius:50%;border:4px solid #8b5cf6;background:linear-gradient(135deg,#483060,#211a31);font-size:55px;font-weight:800}
+.profile-status.inactive{background:#fb7185;box-shadow:0 0 12px #fb71854d}
+.profile-photo-button [hidden]{display:none!important}
+.section-heading{display:flex;align-items:center;gap:18px;margin:0 0 20px}.section-heading h2{margin:7px 0 0;font-size:20px}.section-eyebrow{font-size:9px;letter-spacing:2px;color:#a78bfa;font-weight:800}.heading-line{height:1px;flex:1;background:linear-gradient(90deg,#8b5cf640,transparent)}
+.profile-form-error{color:#ff9ba4;font-size:12px;line-height:1.5;margin:7px 0 0}
+.profile-info-value{white-space:normal;overflow-wrap:anywhere}
+.profile-form-feedback{font-size:12px;color:#aaa1b8}
+@media(max-width:480px){.profile-initial{width:130px;height:130px;font-size:45px}}
+
+/* Keep the profile contained within the shared Accounts layout. */
+body.accounts-workspace .accounts-profile{min-width:0;max-width:100%}
+.accounts-profile :is(.profile-main-card,.profile-edit-card,.profile-details,.profile-form-grid){min-width:0;max-width:100%}
+.accounts-profile :is(.profile-details-heading,.profile-edit-heading)>div:last-child{min-width:0;overflow-wrap:anywhere}
+.accounts-profile .profile-form-input{min-width:0;max-width:100%}
+.accounts-profile .profile-form-input:disabled{opacity:.7;cursor:wait}
+.accounts-profile .profile-form-input[aria-invalid="true"]{border-color:#fb7185}
+.accounts-profile .profile-form-feedback:empty{display:none}
+@media(max-width:768px){
+ .accounts-profile .profile-form-input{font-size:16px}
+ .accounts-profile :is(.profile-details-heading,.profile-edit-heading){gap:12px}
+ .accounts-profile :is(.profile-details-heading,.profile-edit-heading) h3{font-size:16px}
+ .accounts-profile .profile-content{padding-top:0}
+}
+@media(prefers-reduced-motion:reduce){.accounts-profile *{transition:none!important}.accounts-profile .profile-main-card:hover,.accounts-profile .profile-save-button:hover{transform:none}}
+</style>{% endblock %}
+{% block content %}<div class="accounts-profile"><section class="profile-content">
+
+
+            <!-- =================================================
+                 SECTION HEADING
+            ================================================== -->
+
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-eyebrow">
+                        ACCOUNT
+                    </span>
+
+                    <h2>
+                        My Profile
+                    </h2>
+
+                </div>
+
+                <div class="heading-line"></div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 PROFILE MAIN CARD
+            ================================================== -->
+
+            <div class="profile-main-card">
+
+
+                <!-- PROFILE IMAGE -->
+
+                <div class="profile-image-section">
+
+<button type="button" class="profile-image-wrapper profile-photo-button" id="profile-container" aria-label="Change profile photo">
+<img id="profile-display" {% if profile_user.profile_image %}src="{{ profile_user.profile_image.url }}"{% else %}hidden{% endif %} alt="Your profile photo">
+<span id="profileInitial" class="profile-initial" {% if profile_user.profile_image %}hidden{% endif %}>{{ profile_user.name|default:profile_user.username|default:'A'|slice:':1'|upper }}</span>
+<span id="profile-status-dot" class="profile-status{% if profile_user.status != 'active' %} inactive{% endif %}" title="{{ profile_user.status|title }}"></span>
+<span class="profile-camera"><i data-lucide="camera" aria-hidden="true"></i></span>
+</button>
+<input type="file" id="profile-input" name="profile_image" accept="image/jpeg,image/png,image/webp" hidden>
+                    <div class="profile-image-hint">
+                        Click the image to change your profile photo
+                    </div>
+
+                </div>
+
+
+
+                <!-- PROFILE DETAILS -->
+
+                <div class="profile-details">
+
+
+                    <div class="profile-details-heading">
+
+                        <div class="profile-details-icon">
+
+                            <i data-lucide="circle-user-round"></i>
+
+                        </div>
+
+                        <div>
+
+                            <h3>
+                                Personal Information
+                            </h3>
+
+                            <p>
+                                Your current account information
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="profile-info-grid">
+
+
+                        <!-- Full Name -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Full Name
+                            </span>
+
+                            <span class="profile-info-value">
+                                <span data-profile-value="name">{{ profile_user.name|default:"Not provided" }}</span>
+                            </span>
+
+                        </div>
+
+
+                        <!-- Employee ID -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Employee ID
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ profile_user.employee_id|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Email -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Email
+                            </span>
+
+                            <span class="profile-info-value">
+                                <span data-profile-value="email">{{ profile_user.email|default:"Not provided" }}</span>
+                            </span>
+
+                        </div>
+
+
+                        <!-- Phone -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Phone
+                            </span>
+
+                            <span class="profile-info-value">
+                                <span data-profile-value="phone">{{ profile_user.phone|default:"Not provided" }}</span>
+                            </span>
+
+                        </div>
+
+
+                        <!-- Department -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Department
+                            </span>
+
+                            <span class="profile-info-value">
+
+                                {% if profile_user.department %}
+                                    {{ profile_user.department.name }}
+                                {% else %}
+                                    Not assigned
+                                {% endif %}
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- Team -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Team
+                            </span>
+
+                            <span class="profile-info-value">
+
+                                {% if profile_user.team %}
+                                    {{ profile_user.team.name }}
+                                {% else %}
+                                    Not assigned
+                                {% endif %}
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- Job Position -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Job Position
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ profile_user.job_Position|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Designation -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Designation
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ profile_user.designation|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Work Location -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Work Location
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ profile_user.work_location|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Joining Date -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Joining Date
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ profile_user.joining_date|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                        <!-- Username -->
+
+                        <div class="profile-info-item">
+
+                            <span class="profile-info-label">
+                                Username
+                            </span>
+
+                            <span class="profile-info-value">
+                                {{ profile_user.username|default:"Not provided" }}
+                            </span>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 EDIT PROFILE
+            ================================================== -->
+
+            <div class="profile-edit-card">
+<p id="profileFeedback" class="profile-form-feedback" role="status">{{ profile_error }}</p>
+
+
+                <div class="profile-edit-heading">
+
+                    <div class="profile-edit-icon">
+
+                        <i data-lucide="user-pen"></i>
+
+                    </div>
+
+                    <div>
+
+                        <h3>
+                            Edit Profile
+                        </h3>
+
+                        <p>
+                            Update your basic profile information
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+
+                <form
+                    method="POST"
+                    class="profile-form" id="accountsProfileForm" action="{% url 'accounts_profile' %}"
+                >
+
+                    {% csrf_token %}
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="edit_profile"
+                    >
+
+
+                    <div class="profile-form-grid">
+
+
+                        <!-- Full Name -->
+
+                        <div class="profile-form-group">
+
+                            <label for="profile-name">Full Name</label>
+
+                            <input
+                                type="text"
+                                name="name" id="profile-name" autocomplete="name" aria-describedby="profile-name-error"
+                                value="{{ profile_form.name.value|default_if_none:'' }}"
+                                class="profile-form-input"
+                                placeholder="Enter full name"
+                            ><p class="profile-form-error" data-error="name" id="profile-name-error" role="alert">{{ profile_form.name.errors|striptags }}</p>
+
+                        </div>
+
+
+                        <!-- Email -->
+
+                        <div class="profile-form-group">
+
+                            <label for="profile-email">Email</label>
+
+                            <input
+                                type="email"
+                                name="email" id="profile-email" autocomplete="email" aria-describedby="profile-email-error"
+                                value="{{ profile_form.email.value|default_if_none:'' }}"
+                                class="profile-form-input"
+                                placeholder="Enter email"
+                            ><p class="profile-form-error" data-error="email" id="profile-email-error" role="alert">{{ profile_form.email.errors|striptags }}</p>
+
+                        </div>
+
+
+                        <!-- Phone -->
+
+                        <div class="profile-form-group">
+
+                            <label for="profile-phone">Phone</label>
+
+                            <input
+                                type="tel"
+                                name="phone" id="profile-phone" autocomplete="tel" aria-describedby="profile-phone-error"
+                                value="{{ profile_form.phone.value|default_if_none:'' }}"
+                                class="profile-form-input"
+                                placeholder="Enter phone number"
+                            ><p class="profile-form-error" data-error="phone" id="profile-phone-error" role="alert">{{ profile_form.phone.errors|striptags }}</p>
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <!-- Save -->
+
+                    <div class="profile-save-wrapper">
+
+                        <button
+                            type="submit"
+                            class="profile-save-button" id="profileSaveButton"
+                        >
+
+                            <i data-lucide="save"></i>
+
+                            <span>
+                                Save Changes
+                            </span>
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+
+        </section>
+
+    </div>
+
+{% endblock %}
+{% block extra_js %}<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('accountsProfileForm');
+  const input = document.getElementById('profile-input');
+  const photoButton = document.getElementById('profile-container');
+  const photo = document.getElementById('profile-display');
+  const initial = document.getElementById('profileInitial');
+  const save = document.getElementById('profileSaveButton');
+  const feedback = document.getElementById('profileFeedback');
+  const fields = ['name', 'email', 'phone'];
+  let busy = false, statusBusy = false;
+
+  function toast(message, type) {
+    if (window.showToast) window.showToast(message, type);
+    else feedback.textContent = message;
+  }
+  function errors(data = {}) {
+    fields.forEach(field => {
+      const messages = (data[field] || []).map(error => typeof error === 'string' ? error : error.message).join(' ');
+      document.getElementById('profile-' + field + '-error').textContent = messages;
+      form.elements[field].setAttribute('aria-invalid', messages ? 'true' : 'false');
+    });
+  }
+  function update(data) {
+    fields.forEach(field => {
+      const value = data[field] || '';
+      document.querySelector('[data-profile-value="' + field + '"]').textContent = value || 'Not provided';
+    });
+    photo.hidden = !data.image_url;
+    initial.hidden = !!data.image_url;
+    initial.textContent = data.initial || 'A';
+    if (data.image_url) photo.src = data.image_url;
+    else photo.removeAttribute('src');
+    const avatar = document.querySelector('#accountsSidebar .accounts-avatar');
+    if (avatar) {
+      avatar.replaceChildren();
+      if (data.image_url) {
+        const image = document.createElement('img');
+        image.src = data.image_url;
+        image.alt = '';
+        avatar.append(image);
+      } else avatar.textContent = data.initial || 'A';
+    }
+  }
+  function lock(value) {
+    busy = value;
+    form.setAttribute('aria-busy', String(value));
+    save.disabled = value;
+    photoButton.disabled = value;
+    input.disabled = value;
+    fields.forEach(field => form.elements[field].disabled = value);
+  }
+  async function send(body) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    try {
+      const response = await fetch(form.getAttribute('action'), {
+        method: 'POST', body, credentials: 'same-origin', signal: controller.signal,
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'}
+      });
+      if (!(response.headers.get('content-type') || '').includes('application/json')) {
+        throw new Error('Could not confirm the save. Check your connection and sign-in.');
+      }
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        errors(data.errors);
+        throw new Error(data.message || 'Unable to update your profile.');
+      }
+      return data;
+    } catch (error) {
+      if (error.name === 'AbortError') throw new Error('The request timed out. Check your saved profile before trying again.');
+      throw error;
+    } finally { clearTimeout(timeout); }
+  }
+  photoButton.addEventListener('click', () => { if (!busy) input.click(); });
+  input.addEventListener('change', async () => {
+    const file = input.files[0];
+    if (!file || busy) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast('Choose an image no larger than 5 MB.', 'warning');
+      input.value = ''; return;
+    }
+    if (file.type && !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast('Choose a JPEG, PNG or WebP image.', 'warning');
+      input.value = ''; return;
+    }
+    const body = new FormData();
+    body.append('action', 'upload_photo');
+    body.append('profile_image', file);
+    body.append('csrfmiddlewaretoken', form.elements.csrfmiddlewaretoken.value);
+    lock(true); feedback.textContent = 'Uploading photo…';
+    try {
+      const data = await send(body);
+      update(data); feedback.textContent = '';
+      toast(data.message || 'Profile photo updated.', 'success');
+    } catch (error) { feedback.textContent = error.message; toast(error.message, 'error'); }
+    finally { lock(false); input.value = ''; }
+  });
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (busy) return;
+    // Capture values before disabling the form controls.
+    const body = new FormData(form);
+    errors(); lock(true); feedback.textContent = 'Saving…';
+    try {
+      const data = await send(body);
+      update(data);
+      fields.forEach(field => form.elements[field].value = data[field] || '');
+      feedback.textContent = '';
+      toast(data.message || 'Profile updated.', 'success');
+    } catch (error) { feedback.textContent = error.message; toast(error.message, 'error'); }
+    finally {
+      lock(false);
+      const invalid = form.querySelector('[aria-invalid="true"]');
+      if (invalid) invalid.focus();
+    }
+  });
+  async function status() {
+    if (document.hidden || statusBusy) return;
+    statusBusy = true;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch('{% url "get_user_status" profile_user.pk %}', {
+        credentials: 'same-origin', cache: 'no-store', signal: controller.signal
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!data.success) return;
+      const active = data.status === 'active';
+      const dot = document.getElementById('profile-status-dot');
+      dot.classList.toggle('inactive', !active);
+      dot.title = active ? 'Active' : 'Inactive';
+      dot.setAttribute('aria-label', dot.title);
+    } catch {} finally { clearTimeout(timeout); statusBusy = false; }
+  }
+  status();
+  // Keep the interval available when returning through the browser back cache.
+  setInterval(status, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) status(); });
+  window.addEventListener('pageshow', status);
+  window.addEventListener('focus', status);
+  if (window.lucide) lucide.createIcons();
+});
+</script>{% endblock %}

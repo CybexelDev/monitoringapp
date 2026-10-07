@@ -1,0 +1,121 @@
+/* Team Lead colour palette for Accounts.
+   Load after page styles. Layout and semantic status colours stay page-owned. */
+body.accounts-workspace {
+  --accounts-bg: #08080d;
+  --accounts-muted: #96939e;
+  --accounts-purple: #a78bfa;
+  --accounts-border: rgba(255,255,255,.10);
+  --lead-sidebar: linear-gradient(145deg,rgba(38,24,49,.96),rgba(14,14,21,.96));
+  --lead-shell: linear-gradient(145deg,rgba(17,16,24,.94),rgba(8,9,14,.96));
+  --lead-card: linear-gradient(145deg,rgba(27,26,34,.90),rgba(16,16,22,.92));
+  --lead-hero: linear-gradient(110deg,rgba(44,32,55,.62),rgba(18,23,31,.72),rgba(30,31,59,.62));
+  --lead-primary: linear-gradient(135deg,#7c4bd4,#5b32a7);
+  background: radial-gradient(circle at 15% 10%,rgba(92,47,145,.16),transparent 28%),radial-gradient(circle at 85% 15%,rgba(40,88,160,.12),transparent 30%),var(--accounts-bg);
+  color: #fff;
+}
+body.accounts-workspace .accounts-sidebar {
+  background: var(--lead-sidebar);
+  border-color: rgba(255,255,255,.12);
+  box-shadow: 0 25px 70px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+}
+body.accounts-workspace .accounts-sidebar::before {
+  content: '';
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  top: -85px;
+  left: -65px;
+  background: rgba(139,92,246,.20);
+  filter: blur(70px);
+  pointer-events: none;
+}
+body.accounts-workspace :is(.accounts-brand,.accounts-nav,.accounts-sidebar-bottom) {position:relative;z-index:1}
+body.accounts-workspace .accounts-nav-item {color:#aaa6b2}
+body.accounts-workspace .accounts-nav-item:hover:not(:disabled) {color:#fff;background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.06)}
+body.accounts-workspace .accounts-nav-item.active {
+  color:#fff;
+  background:linear-gradient(135deg,rgba(111,76,190,.82),rgba(63,79,153,.72));
+  border-color:rgba(154,122,255,.38);
+  box-shadow:0 10px 28px rgba(99,102,241,.18),inset 0 1px 0 rgba(255,255,255,.12);
+}
+body.accounts-workspace .accounts-nav-item.active svg {color:#fff}
+body.accounts-workspace .accounts-logout {color:#ff9ba4;background:rgba(255,70,85,.055);border-color:rgba(255,70,85,.13)}
+body.accounts-workspace .accounts-shell {
+  background:var(--lead-shell);
+  border-color:var(--accounts-border);
+  box-shadow:0 25px 80px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.035);
+  backdrop-filter:blur(25px);
+  -webkit-backdrop-filter:blur(25px);
+}
+body.accounts-workspace .accounts-header {
+  position:relative;
+  overflow:hidden;
+  background:var(--lead-hero);
+  border-color:var(--accounts-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+body.accounts-workspace .accounts-header::before {
+  content:'';
+  position:absolute;
+  width:260px;
+  height:260px;
+  right:-100px;
+  top:-130px;
+  background:rgba(99,102,241,.13);
+  filter:blur(80px);
+  pointer-events:none;
+}
+body.accounts-workspace .accounts-header>div {position:relative;z-index:1}
+body.accounts-workspace .accounts-header h1 {
+  background:linear-gradient(90deg,#fff 0%,#c4b5fd 45%,#67c8ff 100%);
+  background-clip:text;
+  -webkit-background-clip:text;
+  color:transparent;
+  -webkit-text-fill-color:transparent;
+}
+body.accounts-workspace .accounts-eyebrow {color:#a78bfa}
+body.accounts-workspace .accounts-description {color:#96939e}
+body.accounts-workspace :is(.accounts-stat,.accounts-panel) {
+  background:var(--lead-card);
+  border-color:rgba(255,255,255,.09);
+  box-shadow:0 20px 50px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.035);
+}
+body.accounts-workspace :is(.accounts-stat,.accounts-panel):hover {border-color:rgba(139,92,246,.23)}
+body.accounts-workspace :is(.accounts-table,.income-table,.expense-table,.sale-table,.notification-table) th {
+  background:#201d29;
+  color:#85818d;
+  border-bottom-color:rgba(255,255,255,.07);
+}
+body.accounts-workspace :is(.accounts-table,.income-table,.expense-table,.sale-table,.notification-table) td {
+  border-bottom-color:rgba(255,255,255,.055);
+}
+body.accounts-workspace :is(.accounts-table,.income-table,.expense-table,.sale-table) tbody tr:hover td {background:rgba(255,255,255,.025)}
+body.accounts-workspace :is(.income-field,.expense-field,.sale-field,.dashboard-field) label {color:#8f8c96}
+body.accounts-workspace .accounts-input {
+  background:rgba(7,7,11,.50);
+  color:#fff;
+  border-color:rgba(255,255,255,.10);
+}
+body.accounts-workspace .accounts-input::placeholder {color:#77737e}
+body.accounts-workspace .accounts-input:focus {border-color:rgba(139,92,246,.55);box-shadow:0 0 0 3px rgba(139,92,246,.08)}
+body.accounts-workspace .accounts-input[aria-invalid=true] {border-color:#ef8d9a}
+body.accounts-workspace :is(.income-dialog,.expense-dialog,.sale-dialog) {
+  background:linear-gradient(145deg,#1b1a22,#101016);
+  border-color:rgba(167,139,250,.25);
+}
+body.accounts-workspace :is(.income-button,.expense-button,.sale-button,.dashboard-button):not(:is(.income-button-secondary,.expense-button-secondary,.sale-button-secondary,.dashboard-button-secondary,.income-button-export,.expense-button-export,.sale-button-export,.income-button-danger,.expense-button-danger,.sale-button-danger)) {
+  color:#fff;
+  background:var(--lead-primary);
+  border-color:rgba(167,139,250,.35);
+  box-shadow:0 10px 25px rgba(124,75,212,.18);
+}
+body.accounts-workspace :is(.income-button-secondary,.expense-button-secondary,.sale-button-secondary,.dashboard-button-secondary,.income-reset,.expense-reset,.sale-reset) {color:#fff;background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.09);box-shadow:none}
+body.accounts-workspace :is(.income-button-secondary,.expense-button-secondary,.sale-button-secondary,.dashboard-button-secondary,.income-reset,.expense-reset,.sale-reset):hover:not(:disabled) {background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.35)}
+/* Match the Team Lead Reports export control. */
+body.accounts-workspace :is(.income-button-export,.expense-button-export,.sale-button-export) {background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.20);color:#9ee7ba;box-shadow:none}
+body.accounts-workspace :is(.income-button-export,.expense-button-export,.sale-button-export):hover:not(:disabled) {background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.35)}
+body.accounts-workspace :is(.notification-search,.notification-category summary) {background:rgba(7,7,11,.50);border-color:rgba(255,255,255,.10)}
+body.accounts-workspace .notification-table-scroll {background:transparent;border-color:rgba(255,255,255,.09)}
+body.accounts-workspace :is(.accounts-shell,.accounts-nav) {scrollbar-color:rgba(151,112,235,.65) transparent}

@@ -5,10 +5,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Accounts - Cybexel{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/accounts.css' %}?v=income-lead-2">
-  <script src="https://unpkg.com/lucide@latest" defer></script>
-  <script src="{% static 'js/accounts.js' %}?v=income-lead-2" defer></script>
-  {% block extra_css %}{% endblock %}
+  
+  <link
+  rel="stylesheet"
+ href="{% static 'css/accounts.css' %}?v=notifications-lead-1"
+>
+
+<script src="https://unpkg.com/lucide@latest" defer></script>
+
+<script
+  src="{% static 'js/accounts.js' %}?v=notifications-lead-2"
+  defer
+></script>
+
+{% block extra_css %}{% endblock %}
+<!-- Shared Team Lead colours, loaded after page-specific styles. -->
+<link rel="stylesheet" href="{% static 'css/accounts_theme.css' %}?v=lead-palette-1">
 </head>
 <body class="accounts-workspace {% block accounts_page_class %}{% endblock %}">
   <a class="accounts-skip" href="#accountsMain">Skip to content</a>
@@ -27,6 +39,9 @@
     </div>
   </main>
   {% include 'components/toast_notification.html' %}
-  {% block extra_js %}{% endblock %}
+  <script src="{% static 'js/activity.js' %}?v=accounts-activity-1" defer></script>
+
+{% block extra_js %}{% endblock %}
 </body>
+
 </html>

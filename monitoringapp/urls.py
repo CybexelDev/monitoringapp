@@ -414,5 +414,32 @@ path("accounts/income/<int:pk>/receipt/", views.accounts_income_receipt, name="a
 path("accounts/income/<int:pk>/history/", views.accounts_income_history, name="accounts_income_history"),
 path("accounts/sales/<int:pk>/invoice/", views.accounts_sale_invoice, name="accounts_sale_invoice"),
 path("accounts/sales/<int:pk>/payments/", views.accounts_sale_payments, name="accounts_sale_payments"),
+path(
+    "accounts/notifications/",
+    views.accounts_notifications,
+    name="accounts_notifications",
+),
+path(
+    "accounts/notifications/read-all/",
+    views.accounts_notifications_read_all,
+    name="accounts_notifications_read_all",
+),
+path(
+    "accounts/notifications/<int:pk>/action/",
+    views.accounts_notification_action,
+    name="accounts_notification_action",
+),
+path(
+    "accounts/reminders/",
+    views.accounts_reminders,
+    name="accounts_reminders",
+),
+path("accounts/notepad/", views.accounts_notepad, name="accounts_notepad"),
+path(
+    "accounts/notepad/delete/<int:pk>/",
+    views.accounts_notepad_delete,
+    name="accounts_notepad_delete",
+),
+path("accounts/profile/", views.accounts_profile, name="accounts_profile"),
 
 ]

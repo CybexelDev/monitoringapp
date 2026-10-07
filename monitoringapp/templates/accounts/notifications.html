@@ -1,0 +1,70 @@
+{% extends "accounts/base.html" %}
+{% block title %}Notifications - Accounts{% endblock %}
+{% block accounts_page_class %}accounts-notifications-page{% endblock %}
+{% block page_heading %}NOTIFICATIONS{% endblock %}
+{% block page_description %}Income, expenses, sales, payments, reminders and notes in one place.{% endblock %}
+{% block content %}
+<section id="accountsNotificationsPage" class="accounts-panel" data-feed-url="{% url 'accounts_notifications' %}" data-read-all-url="{% url 'accounts_notifications_read_all' %}">
+  <form id="notificationCsrfForm" hidden>{% csrf_token %}</form>
+  <div class="notification-header-actions">
+    <span class="notification-unread-count"><i data-lucide="bell" aria-hidden="true"></i><span id="notificationUnreadCount">{{ unread_count }}</span> unread</span>
+    <button type="button" class="notification-button" id="notificationReadAll" {% if not unread_count %}disabled{% endif %}><i data-lucide="check-check" aria-hidden="true"></i>Mark all as read</button>
+  </div>
+  <form id="notificationFilterForm" class="notification-toolbar" method="get" action="{% url 'accounts_notifications' %}" role="search">
+    <input type="hidden" id="notificationFilter" name="filter" value="{{ selected_filter }}">
+    <label class="notification-search"><i data-lucide="search" aria-hidden="true"></i><input id="notificationSearch" type="search" name="q" value="{{ query }}" placeholder="Search notifications…" aria-label="Search notifications" maxlength="200"></label>
+    <div class="notification-category">
+      <details id="notificationCategoryDropdown">
+        <summary><span id="notificationCategoryLabel">{% if selected_kind == 'income' %}Income{% elif selected_kind == 'expense' %}Expenses{% elif selected_kind == 'sale' %}Sales{% elif selected_kind == 'payment' %}Payments{% elif selected_kind == 'reminder' %}Reminders{% elif selected_kind == 'note' %}Notepad{% else %}All categories{% endif %}</span><i data-lucide="chevron-down" aria-hidden="true"></i></summary>
+        <div class="category-menu" role="group" aria-label="Notification categories">
+          <button type="button" data-kind="" {% if not selected_kind %}class="selected"{% endif %}>All categories</button>
+          <button type="button" data-kind="income" {% if selected_kind == 'income' %}class="selected"{% endif %}>Income</button>
+          <button type="button" data-kind="expense" {% if selected_kind == 'expense' %}class="selected"{% endif %}>Expenses</button>
+          <button type="button" data-kind="sale" {% if selected_kind == 'sale' %}class="selected"{% endif %}>Sales</button>
+          <button type="button" data-kind="payment" {% if selected_kind == 'payment' %}class="selected"{% endif %}>Payments</button>
+          <button type="button" data-kind="reminder" {% if selected_kind == 'reminder' %}class="selected"{% endif %}>Reminders</button>
+          <button type="button" data-kind="note" {% if selected_kind == 'note' %}class="selected"{% endif %}>Notepad</button>
+        </div>
+      </details>
+      <input type="hidden" name="kind" id="notificationKind" value="{{ selected_kind }}">
+    </div>
+    <button type="submit" class="notification-button">Search</button>
+  </form>
+  <div class="notification-tabs" role="group" aria-label="Notification folders">
+    <button type="button" class="notification-tab" data-folder="all" aria-pressed="{% if selected_filter == 'all' %}true{% else %}false{% endif %}">Inbox <span id="notificationTotalCount">{{ total_count }}</span></button>
+    <button type="button" class="notification-tab" data-folder="unread" aria-pressed="{% if selected_filter == 'unread' %}true{% else %}false{% endif %}">Unread <span id="notificationTabUnread">{{ unread_count }}</span></button>
+    <button type="button" class="notification-tab" data-folder="archived" aria-pressed="{% if selected_filter == 'archived' %}true{% else %}false{% endif %}">Archived <span id="notificationArchivedCount">{{ archived_count }}</span></button>
+  </div>
+  <div class="notification-table-scroll" id="notificationScroll" tabindex="0" role="region" aria-label="Notifications table">
+    <table class="notification-table">
+      <caption class="accounts-sr-only">Notifications, latest first. Mark entries as read or move them to the archive.</caption>
+      <thead><tr><th scope="col">Notification</th><th scope="col">Received</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead>
+      <tbody id="notificationList">
+        {% for item in page_obj %}
+        <tr class="notification-row{% if not item.is_read %} unread{% endif %}" data-id="{{ item.pk }}" data-action-url="{% url 'accounts_notification_action' item.pk %}">
+          <td><div class="notification-detail"><span class="notification-icon" aria-hidden="true"><i data-lucide="{% if item.kind == 'income' %}arrow-down-left{% elif item.kind == 'expense' %}arrow-up-right{% elif item.kind == 'sale' %}receipt-text{% elif item.kind == 'payment' %}wallet{% elif item.kind == 'reminder' %}calendar-clock{% elif item.kind == 'note' %}notebook-pen{% else %}bell{% endif %}"></i></span><div class="notification-content"><strong>{{ item.title }}</strong>{% if item.message %}<p>{{ item.message }}</p>{% endif %}</div></div></td>
+          <td class="notification-date"><time datetime="{{ item.created_at|date:'c' }}">{{ item.created_at|date:'d M Y' }}<span>{{ item.created_at|date:'h:i A' }}</span></time></td>
+          <td><span class="notification-status{% if not item.is_read %} is-unread{% endif %}">{% if item.is_read %}Read{% else %}Unread{% endif %}</span></td>
+          <td class="notification-action"><div class="notification-actions">
+            <button type="button" class="notification-button" data-notification-action="open" aria-label="View {{ item.title }}">View<i data-lucide="arrow-up-right" aria-hidden="true"></i></button>
+            <button type="button" class="notification-icon-button" data-notification-action="{% if item.is_read %}unread{% else %}read{% endif %}" title="{% if item.is_read %}Mark as unread{% else %}Mark as read{% endif %}" aria-label="{% if item.is_read %}Mark as unread{% else %}Mark as read{% endif %}: {{ item.title }}"><i data-lucide="{% if item.is_read %}mail{% else %}mail-check{% endif %}" aria-hidden="true"></i></button>
+            <button type="button" class="notification-icon-button" data-notification-action="{% if item.is_archived %}restore{% else %}archive{% endif %}" title="{% if item.is_archived %}Restore to inbox{% else %}Archive{% endif %}" aria-label="{% if item.is_archived %}Restore{% else %}Archive{% endif %}: {{ item.title }}"><i data-lucide="{% if item.is_archived %}archive-restore{% else %}archive{% endif %}" aria-hidden="true"></i></button>
+          </div></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4"><div class="notification-empty"><i data-lucide="bell-off" aria-hidden="true"></i><h3>No notifications here</h3><p>Try another search, category or folder.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="notification-footer">
+    <span id="notificationResultCount">{{ result_count }} notification{{ result_count|pluralize }} · Latest first</span>
+    <span id="notificationLiveStatus" role="status" aria-live="polite">Updates automatically</span>
+    <nav class="notification-pagination" id="notificationPagination" aria-label="Notification pages">
+      {% if page_obj.has_previous %}<a class="notification-button" href="?{{ notification_query }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+      <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}<a class="notification-button" href="?{{ notification_query }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+    </nav>
+  </div>
+</section>
+{% endblock %}

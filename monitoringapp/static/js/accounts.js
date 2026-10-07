@@ -16,8 +16,9 @@
   const nav = sidebar.querySelector('.accounts-nav');
   const key = 'accounts-sidebar-scroll';
   let opened = false;
-  const saveScroll = () => { try { sessionStorage.setItem(key, String(nav.scrollTop)); } catch (_) {} };
+  const saveScroll = () => { try { sessionStorage.setItem(key, String(nav?.scrollTop || 0)); } catch (_) {} };
   const restoreScroll = () => {
+    if (!nav) return;
     try { const value = sessionStorage.getItem(key); if (value !== null && Number.isFinite(Number(value))) nav.scrollTop = Number(value); } catch (_) {}
     const active = nav.querySelector('.active');
     if (!active) return;
@@ -33,6 +34,7 @@
     overlay.hidden = !opened;
     main.inert = opened;
     shell?.classList.toggle('drawer-locked', opened);
+    document.body.classList.toggle('accounts-drawer-open', opened);
     button.setAttribute('aria-expanded', String(opened));
     button.setAttribute('aria-label', opened ? 'Close sidebar' : 'Open sidebar');
     if (opened && focus) sidebar.querySelector('a.accounts-nav-item')?.focus();
@@ -53,7 +55,7 @@
     saveScroll();
     if (mobile.matches) setOpen(false, false);
   }));
-  nav.addEventListener('scroll', saveScroll, {passive: true});
+  nav?.addEventListener('scroll', saveScroll, {passive: true});
   window.addEventListener('pagehide', saveScroll);
   window.addEventListener('pageshow', restoreScroll);
   mobile.addEventListener('change', () => setOpen(false, false));
@@ -122,26 +124,39 @@
       throw new Error('Unexpected response. Check your session and income list before trying again.');
     }
     const data = await response.json();
+    if (options.method === 'POST' && response.ok && data.ok) {
+      document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
+    }
     return {response, data};
   }
   const postOptions = body => ({
     method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf()}, body
   });
-  async function refreshSnapshot(url, historyMode) {
+  async function refreshSnapshot(url, historyMode, silent = false) {
     if (loading) return false;
     loading = true; root.setAttribute('aria-busy', 'true');
     try {
-      const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store'});
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      let response;
+      try { response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', signal: controller.signal}); }
+      finally { clearTimeout(timeout); }
       if (!response.ok && response.status !== 400) throw new Error('Income list could not be loaded.');
       const page = new DOMParser().parseFromString(await response.text(), 'text/html');
       const snapshot = page.getElementById('incomeSnapshot');
       if (!snapshot) throw new Error('Income list unavailable. Sign in again if your session has ended.');
-      document.getElementById('incomeSnapshot').replaceWith(snapshot);
+      if (silent && (saving || document.hidden || document.querySelector('dialog[open]') || root.contains(document.activeElement))) return false;
+      const current = document.getElementById('incomeSnapshot');
+      const positions = [...current.querySelectorAll('[class*=table-scroll]')].map(node => ({top: node.scrollTop, left: node.scrollLeft}));
+      current.replaceWith(snapshot);
+      snapshot.querySelectorAll('[class*=table-scroll]').forEach((node, index) => {
+        if (positions[index]) {node.scrollTop = positions[index].top; node.scrollLeft = positions[index].left;}
+      });
       if (historyMode === 'push') history.pushState(null, '', url);
       if (historyMode === 'replace') history.replaceState(null, '', url);
       window.lucide?.createIcons();
       return true;
-    } catch (error) { notice(error.message, 'error'); return false; }
+    } catch (error) { if (!silent) notice(error.message, 'error'); return false; }
     finally { loading = false; root.removeAttribute('aria-busy'); }
   }
   function openPopup(dialog, trigger) {
@@ -218,7 +233,7 @@
     const general = document.getElementById('incomeFormError'); clearErrors(form, general);
     const label = button.querySelector('span'); label.textContent = 'Saving…';
     try {
-      const {response, data} = await requestJson(form.action, postOptions(new FormData(form)));
+      const {response, data} = await requestJson((form.getAttribute('action') || location.href), postOptions(new FormData(form)));
       if (!response.ok || !data.ok) {
         if (showDuplicate(form, data)) return;
         showErrors(form, general, data.errors); notice(data.message || 'Income could not be saved.', 'error'); return;
@@ -239,7 +254,7 @@
   root.addEventListener('submit', async event => {
     if (event.target.id !== 'incomeSearchForm') return;
     event.preventDefault(); if (busy()) return;
-    const url = new URL(event.target.action, location.href);
+    const url = new URL((event.target.getAttribute('action') || location.href), location.href);
     const filters = new FormData(event.target);
     for (const [name, value] of filters) url.searchParams.set(name, value);
     if (event.submitter?.name !== 'export') { refreshSnapshot(url, 'push'); return; }
@@ -373,6 +388,16 @@
       general.textContent = 'Unable to confirm deletion. Close this popup and check the list before retrying.'; general.hidden = false;
     } finally { saving = false; setModalBusy(deleteDialog, false); deleteButton.textContent = 'Delete Income'; }
   });
+  function refreshLiveList() {
+    if (!root.isConnected || document.hidden || busy() || document.querySelector('dialog[open]') || root.contains(document.activeElement)) return;
+    refreshSnapshot(location.href, undefined, true);
+  }
+  const liveTimer = setInterval(() => {
+    if (!root.isConnected) { clearInterval(liveTimer); return; }
+    refreshLiveList();
+  }, 15000);
+  document.addEventListener('visibilitychange', refreshLiveList);
+  window.addEventListener('focus', refreshLiveList);
   window.addEventListener('popstate', () => {
     if (root.isConnected && !busy()) {
       [addDialog, editDialog, deleteDialog, viewDialog, historyDialog].filter(Boolean).forEach(dialog => { if (dialog.open) dialog.close(); });
@@ -437,26 +462,39 @@
       throw new Error('Unexpected response. Check your session and expense list before trying again.');
     }
     const data = await response.json();
+    if (options.method === 'POST' && response.ok && data.ok) {
+      document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
+    }
     return {response, data};
   }
   const postOptions = body => ({
     method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf()}, body
   });
-  async function refreshSnapshot(url, historyMode) {
+  async function refreshSnapshot(url, historyMode, silent = false) {
     if (loading) return false;
     loading = true; root.setAttribute('aria-busy', 'true');
     try {
-      const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store'});
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      let response;
+      try { response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', signal: controller.signal}); }
+      finally { clearTimeout(timeout); }
       if (!response.ok && response.status !== 400) throw new Error('Expense list could not be loaded.');
       const page = new DOMParser().parseFromString(await response.text(), 'text/html');
       const snapshot = page.getElementById('expenseSnapshot');
       if (!snapshot) throw new Error('Expense list unavailable. Sign in again if your session has ended.');
-      document.getElementById('expenseSnapshot').replaceWith(snapshot);
+      if (silent && (saving || document.hidden || document.querySelector('dialog[open]') || root.contains(document.activeElement))) return false;
+      const current = document.getElementById('expenseSnapshot');
+      const positions = [...current.querySelectorAll('[class*=table-scroll]')].map(node => ({top: node.scrollTop, left: node.scrollLeft}));
+      current.replaceWith(snapshot);
+      snapshot.querySelectorAll('[class*=table-scroll]').forEach((node, index) => {
+        if (positions[index]) {node.scrollTop = positions[index].top; node.scrollLeft = positions[index].left;}
+      });
       if (historyMode === 'push') history.pushState(null, '', url);
       if (historyMode === 'replace') history.replaceState(null, '', url);
       window.lucide?.createIcons();
       return true;
-    } catch (error) { notice(error.message, 'error'); return false; }
+    } catch (error) { if (!silent) notice(error.message, 'error'); return false; }
     finally { loading = false; root.removeAttribute('aria-busy'); }
   }
   function openPopup(dialog, trigger) {
@@ -533,7 +571,7 @@
     const general = document.getElementById('expenseFormError'); clearErrors(form, general);
     const label = button.querySelector('span'); label.textContent = 'Saving…';
     try {
-      const {response, data} = await requestJson(form.action, postOptions(new FormData(form)));
+      const {response, data} = await requestJson((form.getAttribute('action') || location.href), postOptions(new FormData(form)));
       if (!response.ok || !data.ok) {
         if (showDuplicate(form, data)) return;
         showErrors(form, general, data.errors); notice(data.message || 'Expense could not be saved.', 'error'); return;
@@ -554,7 +592,7 @@
   root.addEventListener('submit', async event => {
     if (event.target.id !== 'expenseSearchForm') return;
     event.preventDefault(); if (busy()) return;
-    const url = new URL(event.target.action, location.href);
+    const url = new URL((event.target.getAttribute('action') || location.href), location.href);
     const filters = new FormData(event.target);
     for (const [name, value] of filters) url.searchParams.set(name, value);
     if (event.submitter?.name !== 'export') { refreshSnapshot(url, 'push'); return; }
@@ -688,6 +726,16 @@
       general.textContent = 'Unable to confirm deletion. Close this popup and check the list before retrying.'; general.hidden = false;
     } finally { saving = false; setModalBusy(deleteDialog, false); deleteButton.textContent = 'Delete Expense'; }
   });
+  function refreshLiveList() {
+    if (!root.isConnected || document.hidden || busy() || document.querySelector('dialog[open]') || root.contains(document.activeElement)) return;
+    refreshSnapshot(location.href, undefined, true);
+  }
+  const liveTimer = setInterval(() => {
+    if (!root.isConnected) { clearInterval(liveTimer); return; }
+    refreshLiveList();
+  }, 15000);
+  document.addEventListener('visibilitychange', refreshLiveList);
+  window.addEventListener('focus', refreshLiveList);
   window.addEventListener('popstate', () => {
     if (root.isConnected && !busy()) {
       [addDialog, editDialog, deleteDialog, viewDialog, historyDialog].filter(Boolean).forEach(dialog => { if (dialog.open) dialog.close(); });
@@ -754,26 +802,39 @@
       throw new Error('Unexpected response. Check your session and sale list before trying again.');
     }
     const data = await response.json();
+    if (options.method === 'POST' && response.ok && data.ok) {
+      document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
+    }
     return {response, data};
   }
   const postOptions = body => ({
     method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf()}, body
   });
-  async function refreshSnapshot(url, historyMode) {
+  async function refreshSnapshot(url, historyMode, silent = false) {
     if (loading) return false;
     loading = true; root.setAttribute('aria-busy', 'true');
     try {
-      const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store'});
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      let response;
+      try { response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', signal: controller.signal}); }
+      finally { clearTimeout(timeout); }
       if (!response.ok && response.status !== 400) throw new Error('Sale list could not be loaded.');
       const page = new DOMParser().parseFromString(await response.text(), 'text/html');
       const snapshot = page.getElementById('saleSnapshot');
       if (!snapshot) throw new Error('Sale list unavailable. Sign in again if your session has ended.');
-      document.getElementById('saleSnapshot').replaceWith(snapshot);
+      if (silent && (saving || document.hidden || document.querySelector('dialog[open]') || root.contains(document.activeElement))) return false;
+      const current = document.getElementById('saleSnapshot');
+      const positions = [...current.querySelectorAll('[class*=table-scroll]')].map(node => ({top: node.scrollTop, left: node.scrollLeft}));
+      current.replaceWith(snapshot);
+      snapshot.querySelectorAll('[class*=table-scroll]').forEach((node, index) => {
+        if (positions[index]) {node.scrollTop = positions[index].top; node.scrollLeft = positions[index].left;}
+      });
       if (historyMode === 'push') history.pushState(null, '', url);
       if (historyMode === 'replace') history.replaceState(null, '', url);
       window.lucide?.createIcons();
       return true;
-    } catch (error) { notice(error.message, 'error'); return false; }
+    } catch (error) { if (!silent) notice(error.message, 'error'); return false; }
     finally { loading = false; root.removeAttribute('aria-busy'); }
   }
   function openPopup(dialog, trigger) {
@@ -851,7 +912,7 @@
     const general = document.getElementById('saleFormError'); clearErrors(form, general);
     const label = button.querySelector('span'); label.textContent = 'Saving…';
     try {
-      const {response, data} = await requestJson(form.action, postOptions(new FormData(form)));
+      const {response, data} = await requestJson((form.getAttribute('action') || location.href), postOptions(new FormData(form)));
       if (!response.ok || !data.ok) {
         if (showDuplicate(form, data)) return;
         showErrors(form, general, data.errors); notice(data.message || 'Sale could not be saved.', 'error'); return;
@@ -872,7 +933,7 @@
   root.addEventListener('submit', async event => {
     if (event.target.id !== 'saleSearchForm') return;
     event.preventDefault(); if (busy()) return;
-    const url = new URL(event.target.action, location.href);
+    const url = new URL((event.target.getAttribute('action') || location.href), location.href);
     const filters = new FormData(event.target);
     for (const [name, value] of filters) url.searchParams.set(name, value);
     if (event.submitter?.name !== 'export') { refreshSnapshot(url, 'push'); return; }
@@ -1035,6 +1096,16 @@
       general.textContent = 'Unable to confirm payment. Retry without changing the form, or close and check Payment History first.'; general.hidden = false;
     } finally { saving = false; setModalBusy(paymentsDialog, false); paymentSaveButton.textContent = 'Record Payment'; }
   });
+  function refreshLiveList() {
+    if (!root.isConnected || document.hidden || busy() || document.querySelector('dialog[open]') || root.contains(document.activeElement)) return;
+    refreshSnapshot(location.href, undefined, true);
+  }
+  const liveTimer = setInterval(() => {
+    if (!root.isConnected) { clearInterval(liveTimer); return; }
+    refreshLiveList();
+  }, 15000);
+  document.addEventListener('visibilitychange', refreshLiveList);
+  window.addEventListener('focus', refreshLiveList);
   window.addEventListener('popstate', () => {
     if (root.isConnected && !busy()) {
       [addDialog, editDialog, deleteDialog, viewDialog, paymentsDialog].filter(Boolean).forEach(dialog => { if (dialog.open) dialog.close(); });
@@ -1043,6 +1114,93 @@
   });
 })();
 ;
+
+/* Accounts Dashboard */
+(() => {
+  'use strict';
+  const root = document.getElementById('accountsDashboardPage');
+  const form = document.getElementById('dashboardFilterForm');
+  if (!root || !form) return;
+  const status = document.getElementById('dashboardLiveStatus');
+  const period = document.getElementById('dashboardPeriod');
+  const defaults = Object.fromEntries(new FormData(form));
+  let pending = null, sequence = 0, busy = false;
+  function toggleFields() {
+    root.querySelectorAll('[data-dashboard-period]').forEach(wrapper => {
+      const active = wrapper.dataset.dashboardPeriod === period.value;
+      wrapper.hidden = !active;
+      wrapper.querySelectorAll('input').forEach(input => { input.disabled = !active; });
+    });
+  }
+  function syncFilters(url) {
+    const params = new URL(url, location.href).searchParams;
+    for (const name of ['period', 'month', 'date', 'start', 'end']) {
+      const field = form.elements.namedItem(name);
+      if (field) field.value = params.get(name) ?? (name === 'period' ? 'monthly' : defaults[name] || '');
+    }
+    toggleFields();
+  }
+  async function update(url, historyMode = '', automatic = false) {
+    if (!root.isConnected || (automatic && busy)) return;
+    pending?.abort(); pending = new AbortController();
+    const controller = pending, requestNumber = ++sequence;
+    busy = true; root.setAttribute('aria-busy', 'true');
+    if (!automatic) status.textContent = 'Updating…';
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    try {
+      const response = await fetch(url, {credentials:'same-origin', cache:'no-store', signal:controller.signal});
+      if (!response.ok && response.status !== 400) throw new Error('Dashboard unavailable. Check your login and try Update Now.');
+      const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+      const incoming = page.getElementById('dashboardSnapshot');
+      if (!incoming) throw new Error('Your session may have ended. Please sign in again.');
+      if (requestNumber !== sequence) return;
+      const old = document.getElementById('dashboardSnapshot');
+      const scrolls = [...old.querySelectorAll('.dashboard-table-scroll')].map(node => [node.scrollTop,node.scrollLeft]);
+      old.replaceWith(incoming);
+      incoming.querySelectorAll('.dashboard-table-scroll').forEach((node,index) => {
+        if (scrolls[index]) [node.scrollTop,node.scrollLeft] = scrolls[index];
+      });
+      if (historyMode === 'push') history.pushState(null, '', url);
+      if (historyMode === 'replace') history.replaceState(null, '', url);
+      window.lucide?.createIcons();
+      status.textContent = incoming.dataset.filterValid === '1'
+        ? `Updated ${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})} · Every 30 seconds`
+        : 'Check the selected dates';
+      status.classList.toggle('is-error', incoming.dataset.filterValid !== '1');
+    } catch (error) {
+      if (requestNumber !== sequence) return;
+      status.textContent = error.name === 'AbortError' ? 'Update timed out. Try Update Now.' : error.message;
+      status.classList.add('is-error');
+    } finally {
+      clearTimeout(timeout);
+      if (requestNumber === sequence) {busy = false;root.removeAttribute('aria-busy');pending = null;}
+    }
+  }
+  period.addEventListener('change', toggleFields);
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    const url = new URL((form.getAttribute('action') || location.href), location.href);
+    for (const [name,value] of new FormData(form)) url.searchParams.set(name,value);
+    update(url, 'push');
+  });
+  document.getElementById('dashboardRefresh').addEventListener('click', () => update(location.href));
+  document.getElementById('dashboardReset').addEventListener('click', event => {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();syncFilters(event.currentTarget.href);update(event.currentTarget.href, 'push');
+  });
+  window.addEventListener('popstate', () => {
+    if (!root.isConnected) return;
+    syncFilters(location.href);update(location.href);
+  });
+  const timer = setInterval(() => {
+    if (!root.isConnected) {clearInterval(timer);pending?.abort();return;}
+    if (!document.hidden && document.getElementById('dashboardSnapshot').dataset.filterValid === '1') update(location.href, '', true);
+  }, 30000);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && root.isConnected && document.getElementById('dashboardSnapshot').dataset.filterValid === '1') update(location.href, '', true);
+  });
+  toggleFields();
+})();
 
 /* Shared calendar */
 (() => {
@@ -1179,3 +1337,248 @@
   new MutationObserver(()=>{if(input&&!input.isConnected)close();initialise();}).observe(document.body,{childList:true,subtree:true});
 })();
 ;
+
+
+/* Accounts notifications: Team Lead table style */
+(() => {
+  function initAccountsNotifications() {
+    const root = document.getElementById('accountsNotificationsPage');
+    if (!root || root.dataset.initialized === '1') return;
+    root.dataset.initialized = '1';
+    const form = document.getElementById('notificationFilterForm');
+    const filter = document.getElementById('notificationFilter');
+    const kind = document.getElementById('notificationKind');
+    const search = document.getElementById('notificationSearch');
+    const dropdown = document.getElementById('notificationCategoryDropdown');
+    const label = document.getElementById('notificationCategoryLabel');
+    const readAll = document.getElementById('notificationReadAll');
+    const status = document.getElementById('notificationLiveStatus');
+    const scroll = document.getElementById('notificationScroll');
+    const csrf = root.querySelector('[name=csrfmiddlewaretoken]').value;
+    const ids = ['notificationList', 'notificationPagination', 'notificationUnreadCount', 'notificationTotalCount', 'notificationTabUnread', 'notificationArchivedCount', 'notificationResultCount'];
+    let currentUrl = new URL(root.dataset.feedUrl, location.origin);
+    currentUrl.search = location.search;
+    let controller, sequence = 0, saving = false, loading = false, debounce;
+    function publishCount(count) {
+      document.dispatchEvent(new CustomEvent('accounts:notification-count', {detail: {count: Number(count) || 0}}));
+    }
+    function toast(message, type = 'success') {
+      status.textContent = message;
+      if (typeof window.showToast === 'function') window.showToast(message, type);
+    }
+    function syncControls() {
+      root.querySelectorAll('[data-folder]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.folder === filter.value)));
+      dropdown.querySelectorAll('[data-kind]').forEach(button => {
+        const selected = button.dataset.kind === kind.value;
+        button.classList.toggle('selected', selected);
+        if (selected) label.textContent = button.textContent;
+      });
+    }
+    async function refresh(url = currentUrl, silent = false) {
+      if (saving || !root.isConnected) return;
+      if (silent && loading) return;
+      controller?.abort();
+      const mySequence = ++sequence;
+      const taskController = new AbortController();
+      controller = taskController;
+      loading = true;
+      const timeout = setTimeout(() => taskController.abort(), 15000);
+      if (!silent) status.textContent = 'Loading notifications…';
+      try {
+        const response = await fetch(url, {credentials:'same-origin', cache:'no-store', headers:{'X-Requested-With':'XMLHttpRequest'}, signal:taskController.signal});
+        if (!response.ok || response.redirected) throw new Error('Could not load notifications. Please check your login.');
+        const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+        if (mySequence !== sequence || !root.isConnected) return;
+        if (!doc.getElementById('accountsNotificationsPage') || ids.some(id => !doc.getElementById(id))) throw new Error('Notification page could not be updated.');
+        const top = scroll.scrollTop, left = scroll.scrollLeft;
+        ids.forEach(id => document.getElementById(id).replaceChildren(...doc.getElementById(id).childNodes));
+        currentUrl = new URL(url, location.origin);
+        history.replaceState(null, '', currentUrl.pathname + currentUrl.search);
+        filter.value = doc.getElementById('notificationFilter').value;
+        syncControls();
+        const count = Number(document.getElementById('notificationUnreadCount').textContent);
+        readAll.disabled = count === 0;
+        publishCount(count);
+        scroll.scrollTop = top; scroll.scrollLeft = left;
+        if (window.lucide) window.lucide.createIcons();
+        status.textContent = 'Updated just now · checks every 15 seconds';
+        return true;
+      } catch (error) {
+        if (mySequence !== sequence) return;
+        status.textContent = error.name === 'AbortError' ? 'Connection timed out. Updates will retry.' : error.message;
+        if (!silent) toast(status.textContent, 'error');
+      } finally {
+        clearTimeout(timeout);
+        if (mySequence === sequence) loading = false;
+      }
+    }
+    async function applyFilters() {
+      clearTimeout(debounce); debounce = null;
+      const url = new URL(root.dataset.feedUrl, location.origin);
+      url.search = new URLSearchParams(new FormData(form)).toString();
+      if (await refresh(url)) scroll.scrollTop = 0;
+    }
+    async function performAction(url, action, button) {
+      if (saving) return;
+      clearTimeout(debounce); debounce = null;
+      controller?.abort(); sequence++; loading = false;
+      saving = true; button.disabled = true; root.setAttribute('aria-busy','true');
+      try {
+        const response = await fetch(url, {method:'POST', credentials:'same-origin', headers:{'X-CSRFToken':csrf, 'X-Requested-With':'XMLHttpRequest', 'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams({action})});
+        if (response.redirected) throw new Error('Please log in again.');
+        const data = await response.json();
+        if (!response.ok || !data.ok) throw new Error(data.message || 'Operation failed.');
+        document.getElementById('notificationUnreadCount').textContent = data.unread_count;
+        publishCount(data.unread_count);
+        toast(data.message);
+        if (action === 'open' && data.url) {
+          const destination = new URL(data.url, location.origin);
+          if (destination.origin !== location.origin) throw new Error('Invalid destination.');
+          location.assign(destination.href); return;
+        }
+        saving = false;
+        // Preserve the latest search/category/folder after an action.
+        const refreshUrl = new URL(root.dataset.feedUrl, location.origin);
+
+refreshUrl.search = new URLSearchParams(
+  new FormData(form)
+).toString();
+
+if (currentUrl.searchParams.has('page')) {
+  refreshUrl.searchParams.set(
+    'page',
+    currentUrl.searchParams.get('page')
+  );
+}
+
+await refresh(refreshUrl, true);
+      } catch (error) {
+        toast(error instanceof SyntaxError ? 'Unexpected response. Please try again.' : error.message, 'error');
+      } finally {
+        saving = false; root.removeAttribute('aria-busy');
+        if (button.isConnected) button.disabled = false;
+        readAll.disabled = Number(document.getElementById('notificationUnreadCount').textContent) === 0;
+      }
+    }
+    form.addEventListener('submit', event => {event.preventDefault(); applyFilters();});
+    search.addEventListener('input', () => {clearTimeout(debounce); debounce = setTimeout(applyFilters, 350);});
+    readAll.addEventListener('click', () => performAction(root.dataset.readAllUrl, 'read_all', readAll));
+    root.addEventListener('click', async event => {
+      const action = event.target.closest('[data-notification-action]');
+      if (action) {const row=action.closest('[data-action-url]'); if(row) performAction(row.dataset.actionUrl,action.dataset.notificationAction,action); return;}
+      const tab=event.target.closest('[data-folder]');
+      if(tab){filter.value=tab.dataset.folder; syncControls(); applyFilters(); return;}
+      const category=event.target.closest('[data-kind]');
+      if(category){kind.value=category.dataset.kind; syncControls(); dropdown.open=false; dropdown.querySelector('summary').focus(); applyFilters(); return;}
+      const link=event.target.closest('#notificationPagination a');
+      if(link && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey){event.preventDefault(); if(await refresh(new URL(link.href))) scroll.scrollTop=0;}
+    });
+    document.addEventListener('click', event => {if(!dropdown.contains(event.target)) dropdown.open=false;});
+    dropdown.addEventListener('keydown', event => {if(event.key==='Escape'){dropdown.open=false; dropdown.querySelector('summary').focus();}});
+    const timer=setInterval(() => {
+      if(!root.isConnected){clearInterval(timer); controller?.abort(); return;}
+      if(!document.hidden && !scroll.contains(document.activeElement) && !debounce) refresh(currentUrl,true);
+    },15000);
+    document.addEventListener('visibilitychange', () => {if(!document.hidden && root.isConnected) refresh(currentUrl,true);});
+    syncControls(); publishCount(document.getElementById('notificationUnreadCount').textContent);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initAccountsNotifications,{once:true});
+  else initAccountsNotifications();
+})();
+
+/* Live Accounts sidebar notification badge */
+(() => {
+  function initAccountsNotificationBadge() {
+    const link = document.getElementById("accountsNotificationLink");
+    const badge = document.getElementById("accountsNotificationBadge");
+
+    if (!link || !badge || link.dataset.badgeReady === "1") return;
+    link.dataset.badgeReady = "1";
+
+    let busy = false;
+    let revision = 0;
+    let refreshPending = false;
+
+    function updateBadge(value) {
+      const count = Math.max(0, Number(value) || 0);
+
+      badge.hidden = count === 0;
+      badge.textContent = count > 99 ? "99+" : String(count);
+
+      link.setAttribute(
+        "aria-label",
+        count
+          ? `Notifications, ${count} unread`
+          : "Notifications, no unread notifications"
+      );
+    }
+
+    document.addEventListener("accounts:notification-count", (event) => {
+      revision += 1;
+      updateBadge(event.detail.count);
+    });
+
+    async function refreshBadge() {
+      if (document.hidden || !link.isConnected) return;
+      if (busy) { refreshPending = true; return; }
+
+      busy = true;
+      const startedRevision = revision;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const response = await fetch(link.dataset.feedUrl, {
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: {
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          signal: controller.signal,
+        });
+
+        if (!response.ok || response.redirected) return;
+
+        const data = await response.json();
+
+        // Keep a newer count received after a read/archive action.
+        if (data.ok && revision === startedRevision) {
+          updateBadge(data.unread_count);
+        }
+      } catch {
+        // Keep the previous count during temporary connection failures.
+      } finally {
+        clearTimeout(timeout);
+        busy = false;
+        if (refreshPending) {refreshPending = false; refreshBadge();}
+      }
+    }
+
+    document.addEventListener("accounts:notifications-refresh", refreshBadge);
+    refreshBadge();
+
+    const timer = setInterval(() => {
+      if (!link.isConnected) {
+        clearInterval(timer);
+        return;
+      }
+      refreshBadge();
+    }, 15000);
+
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) refreshBadge();
+    });
+
+    window.addEventListener("focus", refreshBadge);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      initAccountsNotificationBadge,
+      { once: true }
+    );
+  } else {
+    initAccountsNotificationBadge();
+  }
+})();

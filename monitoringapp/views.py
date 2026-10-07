@@ -6268,39 +6268,146 @@ def teammember_group_chat(request, group_id):
 
 
 # <----------------------------ACCOUNTS TEAM ()--------------------->
-# Add these imports near the top of monitoringapp/views.py if missing.
-from django.http import HttpResponseForbidden
-from django.views.decorators.http import require_GET, require_POST
+# # Add these imports near the top of monitoringapp/views.py if missing.
+# from django.http import HttpResponseForbidden
+# from django.views.decorators.http import require_GET, require_POST
 
 
-# Add these functions at the bottom of monitoringapp/views.py.
-# Existing imports supply User, render, redirect, never_cache and timezone.
+# # Add these functions at the bottom of monitoringapp/views.py.
+# # Existing imports supply User, render, redirect, never_cache and timezone.
+# @never_cache
+# @require_GET
+# def accounts_dashboard(request):
+#     user_id = request.session.get("user_id")
+#     if not user_id:
+#         return redirect("login_view")
+
+#     current_user = User.objects.filter(pk=user_id).first()
+#     if current_user is None:
+#         request.session.flush()
+#         return redirect("login_view")
+
+#     # Check the stored role as well as the session role.
+#     allowed_roles = {"accounts", "accounts_team"}
+#     database_role = str(current_user.job_Position or "").strip().lower().replace(" ", "_")
+#     session_role = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
+#     if database_role not in allowed_roles or session_role not in allowed_roles:
+#         return HttpResponseForbidden("You do not have access to the Accounts dashboard.")
+
+#     return render(request, "accounts/dashboard.html", {
+#         "current_user": current_user,
+#         "accounts_active": "dashboard",
+#         "period_label": timezone.localdate().strftime("%B %Y"),
+#         "account_summary": None,
+#         "recent_transactions": [],
+#     })
+
 @never_cache
 @require_GET
 def accounts_dashboard(request):
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return redirect("login_view")
+    import calendar
+    import re
+    from datetime import date
+    from decimal import Decimal
+    from django.db.models import F, Sum
+    from django.http import HttpResponseForbidden
+    from django.shortcuts import redirect, render
+    from django.urls import reverse
+    from django.utils import timezone
+    from .models import AccountsIncome, AccountsExpense, AccountsSale
 
-    current_user = User.objects.filter(pk=user_id).first()
+    if not request.session.get("user_id"):
+        return redirect("login_view")
+    current_user = _accounts_user(request)
     if current_user is None:
-        request.session.flush()
-        return redirect("login_view")
-
-    # Check the stored role as well as the session role.
-    allowed_roles = {"accounts", "accounts_team"}
-    database_role = str(current_user.job_Position or "").strip().lower().replace(" ", "_")
-    session_role = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
-    if database_role not in allowed_roles or session_role not in allowed_roles:
         return HttpResponseForbidden("You do not have access to the Accounts dashboard.")
 
+    today = timezone.localdate()
+    period = request.GET.get("period", "monthly").strip()
+    selected_date = request.GET.get("date", "").strip() or today.isoformat()
+    selected_month = request.GET.get("month", "").strip() or today.strftime("%Y-%m")
+    from_date = request.GET.get("start", "").strip()
+    to_date = request.GET.get("end", "").strip()
+    range_start = range_end = None
+    filter_error = ""
+
+    def read_date(value):
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            raise ValueError("Choose a valid date.")
+        return date.fromisoformat(value)
+
+    try:
+        if period == "monthly":
+            if not re.fullmatch(r"\d{4}-\d{2}", selected_month):
+                raise ValueError("Choose a valid month.")
+            year, month = map(int, selected_month.split("-"))
+            range_start = date(year, month, 1)
+            range_end = date(year, month, calendar.monthrange(year, month)[1])
+        elif period == "weekly":
+            anchor = read_date(selected_date)
+            ordinal = max(date.min.toordinal(), anchor.toordinal() - anchor.weekday())
+            range_start = date.fromordinal(ordinal)
+            range_end = date.fromordinal(min(date.max.toordinal(), ordinal + 6))
+        elif period == "custom":
+            if not from_date or not to_date:
+                raise ValueError("Choose both From Date and To Date.")
+            range_start, range_end = read_date(from_date), read_date(to_date)
+            if range_start > range_end:
+                raise ValueError("From Date must be on or before To Date.")
+        elif period != "all":
+            raise ValueError("Choose a valid period.")
+    except (ValueError, OverflowError) as error:
+        filter_error = str(error) if period == "custom" else "Choose a valid date, month or period."
+        range_start = range_end = None
+
+    income_qs = AccountsIncome.objects.select_related("created_by")
+    expense_qs = AccountsExpense.objects.select_related("created_by")
+    sales_qs = AccountsSale.objects.select_related("created_by")
+    if filter_error:
+        income_qs, expense_qs, sales_qs = income_qs.none(), expense_qs.none(), sales_qs.none()
+    elif range_start is not None:
+        income_qs = income_qs.filter(date__range=(range_start, range_end))
+        expense_qs = expense_qs.filter(date__range=(range_start, range_end))
+        sales_qs = sales_qs.filter(date__range=(range_start, range_end))
+
+    def total(queryset, field="amount"):
+        return queryset.aggregate(total=Sum(field))["total"] or Decimal("0.00")
+
+    income_total, expense_total = total(income_qs), total(expense_qs)
+    sales_totals = sales_qs.aggregate(amount=Sum("amount"), received=Sum("received_amount"))
+    sales_total = sales_totals["amount"] or Decimal("0.00")
+    received_total = sales_totals["received"] or Decimal("0.00")
+    overdue_qs = sales_qs.filter(due_date__lt=today, received_amount__lt=F("amount"))
+    overdue_totals = overdue_qs.aggregate(amount=Sum("amount"), received=Sum("received_amount"))
+    overdue_balance = (overdue_totals["amount"] or Decimal("0.00")) - (overdue_totals["received"] or Decimal("0.00"))
+    recent = []
+    # Ten rows from each ledger suffice to find the latest ten overall.
+    for queryset, kind, route in [(income_qs, "income", "accounts_income"),
+                                  (expense_qs, "expense", "accounts_expenses")]:
+        for entry in queryset.order_by("-date", "-created_at", "-pk")[:10]:
+            recent.append({"date": entry.date, "created_at": entry.created_at, "pk": entry.pk,
+                "kind": kind, "description": entry.description, "category": entry.category,
+                "amount": entry.amount, "reference": entry.reference,
+                "recorded_by": getattr(entry.created_by, "name", "") or "—",
+                "url": reverse(route)})
+    recent.sort(key=lambda item: (item["date"], item["created_at"], item["pk"], item["kind"]), reverse=True)
+    period_label = "All dates" if period == "all" else (
+        f"{range_start:%d %b %Y} – {range_end:%d %b %Y}" if range_start else "Invalid date filter")
     return render(request, "accounts/dashboard.html", {
-        "current_user": current_user,
-        "accounts_active": "dashboard",
-        "period_label": timezone.localdate().strftime("%B %Y"),
-        "account_summary": None,
-        "recent_transactions": [],
-    })
+        "current_user": current_user, "accounts_active": "dashboard",
+        "period": period, "selected_date": selected_date, "selected_month": selected_month,
+        "from_date": from_date, "to_date": to_date, "filter_error": filter_error,
+        "period_label": period_label,
+        "account_summary": {"income": income_total, "expenses": expense_total,
+            "net_movement": income_total - expense_total, "sales": sales_total,
+            "received": received_total, "outstanding": sales_total - received_total,
+            "overdue": overdue_balance, "overdue_count": overdue_qs.count()},
+        "recent_transactions": recent[:10],
+        "overdue_sales": overdue_qs.order_by("due_date", "-pk")[:10],
+        "income_count": income_qs.count(), "expense_count": expense_qs.count(),
+        "sales_count": sales_qs.count(),
+    }, status=400 if filter_error else 200)
+
 
 
 @never_cache
@@ -6348,6 +6455,64 @@ def _accounts_user(request):
     session_role = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
     return user if database_role in roles and session_role in roles else None
 
+
+def _create_accounts_notification(*, kind, title, message, actor=None):
+    """Create a separate notification for every Accounts user."""
+    from uuid import uuid4
+
+    from django.db import transaction
+    from django.db.models import Value
+    from django.db.models.functions import Lower, Replace, Trim
+    from django.urls import reverse
+
+    from .models import AccountsNotification, User
+
+    routes = {
+        "income": "accounts_income",
+        "expense": "accounts_expenses",
+        "sale": "accounts_sales",
+        "payment": "accounts_sales",
+        "reminder": "accounts_reminders",
+    }
+
+    if kind not in routes:
+        raise ValueError("Unsupported Accounts notification kind.")
+
+    recipient_ids = list(
+        User.objects.annotate(
+            accounts_role=Replace(
+                Lower(Trim("job_Position")),
+                Value(" "),
+                Value("_"),
+            )
+        )
+        .filter(accounts_role__in=["accounts", "accounts_team"])
+        .values_list("pk", flat=True)
+    )
+
+    if not recipient_ids:
+        return 0
+
+    event_id = uuid4().hex
+    target_url = reverse(routes[kind])
+
+    notifications = [
+        AccountsNotification(
+            recipient_id=recipient_id,
+            actor=actor,
+            kind=kind,
+            title=title,
+            message=message,
+            url=target_url,
+            event_key=f"accounts:{event_id}:{recipient_id}",
+        )
+        for recipient_id in recipient_ids
+    ]
+
+    with transaction.atomic():
+        AccountsNotification.objects.bulk_create(notifications)
+
+    return len(notifications)
 
 from pathlib import Path
 from django.db import transaction
@@ -6437,6 +6602,17 @@ def accounts_income(request):
                 income.created_by = current_user
                 income.save()
                 _income_audit(income, current_user, "created")
+                _create_accounts_notification(
+                    kind="income",
+                    title="Income added",
+                    message=(
+                        f"{current_user.name} added income "
+                        f"#{income.pk}: {income.category}, "
+                        f"₹{income.amount:,.2f} "
+                        f"on {income.date:%d %b %Y}."
+                    ),
+                    actor=current_user,
+                )
             if is_ajax:
                 return JsonResponse({"ok": True, "message": "Income added successfully.", "id": income.pk}, status=201)
             messages.success(request, "Income added successfully.")
@@ -6630,8 +6806,19 @@ def accounts_income_edit(request, pk):
         entry = form.save(commit=False)
         if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
             entry.receipt = ""
-        entry.save()
+            entry.save()
         _income_audit(entry, actor, "updated", before)
+        _create_accounts_notification(
+            kind="income",
+            title="Income updated",
+            message=(
+                f"{actor.name} updated income "
+                f"#{entry.pk}: {entry.category}, "
+                f"₹{entry.amount:,.2f} "
+                f"on {entry.date:%d %b %Y}."
+            ),
+            actor=actor,
+        )
     return JsonResponse({"ok": True, "message": "Income updated successfully.", "id": entry.pk})
 
 
@@ -6647,6 +6834,17 @@ def accounts_income_delete(request, pk):
         if entry is None:
             return JsonResponse({"ok": False, "message": "This income no longer exists."}, status=404)
         _income_audit(entry, actor, "deleted", _income_snapshot(entry))
+        _create_accounts_notification(
+            kind="income",
+            title="Income deleted",
+            message=(
+                f"{actor.name} deleted income "
+                f"#{entry.pk}: {entry.category}, "
+                f"₹{entry.amount:,.2f} "
+                f"on {entry.date:%d %b %Y}."
+            ),
+            actor=actor,
+        )
         entry.delete()
     return JsonResponse({"ok": True, "message": "Income deleted successfully.", "id": pk})
 
@@ -6698,255 +6896,6 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 from .forms import AccountsExpenseForm
 from .models import AccountsExpense
-
-# @never_cache
-# @require_http_methods(["GET", "POST"])
-# def accounts_expenses(request):
-#     import calendar
-#     import re
-#     from datetime import date
-#     from decimal import Decimal
-#     from io import BytesIO
-
-#     from django.core.paginator import Paginator
-#     from django.db.models import Q, Sum
-#     from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
-#     from django.shortcuts import redirect, render
-#     from django.utils import timezone
-
-#     if not request.session.get("user_id"):
-#         return redirect("login_view")
-#     current_user = _accounts_user(request)
-#     if current_user is None:
-#         return HttpResponseForbidden("You do not have access to Accounts expense.")
-
-#     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-#     form = AccountsExpenseForm(request.POST if request.method == "POST" else None)
-#     if request.method == "POST" and form.is_valid():
-#         expense = form.save(commit=False)
-#         expense.created_by = current_user
-#         expense.save()
-#         if is_ajax:
-#             return JsonResponse({
-#                 "ok": True,
-#                 "message": "Expense added successfully.",
-#                 "id": expense.pk,
-#             }, status=201)
-#         messages.success(request, "Expense added successfully.")
-#         return redirect("accounts_expenses")
-
-#     if request.method == "POST" and is_ajax:
-#         return JsonResponse({
-#             "ok": False,
-#             "message": "Please correct the highlighted fields.",
-#             "errors": form.errors.get_json_data(),
-#         }, status=400)
-
-#     today = timezone.localdate()
-#     month_start = today.replace(day=1)
-#     month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
-#     all_entries = AccountsExpense.objects.select_related("created_by")
-#     entries = all_entries
-#     query = request.GET.get("q", "").strip()[:200]
-#     if query:
-#         entries = entries.filter(
-#             Q(category__icontains=query)
-#             | Q(description__icontains=query)
-#             | Q(reference__icontains=query)
-#             | Q(paid_to__icontains=query)
-#         )
-
-#     period = request.GET.get("period", "all").strip()
-#     selected_date = request.GET.get("date", "").strip() or today.isoformat()
-#     selected_month = request.GET.get("month", "").strip() or today.strftime("%Y-%m")
-#     from_date = request.GET.get("start", "").strip()
-#     to_date = request.GET.get("end", "").strip()
-#     range_start = range_end = None
-#     filter_error = ""
-
-#     def read_date(value):
-#         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
-#             raise ValueError("Invalid date format.")
-#         return date.fromisoformat(value)
-
-#     try:
-#         if period == "weekly":
-#             anchor = read_date(selected_date)
-#             monday_ordinal = max(date.min.toordinal(), anchor.toordinal() - anchor.weekday())
-#             range_start = date.fromordinal(monday_ordinal)
-#             range_end = date.fromordinal(min(date.max.toordinal(), monday_ordinal + 6))
-#         elif period == "monthly":
-#             if not re.fullmatch(r"\d{4}-\d{2}", selected_month):
-#                 raise ValueError("Invalid month format.")
-#             year, month = map(int, selected_month.split("-"))
-#             range_start = date(year, month, 1)
-#             range_end = date(year, month, calendar.monthrange(year, month)[1])
-#         elif period == "custom":
-#             if not from_date or not to_date:
-#                 raise ValueError("Choose both From Date and To Date.")
-#             range_start, range_end = read_date(from_date), read_date(to_date)
-#             if range_start > range_end:
-#                 raise ValueError("From Date must be on or before To Date.")
-#         elif period != "all":
-#             raise ValueError("Choose a valid period.")
-#     except (ValueError, OverflowError) as error:
-#         filter_error = (
-#             str(error) if period == "custom"
-#             else "Choose a valid date, month or period."
-#         )
-#         range_start = range_end = None
-#         entries = entries.none()
-
-#     if range_start is not None and not filter_error:
-#         entries = entries.filter(date__range=(range_start, range_end))
-#     entries = entries.order_by("-date", "-id")
-
-#     def expense_total(queryset):
-#         return queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
-
-#     # Export the entire filtered queryset before applying pagination.
-#     if request.method == "GET" and request.GET.get("export") == "xlsx" and not filter_error:
-#         from openpyxl import Workbook
-#         from openpyxl.styles import Alignment, Font, PatternFill
-#         from openpyxl.utils import get_column_letter
-
-#         workbook = Workbook()
-#         sheet = workbook.active
-#         sheet.title = "Expenses"
-#         headers = ["Date", "Category", "Description", "Paid To", "Payment Method", "Reference", "Recorded By", "Amount (INR)"]
-#         sheet.append(headers)
-#         total = Decimal("0.00")
-#         for entry in entries.iterator():
-#             creator = getattr(entry.created_by, "name", "") or "—"
-#             sheet.append([
-#                 entry.date, entry.category, entry.description, entry.paid_to or "—",
-#                 entry.get_payment_method_display(), entry.reference or "—",
-#                 creator, entry.amount,
-#             ])
-#             row = sheet.max_row
-#             # User-entered strings must remain text, including values starting with '='.
-#             for column in range(2, 8):
-#                 cell = sheet.cell(row, column)
-#                 cell.value = str(cell.value or "")
-#                 cell.data_type = "s"
-#                 cell.alignment = Alignment(vertical="top", wrap_text=True)
-#             sheet.cell(row, 1).number_format = "dd mmm yyyy"
-#             sheet.cell(row, 8).number_format = "#,##0.00"
-#             total += entry.amount
-
-#         last_data_row = sheet.max_row
-#         sheet.append(["Total", None, None, None, None, None, None, total])
-#         total_row = sheet.max_row
-#         sheet.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=7)
-#         sheet.cell(total_row, 8).number_format = "#,##0.00"
-#         for cell in sheet[1]:
-#             cell.fill = PatternFill("solid", fgColor="5B32A7")
-#             cell.font = Font(color="FFFFFF", bold=True)
-#             cell.alignment = Alignment(vertical="center")
-#         for cell in sheet[total_row]:
-#             cell.fill = PatternFill("solid", fgColor="EDE9FE")
-#             cell.font = Font(bold=True)
-#         for column, width in enumerate([18, 25, 50, 25, 22, 25, 25, 20], start=1):
-#             sheet.column_dimensions[get_column_letter(column)].width = width
-#         sheet.row_dimensions[1].height = 26
-#         sheet.freeze_panes = "A2"
-#         sheet.auto_filter.ref = f"A1:H{last_data_row}"
-#         sheet.sheet_view.showGridLines = False
-#         output = BytesIO()
-#         workbook.save(output)
-#         workbook.close()
-#         response = HttpResponse(
-#             output.getvalue(),
-#             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-#         )
-#         response["Content-Disposition"] = f'attachment; filename="expense_{today.isoformat()}.xlsx"'
-#         response["Cache-Control"] = "no-store"
-#         return response
-
-#     page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
-#     return render(request, "accounts/expenses.html", {
-#         "current_user": current_user,
-#         "accounts_active": "expenses",
-#         "form": form,
-#         "query": query,
-#         "period": period,
-#         "selected_date": selected_date,
-#         "selected_month": selected_month,
-#         "from_date": from_date,
-#         "to_date": to_date,
-#         "range_start": range_start,
-#         "range_end": range_end,
-#         "filter_error": filter_error,
-#         "has_filters": bool(query or period != "all"),
-#         "page_obj": page_obj,
-#         "total_entries": entries.count(),
-#         "total_expense": expense_total(entries),
-#         "today_expense": expense_total(all_entries.filter(date=today)),
-#         "month_expense": expense_total(all_entries.filter(date__range=(month_start, month_end))),
-#         "month_label": month_start.strftime("%B %Y"),
-#     }, status=400 if request.method == "POST" or filter_error else 200)
-
-# @never_cache
-# @require_http_methods(["GET", "POST"])
-# def accounts_expense_edit(request, pk):
-#     if _accounts_user(request) is None:
-#         return JsonResponse({
-#             "ok": False, "message": "Please log in with an Accounts account."
-#         }, status=403 if request.session.get("user_id") else 401)
-
-#     # Accounts users manage the same shared ledger.
-#     expense = AccountsExpense.objects.filter(pk=pk).first()
-#     if expense is None:
-#         return JsonResponse({
-#             "ok": False, "message": "This expense entry no longer exists."
-#         }, status=404)
-
-#     if request.method == "GET":
-#         return JsonResponse({
-#             "ok": True,
-#             "item": {
-#                 "id": expense.pk,
-#                 "date": expense.date.isoformat(),
-#                 "category": expense.category,
-#                 "amount": str(expense.amount),
-#                 "payment_method": expense.payment_method,
-#                 "description": expense.description,
-#                 "reference": expense.reference or "",
-#                 "paid_to": expense.paid_to or "",
-#             },
-#         })
-
-#     form = AccountsExpenseForm(request.POST, instance=expense)
-#     if not form.is_valid():
-#         return JsonResponse({
-#             "ok": False,
-#             "message": "Please correct the highlighted fields.",
-#             "errors": form.errors.get_json_data(),
-#         }, status=400)
-
-#     # The form excludes created_by, so editing preserves the original creator.
-#     expense = form.save()
-#     return JsonResponse({
-#         "ok": True, "message": "Expense updated successfully.", "id": expense.pk,
-#     })
-
-# @never_cache
-# @require_POST
-# def accounts_expense_delete(request, pk):
-#     if _accounts_user(request) is None:
-#         return JsonResponse({
-#             "ok": False, "message": "Please log in with an Accounts account."
-#         }, status=403 if request.session.get("user_id") else 401)
-
-#     deleted_count, _ = AccountsExpense.objects.filter(pk=pk).delete()
-#     if not deleted_count:
-#         return JsonResponse({
-#             "ok": False, "message": "This expense entry no longer exists."
-#         }, status=404)
-
-#     return JsonResponse({
-#         "ok": True, "message": "Expense deleted successfully.", "id": pk,
-#     })
 
 
 from pathlib import Path
@@ -7032,6 +6981,17 @@ def accounts_expenses(request):
                 expense.created_by = current_user
                 expense.save()
                 _expense_audit(expense, current_user, "created")
+                _create_accounts_notification(
+                    kind="expense",
+                    title="Expense added",
+                    message=(
+                        f"{current_user.name} added expense "
+                        f"#{expense.pk}: {expense.category}, "
+                        f"₹{expense.amount:,.2f} "
+                        f"on {expense.date:%d %b %Y}."
+                    ),
+                    actor=current_user,
+                )
             if is_ajax:
                 return JsonResponse({"ok": True, "message": "Expense added successfully.", "id": expense.pk}, status=201)
             messages.success(request, "Expense added successfully.")
@@ -7239,8 +7199,19 @@ def accounts_expense_edit(request, pk):
         entry = form.save(commit=False)
         if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
             entry.receipt = ""
-        entry.save()
+            entry.save()
         _expense_audit(entry, actor, "updated", before)
+        _create_accounts_notification(
+            kind="expense",
+            title="Expense updated",
+            message=(
+                f"{actor.name} updated expense "
+                f"#{entry.pk}: {entry.category}, "
+                f"₹{entry.amount:,.2f} "
+                f"on {entry.date:%d %b %Y}."
+            ),
+            actor=actor,
+        )
     return JsonResponse({"ok": True, "message": "Expense updated successfully.", "id": entry.pk})
 
 
@@ -7256,6 +7227,17 @@ def accounts_expense_delete(request, pk):
         if entry is None:
             return JsonResponse({"ok": False, "message": "This expense no longer exists."}, status=404)
         _expense_audit(entry, actor, "deleted", _expense_snapshot(entry))
+        _create_accounts_notification(
+            kind="expense",
+            title="Expense deleted",
+            message=(
+                f"{actor.name} deleted expense "
+                f"#{entry.pk}: {entry.category}, "
+                f"₹{entry.amount:,.2f} "
+                f"on {entry.date:%d %b %Y}."
+            ),
+            actor=actor,
+        )
         entry.delete()
     return JsonResponse({"ok": True, "message": "Expense deleted successfully.", "id": pk})
 
@@ -7325,214 +7307,6 @@ def _sale_duplicate_response():
     return JsonResponse({"ok": False, "duplicate": True,
         "message": "A similar sale or the same invoice already exists. Review it before saving again."}, status=409)
 
-
-# @never_cache
-# @require_http_methods(["GET", "POST"])
-# def accounts_sales(request):
-#     import calendar
-#     import re
-#     from datetime import date
-#     from io import BytesIO
-
-#     if not request.session.get("user_id"):
-#         return redirect("login_view")
-#     current_user = _accounts_user(request)
-#     if current_user is None:
-#         return HttpResponseForbidden("You do not have access to Accounts sales.")
-#     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-#     form = AccountsSaleForm(request.POST if request.method == "POST" else None)
-#     if request.method == "POST" and form.is_valid():
-#         if _sale_duplicate(form) and request.POST.get("confirm_duplicate") != "1":
-#             if is_ajax:
-#                 return _sale_duplicate_response()
-#             form.add_error(None, "A similar sale already exists. Review it and use Save Anyway to confirm.")
-#         else:
-#             sale = form.save(commit=False)
-#             sale.created_by = current_user
-#             sale.save()
-#             if is_ajax:
-#                 return JsonResponse({"ok": True, "message": "Sale added successfully.", "id": sale.pk}, status=201)
-#             messages.success(request, "Sale added successfully.")
-#             return redirect("accounts_sales")
-#     if request.method == "POST" and is_ajax:
-#         return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
-#             "errors": form.errors.get_json_data()}, status=400)
-
-#     today = timezone.localdate()
-#     month_start = today.replace(day=1)
-#     month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
-#     all_entries = AccountsSale.objects.select_related("created_by")
-#     entries = all_entries
-#     query = request.GET.get("q", "").strip()[:200]
-#     status_filter = request.GET.get("status", "").strip()
-#     if status_filter not in {"", "paid", "partial", "unpaid"}:
-#         status_filter = ""
-#     if query:
-#         entries = entries.filter(Q(customer_name__icontains=query) |
-#             Q(invoice_number__icontains=query) | Q(description__icontains=query))
-#     if status_filter == "paid":
-#         entries = entries.filter(received_amount=F("amount"))
-#     elif status_filter == "partial":
-#         entries = entries.filter(received_amount__gt=0, received_amount__lt=F("amount"))
-#     elif status_filter == "unpaid":
-#         entries = entries.filter(received_amount=0)
-
-#     period = request.GET.get("period", "all").strip()
-#     selected_date = request.GET.get("date", "").strip() or today.isoformat()
-#     selected_month = request.GET.get("month", "").strip() or today.strftime("%Y-%m")
-#     from_date = request.GET.get("start", "").strip()
-#     to_date = request.GET.get("end", "").strip()
-#     range_start = range_end = None
-#     filter_error = ""
-
-#     def read_date(value):
-#         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
-#             raise ValueError("Invalid date format.")
-#         return date.fromisoformat(value)
-
-#     try:
-#         if period == "weekly":
-#             anchor = read_date(selected_date)
-#             monday_ordinal = max(date.min.toordinal(), anchor.toordinal() - anchor.weekday())
-#             range_start = date.fromordinal(monday_ordinal)
-#             range_end = date.fromordinal(min(date.max.toordinal(), monday_ordinal + 6))
-#         elif period == "monthly":
-#             if not re.fullmatch(r"\d{4}-\d{2}", selected_month):
-#                 raise ValueError("Invalid month format.")
-#             year, month = map(int, selected_month.split("-"))
-#             range_start = date(year, month, 1)
-#             range_end = date(year, month, calendar.monthrange(year, month)[1])
-#         elif period == "custom":
-#             if not from_date or not to_date:
-#                 raise ValueError("Choose both From Date and To Date.")
-#             range_start, range_end = read_date(from_date), read_date(to_date)
-#             if range_start > range_end:
-#                 raise ValueError("From Date must be on or before To Date.")
-#         elif period != "all":
-#             raise ValueError("Choose a valid period.")
-#     except (ValueError, OverflowError) as error:
-#         filter_error = (
-#             str(error) if period == "custom"
-#             else "Choose a valid date, month or period."
-#         )
-#         range_start = range_end = None
-#         entries = entries.none()
-
-#     if range_start is not None and not filter_error:
-#         entries = entries.filter(date__range=(range_start, range_end))
-#     entries = entries.order_by("-date", "-id")
-
-#     totals = entries.aggregate(sales=Sum("amount"), received=Sum("received_amount"))
-#     total_sales = totals["sales"] or Decimal("0.00")
-#     total_received = totals["received"] or Decimal("0.00")
-#     total_balance = total_sales - total_received
-
-#     # Export all matching rows, before pagination.
-#     if request.method == "GET" and request.GET.get("export") == "xlsx" and not filter_error:
-#         from openpyxl import Workbook
-#         from openpyxl.styles import Alignment, Font, PatternFill
-#         from openpyxl.utils import get_column_letter
-#         workbook = Workbook()
-#         sheet = workbook.active
-#         sheet.title = "Sales"
-#         sheet.append(["Date", "Customer", "Invoice", "Description", "Sale Amount (INR)",
-#             "Received (INR)", "Balance (INR)", "Status", "Recorded By"])
-#         for entry in entries.iterator():
-#             sheet.append([entry.date, entry.customer_name, entry.invoice_number or "—",
-#                 entry.description, entry.amount, entry.received_amount, entry.balance_amount,
-#                 entry.payment_status_label, getattr(entry.created_by, "name", "") or "—"])
-#             row = sheet.max_row
-#             for column in (2, 3, 4, 8, 9):
-#                 cell = sheet.cell(row, column)
-#                 cell.value = str(cell.value or "")
-#                 cell.data_type = "s"
-#                 cell.alignment = Alignment(vertical="top", wrap_text=True)
-#             sheet.cell(row, 1).number_format = "dd mmm yyyy"
-#             for column in (5, 6, 7):
-#                 sheet.cell(row, column).number_format = "#,##0.00"
-#         last_data_row = sheet.max_row
-#         sheet.append(["Total", None, None, None, total_sales, total_received, total_balance, None, None])
-#         sheet.merge_cells(start_row=sheet.max_row, start_column=1, end_row=sheet.max_row, end_column=4)
-#         for cell in sheet[1]:
-#             cell.fill = PatternFill("solid", fgColor="5B32A7")
-#             cell.font = Font(color="FFFFFF", bold=True)
-#         for cell in sheet[sheet.max_row]:
-#             cell.fill = PatternFill("solid", fgColor="EDE9FE")
-#             cell.font = Font(bold=True)
-#         for column in (5, 6, 7):
-#             sheet.cell(sheet.max_row, column).number_format = "#,##0.00"
-#         for column, width in enumerate([18, 30, 25, 50, 22, 22, 22, 22, 28], start=1):
-#             sheet.column_dimensions[get_column_letter(column)].width = width
-#         sheet.row_dimensions[1].height = 26
-#         sheet.freeze_panes = "A2"
-#         sheet.auto_filter.ref = f"A1:I{last_data_row}"
-#         sheet.sheet_view.showGridLines = False
-#         output = BytesIO()
-#         workbook.save(output)
-#         workbook.close()
-#         response = HttpResponse(output.getvalue(),
-#             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-#         response["Content-Disposition"] = f'attachment; filename="sales_{today.isoformat()}.xlsx"'
-#         response["Cache-Control"] = "no-store"
-#         return response
-
-#     page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
-#     def sales_total(queryset):
-#         return queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
-#     return render(request, "accounts/sales.html", {
-#         "current_user": current_user, "accounts_active": "sales", "form": form,
-#         "query": query, "status_filter": status_filter,
-#         "has_filters": bool(query or status_filter or period != "all"),
-#         "period": period, "selected_date": selected_date, "selected_month": selected_month,
-#         "from_date": from_date, "to_date": to_date, "range_start": range_start,
-#         "range_end": range_end, "filter_error": filter_error,
-#         "page_obj": page_obj, "total_entries": entries.count(), "total_sales": total_sales,
-#         "total_received": total_received, "total_balance": total_balance,
-#         "month_sales": sales_total(all_entries.filter(date__range=(month_start, month_end))),
-#         "today_sales": sales_total(all_entries.filter(date=today)),
-#         "month_label": month_start.strftime("%B %Y"),
-#     }, status=400 if request.method == "POST" or filter_error else 200)
-
-
-# @never_cache
-# @require_http_methods(["GET", "POST"])
-# def accounts_sale_edit(request, pk):
-#     if _accounts_user(request) is None:
-#         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
-#             status=403 if request.session.get("user_id") else 401)
-#     with transaction.atomic():
-#         sale = AccountsSale.objects.select_for_update().filter(pk=pk).first()
-#         if sale is None:
-#             return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
-#         if request.method == "GET":
-#             return JsonResponse({"ok": True, "item": {
-#                 "date": sale.date.isoformat(), "customer_name": sale.customer_name,
-#                 "invoice_number": sale.invoice_number, "description": sale.description,
-#                 "amount": str(sale.amount), "received_amount": str(sale.received_amount)}})
-#         before = {"date": sale.date.isoformat(), "customer_name": sale.customer_name,
-#             "invoice_number": sale.invoice_number, "amount": str(sale.amount)}
-#         form = AccountsSaleForm(request.POST, instance=sale)
-#         if not form.is_valid():
-#             return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
-#                 "errors": form.errors.get_json_data()}, status=400)
-#         if (any(str(form.cleaned_data.get(key) or "") != value for key, value in before.items())
-#                 and _sale_duplicate(form, sale.pk) and request.POST.get("confirm_duplicate") != "1"):
-#             return _sale_duplicate_response()
-#         sale = form.save()
-#     return JsonResponse({"ok": True, "message": "Sale updated successfully.", "id": sale.pk})
-
-
-# @never_cache
-# @require_POST
-# def accounts_sale_delete(request, pk):
-#     if _accounts_user(request) is None:
-#         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
-#             status=403 if request.session.get("user_id") else 401)
-#     deleted_count, _ = AccountsSale.objects.filter(pk=pk).delete()
-#     if not deleted_count:
-#         return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
-#     return JsonResponse({"ok": True, "message": "Sale deleted successfully.", "id": pk})
-
 from decimal import Decimal
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -7594,9 +7368,26 @@ def accounts_sales(request):
                 sale.created_by = current_user
                 sale.save()
                 if sale.received_amount > 0:
-                    AccountsSalePayment.objects.create(sale=sale, date=sale.date,
-                        amount=sale.received_amount, created_by=current_user, payment_method="other",
-                        note="Initial received amount at sale creation.")
+                    AccountsSalePayment.objects.create(
+                        sale=sale,
+                        date=sale.date,
+                        amount=sale.received_amount,
+                        created_by=current_user,
+                        payment_method="other",
+                        note="Initial received amount at sale creation.",
+                    )
+
+                _create_accounts_notification(
+                    kind="sale",
+                    title="Sale added",
+                    message=(
+                        f"{current_user.name} added sale "
+                        f"#{sale.pk} for {sale.customer_name}: "
+                        f"₹{sale.amount:,.2f}. "
+                        f"Received: ₹{sale.received_amount:,.2f}."
+                    ),
+                    actor=current_user,
+                )
             if is_ajax:
                 return JsonResponse({"ok": True, "message": "Sale added successfully.", "id": sale.pk}, status=201)
             messages.success(request, "Sale added successfully.")
@@ -7748,7 +7539,8 @@ def accounts_sales(request):
 @never_cache
 @require_http_methods(["GET", "POST"])
 def accounts_sale_edit(request, pk):
-    if _accounts_user(request) is None:
+    actor = _accounts_user(request)
+    if actor is None:
         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
             status=403 if request.session.get("user_id") else 401)
     with transaction.atomic():
@@ -7774,21 +7566,75 @@ def accounts_sale_edit(request, pk):
         sale = form.save(commit=False)
         if request.POST.get("remove_invoice") == "1" and not request.FILES.get("invoice_file"):
             sale.invoice_file = ""
-        sale.save()
-    return JsonResponse({"ok": True, "message": "Sale updated successfully.", "id": sale.pk})
+            sale.save()
+        _create_accounts_notification(
+            kind="sale",
+            title="Sale updated",
+            message=(
+                f"{actor.name} updated sale "
+                f"#{sale.pk} for {sale.customer_name}: "
+                f"₹{sale.amount:,.2f}."
+            ),
+            actor=actor,
+        )
+    return JsonResponse({
+        "ok": True,
+        "message": "Sale updated successfully.",
+        "id": sale.pk,
+    })
+
+# @never_cache
+# @require_POST
+# def accounts_sale_delete(request, pk):
+#     if _accounts_user(request) is None:
+#         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+#             status=403 if request.session.get("user_id") else 401)
+#     deleted_count, _ = AccountsSale.objects.filter(pk=pk).delete()
+#     if not deleted_count:
+#         return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
+#     return JsonResponse({"ok": True, "message": "Sale deleted successfully.", "id": pk})
 
 
 @never_cache
 @require_POST
 def accounts_sale_delete(request, pk):
-    if _accounts_user(request) is None:
-        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
-            status=403 if request.session.get("user_id") else 401)
-    deleted_count, _ = AccountsSale.objects.filter(pk=pk).delete()
-    if not deleted_count:
-        return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
-    return JsonResponse({"ok": True, "message": "Sale deleted successfully.", "id": pk})
+    actor = _accounts_user(request)
+    if actor is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Please log in with an Accounts account.",
+        }, status=403 if request.session.get("user_id") else 401)
 
+    with transaction.atomic():
+        sale = (
+            AccountsSale.objects
+            .select_for_update()
+            .filter(pk=pk)
+            .first()
+        )
+        if sale is None:
+            return JsonResponse({
+                "ok": False,
+                "message": "This sale no longer exists.",
+            }, status=404)
+
+        _create_accounts_notification(
+            kind="sale",
+            title="Sale deleted",
+            message=(
+                f"{actor.name} deleted sale "
+                f"#{sale.pk} for {sale.customer_name}: "
+                f"₹{sale.amount:,.2f}."
+            ),
+            actor=actor,
+        )
+        sale.delete()
+
+    return JsonResponse({
+        "ok": True,
+        "message": "Sale deleted successfully.",
+        "id": pk,
+    })
 
 @never_cache
 @require_http_methods(["GET"])
@@ -7849,7 +7695,22 @@ def accounts_sale_payments(request, pk):
             if not changed:
                 return JsonResponse({"ok": False, "message": "Balance changed. Close and reopen Payments."}, status=409)
             payment.save()
-            return JsonResponse({"ok": True, "message": "Payment recorded successfully.", "id": payment.pk})
+            _create_accounts_notification(
+                kind="payment",
+                title="Sales payment received",
+                message=(
+                    f"{actor.name} recorded a payment of "
+                    f"₹{payment.amount:,.2f} for "
+                    f"{sale.customer_name}, sale #{sale.pk}, "
+                    f"on {payment.date:%d %b %Y}."
+                ),
+                actor=actor,
+            )
+            return JsonResponse({
+                "ok": True,
+                "message": "Payment recorded successfully.",
+                "id": payment.pk,
+            })
         items = list(sale.payments.select_related("created_by").all())
         recorded = sum((item.amount for item in items), Decimal("0.00"))
         return JsonResponse({"ok": True, "customer": sale.customer_name,
@@ -8053,4 +7914,808 @@ def accounts_reports(request):
         "end_date": end,
         "report_error": error,
         "report": data,
+    }, status=400 if error else 200)
+
+@never_cache
+@require_GET
+def accounts_notifications(request):
+    from django.core.paginator import Paginator
+    from django.http import JsonResponse, HttpResponseForbidden
+    from django.shortcuts import redirect, render
+    from .models import AccountsNotification
+
+    current_user = _accounts_user(request)
+    if current_user is None:
+        if not request.session.get("user_id"):
+            return redirect("login_view")
+        return HttpResponseForbidden("Accounts access required.")
+
+    _process_accounts_reminders(current_user)
+
+    inbox = AccountsNotification.objects.filter(
+        recipient=current_user,
+        is_archived=False,
+    )
+    unread_count = inbox.filter(is_read=False).count()
+
+    selected_filter = request.GET.get("filter", "all")
+    if selected_filter not in {"all", "unread", "read", "archived"}:
+        selected_filter = "all"
+
+    query = request.GET.get("q", "").strip()[:200]
+    selected_kind = request.GET.get("kind", "").strip()
+    if selected_kind not in {"", "income", "expense", "sale", "payment", "reminder", "note"}:
+        selected_kind = ""
+    archived = AccountsNotification.objects.filter(recipient=current_user, is_archived=True)
+    items = archived if selected_filter == "archived" else inbox
+    if query:
+        from django.db.models import Q
+        items = items.filter(Q(title__icontains=query) | Q(message__icontains=query))
+    if selected_kind:
+        items = items.filter(kind=selected_kind)
+    if selected_filter == "unread":
+        items = items.filter(is_read=False)
+    elif selected_filter == "read":
+        items = items.filter(is_read=True)
+
+    page_obj = Paginator(items, 20).get_page(request.GET.get("page"))
+
+    # Used for live sidebar badge and notification list updates.
+    if request.GET.get("format") == "json":
+        return JsonResponse({
+            "ok": True,
+            "unread_count": unread_count,
+            "total_count": inbox.count(),
+            "page": page_obj.number,
+            "num_pages": page_obj.paginator.num_pages,
+            "items": [
+                {
+                    "id": item.pk,
+                    "kind": item.kind,
+                    "title": item.title,
+                    "message": item.message,
+                    "is_read": item.is_read,
+                    "created_at": item.created_at.isoformat(),
+                }
+                for item in page_obj
+            ],
+        })
+
+    from urllib.parse import urlencode
+    return render(request, "accounts/notifications.html", {
+        "current_user": current_user,
+        "accounts_active": "notifications",
+        "page_obj": page_obj,
+        "selected_filter": selected_filter,
+        "query": query,
+        "notification_query": urlencode({"filter": selected_filter, "q": query, "kind": selected_kind}),
+        "selected_kind": selected_kind,
+        "archived_count": archived.count(),
+        "result_count": page_obj.paginator.count,
+        "unread_count": unread_count,
+        "total_count": inbox.count(),
+    })
+
+
+@never_cache
+@require_POST
+def accounts_notification_action(request, pk):
+    from django.http import JsonResponse
+    from django.urls import reverse
+    from .models import AccountsNotification
+
+    current_user = _accounts_user(request)
+    if current_user is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Accounts access required.",
+        }, status=403 if request.session.get("user_id") else 401)
+
+    item = AccountsNotification.objects.filter(
+        pk=pk,
+        recipient=current_user,
+    ).first()
+
+    if item is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Notification not found.",
+        }, status=404)
+
+    action = request.POST.get("action", "")
+    target_url = ""
+
+    if action in {"read", "open"}:
+        item.is_read = True
+        item.save(update_fields=["is_read"])
+
+        if action == "open":
+            routes = {
+                "income": "accounts_income",
+                "expense": "accounts_expenses",
+                "sale": "accounts_sales",
+                "payment": "accounts_sales",
+                "reminder": "accounts_reminders",
+                "note": "accounts_notepad",
+            }
+            target_url = reverse(
+                routes.get(item.kind, "accounts_notifications")
+            )
+
+    elif action == "unread":
+        item.is_read = False
+        item.save(update_fields=["is_read"])
+
+    elif action == "archive":
+        item.is_archived = True
+        item.save(update_fields=["is_archived"])
+
+    elif action == "restore":
+        item.is_archived = False
+        item.save(update_fields=["is_archived"])
+
+    else:
+        return JsonResponse({
+            "ok": False,
+            "message": "Invalid notification action.",
+        }, status=400)
+
+    unread_count = AccountsNotification.objects.filter(
+        recipient=current_user,
+        is_archived=False,
+        is_read=False,
+    ).count()
+
+    return JsonResponse({
+        "ok": True,
+        "message": {
+            "read": "Marked as read.",
+            "open": "Notification opened.",
+            "unread": "Marked as unread.",
+            "archive": "Notification archived.",
+            "restore": "Notification restored to inbox.",
+        }[action],
+        "unread_count": unread_count,
+        "url": target_url,
+    })
+
+
+@never_cache
+@require_POST
+def accounts_notifications_read_all(request):
+    from django.http import JsonResponse
+    from .models import AccountsNotification
+
+    current_user = _accounts_user(request)
+    if current_user is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Accounts access required.",
+        }, status=403 if request.session.get("user_id") else 401)
+
+    AccountsNotification.objects.filter(
+        recipient=current_user,
+        is_archived=False,
+        is_read=False,
+    ).update(is_read=True)
+
+    return JsonResponse({
+        "ok": True,
+        "message": "All notifications marked as read.",
+        "unread_count": 0,
+    })
+    from django.http import JsonResponse
+    from .models import AccountsNotification
+
+    current_user = _accounts_user(request)
+    if current_user is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Accounts access required.",
+        }, status=403 if request.session.get("user_id") else 401)
+
+    AccountsNotification.objects.filter(
+        recipient=current_user,
+        is_archived=False,
+        is_read=False,
+    ).update(is_read=True)
+
+    return JsonResponse({
+        "ok": True,
+        "message": "All notifications marked as read.",
+        "unread_count": 0,
+    })
+
+def _process_accounts_reminders(owner):
+    from uuid import uuid4
+
+    from django.db import transaction
+    from django.urls import reverse
+    from django.utils import timezone
+
+    from .models import AccountsNotification, AccountsReminder
+
+    now = timezone.now()
+
+    due_ids = list(
+        AccountsReminder.objects.filter(
+            owner=owner,
+            is_completed=False,
+            notified_at__isnull=True,
+            remind_at__lte=now,
+        )
+        .order_by("remind_at", "id")
+        .values_list("pk", flat=True)[:200]
+    )
+
+    created_count = 0
+
+    for reminder_id in due_ids:
+        with transaction.atomic():
+            reminder = (
+                AccountsReminder.objects
+                .select_for_update()
+                .filter(
+                    pk=reminder_id,
+                    owner=owner,
+                    is_completed=False,
+                    notified_at__isnull=True,
+                    remind_at__lte=now,
+                )
+                .first()
+            )
+
+            if reminder is None:
+                continue
+
+            claimed = AccountsReminder.objects.filter(
+                pk=reminder.pk,
+                is_completed=False,
+                notified_at__isnull=True,
+            ).update(notified_at=now)
+
+            if not claimed:
+                continue
+
+            event_time = timezone.localtime(
+                reminder.event_at
+            ).strftime("%d %b %Y, %I:%M %p")
+
+            notification = AccountsNotification.objects.create(
+                recipient=owner,
+                kind="reminder",
+                title=reminder.title,
+                message=(
+                    f"Reminder: {reminder.title}\n"
+                    f"Event: {event_time}"
+                    + (
+                        f"\n{reminder.description}"
+                        if reminder.description else ""
+                    )
+                ),
+                url=reverse("accounts_notifications"),
+                event_key=(
+                    f"accounts-reminder:"
+                    f"{reminder.pk}:{uuid4().hex}"
+                ),
+            )
+
+            AccountsReminder.objects.filter(
+                pk=reminder.pk
+            ).update(notification=notification)
+
+            created_count += 1
+
+    return created_count
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_reminders(request):
+    import calendar
+    import re
+    from datetime import date
+
+    from django.contrib import messages
+    from django.db import transaction
+    from django.http import JsonResponse, HttpResponseForbidden
+    from django.shortcuts import redirect, render
+    from django.utils import timezone
+    from django.utils.dateparse import parse_datetime
+
+    from .models import AccountsNotification, AccountsReminder
+
+    current_user = _accounts_user(request)
+
+    if current_user is None:
+        if not request.session.get("user_id"):
+            return redirect("login_view")
+        return HttpResponseForbidden("Accounts access required.")
+
+    is_ajax = (
+        request.headers.get("X-Requested-With")
+        == "XMLHttpRequest"
+    )
+
+    def serialize(reminder):
+        local_event = timezone.localtime(reminder.event_at)
+        local_remind = timezone.localtime(reminder.remind_at)
+
+        return {
+            "id": reminder.pk,
+            "title": reminder.title,
+            "description": reminder.description,
+            "date": local_event.strftime("%Y-%m-%d"),
+            "event_at": local_event.strftime("%Y-%m-%dT%H:%M"),
+            "remind_at": local_remind.strftime("%Y-%m-%dT%H:%M"),
+            "is_completed": reminder.is_completed,
+        }
+
+    def parse_local_datetime(value):
+        try:
+            parsed = parse_datetime(value or "")
+            if parsed and timezone.is_naive(parsed):
+                parsed = timezone.make_aware(
+                    parsed,
+                    timezone.get_current_timezone(),
+                )
+            return parsed
+        except (ValueError, TypeError, OverflowError):
+            return None
+
+    def failure(message, status=400):
+        if is_ajax:
+            return JsonResponse({
+                "ok": False,
+                "message": message,
+            }, status=status)
+
+        messages.error(request, message)
+        return redirect("accounts_reminders")
+
+    def success(message, reminder=None, deleted_id=None):
+        if is_ajax:
+            unread_count = AccountsNotification.objects.filter(
+                recipient=current_user,
+                is_archived=False,
+                is_read=False,
+            ).count()
+
+            return JsonResponse({
+                "ok": True,
+                "message": message,
+                "id": reminder.pk if reminder else deleted_id,
+                "is_completed": (
+                    reminder.is_completed if reminder else None
+                ),
+                "item": serialize(reminder) if reminder else None,
+                "unread_count": unread_count,
+            })
+
+        messages.success(request, message)
+        return redirect("accounts_reminders")
+
+    reminders = AccountsReminder.objects.filter(
+        owner=current_user
+    )
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+
+        if action not in {
+            "create", "update", "delete", "complete", "reopen"
+        }:
+            return failure("Invalid reminder action.")
+
+        with transaction.atomic():
+            reminder = None
+
+            if action != "create":
+                try:
+                    reminder_id = int(
+                        request.POST.get("reminder_id", "")
+                    )
+                except (ValueError, TypeError):
+                    return failure("Invalid reminder ID.")
+
+                reminder = (
+                    reminders.select_for_update()
+                    .filter(pk=reminder_id)
+                    .first()
+                )
+
+                if reminder is None:
+                    return failure(
+                        "Reminder not found.",
+                        status=404,
+                    )
+
+            if action == "delete":
+                deleted_id = reminder.pk
+
+                if reminder.notification_id:
+                    AccountsNotification.objects.filter(
+                        pk=reminder.notification_id,
+                        recipient=current_user,
+                    ).update(is_archived=True)
+
+                reminder.delete()
+                return success(
+                    "Reminder deleted.",
+                    deleted_id=deleted_id,
+                )
+
+            if action in {"complete", "reopen"}:
+                reminder.is_completed = action == "complete"
+                reminder.save(
+                    update_fields=["is_completed", "updated_at"]
+                )
+
+                if (
+                    reminder.is_completed
+                    and reminder.notification_id
+                ):
+                    AccountsNotification.objects.filter(
+                        pk=reminder.notification_id,
+                        recipient=current_user,
+                    ).update(is_read=True)
+
+                return success(
+                    "Reminder completed."
+                    if reminder.is_completed
+                    else "Reminder reopened.",
+                    reminder,
+                )
+
+            title = request.POST.get("title", "").strip()
+            description = request.POST.get(
+                "description", ""
+            ).strip()
+
+            event_at = parse_local_datetime(
+                request.POST.get("event_at")
+            )
+            remind_at = parse_local_datetime(
+                request.POST.get("remind_at")
+            )
+
+            if not title or len(title) > 180:
+                return failure(
+                    "Enter a title with a maximum of 180 characters."
+                )
+
+            if event_at is None or remind_at is None:
+                return failure(
+                    "Enter valid event and reminder dates and times."
+                )
+
+            if remind_at > event_at:
+                return failure(
+                    "Reminder time must be on or before the event."
+                )
+
+            schedule_changed = (
+                reminder is None
+                or reminder.event_at != event_at
+                or reminder.remind_at != remind_at
+            )
+
+            if schedule_changed and remind_at <= timezone.now():
+                return failure("Choose a future reminder time.")
+
+            if reminder is None:
+                reminder = AccountsReminder(owner=current_user)
+
+            if schedule_changed:
+                if reminder.notification_id:
+                    AccountsNotification.objects.filter(
+                        pk=reminder.notification_id,
+                        recipient=current_user,
+                    ).update(is_archived=True)
+
+                reminder.notified_at = None
+                reminder.notification = None
+                reminder.is_completed = False
+
+            reminder.title = title
+            reminder.description = description
+            reminder.event_at = event_at
+            reminder.remind_at = remind_at
+            reminder.save()
+
+            return success(
+                "Reminder created."
+                if action == "create"
+                else "Reminder updated.",
+                reminder,
+            )
+
+    _process_accounts_reminders(current_user)
+
+    today = timezone.localdate()
+    month_value = request.GET.get(
+        "month", today.strftime("%Y-%m")
+    )
+
+    try:
+        if not re.fullmatch(r"\d{4}-\d{2}", month_value):
+            raise ValueError
+        selected_month = date.fromisoformat(
+            month_value + "-01"
+        )
+    except (ValueError, TypeError):
+        selected_month = today.replace(day=1)
+
+    month_reminders = reminders.filter(
+        event_at__year=selected_month.year,
+        event_at__month=selected_month.month,
+    ).order_by("event_at", "id")
+
+    calendar_items = [
+        serialize(reminder)
+        for reminder in month_reminders
+    ]
+
+    context = {
+        "current_user": current_user,
+        "accounts_active": "reminders",
+        "selected_month": selected_month.strftime("%Y-%m"),
+        "month_label": selected_month.strftime("%B %Y"),
+        "calendar_weeks": calendar.Calendar(
+            firstweekday=0
+        ).monthdayscalendar(
+            selected_month.year,
+            selected_month.month,
+        ),
+        "calendar_items": calendar_items,
+        "today": today.isoformat(),
+        "reminders": month_reminders,
+    }
+
+    if request.GET.get("format") == "json":
+        return JsonResponse({
+            "ok": True,
+            "selected_month": context["selected_month"],
+            "month_label": context["month_label"],
+            "calendar_weeks": context["calendar_weeks"],
+            "items": calendar_items,
+            "today": context["today"],
+        })
+
+    return render(
+        request,
+        "accounts/reminders.html",
+        context,
+    )
+
+# Append these imports and functions to monitoringapp/views.py.
+# Keep the existing Team Lead and Team Member functions.
+from urllib.parse import urlencode
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.http import HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST, require_http_methods
+from .models import Notepad
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_notepad(request):
+    if not request.session.get("user_id"):
+        return redirect("login_view")
+    user = _accounts_user(request)
+    if user is None:
+        return HttpResponseForbidden("Accounts access required.")
+    owned = Notepad.objects.filter(user=user)
+    params = request.POST if request.method == "POST" else request.GET
+    query = params.get("q", "").strip()[:200]
+    sort = params.get("sort", "updated")
+    orderings = {"updated": ("-updated_at", "-id"), "created": ("-created_at", "-id"), "title": ("title", "id")}
+    if sort not in orderings:
+        sort = "updated"
+    notes = owned
+    if query:
+        notes = notes.filter(Q(title__icontains=query) | Q(content__icontains=query))
+    page_obj = Paginator(notes.order_by(*orderings[sort]), 4).get_page(params.get("page"))
+    selected_id = request.POST.get("note_id") if request.method == "POST" else None
+    note = None
+    if selected_id:
+        try:
+            selected_id = int(selected_id)
+        except (ValueError, TypeError):
+            return HttpResponseBadRequest("Invalid note ID.")
+        note = get_object_or_404(owned, pk=selected_id)
+    error = ""
+    title = note.title if note else ""
+    content = (note.content or "") if note else ""
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip() or "Untitled"
+        content = request.POST.get("content", "")
+        if len(title) > 255:
+            error = "Title must be 255 characters or fewer."
+        elif not content.strip():
+            error = "Write some content before saving the note."
+        else:
+            if note:
+                note.title, note.content = title, content
+                note.save()
+                _accounts_notepad_notification(user, note.title, "updated")               
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                    return JsonResponse({
+                        "ok": True, "id": note.pk, "title": note.title,
+                        "content": note.content or "",
+                        "updated_at": timezone.localtime(note.updated_at).strftime("%d %b %Y, %I:%M %p"),
+                    })
+                messages.success(request, "Note updated successfully.")
+            else:
+                note = Notepad.objects.create(
+                    user=user,
+                    title=title,
+                    content=content,
+                )
+                _accounts_notepad_notification(user, note.title, "created")
+                messages.success(request, "Note created successfully.")
+            return redirect(reverse("accounts_notepad") + "?" + urlencode({
+                "q": query if selected_id else "", "sort": sort if selected_id else "updated", "page": page_obj.number if selected_id else 1,
+            }))
+    if error and selected_id and request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": error}, status=400)
+    response = render(request, "accounts/notepad.html", {
+        "current_user": user, "accounts_active": "notepad",
+        "note": None, "page_obj": page_obj, "query": query, "sort": sort,
+        "form_title": title if not selected_id else "", "form_content": content if not selected_id else "", "note_error": error,
+        "total_notes": owned.count(),
+    })
+    if error:
+        response.status_code = 400
+    return response
+
+
+@never_cache
+@require_POST
+def accounts_notepad_delete(request, pk):
+    if not request.session.get("user_id"):
+        return redirect("login_view")
+    user = _accounts_user(request)
+    if user is None:
+        return HttpResponseForbidden("Accounts access required.")
+    note = get_object_or_404(Notepad, pk=pk, user=user)
+    note_title = note.title
+    note.delete()
+    _accounts_notepad_notification(user, note_title, "deleted")
+    messages.success(request, "Note deleted successfully.")
+    sort = request.POST.get("sort", "updated")
+    if sort not in {"updated", "created", "title"}:
+        sort = "updated"
+    return redirect(reverse("accounts_notepad") + "?" + urlencode({
+        "q": request.POST.get("q", "").strip()[:200],
+        "sort": sort, "page": request.POST.get("page", "1"),
+    }))
+
+
+def _accounts_notepad_notification(user, note_title, action):
+    from uuid import uuid4
+    from django.urls import reverse
+    from .models import AccountsNotification
+
+    labels = {
+        "created": "Note created",
+        "updated": "Note updated",
+        "deleted": "Note deleted",
+    }
+
+    AccountsNotification.objects.create(
+        recipient=user,
+        kind="note",
+        title=labels[action],
+        message=f'{labels[action]}: "{note_title}"',
+        url=reverse("accounts_notepad"),
+        event_key=f"accounts-note:{uuid4().hex}",
+    )
+
+
+# Append this code to monitoringapp/views.py.
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_profile(request):
+    from django import forms
+    from django.contrib import messages
+    from django.db import IntegrityError, transaction
+    from django.http import HttpResponseForbidden, JsonResponse
+    from django.shortcuts import redirect, render
+    from .models import User
+
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    user = _accounts_user(request)
+    if user is None:
+        if is_ajax:
+            return JsonResponse({"success": False, "message": "Please sign in with an Accounts account."}, status=403 if request.session.get("user_id") else 401)
+        if not request.session.get("user_id"):
+            return redirect("login_view")
+        return HttpResponseForbidden("Accounts access required.")
+
+    class ProfileForm(forms.ModelForm):
+        class Meta:
+            model = User
+            fields = ["name", "email", "phone"]
+
+        def clean_name(self):
+            name = self.cleaned_data["name"].strip()
+            if not name:
+                raise forms.ValidationError("Enter your full name.")
+            return name
+
+    form = ProfileForm(instance=user)
+    error = ""
+
+    def fail(message, errors=None):
+        if is_ajax:
+            return JsonResponse({"success": False, "message": message, "errors": errors or {}}, status=400)
+        messages.error(request, message)
+        return redirect("accounts_profile")
+
+    def result(message):
+        if is_ajax:
+            return JsonResponse({
+                "success": True,
+                "message": message,
+                "name": user.name,
+                "email": user.email,
+                "phone": user.phone or "",
+                "image_url": user.profile_image.url if user.profile_image else "",
+                "initial": (user.name or user.username or "A")[:1].upper(),
+            })
+        messages.success(request, message)
+        return redirect("accounts_profile")
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "upload_photo":
+            upload = request.FILES.get("profile_image")
+            if not upload:
+                return fail("Choose a profile photo.")
+            if upload.size > 5 * 1024 * 1024:
+                return fail("Choose an image smaller than 5 MB.")
+            try:
+                image = forms.ImageField().clean(upload)
+                if getattr(image, "image", None).format not in {"JPEG", "PNG", "WEBP"}:
+                    return fail("Use a JPG, PNG or WebP image.")
+            except forms.ValidationError:
+                return fail("Choose a valid JPG, PNG or WebP image.")
+            user.profile_image = image
+            user.save(update_fields=["profile_image"])
+            return result("Profile photo updated successfully.")
+
+        if action != "edit_profile":
+            return fail("Invalid profile action.")
+
+        form = ProfileForm(request.POST, instance=user)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    user = form.save(commit=False)
+                    # Save only editable personal fields; retain employment fields.
+                    user.save(update_fields=["name", "email", "phone"])
+            except IntegrityError:
+                return fail("This email is already in use. Choose another email.")
+            return result("Profile updated successfully.")
+        error = "Please correct the highlighted fields."
+        if is_ajax:
+            return fail(error, form.errors.get_json_data())
+
+    return render(request, "accounts/profile.html", {
+        "current_user": user,
+        "profile_user": user,
+        "accounts_active": "profile",
+        "profile_form": form,
+        "profile_error": error,
     }, status=400 if error else 200)

@@ -3,7 +3,9 @@
 {% url 'accounts_income' as income_url %}
 {% url 'accounts_expenses' as expenses_url %}
 {% url 'accounts_sales' as sales_url %}
-{% url 'accounts_reports' as reports_url %}
+{% url 'accounts_reminders' as reminders_url %}
+{% url 'accounts_notepad' as notepad_url %}
+{% url 'accounts_notifications' as notifications_url %}
 {% url 'accounts_profile' as profile_url %}
 {% url 'accounts_logout' as logout_url %}
 <button type="button" class="accounts-menu-toggle" id="accountsMenuButton" aria-label="Open sidebar" aria-controls="accountsSidebar" aria-expanded="false"><i data-lucide="menu" aria-hidden="true"></i></button>
@@ -18,7 +20,34 @@
     {% if income_url %}<a class="accounts-nav-item {% if accounts_active == 'income' %}active{% endif %}" href="{{ income_url }}"><i data-lucide="arrow-down-left" aria-hidden="true"></i><span>Income</span></a>{% else %}<button type="button" class="accounts-nav-item" disabled title="Income page will be connected next"><i data-lucide="arrow-down-left" aria-hidden="true"></i><span>Income</span></button>{% endif %}
     {% if expenses_url %}<a class="accounts-nav-item {% if accounts_active == 'expenses' %}active{% endif %}" href="{{ expenses_url }}"><i data-lucide="arrow-up-right" aria-hidden="true"></i><span>Expenses</span></a>{% else %}<button type="button" class="accounts-nav-item" disabled title="Expenses page will be connected next"><i data-lucide="arrow-up-right" aria-hidden="true"></i><span>Expenses</span></button>{% endif %}
     {% if sales_url %}<a class="accounts-nav-item {% if accounts_active == 'sales' %}active{% endif %}" href="{{ sales_url }}"><i data-lucide="receipt-text" aria-hidden="true"></i><span>Sales</span></a>{% else %}<button type="button" class="accounts-nav-item" disabled title="Sales page will be connected next"><i data-lucide="receipt-text" aria-hidden="true"></i><span>Sales</span></button>{% endif %}
-    {% if reports_url %}<a class="accounts-nav-item {% if accounts_active == 'reports' %}active{% endif %}" href="{{ reports_url }}"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i><span>Reports</span></a>{% else %}<button type="button" class="accounts-nav-item" disabled title="Reports page will be connected next"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i><span>Reports</span></button>{% endif %}
+    {% if notepad_url %}
+    <a class="accounts-nav-item {% if accounts_active == 'notepad' %}active{% endif %}" href="{{ notepad_url }}">
+      <i data-lucide="notebook-pen" aria-hidden="true"></i><span>Notepad</span>
+    </a>
+    {% endif %}
+    {% if reminders_url %}
+<a
+  class="accounts-nav-item {% if accounts_active == 'reminders' %}active{% endif %}"
+  href="{{ reminders_url }}"
+>
+  <i data-lucide="calendar-clock" aria-hidden="true"></i>
+  <span>Reminders</span>
+</a>
+{% endif %}
+{% if notifications_url %}
+<a
+  class="accounts-nav-item {% if accounts_active == 'notifications' %}active{% endif %}"
+  href="{{ notifications_url }}"
+  id="accountsNotificationLink"
+  data-feed-url="{{ notifications_url }}?format=json"
+>
+  <span class="accounts-notification-icon">
+    <i data-lucide="bell" aria-hidden="true"></i>
+    <span class="accounts-notification-badge" id="accountsNotificationBadge" hidden></span>
+  </span>
+  <span>Notifications</span>
+</a>
+{% endif %}
     {% if profile_url %}<a class="accounts-nav-item {% if accounts_active == 'profile' %}active{% endif %}" href="{{ profile_url }}">{% else %}<button type="button" class="accounts-nav-item" disabled title="Profile page will be connected later">{% endif %}
       <span class="accounts-avatar">{% if current_user.profile_image %}<img src="{{ current_user.profile_image.url }}" alt="">{% else %}{{ current_user.name|default:current_user.username|default:'A'|slice:':1'|upper }}{% endif %}</span><span>Profile</span>
     {% if profile_url %}</a>{% else %}</button>{% endif %}

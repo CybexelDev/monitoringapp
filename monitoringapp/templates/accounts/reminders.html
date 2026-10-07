@@ -1,0 +1,1391 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% block title %}Reminders - Accounts{% endblock %}
+{% block page_heading %}REMINDERS{% endblock %}
+{% block page_description %}Plan your dates. Keep your next priority in view.{% endblock %}
+{% block extra_css %}<style>
+        /* Page styles are scoped so the shared sidebar keeps its own design. */
+        
+
+        body.modal-open {
+            overflow: hidden
+        }
+        .reminder-main,
+        .reminder-main *,
+        .reminder-dialog,
+        .reminder-dialog * {
+            box-sizing: border-box
+        }
+        .reminder-main {
+            margin-left: 290px;
+            padding: 18px 20px;
+            min-width: 0
+        }
+        .reminder-shell {
+            max-width: 1450px;
+            margin: auto;
+            padding: 24px;
+            border-radius: 28px;
+            background: linear-gradient(145deg, rgba(17, 16, 24, .94), rgba(8, 9, 14, .96));
+            border: 1px solid rgba(255, 255, 255, .10);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .035)
+        }
+        .reminder-header,
+        .calendar-heading,
+        .reminder-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+        .reminder-header {
+            margin-bottom: 25px
+        }
+        .reminder-main .eyebrow {
+            color: #a78bfa;
+            font-size: 9px;
+            letter-spacing: 1.8px;
+            font-weight: 800
+        }
+        .reminder-main h1 {
+            font-size: 26px;
+            font-weight: 750;
+            margin: 8px 0
+        }
+        .reminder-main h2,
+        .reminder-dialog h2 {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0
+        }
+        .reminder-main p,
+        .reminder-dialog p {
+            color: #98939f;
+            font-size: 12px;
+            line-height: 1.7
+        }
+        .reminder-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(280px, 1fr);
+            gap: 18px;
+            align-items: start
+        }
+        .reminder-panel {
+            min-width: 0;
+            padding: 22px;
+            border: 1px solid rgba(255, 255, 255, .09);
+            border-radius: 20px;
+            background: linear-gradient(145deg, rgba(27, 26, 34, .90), rgba(16, 16, 22, .92));
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .20), inset 0 1px 0 rgba(255, 255, 255, .035)
+        }
+        .reminder-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 0 13px;
+            border: 1px solid rgba(255, 255, 255, .09);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .045);
+            color: #e8e3ef;
+            font: inherit;
+            font-size: 11px;
+            font-weight: 650;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background .2s, border-color .2s
+        }
+        .reminder-btn:hover {
+            background: rgba(139, 92, 246, .15);
+            border-color: rgba(139, 92, 246, .35)
+        }
+        .reminder-btn.primary {
+            background: linear-gradient(135deg, #7c4bd4, #5b32a7);
+            border-color: rgba(167, 139, 250, .35);
+            box-shadow: 0 10px 25px rgba(124, 75, 212, .18);
+            color: #fff
+        }
+        .reminder-btn.danger {
+            color: #ff8d99;
+            border-color: rgba(255, 70, 85, .20);
+            background: rgba(255, 70, 85, .08)
+        }
+        .reminder-btn svg {
+            width: 15px;
+            height: 15px
+        }
+        .calendar-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px
+        }
+        .calendar-controls .reminder-btn {
+            padding: 0 10px
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 7px;
+            margin-top: 21px
+        }
+        .reminder-main .weekday {
+            text-align: center;
+            color: #8f8c96;
+            font-size: 10px;
+            font-weight: 650;
+            padding: 8px 0
+        }
+        .reminder-main .day {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 68px;
+            border: 1px solid rgba(255, 255, 255, .045);
+            border-radius: 11px;
+            background: rgba(255, 255, 255, .025);
+            color: #c9c5d1;
+            font: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background .2s, border-color .2s
+        }
+        .reminder-main .day:hover {
+            border-color: rgba(139, 92, 246, .30);
+            background: rgba(139, 92, 246, .08)
+        }
+        .reminder-main .day.today {
+            border-color: rgba(167, 139, 250, .6)
+        }
+        .reminder-main .day.selected {
+            background: linear-gradient(135deg, rgba(111, 76, 190, .82), rgba(63, 79, 153, .72));
+            border-color: rgba(154, 122, 255, .50);
+            color: #fff;
+            box-shadow: 0 7px 20px rgba(99, 102, 241, .14)
+        }
+        .reminder-main .day.blank {
+            visibility: hidden
+        }
+        .reminder-main .day .dot {
+            display: block;
+            width: 5px;
+            height: 5px;
+            margin-top: 7px;
+            border-radius: 50%;
+            background: #c4b5fd
+        }
+        .reminder-main .day .dot.completed {
+            background: #68e69b
+        }
+        .calendar-legend {
+            display: flex;
+            gap: 18px;
+            margin-top: 20px;
+            font-size: 10px;
+            color: #8f8c96
+        }
+        .calendar-legend span::before {
+            content: '';
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            background: #b99cff;
+            border-radius: 50%;
+            margin-right: 6px
+        }
+        .calendar-legend span:last-child::before {
+            background: #68e69b
+        }
+        .reminder-main .reminder-date-label {
+            margin: 9px 0 18px;
+            font-size: 11px
+        }
+        .reminder-filter {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 18px;
+            padding: 4px;
+            border: 1px solid rgba(255, 255, 255, .07);
+            border-radius: 10px;
+            background: rgba(5, 5, 9, .27)
+        }
+        .reminder-filter button {
+            flex: 1;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 7px;
+            padding: 7px;
+            color: #99939f;
+            font: inherit;
+            font-size: 10px;
+            cursor: pointer
+        }
+        .reminder-filter button[aria-pressed=true] {
+            background: rgba(139, 92, 246, .14);
+            border-color: rgba(139, 92, 246, .22);
+            color: #d9c7fa
+        }
+        .reminder-list {
+            max-height: 420px;
+            overflow: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(151, 112, 235, .65) transparent
+        }
+        .reminder-card {
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            border-radius: 12px;
+            background: rgba(7, 7, 11, .4);
+            margin-bottom: 10px
+        }
+        .reminder-card h3 {
+            font-size: 13px;
+            font-weight: 650;
+            margin: 0;
+            overflow-wrap: anywhere
+        }
+        .reminder-card p {
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+            margin: 9px 0
+        }
+        .reminder-meta {
+            display: block;
+            color: #9d94a8;
+            font-size: 11px;
+            margin-top: 8px;
+            line-height: 1.7
+        }
+        .reminder-card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 14px
+        }
+        .reminder-card-actions .reminder-btn {
+            font-size: 10px;
+            min-height: 30px;
+            padding: 0 9px
+        }
+        .completed-label {
+            color: #68e69b;
+            font-size: 10px
+        }
+        .reminder-main .empty {
+            padding: 65px 12px;
+            text-align: center;
+            color: #98939f;
+            font-size: 12px;
+            line-height: 1.8
+        }
+        .reminder-message {
+            padding: 12px 15px;
+            border: 1px solid rgba(139, 92, 246, .25);
+            border-radius: 10px;
+            background: rgba(139, 92, 246, .08);
+            font-size: 12px;
+            margin-bottom: 14px
+        }
+        .reminder-message.error {
+            border-color: rgba(255, 70, 85, .3);
+            background: rgba(255, 70, 85, .08)
+        }
+        .reminder-dialog {
+            width: min(490px, calc(100% - 28px));
+            max-height: 90dvh;
+            overflow: auto;
+            padding: 24px;
+            border: 1px solid rgba(167, 139, 250, .25);
+            border-radius: 20px;
+            background: linear-gradient(145deg, #1b1a22, #101016);
+            color: #fff;
+            box-shadow: 0 25px 70px #0008;
+            scrollbar-width: thin;
+            scrollbar-color: #775292 transparent
+        }
+        .reminder-dialog::backdrop {
+            background: rgba(8, 5, 13, .25);
+            backdrop-filter: blur(8px)
+        }
+        .dialog-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 18px
+        }
+        .dialog-header .reminder-btn {
+            padding: 0 8px;
+            min-height: 32px
+        }
+        .reminder-field {
+            display: block;
+            font-size: 11px;
+            color: #b5afbd;
+            margin: 14px 0
+        }
+        .reminder-field input,
+        .reminder-field textarea,
+        .reminder-field select {
+            width: 100%;
+            margin-top: 7px;
+            padding: 11px;
+            border: 1px solid rgba(255, 255, 255, .10);
+            border-radius: 9px;
+            background: rgba(7, 7, 11, .85);
+            color: #e9e3ef;
+            font: inherit;
+            font-size: 12px;
+            color-scheme: dark
+        }
+        .reminder-field textarea {
+            resize: vertical;
+            min-height: 80px
+        }
+        .dialog-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 22px
+        }
+        .reminder-main button:focus-visible,
+        .reminder-main a:focus-visible,
+        .reminder-dialog button:focus-visible,
+        .reminder-dialog input:focus-visible,
+        .reminder-dialog textarea:focus-visible,
+        .reminder-dialog select:focus-visible {
+            outline: 2px solid #a78bfa;
+            outline-offset: 3px
+        }
+        .reminder-main [hidden],
+        .reminder-dialog [hidden] {
+            display: none !important
+        }
+        @media(max-width:1100px) {
+            .reminder-layout {
+                grid-template-columns: 1fr
+            }
+            .reminder-main {
+                padding: 18px
+            }
+            .reminder-shell {
+                padding: 20px
+            }
+        }
+        @media(max-width:768px) {
+            .reminder-main {
+                margin-left: 0;
+                padding: 76px 12px 24px
+            }
+            .reminder-shell {
+                padding: 16px;
+                border-radius: 20px
+            }
+            .reminder-panel {
+                padding: 15px
+            }
+            .reminder-main .day {
+                min-height: 51px
+            }
+            .calendar-grid {
+                gap: 4px
+            }
+            .reminder-main h1 {
+                font-size: 23px
+            }
+            .reminder-header {
+                gap: 15px
+            }
+        }
+        .datetime-buttons {
+            display: grid;
+            grid-template-columns: 1.25fr 1fr;
+            gap: 9px;
+            margin-top: 7px
+        }
+        .picker-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-height: 44px;
+            padding: 0 12px;
+            border: 1px solid #594372;
+            border-radius: 11px;
+            background: #0b0912;
+            color: #e9e0f4;
+            font: inherit;
+            font-size: 12px;
+            cursor: pointer
+        }
+        .picker-trigger svg {
+            width: 16px;
+            height: 16px;
+            color: #c4a7ec
+        }
+        .picker-trigger[aria-expanded=true] {
+            border-color: #a078d4;
+            box-shadow: 0 0 0 3px #8b5cf61a
+        }
+        .picker-panel {
+            max-width: 340px;
+            margin-top: 9px;
+            padding: 14px;
+            border: 1px solid #493653;
+            border-radius: 15px;
+            background: linear-gradient(145deg, #21182f, #0c0a12 65%);
+            box-shadow: 0 15px 30px #0004
+        }
+        .picker-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px
+        }
+        .picker-top strong {
+            font-size: 12px
+        }
+        .picker-nav,
+        .picker-footer button,
+        .time-period button {
+            border: 1px solid #443451;
+            border-radius: 8px;
+            background: #241b30;
+            color: #e8def4;
+            min-height: 32px;
+            padding: 0 10px;
+            font: inherit;
+            font-size: 12px;
+            cursor: pointer
+        }
+        .picker-calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px
+        }
+        .picker-weekday {
+            text-align: center;
+            font-size: 9px;
+            font-weight: 700;
+            color: #8f859b;
+            padding: 7px 0
+        }
+        .picker-date {
+            height: 34px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            background: transparent;
+            color: #d6cce1;
+            font: inherit;
+            font-size: 11px;
+            cursor: pointer
+        }
+        .picker-date:hover {
+            background: #392446
+        }
+        .picker-date.chosen {
+            background: #6f3cb5;
+            color: white
+        }
+        .picker-date.current {
+            border-color: #9171b1
+        }
+        .picker-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            border-top: 1px solid #ffffff12;
+            padding-top: 12px;
+            margin-top: 12px
+        }
+        .picker-footer button {
+            background: transparent;
+            color: #c9adeb
+        }
+        .time-editor {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 14px 0
+        }
+        .reminder-dialog .time-editor input {
+            width: 58px;
+            margin: 0;
+            padding: 11px 7px;
+            text-align: center;
+            border: 1px solid #594372;
+            border-radius: 9px;
+            background: #0b0912;
+            color: #eee5f8;
+            font-size: 14px
+        }
+        .time-period {
+            display: flex;
+            gap: 5px;
+            margin-left: auto
+        }
+        .time-period button {
+            min-height: 40px
+        }
+        .time-period button[aria-pressed=true],
+        .picker-footer .set-time {
+            background: #7c3aed;
+            border-color: #9f6bee;
+            color: white
+        }
+        .picker-error {
+            color: #ff9bab !important;
+            font-size: 11px;
+            margin-top: 6px
+        }
+        .picker-trigger:focus-visible,
+        .picker-panel button:focus-visible {
+            outline: 2px solid #ba92e1;
+            outline-offset: 2px
+        }
+        @media(max-width:420px) {
+            .datetime-buttons {
+                grid-template-columns: 1fr
+            }
+            .time-editor {
+                gap: 5px
+            }
+            .time-period button {
+                padding: 0 7px
+            }
+        }
+        .reminder-hero {
+            position: relative;
+            min-height: 168px;
+            padding: 30px 32px;
+            border-radius: 25px;
+            overflow: hidden;
+            background: linear-gradient(110deg, rgba(44, 32, 55, .62), rgba(18, 23, 31, .72), rgba(30, 31, 59, .62));
+            border: 1px solid rgba(255, 255, 255, .10);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04)
+        }
+        .reminder-hero::before {
+            content: '';
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            right: -100px;
+            top: -130px;
+            background: rgba(99, 102, 241, .13);
+            filter: blur(80px);
+            pointer-events: none
+        }
+        .reminder-hero-content {
+            position: relative;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px
+        }
+        .reminder-hero .eyebrow {
+            display: block;
+            margin-bottom: 15px;
+            font-size: 10px;
+            letter-spacing: 3px
+        }
+        .reminder-main .reminder-hero h1 {
+            margin: 0;
+            font-size: clamp(32px, 4vw, 50px);
+            line-height: 1.1;
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            background: linear-gradient(90deg, #fff, #c4b5fd 45%, #67c8ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent
+        }
+        .reminder-hero p {
+            margin: 16px 0 0;
+            font-size: 13px
+        }
+        .reminder-overview-heading {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin: 28px 0 18px
+        }
+        .reminder-overview-heading h2 {
+            margin-top: 7px;
+            font-size: 20px
+        }
+        .overview-line {
+            height: 1px;
+            flex: 1;
+            background: linear-gradient(90deg, #8b5cf640, transparent)
+        }
+        .overview-month {
+            font-size: 11px;
+            color: #9d94a8
+        }
+        .reminder-stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 22px
+        }
+        .reminder-stat {
+            padding: 19px;
+            border-radius: 17px;
+            border: 1px solid #ffffff16;
+            background: linear-gradient(145deg, rgba(27, 26, 34, .90), rgba(16, 16, 22, .92));
+            box-shadow: inset 0 1px 0 #ffffff08
+        }
+        .reminder-stat span {
+            display: block;
+            color: #8f8c96;
+            font-size: 9px;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+            font-weight: 750
+        }
+        .reminder-stat strong {
+            display: block;
+            margin-top: 15px;
+            font-size: 27px;
+            line-height: 1;
+            color: #f0a7dc
+        }
+        .reminder-stat:nth-child(2) strong {
+            color: #9cc8ff
+        }
+        .reminder-stat:nth-child(3) strong {
+            color: #ff8d99
+        }
+        .reminder-stat:nth-child(4) strong {
+            color: #68e69b
+        }
+        .reminder-list-tools {
+            margin: 0 0 15px
+        }
+        .reminder-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 10px;
+            border: 1px solid #ffffff18;
+            border-radius: 9px;
+            background: #09090f
+        }
+        .reminder-search svg {
+            width: 14px;
+            color: #9d8cb6
+        }
+        .reminder-search input {
+            width: 100%;
+            height: 37px;
+            border: 0;
+            outline: none;
+            background: transparent;
+            color: #eee5f8;
+            font: inherit;
+            font-size: 11px
+        }
+        .reminder-search:focus-within {
+            border-color: #9c79c5
+        }
+        .reminder-scope {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px
+        }
+        .reminder-scope button {
+            padding: 6px 9px;
+            border: 1px solid #ffffff12;
+            border-radius: 7px;
+            background: transparent;
+            color: #a398b1;
+            font: inherit;
+            font-size: 10px;
+            cursor: pointer
+        }
+        .reminder-scope button[aria-pressed=true] {
+            background: #8b5cf616;
+            border-color: #8b5cf640;
+            color: #ddcbf6
+        }
+        .reminder-card.is-completed {
+            border-color: #68e69b30
+        }
+        .reminder-card.is-completed h3 {
+            color: #a4b9ac
+        }
+        .reminder-card.is-overdue {
+            border-color: #ff8d9930
+        }
+        .overdue-label {
+            display: inline-block;
+            color: #ff9aaa;
+            font-size: 10px;
+            margin-top: 5px
+        }
+        .reminder-btn:disabled {
+            opacity: .5;
+            cursor: wait
+        }
+        .reminder-card-actions form {
+            margin: 0
+        }
+        .reminder-feedback.error {
+            color: #ff9aaa
+        }
+        @media(max-width:768px) {
+            .reminder-hero {
+                padding: 23px 19px;
+                min-height: 150px
+            }
+            .reminder-hero-content {
+                align-items: flex-start;
+                flex-direction: column
+            }
+            .reminder-stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px
+            }
+            .reminder-stat {
+                padding: 15px
+            }
+            .overview-month {
+                display: none
+            }
+            .reminder-main .reminder-hero h1 {
+                font-size: 34px
+            }
+        }
+/* Scroll and responsive layout */
+
+.reminder-main{position:fixed;inset:0 0 0 290px;margin-left:0;height:100vh;height:100dvh;padding:18px 20px;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#8960c6 transparent;scrollbar-gutter:stable;overscroll-behavior-y:contain}
+body.modal-open .reminder-main{overflow:hidden}
+.reminder-main::-webkit-scrollbar,.reminder-list::-webkit-scrollbar,.reminder-dialog::-webkit-scrollbar{width:6px;height:6px}
+.reminder-main::-webkit-scrollbar-thumb,.reminder-list::-webkit-scrollbar-thumb,.reminder-dialog::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#8b5cf6,#4f46e5);border-radius:20px}
+.reminder-shell{width:100%;min-width:0;max-width:1450px;margin:auto}
+.reminder-layout{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
+.reminder-layout>*{min-width:0}
+.reminder-list{max-height:clamp(250px,45dvh,440px);overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable;overscroll-behavior:contain;padding-right:4px}
+.reminder-header,.reminder-hero-content,.calendar-heading,.reminder-actions{min-width:0}
+.reminder-hero-content>div{min-width:0}.reminder-hero-content>.reminder-btn{flex-shrink:0}
+.reminder-main h1,.reminder-main h2,.reminder-main p,.reminder-dialog p{overflow-wrap:anywhere}
+.reminder-search input{min-width:0}.calendar-grid{min-width:0}
+.reminder-dialog{max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable}
+.reminder-dialog .dialog-footer{flex-wrap:wrap}.picker-panel{width:100%;max-width:340px}.time-editor{flex-wrap:wrap}
+@media(max-width:1200px){.reminder-layout{grid-template-columns:1fr}.reminder-panel{width:100%}.reminder-list{max-height:360px}.reminder-hero-content{gap:16px}}
+@media(max-width:900px){.reminder-main{padding:16px}.reminder-shell{padding:18px}.reminder-hero{padding:24px 20px}.reminder-hero-content{flex-direction:column;align-items:flex-start}.reminder-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.calendar-heading{gap:10px}.calendar-controls{flex-wrap:wrap}}
+@media(max-width:768px){.reminder-main{left:0;padding:76px 12px 24px}.reminder-shell{padding:15px;border-radius:20px}.reminder-layout{gap:14px}.reminder-panel{padding:15px}.reminder-overview-heading{gap:10px}.reminder-main .reminder-hero h1{font-size:clamp(27px,7vw,36px);letter-spacing:-1px}.reminder-hero .eyebrow{font-size:9px;letter-spacing:1.5px}.reminder-list{max-height:320px}.reminder-dialog{padding:20px;width:calc(100% - 24px)}.reminder-stats{gap:9px}.reminder-stat{padding:15px}.reminder-stat span{letter-spacing:.7px}.reminder-stat strong{font-size:24px}}
+@media(max-width:420px){.reminder-main{padding-left:8px;padding-right:8px}.reminder-shell{padding:11px}.reminder-panel{padding:12px}.reminder-hero{padding:20px 15px}.calendar-grid{gap:3px}.reminder-main .day{min-height:43px;font-size:11px;border-radius:8px}.reminder-main .weekday{font-size:9px}.calendar-heading h2{font-size:14px}.calendar-controls{gap:4px}.calendar-controls .reminder-btn{min-height:32px;padding:0 8px;font-size:10px}.reminder-filter button{padding:7px 5px}.calendar-legend{flex-wrap:wrap;gap:10px}.reminder-card-actions{gap:5px}.datetime-buttons{grid-template-columns:1fr}.reminder-dialog{padding:16px}.picker-panel{padding:11px}.time-period{margin-left:0}.dialog-header h2{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.reminder-main *,.reminder-dialog *{transition:none!important;scroll-behavior:auto!important}}
+
+/* Exact dashboard dimensions and visual rules, scoped to Reminders. */
+.reminder-main {
+              position: fixed;
+
+              top: 0;
+              right: 0;
+              bottom: 0;
+              left: 275px;
+
+              padding: 18px 20px;
+
+              overflow: hidden;
+          }
+.reminder-shell {
+              position: relative;
+
+              width: 100%;
+              height: 100%;
+
+              overflow-y: auto;
+              overflow-x: hidden;
+
+              padding: 16px;
+
+              border-radius: 28px;
+
+              background:
+                  linear-gradient(
+                      145deg,
+                      rgba(17, 16, 24, 0.94),
+                      rgba(8, 9, 14, 0.96)
+                  );
+
+              border: 1px solid rgba(255, 255, 255, 0.10);
+
+              box-shadow:
+                  0 25px 80px rgba(0, 0, 0, 0.35),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+              backdrop-filter: blur(25px);
+              -webkit-backdrop-filter: blur(25px);
+
+              scrollbar-width: thin;
+              scrollbar-color:
+                  rgba(151, 112, 235, 0.65)
+                  transparent;
+          }
+.reminder-hero {
+              position: relative;
+
+              min-height: 168px;
+
+              display: flex;
+              align-items: center;
+
+              padding: 30px 32px;
+
+              border-radius: 25px;
+
+              overflow: hidden;
+
+              background:
+                  linear-gradient(
+                      110deg,
+                      rgba(44, 32, 55, 0.62),
+                      rgba(18, 23, 31, 0.72),
+                      rgba(30, 31, 59, 0.62)
+                  );
+
+              border: 1px solid rgba(255, 255, 255, 0.10);
+
+              box-shadow:
+                  inset 0 1px 0 rgba(255, 255, 255, 0.04);
+          }
+.reminder-hero::before {
+              content: "";
+
+              position: absolute;
+
+              width: 260px;
+              height: 260px;
+
+              right: -100px;
+              top: -130px;
+
+              background: rgba(99, 102, 241, 0.13);
+
+              filter: blur(80px);
+
+              pointer-events: none;
+          }
+.reminder-hero-content {
+              position: relative;
+              z-index: 2;
+
+              width: 100%;
+
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+
+              gap: 25px;
+          }
+.reminder-hero .eyebrow {
+              margin-bottom: 15px;
+
+              color: #a78bfa;
+
+              font-size: 10px;
+              font-weight: 800;
+
+              letter-spacing: 3px;
+          }
+.reminder-main .reminder-hero h1 {
+              margin: 0;
+
+              font-size: clamp(34px, 4vw, 52px);
+
+              line-height: 1;
+              font-weight: 900;
+
+              letter-spacing: -2px;
+
+              background:
+                  linear-gradient(
+                      90deg,
+                      #ffffff 0%,
+                      #c4b5fd 45%,
+                      #67c8ff 100%
+                  );
+
+              -webkit-background-clip: text;
+              background-clip: text;
+
+              -webkit-text-fill-color: transparent;
+          }
+.reminder-main .reminder-hero p {
+              margin: 18px 0 0;
+
+              color: #96939e;
+
+              font-size: 14px;
+          }
+.reminder-stats {
+      display: grid !important;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin: 0 0 26px;
+  }
+.reminder-stat {
+      position: relative;
+      min-width: 0;
+      min-height: 142px;
+      padding: 21px !important;
+      overflow: hidden;
+      border-radius: 20px !important;
+      background: linear-gradient(145deg, rgba(27,26,34,.90), rgba(16,16,22,.92)) !important;
+      border: 1px solid rgba(255,255,255,.09) !important;
+      box-shadow: 0 20px 50px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.035) !important;
+      transition: transform .22s ease, border-color .22s ease, background .22s ease;
+  }
+.reminder-stat::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(139,92,246,.055), transparent 45%);
+  }
+.reminder-stat:hover {
+      transform: translateY(-2px);
+      border-color: rgba(139,92,246,.25) !important;
+  }
+.reminder-stat span {
+      position: relative;
+      z-index: 1;
+      margin: 0 0 19px !important;
+      color: #8f8c96 !important;
+      font-size: 9px !important;
+      font-weight: 800 !important;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+  }
+.reminder-stat strong {
+      position: relative;
+      z-index: 1;
+      margin: 0 !important;
+      font-size: 29px;
+      font-weight: 850 !important;
+      line-height: 1.1 !important;
+      color: #fff !important;
+  }
+.reminder-panel {
+      width: 100%;
+      min-width: 0;
+      margin: 0 0 22px !important;
+      padding: 23px !important;
+      box-sizing: border-box;
+      border-radius: 20px !important;
+      background: linear-gradient(145deg, rgba(27,26,34,.90), rgba(16,16,22,.92)) !important;
+      border: 1px solid rgba(255,255,255,.09) !important;
+      box-shadow: 0 20px 50px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.035) !important;
+      color: #fff;
+  }
+.reminder-overview-heading {
+              display: flex;
+
+              align-items: center;
+
+              gap: 18px;
+
+              margin-bottom: 15px;
+          }
+.reminder-overview-heading .eyebrow {
+              display: block;
+
+              margin-bottom: 6px;
+
+              color: #a78bfa;
+
+              font-size: 9px;
+
+              font-weight: 800;
+
+              letter-spacing: 2.5px;
+          }
+.reminder-main .reminder-overview-heading h2 {
+              margin: 0;
+
+              color: #ffffff;
+
+              font-size: 20px;
+
+              font-weight: 800;
+          }
+.overview-line {
+              flex: 1;
+
+              height: 1px;
+
+              background:
+                  linear-gradient(
+                      90deg,
+                      rgba(255,255,255,0.12),
+                      transparent
+                  );
+          }
+
+.reminder-main{margin:0;height:auto;overflow:hidden;scrollbar-gutter:auto;left:275px;max-width:none}
+.reminder-shell{max-width:none;margin:0;scrollbar-gutter:auto}
+.reminder-shell::-webkit-scrollbar{width:7px}.reminder-shell::-webkit-scrollbar-track{background:transparent}.reminder-shell::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#8b5cf6,#4f46e5);border-radius:20px}
+.reminder-header{margin-bottom:0}.reminder-hero-content{flex-wrap:nowrap;flex-direction:row;align-items:center}
+.reminder-overview-heading{margin-top:32px;margin-bottom:15px}.reminder-stats{margin:0 0 26px}.reminder-stat span{display:block}.reminder-stat strong{display:block}.reminder-stat:nth-child(1) strong{color:#f0a7dc!important}.reminder-stat:nth-child(2) strong{color:#68e69b!important}.reminder-stat:nth-child(3) strong{color:#ff8d99!important}.reminder-stat:nth-child(4) strong{color:#c4b5fd!important}
+.reminder-layout{gap:16px;padding-bottom:13px}.reminder-panel{margin-bottom:0!important}.reminder-main .reminder-hero h1{color:transparent;font-size:clamp(34px,4vw,52px);letter-spacing:-2px}.reminder-overview-heading .overview-month{font-size:11px}.reminder-main .reminder-overview-heading h2{margin:0}.reminder-hero .eyebrow{display:block}.reminder-hero>.reminder-btn{flex-shrink:0}body.modal-open .reminder-shell{overflow:hidden}
+@media(max-width:1200px){.reminder-layout{grid-template-columns:1fr}}
+@media(max-width:1100px){.reminder-main{left:285px;padding:14px}.reminder-hero{padding:26px}.reminder-main .reminder-hero h1{font-size:42px}.reminder-hero-content{flex-direction:column;align-items:flex-start;gap:18px}.reminder-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.reminder-shell{padding:16px}}
+@media(max-width:768px){.reminder-main{left:0;top:0;right:0;bottom:0;padding:68px 10px 10px}.reminder-shell{padding:14px;border-radius:22px}.reminder-hero{padding:24px 20px;border-radius:20px}.reminder-main .reminder-hero h1{font-size:clamp(30px,7vw,42px);letter-spacing:-1px}.reminder-hero .eyebrow{font-size:9px;letter-spacing:2px}.reminder-main .reminder-hero p{font-size:12px;line-height:1.7}.reminder-stats{gap:12px}.reminder-stat{min-height:120px;padding:19px!important}.reminder-panel{padding:17px!important}.reminder-overview-heading{margin-top:26px}.reminder-stat strong{font-size:26px}}
+@media(max-width:420px){.reminder-shell{padding:11px}.reminder-stat{padding:15px!important;min-height:110px}.reminder-stat span{font-size:8px!important;letter-spacing:1px}.reminder-stats{gap:9px}.reminder-hero{padding:22px 16px}.reminder-main .reminder-overview-heading h2{font-size:18px}}
+
+/* Shared Accounts base owns the page and sidebar layout. */
+.reminder-main{position:static!important;inset:auto!important;margin:0!important;padding:0!important;height:auto!important;min-height:0;overflow:visible!important}
+.reminder-shell{display:contents}
+.reminder-stats{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+body.modal-open .accounts-main{overflow:hidden!important}
+.reminder-dialog::backdrop{background:rgba(8,5,13,.25);backdrop-filter:blur(4px)}
+@media(max-width:768px){.reminder-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important}.reminder-panel{padding:15px!important}.reminder-stat{min-height:110px;padding:15px!important}}
+
+body.accounts-workspace .reminder-layout>* {min-width:0;max-width:100%}
+body.accounts-workspace .calendar-grid {grid-template-columns:repeat(7,minmax(0,1fr))}
+body.accounts-workspace :is(.reminder-card,.reminder-meta,.reminder-date-label) {overflow-wrap:anywhere}
+body.accounts-workspace .reminder-dialog :is(input,textarea,select) {max-width:100%}
+body.accounts-workspace .reminder-card-actions {flex-wrap:wrap}
+@media(max-width:480px) {
+ body.accounts-workspace .calendar-heading {flex-wrap:wrap}
+ body.accounts-workspace .calendar-grid {gap:3px}
+ body.accounts-workspace .day {min-width:0;min-height:40px;padding:6px 2px;font-size:11px}
+ body.accounts-workspace .reminder-list-tools {flex-wrap:wrap}
+ body.accounts-workspace .reminder-search {width:100%;min-width:0}
+ body.accounts-workspace .dialog-footer {flex-wrap:wrap}
+ body.accounts-workspace .reminder-dialog :is(input,textarea,select) {font-size:16px}
+}
+</style>{% endblock %}
+{% block content %}<div class="reminder-main">
+        <div class="reminder-shell">
+            <div class="reminder-actions"><p>Your personal calendar and reminders.</p><button type="button" id="newReminder" class="reminder-btn primary"><i data-lucide="plus" aria-hidden="true"></i>Add reminder</button></div>
+            <div class="reminder-overview-heading">
+                <div><span class="eyebrow">MONTHLY OVERVIEW</span>
+                    <h2>Your planner</h2>
+                </div><span class="overview-line"></span><span class="overview-month">{{ month_label }}</span>
+            </div>
+            <div class="reminder-stats">
+                <div class="reminder-stat"><span>This month</span><strong id="totalCount">0</strong></div>
+                <div class="reminder-stat"><span>Active</span><strong id="activeCount">0</strong></div>
+                <div class="reminder-stat"><span>Overdue events</span><strong id="overdueCount">0</strong></div>
+                <div class="reminder-stat"><span>Completed</span><strong id="completedCount">0</strong></div>
+            </div>
+            <div id="reminderFeedback" class="reminder-message" role="status" hidden></div>
+            <div class="reminder-layout">
+                <section class="reminder-panel" aria-labelledby="monthHeading">
+                    <div class="calendar-heading">
+                        <h2 id="monthHeading">{{ month_label }}</h2>
+                        <div class="calendar-controls"><a id="previousMonth" class="reminder-btn"
+                                aria-label="Previous month"><i data-lucide="chevron-left" aria-hidden="true"></i></a><a
+                                class="reminder-btn" href="{% url 'accounts_reminders' %}">Today</a><a id="nextMonth"
+                                class="reminder-btn" aria-label="Next month"><i data-lucide="chevron-right"
+                                    aria-hidden="true"></i></a></div>
+                    </div>
+                    <div class="calendar-grid"><span class="weekday">Mon</span><span class="weekday">Tue</span><span
+                            class="weekday">Wed</span><span class="weekday">Thu</span><span
+                            class="weekday">Fri</span><span class="weekday">Sat</span><span class="weekday">Sun</span>
+                        {% for week in calendar_weeks %}{% for day in week %}{% if day %}<button type="button"
+                            class="day" data-day="{{ day }}">{{ day }}</button>{% else %}<span class="day blank"
+                            aria-hidden="true"></span>{% endif %}{% endfor %}{% endfor %}
+                    </div>
+                    <div class="calendar-legend"><span>Active reminder</span><span>Completed</span></div>
+                </section>
+                <section class="reminder-panel" aria-labelledby="selectedHeading">
+                    <div class="reminder-actions">
+                        <h2 id="selectedHeading">Your reminders</h2><button type="button" class="reminder-btn"
+                            id="addSelected" aria-label="Add reminder for selected date"><i data-lucide="plus"
+                                aria-hidden="true"></i>Add</button>
+                    </div>
+                    <p class="reminder-date-label" id="selectedDateLabel"></p>
+                    <div class="reminder-filter" role="group" aria-label="Reminder status"><button type="button"
+                            data-status="all" aria-pressed="true">All</button><button type="button" data-status="active"
+                            aria-pressed="false">Active</button><button type="button" data-status="completed"
+                            aria-pressed="false">Completed</button></div>
+                    <div class="reminder-list-tools"><label class="reminder-search"><i data-lucide="search"
+                                aria-hidden="true"></i><input type="search" id="reminderSearch"
+                                placeholder="Search title or description"
+                                aria-label="Search this month’s reminders"></label>
+                        <div class="reminder-scope" role="group" aria-label="Date range"><button type="button"
+                                data-scope="day" aria-pressed="true">Selected day</button><button type="button"
+                                data-scope="month" aria-pressed="false">Full month</button></div>
+                    </div>
+                    <div class="reminder-list" id="reminderList" tabindex="0" role="region" aria-label="Reminder list" aria-live="polite"></div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <dialog class="reminder-dialog" id="editDialog" aria-labelledby="editHeading">
+        <div class="dialog-header">
+            <h2 id="editHeading">Add reminder</h2><button type="button" class="reminder-btn" data-close
+                aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button>
+        </div>
+        <form method="post" action="{% url 'accounts_reminders' %}" id="reminderForm">{% csrf_token %}
+            <input type="hidden" name="action" id="formAction" value="create"><input type="hidden" name="reminder_id"
+                id="reminderId">
+            <label class="reminder-field">Title<input name="title" id="reminderTitle" maxlength="180" required
+                    placeholder="e.g. Project review meeting"></label>
+            <label class="reminder-field">Description <span>(optional)</span><textarea name="description"
+                    id="reminderDescription" placeholder="Add details…"></textarea></label>
+            <div class="reminder-field"><span>Event date &amp; time</span><input type="hidden" name="event_at"
+                    id="eventAt">
+                <div class="datetime-control" data-input="eventAt">
+                    <div class="datetime-buttons"><button type="button" class="picker-trigger date-trigger"
+                            aria-expanded="false"><span>Select date</span><i data-lucide="calendar-days"
+                                aria-hidden="true"></i></button><button type="button"
+                            class="picker-trigger time-trigger" aria-expanded="false"><span>Select time</span><i
+                                data-lucide="clock-3" aria-hidden="true"></i></button></div>
+                    <div class="picker-panel" hidden></div>
+                </div>
+            </div>
+            <label class="reminder-field">Remind me<select id="reminderPreset">
+                    <option value="1440">1 day before</option>
+                    <option value="60">1 hour before</option>
+                    <option value="0">At event time</option>
+                    <option value="custom">Custom date &amp; time</option>
+                </select></label>
+            <div class="reminder-field"><span>Reminder date &amp; time</span><input type="hidden" name="remind_at"
+                    id="remindAt">
+                <div class="datetime-control" data-input="remindAt">
+                    <div class="datetime-buttons"><button type="button" class="picker-trigger date-trigger"
+                            aria-expanded="false"><span>Select date</span><i data-lucide="calendar-days"
+                                aria-hidden="true"></i></button><button type="button"
+                            class="picker-trigger time-trigger" aria-expanded="false"><span>Select time</span><i
+                                data-lucide="clock-3" aria-hidden="true"></i></button></div>
+                    <div class="picker-panel" hidden></div>
+                </div>
+            </div>
+            <p>Times use your configured timezone. Choose a future reminder time.</p>
+            <p id="pickerError" class="picker-error" role="alert" hidden></p>
+            <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Cancel</button><button
+                    type="submit" class="reminder-btn primary">Save reminder</button></div>
+        </form>
+    </dialog>
+    <dialog class="reminder-dialog" id="deleteDialog" aria-labelledby="deleteHeading">
+        <h2 id="deleteHeading">Delete reminder?</h2>
+        <p id="deleteDescription"></p>
+        <p>This removes the reminder from your calendar.</p>
+        <form method="post" action="{% url 'accounts_reminders' %}">{% csrf_token %}<input type="hidden" name="action"
+                value="delete"><input type="hidden" name="reminder_id" id="deleteId">
+            <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Cancel</button><button
+                    type="submit" class="reminder-btn danger">Delete reminder</button></div>
+        </form>
+    </dialog>
+    {{ calendar_items|json_script:"reminderData" }}
+{% endblock %}
+{% block extra_js %}<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            'use strict';
+            const items = JSON.parse(document.getElementById('reminderData').textContent);
+            let month = '{{ selected_month }}', monthLabel = '{{ month_label|escapejs }}'; const today = '{{ today }}';
+            const list = document.getElementById('reminderList');
+            const editDialog = document.getElementById('editDialog'), deleteDialog = document.getElementById('deleteDialog');
+            const form = document.getElementById('reminderForm');
+            const title = document.getElementById('reminderTitle'), description = document.getElementById('reminderDescription');
+            const eventAt = document.getElementById('eventAt'), remindAt = document.getElementById('remindAt'), preset = document.getElementById('reminderPreset');
+            const requestedDate = new URLSearchParams(window.location.search).get('date');
+            const validRequestedDate = requestedDate && /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) && requestedDate.startsWith(month + '-') && !isNaN(new Date(requestedDate + 'T12:00:00'));
+            let selected = validRequestedDate ? requestedDate : (today.startsWith(month) ? today : month + '-01'), status = 'all', scope = 'day';
+            const pad = n => String(n).padStart(2, '0');
+            const dateValue = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            const dateLabel = d => new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const timeLabel = d => new Date(d).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true });
+            function toast(message, type) { if (window.showToast) window.showToast(message, type); else { const box = document.getElementById('reminderFeedback'); box.textContent = message; box.hidden = false; } }
+            function icons() { if (window.lucide) lucide.createIcons(); }
+            function node(tag, cls, text) { const el = document.createElement(tag); el.className = cls; if (text !== undefined) el.textContent = text; return el; }
+            function actionForm(item, action, label) {
+                const f = node('form', ''); f.method = 'post'; f.setAttribute('action', form.getAttribute('action'));
+                [['csrfmiddlewaretoken', form.elements.csrfmiddlewaretoken.value], ['action', action], ['reminder_id', item.id]].forEach(([name, value]) => { const input = document.createElement('input'); input.type = 'hidden'; input.name = name; input.value = value; f.append(input); });
+                const b = node('button', 'reminder-btn', label); b.type = 'submit'; f.append(b);
+                f.addEventListener('submit', async event => {
+                    event.preventDefault(); if (mutating) return;
+                    cancelMonthRequest(); mutating = true; b.disabled = true;
+                    try {
+                        const result = await jsonRequest(f.getAttribute('action'), {method:'POST', body:new FormData(f)});
+                        if (Number(result.id) !== Number(item.id) || typeof result.is_completed !== 'boolean') throw new Error('Reminder update was not confirmed.');
+                        item.is_completed = result.is_completed; notifyCount(result);
+                        toast(result.message || (item.is_completed ? 'Reminder completed.' : 'Reminder reopened.'), 'success'); render();
+                    } catch (error) { toast(error.message || 'Unable to update reminder.', 'error'); }
+                    finally { mutating = false; b.disabled = false; }
+                }); return f;
+            }
+            function openDialog(dialog) {
+                dialog.showModal();
+                // Keep reusable toasts visible above a native dialog's backdrop.
+                const container = document.getElementById('toastContainer');
+                if (container) dialog.appendChild(container);
+                document.body.classList.add('modal-open');
+            }
+            [editDialog, deleteDialog].forEach(dialog => { dialog.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { if (!mutating) dialog.close(); })); dialog.addEventListener('close', () => {
+                    const container = document.getElementById('toastContainer');
+                    if (container) document.body.appendChild(container);
+                    document.body.classList.remove('modal-open');
+                }); });
+            const controls = Array.from(document.querySelectorAll('.datetime-control'));
+            function closePickers() { controls.forEach(c => { c.querySelector('.picker-panel').hidden = true; c.querySelector('.picker-panel').replaceChildren(); c.querySelectorAll('.picker-trigger').forEach(b => b.setAttribute('aria-expanded', 'false')); }); }
+            function syncDateControls() { controls.forEach(c => { const value = document.getElementById(c.dataset.input).value; const d = value ? new Date(value) : null; c.querySelector('.date-trigger span').textContent = d && !isNaN(d) ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select date'; c.querySelector('.time-trigger span').textContent = d && !isNaN(d) ? d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Select time'; }); }
+            function setControl(c, date, time) { const input = document.getElementById(c.dataset.input); input.value = date + 'T' + time; input.dispatchEvent(new Event('input', { bubbles: true })); syncDateControls(); document.getElementById('pickerError').hidden = true; closePickers(); }
+            function pickerButton(label, cls, click) { const b = node('button', cls, label); b.type = 'button'; b.addEventListener('click', click); return b; }
+            controls.forEach(c => {
+                const panel = c.querySelector('.picker-panel'), input = document.getElementById(c.dataset.input);
+                const dateButton = c.querySelector('.date-trigger'), timeButton = c.querySelector('.time-trigger');
+                function show(trigger) { const wasOpen = trigger.getAttribute('aria-expanded') === 'true'; closePickers(); if (wasOpen) return false; panel.hidden = false; trigger.setAttribute('aria-expanded', 'true'); return true; }
+                dateButton.addEventListener('click', () => {
+                    if (!show(dateButton)) return;
+                    let base = input.value ? new Date(input.value) : new Date(selected + 'T09:00'); let year = base.getFullYear(), mon = base.getMonth();
+                    function draw() {
+                        panel.replaceChildren(); const top = node('div', 'picker-top'); top.append(pickerButton('‹', 'picker-nav', () => { mon--; if (mon < 0) { mon = 11; year--; } draw(); }), node('strong', '', new Date(year, mon, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })), pickerButton('›', 'picker-nav', () => { mon++; if (mon > 11) { mon = 0; year++; } draw(); })); panel.append(top);
+                        const grid = node('div', 'picker-calendar');['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'].forEach(x => grid.append(node('span', 'picker-weekday', x)));
+                        const start = new Date(year, mon, 1).getDay(), days = new Date(year, mon + 1, 0).getDate(); for (let i = 0; i < start; i++)grid.append(node('span', ''));
+                        for (let day = 1; day <= days; day++) { const value = year + '-' + pad(mon + 1) + '-' + pad(day); const b = pickerButton(String(day), 'picker-date' + (input.value.startsWith(value) ? ' chosen' : '') + (value === today ? ' current' : ''), () => { setControl(c, value, input.value.split('T')[1] || '09:00'); dateButton.focus(); }); b.setAttribute('aria-label', dateLabel(value)); grid.append(b); } panel.append(grid);
+                        const footer = node('div', 'picker-footer'); footer.append(pickerButton('Cancel', '', () => { closePickers(); dateButton.focus(); }), pickerButton('Today', '', () => { setControl(c, today, input.value.split('T')[1] || '09:00'); dateButton.focus(); })); panel.append(footer);
+                    } draw();
+                });
+                timeButton.addEventListener('click', () => {
+                    if (!show(timeButton)) return; panel.replaceChildren(); panel.append(node('strong', '', 'Select time'));
+                    const oldTime = input.value.split('T')[1] || '09:00'; let [hour, minute] = oldTime.split(':').map(Number), period = hour >= 12 ? 'PM' : 'AM';
+                    const editor = node('div', 'time-editor'), hh = document.createElement('input'), mm = document.createElement('input'); hh.type = mm.type = 'number'; hh.min = '1'; hh.max = '12'; mm.min = '0'; mm.max = '59'; hh.step = mm.step = '1'; hh.value = pad(hour % 12 || 12); mm.value = pad(minute); hh.setAttribute('aria-label', 'Hour'); mm.setAttribute('aria-label', 'Minute'); const periods = node('div', 'time-period');['AM', 'PM'].forEach(p => { const b = pickerButton(p, '', () => { period = p; periods.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.textContent === period))); }); b.setAttribute('aria-pressed', String(p === period)); periods.append(b); }); editor.append(hh, node('span', '', ':'), mm, periods); panel.append(editor);
+                    const error = node('p', 'picker-error', 'Enter hour 1–12 and minute 0–59.'); error.hidden = true; panel.append(error);
+                    const footer = node('div', 'picker-footer'); footer.append(pickerButton('Cancel', '', () => { closePickers(); timeButton.focus(); }), pickerButton('Set time', 'set-time', () => { const h = Number(hh.value), m = Number(mm.value); if (!hh.value || !mm.value || !Number.isInteger(h) || !Number.isInteger(m) || h < 1 || h > 12 || m < 0 || m > 59) { error.hidden = false; return; } const h24 = h % 12 + (period === 'PM' ? 12 : 0); setControl(c, input.value.split('T')[0] || selected, pad(h24) + ':' + pad(m)); timeButton.focus(); })); panel.append(footer);
+                });
+            });
+            editDialog.addEventListener('click', event => { if (!event.target.closest('.datetime-control')) closePickers(); });
+            editDialog.addEventListener('cancel', event => { if (controls.some(c => !c.querySelector('.picker-panel').hidden)) { event.preventDefault(); closePickers(); } });
+            editDialog.addEventListener('close', closePickers);
+            function updatePreset() { if (preset.value === 'custom' || !eventAt.value) return; const d = new Date(eventAt.value); d.setMinutes(d.getMinutes() - Number(preset.value)); remindAt.value = dateValue(d); remindAt.setCustomValidity(''); syncDateControls(); }
+            function edit(item) { if (mutating) return; form.reset(); document.getElementById('formAction').value = item ? 'update' : 'create'; document.getElementById('reminderId').value = item ? item.id : ''; document.getElementById('editHeading').textContent = item ? 'Edit reminder' : 'Add reminder'; title.value = item ? item.title : ''; description.value = item ? item.description : ''; eventAt.value = item ? item.event_at : selected + 'T09:00'; preset.value = item ? 'custom' : '1440'; remindAt.value = item ? item.remind_at : ''; if (!item) updatePreset(); remindAt.setCustomValidity(''); closePickers(); syncDateControls(); document.getElementById('pickerError').hidden = true; openDialog(editDialog); }
+            function render() {
+                document.getElementById('selectedDateLabel').textContent = dateLabel(selected);
+                document.querySelectorAll('.day[data-day]').forEach(button => { const date = month + '-' + pad(button.dataset.day); button.classList.toggle('selected', date === selected); button.classList.toggle('today', date === today); button.setAttribute('aria-pressed', String(date === selected)); const matches = items.filter(i => i.date === date); button.setAttribute('aria-label', dateLabel(date) + `, ${matches.length} reminder${matches.length === 1 ? '' : 's'}`); const old = button.querySelector('.dot'); if (old) old.remove(); if (matches.length) { const dot = node('span', 'dot' + (matches.every(i => i.is_completed) ? ' completed' : '')); dot.setAttribute('aria-hidden', 'true'); button.append(dot); } });
+                list.replaceChildren();
+                document.getElementById('totalCount').textContent = items.length;
+                document.getElementById('completedCount').textContent = items.filter(i => i.is_completed).length;
+                document.getElementById('activeCount').textContent = items.filter(i => !i.is_completed).length;
+                document.getElementById('overdueCount').textContent = items.filter(i => !i.is_completed && new Date(i.event_at) < new Date()).length;
+                document.getElementById('selectedHeading').textContent = scope === 'month' ? 'This month’s reminders' : 'Selected date';
+                document.getElementById('selectedDateLabel').textContent = scope === 'month' ? monthLabel : dateLabel(selected);
+                const query = document.getElementById('reminderSearch').value.trim().toLocaleLowerCase();
+                const filtered = items.filter(i => (scope === 'month' || i.date === selected) && (status === 'all' || (status === 'completed' ? i.is_completed : !i.is_completed)) && (!query || (i.title + ' ' + i.description).toLocaleLowerCase().includes(query)));
+                if (!filtered.length) { list.append(node('div', 'empty', 'No matching reminders. Try another date or filter.')); }
+                filtered.forEach(item => { const overdue = !item.is_completed && new Date(item.event_at) < new Date(); const card = node('article', 'reminder-card' + (item.is_completed ? ' is-completed' : '') + (overdue ? ' is-overdue' : '')); card.append(node('h3', '', item.title)); if (item.is_completed) card.append(node('span', 'completed-label', 'Completed')); else if (overdue) card.append(node('span', 'overdue-label', 'Event overdue')); if (item.description) card.append(node('p', '', item.description)); card.append(node('span', 'reminder-meta', 'Event: ' + timeLabel(item.event_at))); card.append(node('span', 'reminder-meta', 'Reminder: ' + timeLabel(item.remind_at))); const actions = node('div', 'reminder-card-actions'); const editButton = node('button', 'reminder-btn', 'Edit'); editButton.type = 'button'; editButton.addEventListener('click', () => edit(item)); const deleteButton = node('button', 'reminder-btn danger', 'Delete'); deleteButton.type = 'button'; deleteButton.addEventListener('click', () => { if (mutating) return; document.getElementById('deleteId').value = item.id; document.getElementById('deleteDescription').textContent = item.title; openDialog(deleteDialog); }); actions.append(editButton, actionForm(item, item.is_completed ? 'reopen' : 'complete', item.is_completed ? 'Reopen' : 'Complete'), deleteButton); card.append(actions); list.append(card); });
+            }
+            document.querySelector('.calendar-grid').addEventListener('click', event => { const b = event.target.closest('.day[data-day]'); if (!b) return; selected = month + '-' + pad(b.dataset.day); scope = 'day'; document.querySelectorAll('[data-scope]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.scope === scope))); render(); });
+            document.querySelectorAll('[data-status]').forEach(b => b.addEventListener('click', () => { status = b.dataset.status; document.querySelectorAll('[data-status]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(); }));
+            let loading = false, mutating = false, monthController = null, monthSequence = 0;
+            function cancelMonthRequest() {
+                monthSequence++; monthController?.abort(); monthController = null; loading = false;
+            }
+            [editDialog, deleteDialog].forEach(dialog => dialog.addEventListener('cancel', event => {if (mutating) event.preventDefault();}));
+            function notifyCount(result) {
+                if (Number.isFinite(result.unread_count)) document.dispatchEvent(new CustomEvent('accounts:notification-count', {detail:{count:result.unread_count, unread_count:result.unread_count}}));
+            }
+            async function jsonRequest(url, options = {}) {
+                const controller = new AbortController();
+                const abort = () => controller.abort();
+                if (options.signal?.aborted) controller.abort();
+                options.signal?.addEventListener('abort', abort, {once:true});
+                const timeout = setTimeout(abort, 15000);
+                try {
+                    const response = await fetch(url, {...options, signal:controller.signal, cache:'no-store', credentials:'same-origin', headers:{...options.headers,'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
+                    if (response.redirected || response.status === 401 || response.status === 403) throw new Error('Please check your login and try again.');
+                    const type = response.headers.get('content-type') || '';
+                    if (!type.includes('application/json')) throw new Error('Unexpected server response. Check the server log and try again.');
+                    const result = await response.json();
+                    if (!response.ok || !result.ok) throw new Error(result.message || 'Unable to save changes. Please try again.');
+                    return result;
+                } catch(error) {
+                    if (error.name === 'AbortError' && !options.signal?.aborted) throw new Error(options.method === 'POST' ? 'Unable to confirm the save. Check the reminder list before retrying.' : 'Connection timed out. Please try again.');
+                    throw error;
+                } finally {clearTimeout(timeout); options.signal?.removeEventListener('abort', abort);}
+            }
+            function monthLinks() {
+                const [year, mon] = month.split('-').map(Number);
+                [-1,1].forEach(offset => {const d = new Date(year,mon-1+offset,1); document.getElementById(offset<0?'previousMonth':'nextMonth').href = '?month='+d.getFullYear()+'-'+pad(d.getMonth()+1);});
+            }
+            function buildCalendar(weeks) {
+                const grid = document.querySelector('.calendar-grid'); grid.replaceChildren();
+                ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].forEach(label => grid.append(node('span','weekday',label)));
+                weeks.flat().forEach(day => { const el = node(day?'button':'span', day?'day':'day blank',day?String(day):''); if(day){el.type='button';el.dataset.day=day;} else el.setAttribute('aria-hidden','true'); grid.append(el); });
+            }
+            async function loadMonth(value, change = false, automatic = false) {
+                if (mutating || (automatic && (loading || editDialog.open || deleteDialog.open || list.contains(document.activeElement)))) return;
+                cancelMonthRequest(); loading = true;
+                const controller = new AbortController(); monthController = controller;
+                const sequence = monthSequence;
+                try {
+                    const url = new URL(form.getAttribute('action'), location.origin); url.searchParams.set('month',value); url.searchParams.set('format','json');
+                    const result = await jsonRequest(url, {signal:controller.signal});
+                    if (sequence !== monthSequence || mutating || (automatic && (editDialog.open || deleteDialog.open || list.contains(document.activeElement)))) return;
+                    month=result.selected_month; monthLabel=result.month_label;
+                    items.splice(0,items.length,...result.items);
+                    if(change){selected=today.startsWith(month+'-')?today:month+'-01'; buildCalendar(result.calendar_weeks); const route=new URL(location.href); route.searchParams.set('month',month); route.searchParams.delete('date'); history.replaceState(null,'',route);}
+                    document.getElementById('monthHeading').textContent=monthLabel;
+                    document.querySelector('.overview-month').textContent=monthLabel;
+                    monthLinks(); const scroll=list.scrollTop; render(); list.scrollTop=scroll; icons();
+                    return true;
+                } catch(error) {if (sequence === monthSequence && !automatic && error.name !== 'AbortError') toast(error.message,'error'); return false;}
+                finally {if (sequence === monthSequence) {loading=false; monthController=null;}}
+            }
+            document.querySelector('.calendar-controls').addEventListener('click',event=>{
+                const link=event.target.closest('a'); if(!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)return; event.preventDefault();
+                const value=link.id?new URL(link.href,location.href).searchParams.get('month'):today.slice(0,7);
+                loadMonth(value,true);
+            });
+            monthLinks();
+            document.getElementById('newReminder').addEventListener('click', () => edit(null)); document.getElementById('addSelected').addEventListener('click', () => edit(null)); preset.addEventListener('change', updatePreset); eventAt.addEventListener('input', () => { remindAt.setCustomValidity(''); updatePreset(); }); remindAt.addEventListener('input', () => { preset.value = 'custom'; remindAt.setCustomValidity(''); });
+            form.addEventListener('submit', async event => {
+                event.preventDefault(); if (mutating) return;
+                const remind = new Date(remindAt.value), start = new Date(eventAt.value); let error = '';
+                if (!eventAt.value || !remindAt.value || isNaN(start) || isNaN(remind)) error = 'Select an event date/time and a reminder date/time.';
+                else if (remind > start) error = 'Reminder must be on or before the event.';
+                else { const original = items.find(i => String(i.id) === document.getElementById('reminderId').value); const changed = !original || original.event_at !== eventAt.value || original.remind_at !== remindAt.value; if (changed && remind <= new Date()) error = 'Choose a future reminder time.'; }
+                const notice = document.getElementById('pickerError'); notice.textContent = error; notice.hidden = !error;
+                if (error) { toast(error, 'warning'); notice.scrollIntoView({ block: 'nearest' }); return; }
+                const button=form.querySelector('[type="submit"]'); cancelMonthRequest(); button.disabled=true; mutating=true;
+                try {
+                    const result = await jsonRequest(form.getAttribute('action'), {
+    method: 'POST',
+    body: new FormData(form)
+});
+                    editDialog.close(); notifyCount(result); toast(result.message,'success');
+                    const savedIndex=items.findIndex(i=>Number(i.id)===Number(result.item.id));
+                    if(savedIndex>=0) items[savedIndex]=result.item; else items.push(result.item);
+                    selected=result.item.date; render(); mutating=false;
+                    await loadMonth(result.item.date.slice(0,7),result.item.date.slice(0,7)!==month);
+                    selected=result.item.date; render();
+                } catch(error) { toast(error.message,'error'); }
+                finally { button.disabled=false; mutating=false; }
+
+            });
+            document.getElementById('reminderSearch').addEventListener('input', render);
+            document.querySelectorAll('[data-scope]').forEach(b => b.addEventListener('click', () => { scope = b.dataset.scope; document.querySelectorAll('[data-scope]').forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(); }));
+            let validationToastPending = false;
+            form.addEventListener('invalid', event => {
+                if (validationToastPending) return;
+                validationToastPending = true;
+                toast(event.target.validationMessage || 'Check the reminder fields.', 'warning');
+                setTimeout(() => { validationToastPending = false; }, 0);
+            }, true);
+            deleteDialog.querySelector('form').addEventListener('submit',async event=>{
+                event.preventDefault(); if(mutating)return; cancelMonthRequest(); mutating=true;
+                const deleteForm=event.currentTarget, button=deleteForm.querySelector('[type="submit"]'); button.disabled=true;
+                try { const result = await jsonRequest(deleteForm.getAttribute('action'), {
+    method: 'POST',
+    body: new FormData(deleteForm)
+}); const index=items.findIndex(i=>Number(i.id)===Number(result.id)); if(index>=0)items.splice(index,1); deleteDialog.close(); notifyCount(result); render(); toast(result.message,'success'); }
+                catch(error){toast(error.message,'error');}
+                finally{mutating=false;button.disabled=false;}
+            });
+            const timer=setInterval(()=>{if(!document.hidden&&!editDialog.open&&!deleteDialog.open)loadMonth(month,false,true);},15000);
+            document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!editDialog.open&&!deleteDialog.open)loadMonth(month,false,true);});
+            window.addEventListener('pagehide',()=>{cancelMonthRequest();});
+            window.addEventListener('focus',()=>{if(!document.hidden)loadMonth(month,false,true);});
+            render(); icons();
+        });
+    </script>{% endblock %}

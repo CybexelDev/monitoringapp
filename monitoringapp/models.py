@@ -1656,3 +1656,100 @@ class AccountsSalePayment(models.Model):
     class Meta:
         ordering = ["-date", "-created_at", "-pk"]
         constraints = [models.CheckConstraint(condition=models.Q(amount__gt=0), name="sale_payment_amount_positive")]
+
+
+class AccountsNotification(models.Model):
+    recipient = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="accounts_notifications",
+    )
+    actor = models.ForeignKey(
+        "User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accounts_notification_actions",
+    )
+    kind = models.CharField(
+        max_length=30,
+        choices=[
+            ("income", "Income"),
+            ("expense", "Expense"),
+            ("sale", "Sale"),
+            ("payment", "Payment"),
+            ("reminder", "Reminder"),
+        ],
+        db_index=True,
+    )
+    title = models.CharField(max_length=180)
+    message = models.TextField(blank=True)
+    url = models.CharField(max_length=500, blank=True)
+
+    event_key = models.CharField(
+        max_length=180,
+        unique=True,
+        null=True,
+        blank=True,
+    )
+    is_read = models.BooleanField(default=False)
+    is_archived = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(
+                fields=[
+                    "recipient",
+                    "is_archived",
+                    "is_read",
+                    "-created_at",
+                ],
+                name="acct_notif_inbox_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.recipient.name}: {self.title}"
+
+
+class AccountsReminder(models.Model):
+    owner = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="accounts_reminders",
+    )
+    title = models.CharField(max_length=180)
+    description = models.TextField(blank=True)
+
+    event_at = models.DateTimeField(db_index=True)
+    remind_at = models.DateTimeField(db_index=True)
+
+    is_completed = models.BooleanField(default=False)
+    notified_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    notification = models.OneToOneField(
+        "AccountsNotification",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accounts_reminder",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["event_at", "id"]
+        indexes = [
+            models.Index(
+                fields=["owner", "is_completed", "remind_at"],
+                name="acct_reminder_due_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return self.title

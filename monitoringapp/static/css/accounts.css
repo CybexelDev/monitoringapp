@@ -615,3 +615,171 @@
 .accounts-sales-page .sale-payment-card{padding:14px;border:1px solid rgba(167,139,250,.15);border-radius:10px;background:rgba(139,92,246,.04)}
 .accounts-sales-page .sale-payment-card strong{font-size:13px;color:#e2d9ef}
 .accounts-sales-page .sale-payment-card p{font-size:12px;color:#b9b0c6;margin:7px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6}
+
+/* Accounts Dashboard: scoped to keep ledger page styles unchanged. */
+.accounts-dashboard-page .dashboard-controls{margin-bottom:24px}
+.accounts-dashboard-page .dashboard-live-status{color:#bba5dc;font-size:11px;line-height:1.5}
+.accounts-dashboard-page .dashboard-live-status.is-error{color:#f2a5b0}
+.accounts-dashboard-page .dashboard-filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
+.accounts-dashboard-page .dashboard-field{min-width:0}
+.accounts-dashboard-page .dashboard-field label{display:block;font-size:12px;color:#b9b0c6;margin-bottom:8px}
+.accounts-dashboard-page .dashboard-field select{color-scheme:dark}
+.accounts-dashboard-page .dashboard-filter-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-top:18px}
+.accounts-dashboard-page .dashboard-filter-footer p{font-size:12px;line-height:1.6;color:#96909f;margin:0;flex:1 1 220px}
+.accounts-dashboard-page .dashboard-filter-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.accounts-dashboard-page .dashboard-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 15px;min-height:42px;border:1px solid rgba(167,139,250,.3);border-radius:10px;background:linear-gradient(135deg,#7c4bd4,#5b32a7);color:#fff;font-size:12px;font-weight:650;text-decoration:none;cursor:pointer}
+.accounts-dashboard-page .dashboard-button-secondary{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.09)}
+.accounts-dashboard-page .dashboard-button:hover{border-color:#a78bfa;background:#5b32a7}
+.accounts-dashboard-page .dashboard-button svg{width:15px;height:15px}
+.accounts-dashboard-page .dashboard-period-heading{flex-wrap:wrap;gap:12px}
+.accounts-dashboard-page .dashboard-primary-stats{margin-bottom:16px}
+.accounts-dashboard-page .dashboard-sales-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px}
+.accounts-dashboard-page .dashboard-amber{color:#eac17b}
+.accounts-dashboard-page .accounts-stat-value{font-variant-numeric:tabular-nums;font-size:clamp(22px,2.1vw,32px);overflow-wrap:anywhere}
+.accounts-dashboard-page .accounts-stat span{line-height:1.6}
+.accounts-dashboard-page .dashboard-shortcuts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0 0 24px}
+.accounts-dashboard-page .dashboard-shortcut{display:flex;align-items:center;gap:12px;padding:17px;border:1px solid rgba(167,139,250,.16);border-radius:14px;background:rgba(139,92,246,.045);text-decoration:none;min-width:0}
+.accounts-dashboard-page .dashboard-shortcut:hover{background:rgba(139,92,246,.10);border-color:rgba(167,139,250,.35)}
+.accounts-dashboard-page .dashboard-shortcut>span:nth-child(2){flex:1;min-width:0}
+.accounts-dashboard-page .dashboard-shortcut strong{display:block;font-size:13px;color:#e2d9ef}
+.accounts-dashboard-page .dashboard-shortcut small{display:block;font-size:11px;line-height:1.6;color:#96909f;margin-top:5px}
+.accounts-dashboard-page .dashboard-shortcut-icon{display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:10px;background:#2b1c3d;color:#c4b5fd}
+.accounts-dashboard-page .dashboard-shortcut>svg{width:16px;height:16px;color:#a78bfa}
+.accounts-dashboard-page .dashboard-table-scroll{max-height:360px;overflow:auto;overscroll-behavior:contain}
+.accounts-dashboard-page .dashboard-transactions{min-width:980px}
+.accounts-dashboard-page .dashboard-overdue-table{min-width:850px}
+.accounts-dashboard-page .dashboard-table-scroll th{position:sticky;top:0;z-index:1;background:#241c31}
+.accounts-dashboard-page .dashboard-transactions td.description-cell{max-width:300px;overflow-wrap:anywhere}
+.accounts-dashboard-page .dashboard-transactions td.description-cell strong{display:block;color:#e2d9ef;font-size:12px}
+.accounts-dashboard-page .dashboard-transactions td.description-cell p{font-size:11px;line-height:1.6;margin:6px 0 0;color:#96909f;white-space:pre-wrap}
+.accounts-dashboard-page .dashboard-icon-button{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border:1px solid rgba(167,139,250,.2);border-radius:8px;background:#241b31;color:#c4b5fd}
+.accounts-dashboard-page .dashboard-icon-button svg{width:15px;height:15px}
+.accounts-dashboard-page .dashboard-overdue-panel{margin-top:24px}
+.accounts-dashboard-page .dashboard-note{font-size:12px;color:#96909f;line-height:1.7;margin:0 0 16px}
+.accounts-dashboard-page .dashboard-overdue-badge{display:block;width:fit-content;margin-top:6px;border:1px solid rgba(242,165,176,.18);border-radius:6px;background:rgba(242,165,176,.07);color:#f2a5b0;padding:4px 7px;font-size:10px}
+.accounts-dashboard-page .dashboard-error{padding:14px;margin-bottom:20px;border:1px solid rgba(242,165,176,.2);border-radius:10px;background:rgba(242,165,176,.05);color:#f2a5b0;font-size:13px}
+@media(max-width:1000px){.accounts-dashboard-page .dashboard-shortcuts{grid-template-columns:repeat(2,minmax(0,1fr))}.accounts-dashboard-page .dashboard-sales-stats{gap:12px}}
+@media(max-width:600px){.accounts-dashboard-page .dashboard-filter-grid{grid-template-columns:minmax(0,1fr)}.accounts-dashboard-page .dashboard-filter-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.accounts-dashboard-page #dashboardRefresh{grid-column:1/-1}.accounts-dashboard-page .dashboard-sales-stats{grid-template-columns:minmax(0,1fr)}.accounts-dashboard-page .dashboard-shortcuts{grid-template-columns:minmax(0,1fr)}.accounts-dashboard-page .dashboard-overdue-panel .accounts-panel-heading{gap:16px;flex-wrap:wrap}}
+
+
+.accounts-notification-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 7px;
+  background: #dc4960;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.accounts-notification-badge[hidden] {
+  display: none;
+}
+
+/* Team Lead notification layout, scoped to Accounts */
+.accounts-notification-icon{position:relative;display:inline-flex;align-items:center;justify-content:center;height:22px;overflow:visible;flex-shrink:0}
+.accounts-notification-icon .accounts-notification-badge{position:absolute;top:-8px;right:-9px;min-width:17px;height:17px;padding:0 4px;margin:0;box-sizing:border-box;border:2px solid #17121f;border-radius:999px;background:#ef4444;color:#fff;font-size:9px;font-weight:700;line-height:1;pointer-events:none}
+.accounts-notifications-page .notification-header-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:22px}
+.accounts-notifications-page .notification-unread-count{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border-radius:20px;color:#ddd0ff;background:rgba(139,92,246,.12);border:1px solid rgba(167,139,250,.22);font-size:11px;font-weight:650}
+.accounts-notifications-page .notification-unread-count svg{width:14px;height:14px}
+.accounts-notifications-page .notification-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:0 12px;border-radius:9px;border:1px solid rgba(167,139,250,.35);background:rgba(139,92,246,.1);color:#e4d7ff;font:inherit;font-size:11px;font-weight:650;cursor:pointer;text-decoration:none}
+.accounts-notifications-page .notification-button:hover{background:rgba(139,92,246,.22);border-color:#a78bfa}
+.accounts-notifications-page .notification-button svg{width:14px;height:14px}
+.accounts-notifications-page button:disabled{opacity:.45;cursor:not-allowed}
+.accounts-notifications-page .notification-toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.accounts-notifications-page .notification-search{display:flex;align-items:center;gap:9px;flex:1;min-width:200px;padding:0 12px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(16,16,23,.85)}
+.accounts-notifications-page .notification-search svg{width:16px;height:16px;color:#a69ab8;flex-shrink:0}
+.accounts-notifications-page .notification-search input{width:100%;height:42px;border:0;outline:none;background:transparent;color:#eee8f8;font:inherit;font-size:12px}
+.accounts-notifications-page .notification-category{position:relative;width:190px;flex-shrink:0}
+.accounts-notifications-page .notification-category summary{height:42px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(16,16,23,.85);color:#e7def3;font-size:12px;cursor:pointer;list-style:none}
+.accounts-notifications-page .notification-category summary::-webkit-details-marker{display:none}
+.accounts-notifications-page .notification-category summary svg{width:15px;height:15px;color:#bda5e6}
+.accounts-notifications-page .category-menu{position:absolute;top:calc(100% + 8px);right:0;z-index:20;width:220px;max-width:calc(100vw - 48px);max-height:300px;overflow-y:auto;padding:6px;border:1px solid #443450;border-radius:13px;background:#19131f;box-shadow:0 15px 35px rgba(0,0,0,.4)}
+.accounts-notifications-page .category-menu button{display:block;width:100%;padding:10px 12px;border:0;border-radius:8px;background:transparent;color:#bfb2cf;text-align:left;font:inherit;font-size:12px;cursor:pointer}
+.accounts-notifications-page .category-menu button:hover,.accounts-notifications-page .category-menu button.selected{background:#3a2650;color:#e1c9ff}
+.accounts-notifications-page .notification-tabs{display:flex;gap:6px;flex-wrap:wrap;width:fit-content;margin-bottom:16px;padding:5px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(21,19,29,.65)}
+.accounts-notifications-page .notification-tab{border:1px solid transparent;border-radius:8px;background:transparent;color:#a69ab8;padding:9px 12px;font:inherit;font-size:12px;cursor:pointer}
+.accounts-notifications-page .notification-tab[aria-pressed="true"]{color:#dfd0ff;background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.3)}
+.accounts-notifications-page .notification-tab span{margin-left:6px;font-size:10px;opacity:.8}
+.accounts-notifications-page .notification-table-scroll{max-height:min(580px,56vh);overflow:auto;overscroll-behavior:contain;border:1px solid rgba(255,255,255,.09);border-radius:18px;background:rgba(16,16,23,.75);scrollbar-width:thin;scrollbar-color:#7650bc transparent}
+.accounts-notifications-page .notification-table{width:100%;min-width:760px;border-collapse:separate;border-spacing:0}
+.accounts-notifications-page .notification-table th{position:sticky;top:0;z-index:2;padding:16px 18px;background:#1b1824;border-bottom:1px solid rgba(255,255,255,.1);color:#aaa2b6;font-size:10px;font-weight:750;letter-spacing:.07em;text-align:left;text-transform:uppercase}
+.accounts-notifications-page .notification-table td{padding:18px;border-bottom:1px solid rgba(255,255,255,.065);vertical-align:middle}
+.accounts-notifications-page .notification-table tr:last-child td{border-bottom:0}
+.accounts-notifications-page .notification-row.unread{background:rgba(139,92,246,.065)}
+.accounts-notifications-page .notification-row:hover{background:rgba(139,92,246,.1)}
+.accounts-notifications-page .notification-detail{display:flex;align-items:flex-start;gap:12px}
+.accounts-notifications-page .notification-icon{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:rgba(139,92,246,.13);color:#bca0fa}
+.accounts-notifications-page .notification-icon svg{width:17px;height:17px}
+.accounts-notifications-page .notification-content{min-width:0;max-width:620px;overflow-wrap:anywhere}
+.accounts-notifications-page .notification-content strong{display:block;color:#f1eafa;font-size:13px;font-weight:650;line-height:1.5}
+.accounts-notifications-page .notification-content p{margin:5px 0 0;color:#a8a0b3;font-size:12px;line-height:1.65;white-space:pre-line}
+.accounts-notifications-page .notification-date{min-width:125px;white-space:nowrap;color:#b5adbf;font-size:11px;line-height:1.7}
+.accounts-notifications-page .notification-date span{display:block;color:#85808f;font-size:10px}
+.accounts-notifications-page .notification-status{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid rgba(255,255,255,.1);border-radius:20px;color:#a1a1aa;font-size:10px;white-space:nowrap}
+.accounts-notifications-page .notification-status.is-unread{color:#c4b5fd;border-color:rgba(167,139,250,.3)}
+.accounts-notifications-page .notification-status.is-unread::before{content:'';width:5px;height:5px;background:#a78bfa;border-radius:50%}
+.accounts-notifications-page .notification-actions{display:flex;align-items:center;gap:7px}
+.accounts-notifications-page .notification-action{width:180px}
+.accounts-notifications-page .notification-icon-button{display:grid;place-items:center;width:34px;height:34px;border:1px solid #37303f;border-radius:8px;background:transparent;color:#b9abc9;cursor:pointer}
+.accounts-notifications-page .notification-icon-button:hover{background:#292033;color:#e3d1ff}
+.accounts-notifications-page .notification-icon-button svg{width:15px;height:15px}
+.accounts-notifications-page .notification-empty{padding:65px 20px;text-align:center;color:#9991a5;font-size:12px}
+.accounts-notifications-page .notification-empty h3{margin:12px 0 8px;color:#f1eafa;font-size:16px}
+.accounts-notifications-page .notification-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:16px;color:#90869e;font-size:11px}
+.accounts-notifications-page .notification-pagination{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.accounts-notifications-page button:focus-visible,.accounts-notifications-page a:focus-visible,.accounts-notifications-page input:focus-visible,.accounts-notifications-page summary:focus-visible,.accounts-notifications-page .notification-table-scroll:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
+.accounts-notifications-page [hidden]{display:none!important}
+@media(max-width:768px){.accounts-notifications-page .notification-search{width:100%;flex-basis:100%;min-width:0}.accounts-notifications-page .notification-category{width:100%}.accounts-notifications-page .category-menu{left:0;right:auto;width:100%}.accounts-notifications-page .notification-table-scroll{max-height:52vh}}
+
+
+/* Shared responsive containment: tables scroll inside their own panel. */
+body.accounts-workspace .accounts-main {margin-left:calc(var(--accounts-sidebar-width) + 24px);max-width:calc(100% - var(--accounts-sidebar-width) - 24px)}
+body.accounts-workspace :is(.accounts-shell,.accounts-content,.accounts-content>*,.accounts-panel,#incomeSnapshot,#expenseSnapshot,#saleSnapshot,#dashboardSnapshot) {min-width:0;max-width:100%}
+body.accounts-workspace :is(.accounts-table-scroll,.dashboard-table-scroll,.notification-table-scroll) {width:100%;max-width:100%;min-width:0;overflow:auto;scrollbar-gutter:stable;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+body.accounts-workspace :is(input,select,textarea) {max-width:100%;min-width:0}
+body.accounts-workspace :is(.accounts-panel-heading,.accounts-section-heading) {flex-wrap:wrap}
+body.accounts-workspace :is(.income-row-actions,.expense-row-actions,.sale-row-actions) {flex-wrap:nowrap}
+body.accounts-workspace dialog {max-width:calc(100vw - 24px);max-height:calc(100dvh - 32px);overflow:auto;overscroll-behavior:contain}
+body.accounts-workspace:has(dialog[open]) .accounts-shell,body.accounts-workspace.accounts-drawer-open .accounts-shell {overflow:hidden!important}
+@media(max-width:1100px) and (min-width:769px) {
+  body.accounts-workspace .accounts-header {flex-wrap:wrap;padding:24px;gap:16px}
+  body.accounts-workspace :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid,.dashboard-filter-grid) {grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:768px) {
+  body.accounts-workspace .accounts-main {margin-left:0;max-width:100%;width:100%;padding:68px 10px 10px}
+  body.accounts-workspace .accounts-shell {padding:12px}
+  body.accounts-workspace .accounts-sidebar {width:min(var(--accounts-sidebar-width),calc(100vw - 60px));max-width:calc(100vw - 60px)}
+  body.accounts-workspace .accounts-header h1 {font-size:clamp(25px,6vw,34px)}
+  body.accounts-workspace .accounts-header-meta {max-width:100%;white-space:normal}
+  body.accounts-workspace :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid,.dashboard-filter-grid,.profile-form-grid,.profile-info-grid) {grid-template-columns:minmax(0,1fr)}
+  body.accounts-workspace :is(.income-filter-actions,.expense-filter-actions,.sale-filter-actions) {flex-wrap:wrap}
+  body.accounts-workspace :is(.income-search-input,.expense-search-input,.sale-search-input) {min-width:0;width:100%}
+  body.accounts-workspace :is(input,select,textarea) {font-size:16px}
+}
+@media(max-width:480px) {
+  body.accounts-workspace .accounts-panel {padding:14px}
+  body.accounts-workspace :is(.income-dialog,.expense-dialog,.sale-dialog,.reminder-dialog) {padding:18px}
+  body.accounts-workspace :is(.income-dialog-footer,.expense-dialog-footer,.sale-dialog-footer,.dialog-footer) {flex-wrap:wrap;gap:8px}
+  body.accounts-workspace :is(.income-dialog-footer,.expense-dialog-footer,.sale-dialog-footer) button {flex:1 1 100px}
+}
+@media(prefers-reduced-motion:reduce) {
+  body.accounts-workspace *,body.accounts-workspace *::before,body.accounts-workspace *::after {scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
+
+/* Reset the old twelve-column spans when filters use one/two columns. */
+@media(max-width:1100px) and (min-width:769px) {
+  body.accounts-workspace :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid)>:is(.income-field,.expense-field,.sale-field) {grid-column:auto}
+  body.accounts-workspace :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid)>:is(.income-field,.expense-field,.sale-field):first-child {grid-column:1/-1}
+}
+@media(max-width:768px) {
+  body.accounts-workspace :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid)>:is(.income-field,.expense-field,.sale-field),
+  body.accounts-workspace :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid)>:is(.income-field,.expense-field,.sale-field):first-child {grid-column:auto}
+}
