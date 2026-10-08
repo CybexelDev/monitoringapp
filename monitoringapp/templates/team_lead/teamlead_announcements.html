@@ -2186,7 +2186,26 @@
     color: white;
     background: #d44b60;
 }
-    </style>
+    
+
+
+body .announcement-tabs {display:flex;gap:6px;padding:6px;margin:0 0 22px;border:1px solid rgba(255,255,255,.07);border-radius:17px;background:rgba(255,255,255,.025);}
+body .announcement-tab {flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:10px 14px;border:1px solid transparent;border-radius:12px;background:transparent;color:#898493;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s;}
+body .announcement-tab:hover {color:#e4ddef;background:rgba(139,92,246,.06);}
+body .announcement-tab[aria-selected="true"] {background:linear-gradient(110deg,rgba(139,92,246,.20),rgba(139,92,246,.09));border-color:rgba(167,139,250,.23);color:#faf7ff;}
+body .announcement-tab svg {width:17px;height:17px;flex-shrink:0;}
+body .announcement-tab:focus-visible {outline:2px solid #a78bfa;outline-offset:2px;}
+body .announcement-tab-count {display:inline-flex;align-items:center;justify-content:center;min-width:27px;height:27px;padding:0 7px;border-radius:9px;background:rgba(139,92,246,.09);color:#b69bec;font-size:11px;box-sizing:border-box;}
+body .announcement-tab[aria-selected="true"] .announcement-tab-count {background:rgba(139,92,246,.30);color:#eee4ff;}
+body .announcement-tab-panel[hidden] {display:none!important;}
+@media(max-width:560px) {body .announcement-tabs {gap:4px;padding:5px;} body .announcement-tab {gap:6px;padding:9px 5px;font-size:11px;} body .announcement-tab svg {width:16px;height:16px;} body .announcement-tab-count {min-width:22px;height:22px;border-radius:7px;}}
+
+.admin-message-preview {display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;overflow-wrap:anywhere;}
+.admin-read-label {display:inline-flex;padding:5px 10px;border:1px solid rgba(245,158,11,.30);border-radius:8px;color:#f2c16b;background:rgba(245,158,11,.10);font-size:11px;font-weight:600;}
+.admin-read-label.is-seen {color:#aaa1b7;background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.10);}
+#adminAnnouncementViewModal {background:rgba(4,4,10,.35);backdrop-filter:blur(3px);}
+#adminAnnouncementViewMessage {white-space:pre-wrap;overflow-wrap:anywhere;color:#d4cddd;font-size:14px;line-height:1.7;margin:0;}
+</style>
 
 </head>
 
@@ -2270,6 +2289,13 @@
             ====================================================== -->
 
             <section class="dashboard-content">
+<div class="announcement-tabs" role="tablist" aria-label="Announcement sections">
+<button type="button" id="myAnnouncementTab" class="announcement-tab active" role="tab" aria-selected="true" aria-controls="myAnnouncementPanel" tabindex="0"><i data-lucide="megaphone" aria-hidden="true"></i><span>My Announcements</span><span class="announcement-tab-count">{{ announcements|length }}</span></button>
+<button type="button" id="adminAnnouncementTab" class="announcement-tab" role="tab" aria-selected="false" aria-controls="adminAnnouncementPanel" tabindex="-1"><i data-lucide="shield" aria-hidden="true"></i><span>Admin Announcements</span><span class="announcement-tab-count">{{ admin_received|length }}</span></button>
+</div>
+<div id="myAnnouncementPanel" class="announcement-tab-panel" role="tabpanel" aria-labelledby="myAnnouncementTab">
+
+
 
 
                 <!-- =================================================
@@ -2794,6 +2820,25 @@
                 </div>
 
 
+</div>
+<div id="adminAnnouncementPanel" class="announcement-tab-panel" role="tabpanel" aria-labelledby="adminAnnouncementTab" hidden>
+<div class="section-heading"><div class="section-title-block"><span class="section-eyebrow">ADMIN COMMUNICATION</span><h2>Admin Announcements</h2></div><div class="heading-line"></div></div>
+<section class="history-card">
+<div class="history-top"><span class="history-label">Recent admin announcements</span><span class="history-count">{{ admin_received|length }} Announcements</span></div>
+<div class="announcement-list">
+{% for row in admin_received %}
+<article class="announcement-item admin-announcement-card" tabindex="0" data-announcement-id="{{ row.announcement_id }}" aria-label="Announcement: select to mark as seen" data-seen-url="{% url 'teamlead_admin_announcement_seen' row.announcement_id %}">
+<div class="announcement-icon"><i data-lucide="megaphone" aria-hidden="true"></i></div>
+<div class="announcement-body">
+<div class="announcement-title-row"><h3 class="announcement-title">{{ row.announcement.title|default:'Admin Announcement' }}</h3><div class="announcement-actions"><button type="button" class="announcement-action view-action admin-announcement-view" title="View announcement" aria-label="View announcement"><i data-lucide="eye" aria-hidden="true"></i></button></div></div>
+<p class="announcement-message admin-message-preview">{{ row.announcement.message }}</p>
+<div class="announcement-footer"><div class="announcement-meta"><strong>Admin</strong> · {{ row.announcement.created_at|localtime|date:'d M Y, h:i A' }}</div><span class="admin-read-label{% if row.read_at %} is-seen{% endif %}">{% if row.read_at %}Seen{% else %}New{% endif %}</span></div>
+<template class="admin-full-message">{{ row.announcement.message }}</template>
+<form hidden method="post" action="{% url 'teamlead_admin_announcement_seen' row.announcement_id %}">{% csrf_token %}</form>
+</div></article>
+{% empty %}<div class="empty-state"><i data-lucide="megaphone-off" aria-hidden="true"></i><div>No admin announcements yet.</div></div>{% endfor %}
+</div></section>
+</div>
             </section>
 
 
@@ -3219,6 +3264,124 @@ document.addEventListener("keydown", function (event) {
     </script>
 
 {% include "components/toast_notification.html" %}
+<div class="seen-modal" id="adminAnnouncementViewModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="adminAnnouncementViewTitle">
+<div class="seen-modal-card"><div class="seen-modal-header"><div><span class="seen-modal-eyebrow">ADMIN ANNOUNCEMENT</span><h3 id="adminAnnouncementViewTitle"></h3><p id="adminAnnouncementViewDate"></p></div><button type="button" class="seen-modal-close" id="adminAnnouncementViewClose" aria-label="Close announcement"><i data-lucide="x" aria-hidden="true"></i></button></div><div class="seen-modal-body"><p id="adminAnnouncementViewMessage"></p></div></div></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+ const modal = document.getElementById('adminAnnouncementViewModal');
+ const close = document.getElementById('adminAnnouncementViewClose');
+ const panel = document.getElementById('adminAnnouncementPanel');
+ let trigger = null, previousOverflow = '', polling = false, mutations = 0;
+ const marking = new Set();
+ async function markSeen(card) {
+  const id = card.dataset.announcementId;
+  const label = card.querySelector('.admin-read-label');
+  if (label.classList.contains('is-seen') || marking.has(id)) return;
+  marking.add(id); mutations++;
+  try {
+   const response = await fetch(card.dataset.seenUrl, {method:'POST',credentials:'same-origin',body:new FormData(card.querySelector('form')),headers:{'X-Requested-With':'XMLHttpRequest'}});
+   if (!response.ok) throw new Error('Unable to mark announcement as seen.');
+   const data = await response.json();
+   if (!data.ok) throw new Error(data.message || 'Unable to mark announcement as seen.');
+   label.textContent = 'Seen'; label.classList.add('is-seen'); mutations++;
+  } catch(error) {if (window.showToast) window.showToast(error.message,'error');}
+  finally {marking.delete(id);}
+ }
+ function openView(card, button) {
+  trigger = button; previousOverflow = document.body.style.overflow;
+  document.getElementById('adminAnnouncementViewTitle').textContent = card.querySelector('.announcement-title').textContent;
+  document.getElementById('adminAnnouncementViewMessage').textContent = card.querySelector('template').content.textContent;
+  document.getElementById('adminAnnouncementViewDate').textContent = card.querySelector('.announcement-meta').textContent;
+  modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
+  document.body.style.overflow = 'hidden'; close.focus();
+ }
+ function closeView() {
+  if (!modal.classList.contains('open')) return;
+  modal.classList.remove('open'); modal.setAttribute('aria-hidden','true');
+  document.body.style.overflow = previousOverflow; trigger?.focus();
+ }
+ panel.addEventListener('click', event => {
+  const card = event.target.closest('.admin-announcement-card');
+  if (!card) return;
+  markSeen(card);
+  const button = event.target.closest('.admin-announcement-view');
+  if (button) openView(card,button);
+ });
+ panel.addEventListener('keydown',event => {
+  if (event.target.matches('.admin-announcement-card') && ['Enter',' '].includes(event.key)) {
+   event.preventDefault(); markSeen(event.target);
+  }
+ });
+ close.addEventListener('click',closeView);
+ modal.addEventListener('click',event => {if (event.target === modal) closeView();});
+ document.addEventListener('keydown',event => {
+  if (!modal.classList.contains('open')) return;
+  if (event.key === 'Escape') {event.preventDefault();closeView();}
+  if (event.key === 'Tab') {event.preventDefault();close.focus();}
+ });
+ document.addEventListener('wheel',event => {
+  if (modal.classList.contains('open') && !event.target.closest('#adminAnnouncementViewModal .seen-modal-body')) event.preventDefault();
+ },{passive:false});
+ async function refreshAnnouncements() {
+  if (polling || document.hidden || marking.size || modal.classList.contains('open')) return;
+  polling = true; const version = mutations;
+  const url = new URL(window.location.href); url.searchParams.set('format','json');
+  try {
+   const response = await fetch(url,{credentials:'same-origin',cache:'no-store',headers:{'X-Requested-With':'XMLHttpRequest'},signal:AbortSignal.timeout(8000)});
+   if (!response.ok || !(response.headers.get('content-type') || '').includes('application/json')) return;
+   const data = await response.json(); if (!data.ok || version !== mutations || marking.size || modal.classList.contains('open')) return;
+   const fresh = new DOMParser().parseFromString(data.html,'text/html');
+   const next = fresh.getElementById('adminAnnouncementPanel'); if (!next) return;
+   const signature = node => [...node.querySelectorAll('.admin-announcement-card')].map(card => [card.dataset.announcementId,card.textContent.trim(),card.querySelector('template').content.textContent]);
+   if (JSON.stringify(signature(panel)) !== JSON.stringify(signature(next))) {
+    const list = panel.querySelector('.announcement-list'), scroll = list?.scrollTop || 0;
+    const focused = document.activeElement.closest?.('.admin-announcement-card');
+    const focusId = focused?.dataset.announcementId;
+    panel.innerHTML = next.innerHTML;
+    if (panel.querySelector('.announcement-list')) panel.querySelector('.announcement-list').scrollTop = scroll;
+    if (focusId) [...panel.querySelectorAll('.admin-announcement-card')].find(card => card.dataset.announcementId === focusId)?.focus({preventScroll:true});
+    window.lucide?.createIcons();
+   }
+   const badge = document.querySelector('#adminAnnouncementTab .announcement-tab-count');
+   if (badge) badge.textContent = next.querySelectorAll('.admin-announcement-card').length;
+  } catch(error) { /* Retry on the next interval after a connection failure. */ }
+  finally {polling = false;}
+ }
+ setInterval(refreshAnnouncements,10000);
+ document.addEventListener('visibilitychange',() => {if (!document.hidden) refreshAnnouncements();});
+ document.getElementById('adminAnnouncementTab').addEventListener('click',refreshAnnouncements);
+});
+</script>
+
+
+<script>
+(() => {
+ const tabs = [...document.querySelectorAll('.announcement-tab')];
+ function selectTab(selected) {
+  tabs.forEach(tab => {
+   const active = tab === selected;
+   tab.classList.toggle('active', active);
+   tab.setAttribute('aria-selected', String(active));
+   tab.tabIndex = active ? 0 : -1;
+   document.getElementById(tab.getAttribute('aria-controls')).hidden = !active;
+  });
+ }
+ tabs.forEach((tab, index) => {
+  tab.addEventListener('click', () => selectTab(tab));
+  tab.addEventListener('keydown', event => {
+   let target;
+   if (event.key === 'ArrowRight') target = tabs[(index + 1) % tabs.length];
+   else if (event.key === 'ArrowLeft') target = tabs[(index + tabs.length - 1) % tabs.length];
+   else if (event.key === 'Home') target = tabs[0];
+   else if (event.key === 'End') target = tabs[tabs.length - 1];
+   else return;
+   event.preventDefault(); selectTab(target); target.focus();
+  });
+ });
+})();
+</script>
+
 </body>
 
 </html>
