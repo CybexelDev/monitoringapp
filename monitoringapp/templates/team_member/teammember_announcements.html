@@ -395,6 +395,17 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
 }
 @media(prefers-reduced-motion:reduce){#memberAnnouncementsPage .announcement-item,#memberAnnouncementsPage .announcement-icon {transition:none;}}
 
+#memberAnnouncementsPage .member-announcement-tabs {display:flex;gap:6px;padding:6px;margin:16px;border:1px solid rgba(255,255,255,.07);border-radius:17px;background:rgba(255,255,255,.025);}
+#memberAnnouncementsPage .member-announcement-tab {flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:10px 14px;border:1px solid transparent;border-radius:12px;background:transparent;color:#898493;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s;}
+#memberAnnouncementsPage .member-announcement-tab:hover {color:#e4ddef;background:rgba(139,92,246,.06);}
+#memberAnnouncementsPage .member-announcement-tab[aria-selected="true"] {background:linear-gradient(110deg,rgba(139,92,246,.20),rgba(139,92,246,.09));border-color:rgba(167,139,250,.23);color:#faf7ff;}
+#memberAnnouncementsPage .member-announcement-tab svg {width:17px;height:17px;flex-shrink:0;}
+#memberAnnouncementsPage .member-announcement-tab:focus-visible {outline:2px solid #a78bfa;outline-offset:2px;}
+#memberAnnouncementsPage .member-announcement-tab-count {display:inline-flex;align-items:center;justify-content:center;min-width:27px;height:27px;padding:0 7px;border-radius:9px;background:rgba(139,92,246,.09);color:#b69bec;font-size:11px;box-sizing:border-box;}
+#memberAnnouncementsPage .member-announcement-tab[aria-selected="true"] .resource-tab-count {background:rgba(139,92,246,.30);color:#eee4ff;}
+
+#memberAnnouncementsPage .member-announcement-tab {text-decoration:none;}
+@media(max-width:560px){#memberAnnouncementsPage .member-announcement-tabs {margin:12px;gap:4px;padding:5px;}#memberAnnouncementsPage .member-announcement-tab {gap:6px;padding:9px 5px;font-size:12px;}}
 </style>{% endblock %}
 {% block content %}
 
@@ -436,8 +447,11 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
             </section>
 <section class="dashboard-content">
 <div class="section-heading"><div class="section-title-block"><span class="section-eyebrow">TEAM COMMUNICATION</span><h2>Your Announcements</h2></div><div class="heading-line"></div></div>
-<div class="history-card"><div class="history-top"><span class="history-label">Updates shared with you</span><span class="history-count">{{ page_obj.paginator.count }} announcements · <span id="announcementUnreadCount">{{ unread_count }}</span> unread</span></div>
-<div class="announcement-list">
+<div class="history-card"><div class="member-announcement-tabs" role="tablist" aria-label="Announcement sender">
+<a href="?source=lead" id="memberLeadAnnouncementTab" class="member-announcement-tab" role="tab" aria-selected="{% if announcement_source == 'lead' %}true{% else %}false{% endif %}" tabindex="{% if announcement_source == 'lead' %}0{% else %}-1{% endif %}" aria-controls="memberAnnouncementList"><i data-lucide="users" aria-hidden="true"></i><span>Team Lead</span><span class="member-announcement-tab-count">{{ lead_announcement_count }}</span></a>
+<a href="?source=admin" id="memberAdminAnnouncementTab" class="member-announcement-tab" role="tab" aria-selected="{% if announcement_source == 'admin' %}true{% else %}false{% endif %}" tabindex="{% if announcement_source == 'admin' %}0{% else %}-1{% endif %}" aria-controls="memberAnnouncementList"><i data-lucide="shield" aria-hidden="true"></i><span>Admin</span><span class="member-announcement-tab-count">{{ admin_announcement_count }}</span></a>
+</div><div class="history-top"><span class="history-label">{% if announcement_source == "admin" %}Admin announcements{% else %}Team Lead announcements{% endif %}</span><span class="history-count">{{ page_obj.paginator.count }} announcements · <span id="announcementUnreadCount">{{ unread_count }}</span> unread</span></div>
+<div class="announcement-list" id="memberAnnouncementList" role="tabpanel" aria-labelledby="{% if announcement_source == 'admin' %}memberAdminAnnouncementTab{% else %}memberLeadAnnouncementTab{% endif %}">
 {% for row in page_obj %}
 <article class="announcement-item" id="announcement-{{ row.announcement_id }}" tabindex="0" aria-label="{{ row.announcement.title|default:'Announcement' }} — select to mark as seen">
 <div class="announcement-icon"><i data-lucide="megaphone"></i></div>
@@ -445,11 +459,11 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
 <div class="announcement-actions"><span class="read-badge{% if not row.read_at %} unread{% endif %}">{% if row.read_at %}Seen{% else %}New{% endif %}</span>
 <form method="post" action="{% url 'teammember_announcement_seen' row.announcement_id %}" class="announcement-seen-form">{% csrf_token %}<button class="view-button" type="button" aria-label="View announcement"><i data-lucide="eye"></i>View</button></form></div></div>
 <p class="announcement-message">{{ row.announcement.message }}</p>
-<div class="announcement-meta">Posted by <strong>{{ row.announcement.created_by.name|default:row.announcement.created_by.username }}</strong> · {{ row.announcement.created_at|localtime|date:"d M Y, h:i A" }}</div>
+<div class="announcement-meta">Posted by <strong>{{ row.announcement.author_name }}</strong> · {{ row.announcement.created_at|localtime|date:"d M Y, h:i A" }}</div>
 </div></article>
-{% empty %}<div style="padding:40px 20px;text-align:center;color:#b7abc6;">No announcements have been shared with you yet.</div>{% endfor %}
+{% empty %}<div style="padding:40px 20px;text-align:center;color:#b7abc6;">No {% if announcement_source == "admin" %}Admin{% else %}Team Lead{% endif %} announcements have been shared with you yet.</div>{% endfor %}
 </div>
-{% if page_obj.paginator.num_pages > 1 %}<nav class="announcement-pagination" aria-label="Announcement pages"><div>{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}</div><span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></nav>{% endif %}
+{% if page_obj.paginator.num_pages > 1 %}<nav class="announcement-pagination" aria-label="Announcement pages"><div>{% if page_obj.has_previous %}<a href="?source={{ announcement_source }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}</div><span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_next %}<a href="?source={{ announcement_source }}&amp;page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></nav>{% endif %}
 </div></section></div>
 <dialog id="memberAnnouncementDialog" class="member-announcement-dialog" aria-labelledby="announcementDialogTitle"><header><h2 id="announcementDialogTitle">Announcement</h2><button type="button" id="closeAnnouncementDialog" aria-label="Close">✕</button></header><div class="dialog-body"><div class="dialog-meta" id="announcementDialogMeta"></div><div class="dialog-message" id="announcementDialogMessage"></div></div></dialog>
 
@@ -478,6 +492,7 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
         const current=page.querySelector('.history-card');
         const list=current.querySelector('.announcement-list');
         const top=list?.scrollTop || 0;
+        const tabFocused=document.activeElement?.closest('.member-announcement-tab');
         const focused=document.activeElement?.closest('.announcement-item');
         const focusId=focused?.id;
         const viewFocused=document.activeElement?.classList.contains('view-button');
@@ -486,6 +501,7 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
         const nextList=current.querySelector('.announcement-list');
         if(nextList)nextList.scrollTop=top;
         if(window.lucide)window.lucide.createIcons();
+        if(tabFocused)current.querySelector('.member-announcement-tab[aria-selected="true"]')?.focus({preventScroll:true});
         if(focusId){const card=document.getElementById(focusId);const target=viewFocused?card?.querySelector('.view-button'):card;target?.focus({preventScroll:true});}
     }
     async function load(url,manual=false){
@@ -535,6 +551,8 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
         document.getElementById('closeAnnouncementDialog').focus();
     }
     page.addEventListener('click',event=>{
+        const tab=event.target.closest('.member-announcement-tab');
+        if(tab && event.button===0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey){event.preventDefault();load(tab.href,true);return;}
         const card=event.target.closest('.announcement-item');
         const view=event.target.closest('.view-button');
         if(view && card){event.preventDefault();showView(card,view);return;}
@@ -543,6 +561,12 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
         if(card && !event.target.closest('button,a,input,form'))markSeen(card);
     });
     page.addEventListener('keydown',event=>{
+        const tab=event.target.closest('.member-announcement-tab');
+        if(tab && ['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){
+            const tabs=[...page.querySelectorAll('.member-announcement-tab')];
+            const target=event.key==='Home'?tabs[0]:event.key==='End'?tabs[tabs.length-1]:tabs[(tabs.indexOf(tab)+1)%tabs.length];
+            event.preventDefault();load(target.href,true);return;
+        }
         const card=event.target.closest('.announcement-item');
         if(card && event.target===card && (event.key==='Enter' || event.key===' ')){event.preventDefault();markSeen(card);}
     });

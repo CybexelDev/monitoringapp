@@ -1334,6 +1334,19 @@ html.repository-popup-open,body.repository-popup-open {overflow:hidden;}
 @media(max-width:520px){#memberRepositoryPage .repository-grid {grid-template-columns:minmax(0,1fr);} .repository-modal-card {padding:20px 16px;} .repository-modal-header {gap:10px;}.repository-delete-buttons {flex-wrap:wrap;}}
 @media(prefers-reduced-motion:reduce){#memberRepositoryPage *,.repository-modal-card {transition:none!important;animation:none!important;}}
 
+body .resource-tabs {display:flex;gap:6px;padding:6px;margin:0 0 22px;border:1px solid rgba(255,255,255,.07);border-radius:17px;background:rgba(255,255,255,.025);}
+body .resource-tab {flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:10px 14px;border:1px solid transparent;border-radius:12px;background:transparent;color:#898493;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s;}
+body .resource-tab:hover {color:#e4ddef;background:rgba(139,92,246,.06);}
+body .resource-tab[aria-selected="true"] {background:linear-gradient(110deg,rgba(139,92,246,.20),rgba(139,92,246,.09));border-color:rgba(167,139,250,.23);color:#faf7ff;}
+body .resource-tab svg {width:17px;height:17px;flex-shrink:0;}
+body .resource-tab:focus-visible {outline:2px solid #a78bfa;outline-offset:2px;}
+body .resource-tab-count {display:inline-flex;align-items:center;justify-content:center;min-width:27px;height:27px;padding:0 7px;border-radius:9px;background:rgba(139,92,246,.09);color:#b69bec;font-size:11px;box-sizing:border-box;}
+body .resource-tab[aria-selected="true"] .resource-tab-count {background:rgba(139,92,246,.30);color:#eee4ff;}
+body .repository-card[hidden],body .resource-tab-empty[hidden] {display:none!important;}
+body .resource-tab-empty {grid-column:1/-1;text-align:center;padding:32px 16px;color:#b7adc8;font-size:13px;}
+@media(max-width:600px) {body .resource-tabs {gap:4px;padding:5px;} body .resource-tab {flex-direction:column;gap:6px;padding:9px 5px;font-size:11px;} body .resource-tab svg {width:16px;height:16px;} body .resource-tab-count {min-width:22px;height:22px;border-radius:7px;}}
+
+
 </style>
 {% endblock %}
 {% block content %}
@@ -1562,7 +1575,11 @@ html.repository-popup-open,body.repository-popup-open {overflow:hidden;}
              RESOURCE GRID
         =================================================== -->
 
-        <div class="repository-grid">
+        <div class="resource-tabs" role="tablist" aria-label="Resource categories">
+<button type="button" id="resourceTabLeads" class="resource-tab" role="tab" data-resource-tab="lead" aria-selected="true" aria-controls="resourceTabPanel"><i data-lucide="users" aria-hidden="true"></i><span>Team Leads</span><span class="resource-tab-count" data-resource-count="lead">0</span></button>
+<button type="button" id="resourceTabMembers" class="resource-tab" role="tab" data-resource-tab="member" aria-selected="false" aria-controls="resourceTabPanel" tabindex="-1"><i data-lucide="user-round" aria-hidden="true"></i><span>Team Members</span><span class="resource-tab-count" data-resource-count="member">0</span></button>
+</div>
+<div class="repository-grid" id="resourceTabPanel" role="tabpanel" aria-labelledby="resourceTabLeads" tabindex="0">
 
 
           {% for item in knowledge_items %}
@@ -1572,7 +1589,7 @@ html.repository-popup-open,body.repository-popup-open {overflow:hidden;}
                  RESOURCE CARD
             =============================================== -->
 
-            <article class="repository-card" data-resource-id="{{ item.id }}">
+            <article class="repository-card" data-resource-id="{{ item.id }}" data-resource-category="{% if item.user.job_Position|lower == 'team lead' %}lead{% else %}member{% endif %}">
 
 
               <!-- DELETE -->
@@ -1868,19 +1885,8 @@ html.repository-popup-open,body.repository-popup-open {overflow:hidden;}
             </div>
 
 
-          {% empty %}
-
-
-            <!-- EMPTY -->
-
-            <p class="repository-empty">
-
-              No resources available yet.
-
-            </p>
-
-
           {% endfor %}
+<p class="resource-tab-empty" id="resourceTabEmpty" role="status" hidden></p>
 
 
         </div>
@@ -1931,7 +1937,8 @@ html.repository-popup-open,body.repository-popup-open {overflow:hidden;}
  function draw(doc){
   const grid=page.querySelector('.repository-grid'),next=doc.querySelector('#memberRepositoryPage .repository-grid');const top=grid.scrollTop;
   const focusId=document.activeElement?.closest('[data-resource-id]')?.dataset.resourceId;const focusDelete=document.activeElement?.classList.contains('repository-delete');
-  baseline=fingerprint(next);grid.innerHTML=next.innerHTML;grid.scrollTop=top;
+  baseline=fingerprint(next);grid.innerHTML=next.innerHTML;
+  window.refreshMemberRepositoryTabs?.();grid.scrollTop=top;
   const csrf=doc.querySelector('#repositoryAddForm [name="csrfmiddlewaretoken"]');if(csrf)form.querySelector('[name="csrfmiddlewaretoken"]').value=csrf.value;
   if(window.lucide)window.lucide.createIcons();
   if(focusId)grid.querySelector(`[data-resource-id="${focusId}"] ${focusDelete?'.repository-delete':'.repository-view-button'}`)?.focus({preventScroll:true});
@@ -1975,6 +1982,59 @@ html.repository-popup-open,body.repository-popup-open {overflow:hidden;}
  // Keep reference links limited to web URLs, including after a live update.
  document.addEventListener('click',event=>{const link=event.target.closest('.repository-modal-action');if(link){try{if(!['http:','https:'].includes(new URL(link.href,location.href).protocol))event.preventDefault();}catch{event.preventDefault();}}});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});if(window.lucide)window.lucide.createIcons();setInterval(load,15000);
+})();
+
+
+(function () {
+  const tabs = Array.from(document.querySelectorAll('[data-resource-tab]'));
+  const panel = document.getElementById('resourceTabPanel');
+  let empty = document.getElementById('resourceTabEmpty');
+  if (!tabs.length || !panel || !empty) return;
+  let cards = [];
+  let selectedTab = tabs[0];
+  const labels = {admin: 'No Admin resources available yet.', lead: 'No Team Lead resources available yet.', member: 'No Team Member resources available yet.'};
+  function selectTab(tab, focus) {
+    selectedTab = tab;
+    const category = tab.dataset.resourceTab;
+    tabs.forEach(button => {
+      const active = button === tab;
+      button.setAttribute('aria-selected', String(active));
+      button.tabIndex = active ? 0 : -1;
+    });
+    let visible = 0;
+    cards.forEach(card => {
+      card.hidden = card.dataset.resourceCategory !== category;
+      if (!card.hidden) visible++;
+    });
+    panel.setAttribute('aria-labelledby', tab.id);
+    empty.textContent = labels[category];
+    empty.hidden = visible > 0;
+    if (focus) tab.focus();
+  }
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => selectTab(tab, false));
+    tab.addEventListener('keydown', event => {
+      let next;
+      if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+      else if (event.key === 'ArrowLeft') next = (index + tabs.length - 1) % tabs.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = tabs.length - 1;
+      else return;
+      event.preventDefault();
+      selectTab(tabs[next], true);
+    });
+  });
+  window.refreshMemberRepositoryTabs = function () {
+    cards = Array.from(panel.querySelectorAll('[data-resource-category]'));
+    empty = panel.querySelector('#resourceTabEmpty');
+    if (!empty) return;
+  tabs.forEach(tab => {
+    const category = tab.dataset.resourceTab;
+    tab.querySelector('[data-resource-count]').textContent = cards.filter(card => card.dataset.resourceCategory === category).length;
+  });
+    selectTab(selectedTab, false);
+  };
+  window.refreshMemberRepositoryTabs();
 })();
 
 </script>{% endblock %}
