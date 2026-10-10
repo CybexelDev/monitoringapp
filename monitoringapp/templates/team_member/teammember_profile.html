@@ -1385,7 +1385,8 @@ button:focus-visible,.profile-image-wrapper:focus-visible {outline:2px solid #b6
  const fields = [...form.querySelectorAll('input[name]:not([type=hidden])')];
  let saving = false, loading = false, revision = 0, controller = null, preview = null;
  let baseline = snapshot();
- const endpoint = form.action;
+ const endpoint =
+    form.getAttribute('action') || window.location.pathname;
  const toast = (m,t) => {if(window.showToast) window.showToast(m,t);};
  function snapshot() {return JSON.stringify(fields.map(field=>[field.name,field.value]));}
  function dirty() {return snapshot() !== baseline;}
