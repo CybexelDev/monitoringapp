@@ -1,0 +1,22 @@
+{% load static %}
+<button id="adminMenuButton" class="menu-toggle mobile-menu-button" type="button" aria-label="Open sidebar" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu" aria-hidden="true"></i></button>
+<div id="adminSidebarOverlay" class="sidebar-overlay" hidden></div>
+<aside id="sidebar" class="glass-sidebar" aria-label="Master Admin navigation">
+  <div class="sidebar-profile">
+    <div class="sidebar-logo"><img src="{% static 'images/logo.png' %}" alt="Cybexel"></div>
+    <div class="sidebar-profile-text"><h3>MASTER ADMIN</h3><span>CYBEXEL WORKSPACE</span></div>
+  </div>
+  <nav class="sidebar-nav" aria-label="Main navigation">
+    <a href="{% url 'master_admin_dashboard' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_dashboard' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_dashboard' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="layout-dashboard" aria-hidden="true"></i></span><span>Dashboard</span></a>
+    <a href="{% url 'master_admin_usermanagement' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_usermanagement' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_usermanagement' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="user-cog" aria-hidden="true"></i></span><span>User Management</span></a>
+    <a href="{% url 'master_admin_departments' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_departments' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_departments' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="building-2" aria-hidden="true"></i></span><span>Departments</span></a>
+    <a href="{% url 'master_admin_teams' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_teams' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_teams' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="users-round" aria-hidden="true"></i></span><span>Teams</span></a>
+    <a href="{% url 'master_admin_reports' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_reports' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_reports' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="file-chart-column" aria-hidden="true"></i></span><span>Reports</span></a>
+    <a href="{% url 'master_admin_dashboard' %}#workforce" class="sidebar-item"><span class="sidebar-icon"><i data-lucide="users" aria-hidden="true"></i></span><span>Workforce overview</span></a>
+    <a href="{% url 'master_admin_accounts_overview' %}" class="sidebar-item {% if accounts_active %}active{% endif %}"><span class="sidebar-icon"><i data-lucide="wallet" aria-hidden="true"></i></span><span>Accounts Management</span></a>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="sidebar-item"><span class="sidebar-icon"><i data-lucide="shield-check" aria-hidden="true"></i></span><span>{{ request.user.get_full_name|default:request.user.username }}</span></div>
+    <form method="post" action="{% url 'master_admin_logout' %}">{% csrf_token %}<button type="submit" class="sidebar-logout" style="width:100%;font-family:inherit;text-align:left;cursor:pointer;appearance:none"><span class="sidebar-icon"><i data-lucide="log-out" aria-hidden="true"></i></span><span>Logout</span></button></form>
+  </div>
+</aside>

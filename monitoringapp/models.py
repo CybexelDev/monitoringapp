@@ -1442,3 +1442,19 @@ class Designation(models.Model):
 
     def __str__(self):
         return f"{self.department.name} - {self.name}"
+
+class MasterAdminAccountsAudit(models.Model):
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="master_accounts_actions",
+    )
+    actor_name = models.CharField(max_length=255)
+    kind = models.CharField(max_length=10, choices=[("income", "Income"), ("expense", "Expense"), ("sale", "Sale"), ("payment", "Payment")])
+    entry_number = models.PositiveBigIntegerField()
+    action = models.CharField(max_length=10, choices=[("created", "Created"), ("updated", "Updated"), ("deleted", "Deleted")])
+    snapshot = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+        indexes = [models.Index(fields=["kind", "entry_number"], name="master_accounts_audit_idx")]

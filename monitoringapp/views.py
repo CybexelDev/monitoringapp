@@ -7570,50 +7570,52 @@ def accounts_income(request):
         "month_label": month_start.strftime("%B %Y"),
     }, status=400 if request.method == "POST" or filter_error else 200)
 
-@never_cache
-@require_http_methods(["GET", "POST"])
-def accounts_income_edit(request, pk):
-    actor = _accounts_user(request)
-    if actor is None:
-        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
-            status=403 if request.session.get("user_id") else 401)
-    with transaction.atomic():
-        entry = AccountsIncome.objects.select_for_update().filter(pk=pk).first()
-        if entry is None:
-            return JsonResponse({"ok": False, "message": "This income no longer exists."}, status=404)
-        if request.method == "GET":
-            return JsonResponse({"ok": True, "item": {
-                "date": entry.date.isoformat(), "category": entry.category,
-                "amount": str(entry.amount),
-                "payment_method": entry.payment_method,
-                "description": entry.description, "reference": entry.reference,
-            }, "receipt_url": reverse("accounts_income_receipt", args=[entry.pk]) if entry.receipt else ""})
-        before = _income_snapshot(entry)
-        form = AccountsIncomeForm(request.POST, request.FILES, instance=entry)
-        if not form.is_valid():
-            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
-                "errors": form.errors.get_json_data()}, status=400)
-        # Recheck duplicates when identifying fields change.
-        identifying = {"date", "category", "amount", "reference"}
-        if any(str(form.cleaned_data.get(key) or "") != before.get(key, "") for key in identifying) and _income_duplicate(form, entry.pk) and request.POST.get("confirm_duplicate") != "1":
-            return _income_duplicate_response()
-        entry = form.save(commit=False)
-        if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
-            entry.receipt = ""
-            entry.save()
-        _income_audit(entry, actor, "updated", before)
-        _create_accounts_notification(
-            kind="income",
-            title="Income updated",
-            message=(
-                f"{actor.name} updated income "
-                f"#{entry.pk}: {entry.category}, "
-                f"₹{entry.amount:,.2f} "
-                f"on {entry.date:%d %b %Y}."
-            ),
-            actor=actor,
-        )
-    return JsonResponse({"ok": True, "message": "Income updated successfully.", "id": entry.pk})
+# @never_cache
+# @require_http_methods(["GET", "POST"])
+# def accounts_income_edit(request, pk):
+#     actor = _accounts_user(request)
+#     if actor is None:
+#         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+#             status=403 if request.session.get("user_id") else 401)
+#     with transaction.atomic():
+#         entry = AccountsIncome.objects.select_for_update().filter(pk=pk).first()
+#         if entry is None:
+#             return JsonResponse({"ok": False, "message": "This income no longer exists."}, status=404)
+#         if request.method == "GET":
+#             return JsonResponse({"ok": True, "item": {
+#                 "date": entry.date.isoformat(), "category": entry.category,
+#                 "amount": str(entry.amount),
+#                 "payment_method": entry.payment_method,
+#                 "description": entry.description, "reference": entry.reference,
+#             }, "receipt_url": reverse("accounts_income_receipt", args=[entry.pk]) if entry.receipt else ""})
+#         before = _income_snapshot(entry)
+#         form = AccountsIncomeForm(request.POST, request.FILES, instance=entry)
+#         if not form.is_valid():
+#             return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+#                 "errors": form.errors.get_json_data()}, status=400)
+#         # Recheck duplicates when identifying fields change.
+#         identifying = {"date", "category", "amount", "reference"}
+#         if any(str(form.cleaned_data.get(key) or "") != before.get(key, "") for key in identifying) and _income_duplicate(form, entry.pk) and request.POST.get("confirm_duplicate") != "1":
+#             return _income_duplicate_response()
+#         entry = form.save(commit=False)
+#         if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
+#             entry.receipt = ""
+#             entry.save()
+#         _income_audit(entry, actor, "updated", before)
+#         _create_accounts_notification(
+#             kind="income",
+#             title="Income updated",
+#             message=(
+#                 f"{actor.name} updated income "
+#                 f"#{entry.pk}: {entry.category}, "
+#                 f"₹{entry.amount:,.2f} "
+#                 f"on {entry.date:%d %b %Y}."
+#             ),
+#             actor=actor,
+#         )
+#     return JsonResponse({"ok": True, "message": "Income updated successfully.", "id": entry.pk})
+
+
 
 
 @never_cache
@@ -7957,50 +7959,50 @@ def accounts_expenses(request):
         "month_label": month_start.strftime("%B %Y"),
     }, status=400 if request.method == "POST" or filter_error else 200)
 
-@never_cache
-@require_http_methods(["GET", "POST"])
-def accounts_expense_edit(request, pk):
-    actor = _accounts_user(request)
-    if actor is None:
-        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
-            status=403 if request.session.get("user_id") else 401)
-    with transaction.atomic():
-        entry = AccountsExpense.objects.select_for_update().filter(pk=pk).first()
-        if entry is None:
-            return JsonResponse({"ok": False, "message": "This expense no longer exists."}, status=404)
-        if request.method == "GET":
-            return JsonResponse({"ok": True, "item": {
-                "date": entry.date.isoformat(), "category": entry.category,
-                "amount": str(entry.amount), "paid_amount": str(entry.effective_paid_amount),
-                "payment_method": entry.payment_method, "paid_to": entry.paid_to,
-                "description": entry.description, "reference": entry.reference,
-            }, "receipt_url": reverse("accounts_expense_receipt", args=[entry.pk]) if entry.receipt else ""})
-        before = _expense_snapshot(entry)
-        form = AccountsExpenseForm(request.POST, request.FILES, instance=entry)
-        if not form.is_valid():
-            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
-                "errors": form.errors.get_json_data()}, status=400)
-        # Recheck duplicates when identifying fields change; editing only paid amount is safe.
-        identifying = {"date", "category", "amount", "paid_to", "reference"}
-        if any(str(form.cleaned_data.get(key) or "") != before.get(key, "") for key in identifying) and _expense_duplicate(form, entry.pk) and request.POST.get("confirm_duplicate") != "1":
-            return _expense_duplicate_response()
-        entry = form.save(commit=False)
-        if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
-            entry.receipt = ""
-            entry.save()
-        _expense_audit(entry, actor, "updated", before)
-        _create_accounts_notification(
-            kind="expense",
-            title="Expense updated",
-            message=(
-                f"{actor.name} updated expense "
-                f"#{entry.pk}: {entry.category}, "
-                f"₹{entry.amount:,.2f} "
-                f"on {entry.date:%d %b %Y}."
-            ),
-            actor=actor,
-        )
-    return JsonResponse({"ok": True, "message": "Expense updated successfully.", "id": entry.pk})
+# @never_cache
+# @require_http_methods(["GET", "POST"])
+# def accounts_expense_edit(request, pk):
+#     actor = _accounts_user(request)
+#     if actor is None:
+#         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+#             status=403 if request.session.get("user_id") else 401)
+#     with transaction.atomic():
+#         entry = AccountsExpense.objects.select_for_update().filter(pk=pk).first()
+#         if entry is None:
+#             return JsonResponse({"ok": False, "message": "This expense no longer exists."}, status=404)
+#         if request.method == "GET":
+#             return JsonResponse({"ok": True, "item": {
+#                 "date": entry.date.isoformat(), "category": entry.category,
+#                 "amount": str(entry.amount), "paid_amount": str(entry.effective_paid_amount),
+#                 "payment_method": entry.payment_method, "paid_to": entry.paid_to,
+#                 "description": entry.description, "reference": entry.reference,
+#             }, "receipt_url": reverse("accounts_expense_receipt", args=[entry.pk]) if entry.receipt else ""})
+#         before = _expense_snapshot(entry)
+#         form = AccountsExpenseForm(request.POST, request.FILES, instance=entry)
+#         if not form.is_valid():
+#             return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+#                 "errors": form.errors.get_json_data()}, status=400)
+#         # Recheck duplicates when identifying fields change; editing only paid amount is safe.
+#         identifying = {"date", "category", "amount", "paid_to", "reference"}
+#         if any(str(form.cleaned_data.get(key) or "") != before.get(key, "") for key in identifying) and _expense_duplicate(form, entry.pk) and request.POST.get("confirm_duplicate") != "1":
+#             return _expense_duplicate_response()
+#         entry = form.save(commit=False)
+#         if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
+#             entry.receipt = ""
+#             entry.save()
+#         _expense_audit(entry, actor, "updated", before)
+#         _create_accounts_notification(
+#             kind="expense",
+#             title="Expense updated",
+#             message=(
+#                 f"{actor.name} updated expense "
+#                 f"#{entry.pk}: {entry.category}, "
+#                 f"₹{entry.amount:,.2f} "
+#                 f"on {entry.date:%d %b %Y}."
+#             ),
+#             actor=actor,
+#         )
+#     return JsonResponse({"ok": True, "message": "Expense updated successfully.", "id": entry.pk})
 
 
 @never_cache
@@ -8324,52 +8326,52 @@ def accounts_sales(request):
     }, status=400 if request.method == "POST" or filter_error else 200)
 
 
-@never_cache
-@require_http_methods(["GET", "POST"])
-def accounts_sale_edit(request, pk):
-    actor = _accounts_user(request)
-    if actor is None:
-        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
-            status=403 if request.session.get("user_id") else 401)
-    with transaction.atomic():
-        sale = AccountsSale.objects.select_for_update().filter(pk=pk).first()
-        if sale is None:
-            return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
-        if request.method == "GET":
-            return JsonResponse({"ok": True, "item": {
-                "date": sale.date.isoformat(), "customer_name": sale.customer_name,
-                "invoice_number": sale.invoice_number, "description": sale.description,
-                "amount": str(sale.amount), "due_date": sale.due_date.isoformat() if sale.due_date else ""},
-                "invoice_url": reverse("accounts_sale_invoice", args=[sale.pk]) if sale.invoice_file else "",
-                "received_amount": str(sale.received_amount)})
-        before = {"date": sale.date.isoformat(), "customer_name": sale.customer_name,
-            "invoice_number": sale.invoice_number, "amount": str(sale.amount)}
-        form = AccountsSaleForm(request.POST, request.FILES, instance=sale)
-        if not form.is_valid():
-            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
-                "errors": form.errors.get_json_data()}, status=400)
-        if (any(str(form.cleaned_data.get(key) or "") != value for key, value in before.items())
-                and _sale_duplicate(form, sale.pk) and request.POST.get("confirm_duplicate") != "1"):
-            return _sale_duplicate_response()
-        sale = form.save(commit=False)
-        if request.POST.get("remove_invoice") == "1" and not request.FILES.get("invoice_file"):
-            sale.invoice_file = ""
-            sale.save()
-        _create_accounts_notification(
-            kind="sale",
-            title="Sale updated",
-            message=(
-                f"{actor.name} updated sale "
-                f"#{sale.pk} for {sale.customer_name}: "
-                f"₹{sale.amount:,.2f}."
-            ),
-            actor=actor,
-        )
-    return JsonResponse({
-        "ok": True,
-        "message": "Sale updated successfully.",
-        "id": sale.pk,
-    })
+# @never_cache
+# @require_http_methods(["GET", "POST"])
+# def accounts_sale_edit(request, pk):
+#     actor = _accounts_user(request)
+#     if actor is None:
+#         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+#             status=403 if request.session.get("user_id") else 401)
+#     with transaction.atomic():
+#         sale = AccountsSale.objects.select_for_update().filter(pk=pk).first()
+#         if sale is None:
+#             return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
+#         if request.method == "GET":
+#             return JsonResponse({"ok": True, "item": {
+#                 "date": sale.date.isoformat(), "customer_name": sale.customer_name,
+#                 "invoice_number": sale.invoice_number, "description": sale.description,
+#                 "amount": str(sale.amount), "due_date": sale.due_date.isoformat() if sale.due_date else ""},
+#                 "invoice_url": reverse("accounts_sale_invoice", args=[sale.pk]) if sale.invoice_file else "",
+#                 "received_amount": str(sale.received_amount)})
+#         before = {"date": sale.date.isoformat(), "customer_name": sale.customer_name,
+#             "invoice_number": sale.invoice_number, "amount": str(sale.amount)}
+#         form = AccountsSaleForm(request.POST, request.FILES, instance=sale)
+#         if not form.is_valid():
+#             return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+#                 "errors": form.errors.get_json_data()}, status=400)
+#         if (any(str(form.cleaned_data.get(key) or "") != value for key, value in before.items())
+#                 and _sale_duplicate(form, sale.pk) and request.POST.get("confirm_duplicate") != "1"):
+#             return _sale_duplicate_response()
+#         sale = form.save(commit=False)
+#         if request.POST.get("remove_invoice") == "1" and not request.FILES.get("invoice_file"):
+#             sale.invoice_file = ""
+#             sale.save()
+#         _create_accounts_notification(
+#             kind="sale",
+#             title="Sale updated",
+#             message=(
+#                 f"{actor.name} updated sale "
+#                 f"#{sale.pk} for {sale.customer_name}: "
+#                 f"₹{sale.amount:,.2f}."
+#             ),
+#             actor=actor,
+#         )
+#     return JsonResponse({
+#         "ok": True,
+#         "message": "Sale updated successfully.",
+#         "id": sale.pk,
+#     })
 
 @never_cache
 @require_POST
@@ -9482,3 +9484,1914 @@ def accounts_profile(request):
         "profile_form": form,
         "profile_error": error,
     }, status=400 if error else 200)
+
+
+# REPLACE these three EXISTING functions in monitoringapp/views.py. Do not append duplicates.
+# Only save() indentation changes; Accounts permissions/validations remain unchanged.
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_income_edit(request, pk):
+    actor = _accounts_user(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        entry = AccountsIncome.objects.select_for_update().filter(pk=pk).first()
+        if entry is None:
+            return JsonResponse({"ok": False, "message": "This income no longer exists."}, status=404)
+        if request.method == "GET":
+            return JsonResponse({"ok": True, "item": {
+                "date": entry.date.isoformat(), "category": entry.category,
+                "amount": str(entry.amount),
+                "payment_method": entry.payment_method,
+                "description": entry.description, "reference": entry.reference,
+            }, "receipt_url": reverse("accounts_income_receipt", args=[entry.pk]) if entry.receipt else ""})
+        before = _income_snapshot(entry)
+        form = AccountsIncomeForm(request.POST, request.FILES, instance=entry)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        # Recheck duplicates when identifying fields change.
+        identifying = {"date", "category", "amount", "reference"}
+        if any(str(form.cleaned_data.get(key) or "") != before.get(key, "") for key in identifying) and _income_duplicate(form, entry.pk) and request.POST.get("confirm_duplicate") != "1":
+            return _income_duplicate_response()
+        entry = form.save(commit=False)
+        if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
+            entry.receipt = ""
+        entry.save()
+        _income_audit(entry, actor, "updated", before)
+        _create_accounts_notification(
+            kind="income",
+            title="Income updated",
+            message=(
+                f"{actor.name} updated income "
+                f"#{entry.pk}: {entry.category}, "
+                f"₹{entry.amount:,.2f} "
+                f"on {entry.date:%d %b %Y}."
+            ),
+            actor=actor,
+        )
+    return JsonResponse({"ok": True, "message": "Income updated successfully.", "id": entry.pk})
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_expense_edit(request, pk):
+    actor = _accounts_user(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        entry = AccountsExpense.objects.select_for_update().filter(pk=pk).first()
+        if entry is None:
+            return JsonResponse({"ok": False, "message": "This expense no longer exists."}, status=404)
+        if request.method == "GET":
+            return JsonResponse({"ok": True, "item": {
+                "date": entry.date.isoformat(), "category": entry.category,
+                "amount": str(entry.amount), "paid_amount": str(entry.effective_paid_amount),
+                "payment_method": entry.payment_method, "paid_to": entry.paid_to,
+                "description": entry.description, "reference": entry.reference,
+            }, "receipt_url": reverse("accounts_expense_receipt", args=[entry.pk]) if entry.receipt else ""})
+        before = _expense_snapshot(entry)
+        form = AccountsExpenseForm(request.POST, request.FILES, instance=entry)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        # Recheck duplicates when identifying fields change; editing only paid amount is safe.
+        identifying = {"date", "category", "amount", "paid_to", "reference"}
+        if any(str(form.cleaned_data.get(key) or "") != before.get(key, "") for key in identifying) and _expense_duplicate(form, entry.pk) and request.POST.get("confirm_duplicate") != "1":
+            return _expense_duplicate_response()
+        entry = form.save(commit=False)
+        if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
+            entry.receipt = ""
+        entry.save()
+        _expense_audit(entry, actor, "updated", before)
+        _create_accounts_notification(
+            kind="expense",
+            title="Expense updated",
+            message=(
+                f"{actor.name} updated expense "
+                f"#{entry.pk}: {entry.category}, "
+                f"₹{entry.amount:,.2f} "
+                f"on {entry.date:%d %b %Y}."
+            ),
+            actor=actor,
+        )
+    return JsonResponse({"ok": True, "message": "Expense updated successfully.", "id": entry.pk})
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def accounts_sale_edit(request, pk):
+    actor = _accounts_user(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        sale = AccountsSale.objects.select_for_update().filter(pk=pk).first()
+        if sale is None:
+            return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
+        if request.method == "GET":
+            return JsonResponse({"ok": True, "item": {
+                "date": sale.date.isoformat(), "customer_name": sale.customer_name,
+                "invoice_number": sale.invoice_number, "description": sale.description,
+                "amount": str(sale.amount), "due_date": sale.due_date.isoformat() if sale.due_date else ""},
+                "invoice_url": reverse("accounts_sale_invoice", args=[sale.pk]) if sale.invoice_file else "",
+                "received_amount": str(sale.received_amount)})
+        before = {"date": sale.date.isoformat(), "customer_name": sale.customer_name,
+            "invoice_number": sale.invoice_number, "amount": str(sale.amount)}
+        form = AccountsSaleForm(request.POST, request.FILES, instance=sale)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        if (any(str(form.cleaned_data.get(key) or "") != value for key, value in before.items())
+                and _sale_duplicate(form, sale.pk) and request.POST.get("confirm_duplicate") != "1"):
+            return _sale_duplicate_response()
+        sale = form.save(commit=False)
+        if request.POST.get("remove_invoice") == "1" and not request.FILES.get("invoice_file"):
+            sale.invoice_file = ""
+        sale.save()
+        _create_accounts_notification(
+            kind="sale",
+            title="Sale updated",
+            message=(
+                f"{actor.name} updated sale "
+                f"#{sale.pk} for {sale.customer_name}: "
+                f"₹{sale.amount:,.2f}."
+            ),
+            actor=actor,
+        )
+    return JsonResponse({
+        "ok": True,
+        "message": "Sale updated successfully.",
+        "id": sale.pk,
+    })
+
+
+
+
+
+#<------------MASTER-ADMIN------------------>
+
+# monitoringapp/views.py: add these NEW functions once, at the end of the file.
+# Existing login/admin/accounts functions do not need replacement for this step.
+
+
+def _master_admin_allowed(request):
+    user = request.user
+    return bool(user.is_authenticated and user.is_active and user.is_superuser)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_login(request):
+    if _master_admin_allowed(request):
+        return redirect("master_admin_dashboard")
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+        auth_user = authenticate(request, username=username, password=password)
+        if auth_user is not None and auth_user.is_active and auth_user.is_superuser:
+            login(request, auth_user)
+            # This portal uses Django authentication, not an employee identity.
+            for key in ("user_id", "position", "login_time"):
+                request.session.pop(key, None)
+            return redirect("master_admin_dashboard")
+        messages.error(request, "Invalid credentials or Master Admin access unavailable.")
+    return render(request, "master_admin/master_admin_login.html")
+
+
+@never_cache
+@require_POST
+def master_admin_logout(request):
+    from django.http import HttpResponseForbidden
+    if not _master_admin_allowed(request):
+        return HttpResponseForbidden("Master Admin access required.")
+    logout(request)
+    return redirect("master_admin_login")
+
+
+@never_cache
+@require_GET
+def master_admin_dashboard(request):
+    from decimal import Decimal
+    from django.contrib.auth import get_user_model
+    from django.db.models import Count, Q, Sum
+    from django.db.models.functions import Lower, Trim
+    from django.http import HttpResponseForbidden, JsonResponse
+    from django.utils import timezone
+    from .models import User as Employee, Department, Team
+    from .models import AccountsIncome, AccountsExpense, AccountsSale
+
+    json_request = request.GET.get("format") == "json"
+    if not _master_admin_allowed(request):
+        if json_request:
+            return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+        if not request.user.is_authenticated:
+            return redirect("master_admin_login")
+        return HttpResponseForbidden("Master Admin access required.")
+
+    today = timezone.localdate()
+    month_start = today.replace(day=1)
+    next_month = (month_start.replace(year=month_start.year + 1, month=1)
+                  if month_start.month == 12 else month_start.replace(month=month_start.month + 1))
+    employees = Employee.objects.annotate(portal_role=Lower(Trim("job_Position")))
+    counts = employees.aggregate(
+        users=Count("pk"),
+        admins=Count("pk", filter=Q(portal_role="management")),
+        leads=Count("pk", filter=Q(portal_role="team lead")),
+        members=Count("pk", filter=Q(portal_role="team member")),
+        accounts=Count("pk", filter=Q(portal_role__in=["accounts", "accounts team", "accounts_team"])),
+    )
+    # Presence follows the same ten-minute activity window used by the employee portals.
+    counts["active"] = employees.filter(last_activity__gte=timezone.now() - timedelta(minutes=10)).count()
+    counts["inactive"] = counts["users"] - counts["active"]
+    counts["master_admins"] = get_user_model().objects.filter(is_superuser=True, is_active=True).count()
+    counts["departments"] = Department.objects.count()
+    counts["teams"] = Team.objects.count()
+
+    def month_total(model):
+        value = model.objects.filter(date__gte=month_start, date__lt=next_month).aggregate(total=Sum("amount"))["total"]
+        return format(value or Decimal("0.00"), ".2f")
+
+    financial = {"income": month_total(AccountsIncome), "expenses": month_total(AccountsExpense), "sales": month_total(AccountsSale)}
+    recent_users = [{
+        "id": item.pk, "name": item.name, "employee_id": item.employee_id,
+        "role": item.job_Position, "department": item.department.name if item.department else "Not assigned",
+        "team": item.team.name if item.team else "Not assigned",
+    } for item in Employee.objects.select_related("department", "team").order_by("-id")[:10]]
+    payload = {"ok": True, "counts": counts, "financial": financial, "recent_users": recent_users,
+               "month_label": month_start.strftime("%B %Y"), "updated_at": timezone.localtime().strftime("%d %b %Y, %I:%M:%S %p")}
+    if json_request:
+        return JsonResponse(payload)
+    return render(request, "master_admin/master_admin_dashboard.html", {
+        "master_user": request.user, **payload,
+    })
+
+# monitoringapp/views.py — REPLACE the existing six matching functions below.
+# Do not append duplicate definitions. Keep the existing imports/decorators.
+# Requires _master_admin_allowed() from Master Admin Step 1.
+# Existing Admin functions stay unchanged. No migration required.
+
+
+def _master_employee_form(data=None, files=None, instance=None):
+    from django import forms
+    from django.contrib.auth.hashers import make_password
+    from django.contrib.auth.password_validation import validate_password
+    from .models import User as Employee, Designation
+
+    class EmployeeForm(forms.ModelForm):
+        password_input = forms.CharField(required=False, strip=False)
+        joining_date_input = forms.DateField(required=False)
+        job_Position = forms.ChoiceField(choices=[
+            ("Management", "Admin (Management)"), ("Team Lead", "Team Lead"),
+            ("Team Member", "Team Member"), ("Accounts", "Accounts"),
+        ])
+
+        class Meta:
+            model = Employee
+            fields = ["employee_id", "name", "email", "phone", "department", "team",
+                      "job_Position", "designation", "work_location", "username", "profile_image", "status"]
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.fields["department"].required = False
+            self.fields["designation"].required = False
+
+        def clean(self):
+            cleaned = super().clean()
+            department, designation = cleaned.get("department"), cleaned.get("designation", "")
+            if department and not Designation.objects.filter(department=department, name=designation).exists():
+                self.add_error("designation", "Choose a designation belonging to the selected department.")
+            elif not department:
+                cleaned["designation"] = ""
+            password = cleaned.get("password_input", "")
+            if not self.instance.pk and not password:
+                self.add_error("password_input", "Enter a password for the new user.")
+            elif password:
+                try:
+                    validate_password(password, self.instance)
+                except forms.ValidationError as error:
+                    self.add_error("password_input", error)
+            return cleaned
+
+        def save(self, commit=True):
+            employee = super().save(commit=False)
+            password = self.cleaned_data.get("password_input")
+            if password:
+                employee.password = make_password(password)
+            if commit:
+                employee.save()
+                # joining_date is auto_now_add: explicitly persist a chosen date after creation.
+                chosen_date = self.cleaned_data.get("joining_date_input")
+                if chosen_date:
+                    Employee.objects.filter(pk=employee.pk).update(joining_date=chosen_date)
+                    employee.joining_date = chosen_date
+            return employee
+
+    return EmployeeForm(data, files, instance=instance)
+
+
+def _master_employee_save(request, instance=None):
+    from django.db import IntegrityError, transaction
+    from django.http import JsonResponse
+
+    editing = instance is not None
+    keys = {
+        "employee_id": "edit_emp_id", "name": "edit_name", "email": "edit_email",
+        "phone": "edit_phone", "department": "edit_department", "team": "edit_team",
+        "job_Position": "edit_job_position", "designation": "edit_designation",
+        "work_location": "edit_work_location", "username": "edit_username",
+        "status": "edit_status",
+    }
+    data = {key: request.POST.get(source if editing else key, "") for key, source in keys.items()}
+    data["password_input"] = request.POST.get("edit_password" if editing else "password", "")
+    data["joining_date_input"] = request.POST.get("edit_joining_date" if editing else "joining_date", "")
+    image = request.FILES.get("edit_profile_upload" if editing else "profile_image")
+    files = {"profile_image": image} if image else None
+    form = _master_employee_form(data, files, instance)
+    ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    def result(ok, message, status=400, errors=None, employee=None):
+        if ajax:
+            return JsonResponse({"ok": ok, "message": message, "errors": errors or {},
+                                 "id": employee.pk if employee else None}, status=(200 if editing else 201) if ok else status)
+        (messages.success if ok else messages.error)(request, message)
+        return redirect("master_admin_usermanagement")
+
+    if not form.is_valid():
+        details = " ".join(f"{form.fields[field].label or field.replace('_', ' ').title()}: {error}"
+                           for field, errors in form.errors.items() for error in errors if field in form.fields)
+        return result(False, details or "Please correct the form fields.", errors=form.errors.get_json_data())
+    try:
+        with transaction.atomic():
+            employee = form.save()
+    except IntegrityError:
+        return result(False, "Employee ID, username or email is already in use.")
+    return result(True, "User updated successfully." if editing else "User created successfully.", employee=employee)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_usermanagement(request):
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    from django.http import HttpResponseForbidden, JsonResponse
+    from django.utils import timezone
+    from .models import User as Employee, Department, Team, Designation
+
+    if not _master_admin_allowed(request):
+        if request.method == "POST" or request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+        if not request.user.is_authenticated:
+            return redirect("master_admin_login")
+        return HttpResponseForbidden("Master Admin access required.")
+    if request.method == "POST":
+        return _master_employee_save(request)
+    if "designation_department" in request.GET:
+        try:
+            department_id = int(request.GET.get("designation_department", ""))
+        except (ValueError, TypeError):
+            return JsonResponse({"ok": False, "message": "Invalid department."}, status=400)
+        if not Department.objects.filter(pk=department_id).exists():
+            return JsonResponse({"ok": False, "message": "Department not found."}, status=404)
+        return JsonResponse({"ok": True, "items": list(Designation.objects.filter(
+            department_id=department_id).order_by("name").values_list("name", flat=True))})
+
+    users = Employee.objects.select_related("department", "team").order_by("-id")
+    query = request.GET.get("search", "").strip()[:200]
+    if query:
+        users = users.filter(Q(name__icontains=query) | Q(email__icontains=query)
+                             | Q(employee_id__icontains=query) | Q(username__icontains=query))
+    department = request.GET.get("department", "")
+    team = request.GET.get("team", "")
+    position = request.GET.get("position", "")
+    if department:
+        users = users.filter(department__name=department)
+    if team:
+        users = users.filter(team__name=team)
+    if position:
+        users = users.filter(job_Position=position)
+    total = users.count()
+    page = Paginator(users, 25).get_page(request.GET.get("page", 1))
+    # Display the stored status selected in Add/Edit.
+    catalog = {}
+    for department_id, name in Designation.objects.order_by("name").values_list("department_id", "name"):
+        catalog.setdefault(str(department_id), []).append(name)
+    roles = sorted(set(Employee.objects.exclude(job_Position="").values_list("job_Position", flat=True))
+                   | {"Management", "Team Lead", "Team Member", "Accounts"})
+    return render(request, "master_admin/master_admin_usermanagement.html", {
+        "users": page.object_list, "page_obj": page, "total_filtered": total,
+        "departments": Department.objects.order_by("name"), "teams": Team.objects.order_by("name"),
+        "job_positions": roles, "designation_options": catalog,
+    })
+
+
+@never_cache
+@require_POST
+def master_admin_edit_user(request):
+    from django.http import JsonResponse
+    from .models import User as Employee
+    if not _master_admin_allowed(request):
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    try:
+        employee_id = int(request.POST.get("id", ""))
+    except (ValueError, TypeError):
+        return JsonResponse({"ok": False, "message": "Invalid user ID."}, status=400)
+    employee = Employee.objects.filter(pk=employee_id).first()
+    if employee is None:
+        return JsonResponse({"ok": False, "message": "User not found."}, status=404)
+    return _master_employee_save(request, employee)
+
+
+@never_cache
+@require_POST
+def master_admin_delete_user(request, pk):
+    from django.db import IntegrityError, transaction
+    from django.db.models.deletion import ProtectedError, RestrictedError
+    from django.http import JsonResponse
+    from .models import User as Employee
+    if not _master_admin_allowed(request):
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    employee = Employee.objects.filter(pk=pk).first()
+    if employee is None:
+        return JsonResponse({"ok": False, "message": "User not found."}, status=404)
+    try:
+        with transaction.atomic():
+            employee.delete()
+    except (ProtectedError, RestrictedError):
+        return JsonResponse({"ok": False, "message": "This user has protected records and cannot be deleted."}, status=409)
+    except IntegrityError:
+        return JsonResponse({"ok": False, "message": "Linked records prevent deletion. No records were deleted."}, status=409)
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": True, "message": "User deleted successfully.", "id": pk})
+    messages.success(request, "User deleted successfully.")
+    return redirect("master_admin_usermanagement")
+
+
+
+# ADD this NEW function once to monitoringapp/views.py.
+# Requires the existing _master_admin_allowed() helper. No migrations.
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_departments(request):
+    from django.contrib import messages
+    from django.db import IntegrityError, transaction
+    from django.db.models.deletion import ProtectedError, RestrictedError
+    from django.http import JsonResponse, HttpResponseForbidden
+    from django.shortcuts import redirect, render
+    from .models import Department, Designation, User
+
+    ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    if not _master_admin_allowed(request):
+        if request.method == "POST" or ajax or request.GET.get("format") == "json":
+            return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+        if not request.user.is_authenticated:
+            return redirect("master_admin_login")
+        return HttpResponseForbidden("Master Admin access required.")
+
+    def finish(message, ok=True):
+        if ajax:
+            return JsonResponse({"ok": ok, "message": message}, status=200 if ok else 400)
+        (messages.success if ok else messages.error)(request, message)
+        return redirect("master_admin_departments")
+
+    if request.method == "POST":
+        names = [value.strip() for value in request.POST.getlist("designation_names") if value.strip()]
+        # Discard duplicate names within this form, ignoring case.
+        names = list({name.casefold(): name for name in names}.values())
+        if any(len(name) > 100 for name in names):
+            return finish("Designation names must be 100 characters or fewer.", False)
+        try:
+            with transaction.atomic():
+                if "delete_department" in request.POST:
+                    try:
+                        department_id = int(request.POST.get("department_id", ""))
+                    except (ValueError, TypeError):
+                        return finish("Choose a valid department.", False)
+                    department = Department.objects.select_for_update().filter(pk=department_id).first()
+                    if department is None:
+                        return finish("Department not found.", False)
+                    if User.objects.filter(department=department).exists():
+                        return finish("This department is assigned to employees. Reassign them before deleting it.", False)
+                    for relation in Department._meta.related_objects:
+                        if relation.related_model is Designation:
+                            continue
+                        if relation.related_model._default_manager.filter(**{relation.field.name: department}).exists():
+                            return finish("This department is used by other records and cannot be deleted.", False)
+                    department.delete()
+                    return finish("Department deleted successfully.")
+                if "edit_department" in request.POST:
+                    try:
+                        department_id = int(request.POST.get("department_id", ""))
+                    except (ValueError, TypeError):
+                        return finish("Choose a valid department.", False)
+                    department = Department.objects.select_for_update().filter(pk=department_id).first()
+                    if department is None:
+                        return finish("Department not found.", False)
+                    department_name = request.POST.get("department_name", "").strip()
+                    if not department_name or len(department_name) > 100:
+                        return finish("Enter a department name with up to 100 characters.", False)
+                    if Department.objects.exclude(pk=department.pk).filter(name__iexact=department_name).exists():
+                        return finish("This department name already exists.", False)
+                    raw_names = request.POST.getlist("designation_names")
+                    raw_ids = request.POST.getlist("designation_ids")
+                    if len(raw_names) != len(raw_ids) or not raw_names:
+                        return finish("Add at least one designation.", False)
+                    existing = {str(item.pk): item for item in department.designations.select_for_update()}
+                    changes = []; seen_names = set(); seen_ids = set()
+                    for item_id, raw_name in zip(raw_ids, raw_names):
+                        name = raw_name.strip()
+                        if not name or len(name) > 100 or name.casefold() in seen_names:
+                            return finish("Use unique designation names, each up to 100 characters.", False)
+                        if item_id and (item_id not in existing or item_id in seen_ids):
+                            return finish("Invalid designation selection.", False)
+                        seen_names.add(name.casefold()); seen_ids.add(item_id)
+                        changes.append((item_id, name))
+                    removed = [item for key, item in existing.items() if key not in seen_ids]
+                    for item in removed:
+                        if User.objects.filter(department=department, designation__iexact=item.name).exists():
+                            return finish(f"{item.name} is assigned to employees. Reassign them before removing it.", False)
+                    # Temporarily rename retained rows to permit swapping two designation names.
+                    from uuid import uuid4
+                    for item_id, name in changes:
+                        if item_id:
+                            Designation.objects.filter(pk=existing[item_id].pk).update(name="tmp-" + uuid4().hex)
+                    for item in removed:
+                        item.delete()
+                    # Match employees against original values before renaming to avoid swap collisions.
+                    employee_changes = []
+                    for item_id, name in changes:
+                        if item_id:
+                            item = existing[item_id]
+                            employee_ids = list(User.objects.filter(department=department, designation=item.name).values_list("pk", flat=True))
+                            employee_changes.append((employee_ids, name))
+                            item.name = name; item.save(update_fields=["name"])
+                        else:
+                            Designation.objects.create(department=department, name=name)
+                    for employee_ids, name in employee_changes:
+                        User.objects.filter(pk__in=employee_ids).update(designation=name)
+                    department.name = department_name; department.save(update_fields=["name"])
+                    return finish("Department updated successfully.")
+                if "add_department" in request.POST:
+                    name = request.POST.get("department_name", "").strip()
+                    if not name or len(name) > 100:
+                        return finish("Enter a department name with up to 100 characters.", False)
+                    if not names:
+                        return finish("Add at least one designation.", False)
+                    if Department.objects.filter(name__iexact=name).exists():
+                        return finish("This department already exists. Add designations to its existing row.", False)
+                    department = Department.objects.create(name=name)
+                    for designation in names:
+                        Designation.objects.create(department=department, name=designation)
+                    return finish("Department and designations added successfully.")
+                if "add_designation" in request.POST:
+                    try:
+                        department_id = int(request.POST.get("department_id", ""))
+                    except (ValueError, TypeError):
+                        return finish("Choose a valid department.", False)
+                    department = Department.objects.filter(pk=department_id).first()
+                    if department is None or not names:
+                        return finish("Choose a department and enter a designation.", False)
+                    for name in names:
+                        if not Designation.objects.filter(department=department, name__iexact=name).exists():
+                            Designation.objects.create(department=department, name=name)
+                    return finish("Designations saved successfully.")
+                return finish("Invalid department action.", False)
+        except (ProtectedError, RestrictedError):
+            return finish("This department has protected records and cannot be deleted.", False)
+        except IntegrityError:
+            return finish("This department or designation already exists.", False)
+
+    from django.db.models import Count
+    counts = dict(User.objects.exclude(department_id=None).values_list("department_id").annotate(total=Count("pk")))
+    items = [{"id": item.pk, "name": item.name, "employees": counts.get(item.pk, 0),
+              "designations": [{"id": value.pk, "name": value.name} for value in item.designations.all()]}
+             for item in Department.objects.prefetch_related("designations").order_by("name", "id")]
+    if request.GET.get("format") == "json":
+        return JsonResponse({"ok": True, "items": items})
+    return render(request, "master_admin/master_admin_departments.html", {"department_items": items})
+
+
+# ADD this NEW function once at the end of monitoringapp/views.py.
+# Keep existing functions. Requires _master_admin_allowed(). No migration.
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_teams(request):
+    from django.contrib import messages
+    from django.db import IntegrityError, transaction
+    from django.db.models import Count
+    from django.db.models.deletion import ProtectedError, RestrictedError
+    from django.http import JsonResponse, HttpResponseForbidden
+    from django.shortcuts import redirect, render
+    from .models import Team, User
+
+    ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    if not _master_admin_allowed(request):
+        if request.method == "POST" or ajax or request.GET.get("format") == "json":
+            return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+        if not request.user.is_authenticated:
+            return redirect("master_admin_login")
+        return HttpResponseForbidden("Master Admin access required.")
+
+    def finish(message, ok=True, status=400):
+        if ajax:
+            return JsonResponse({"ok": ok, "message": message}, status=200 if ok else status)
+        (messages.success if ok else messages.error)(request, message)
+        return redirect("master_admin_teams")
+
+    if request.method == "POST":
+        actions = [action for action in ("create", "update", "delete") if action in request.POST]
+        if len(actions) != 1:
+            return finish("Choose a valid team action.", False)
+        action = actions[0]
+        name = request.POST.get("team_name", "").strip()
+        if action != "delete" and (not name or len(name) > 100):
+            return finish("Enter a team name with up to 100 characters.", False)
+        try:
+            with transaction.atomic():
+                team = None
+                if action != "create":
+                    try:
+                        team_id = int(request.POST.get("team_id", ""))
+                    except (ValueError, TypeError):
+                        return finish("Invalid team ID.", False)
+                    team = Team.objects.select_for_update().filter(pk=team_id).first()
+                    if team is None:
+                        return finish("Team not found.", False, 404)
+                if action == "delete":
+                    # Preserve employee assignments and other linked records.
+                    for relation in Team._meta.related_objects:
+                        if relation.related_model._default_manager.filter(**{relation.field.name: team}).exists():
+                            return finish("This team is in use. Reassign its employees and linked records before deleting it.", False, 409)
+                    team.delete()
+                    return finish("Team deleted successfully.")
+                duplicates = Team.objects.filter(name__iexact=name)
+                if team is not None:
+                    duplicates = duplicates.exclude(pk=team.pk)
+                if duplicates.exists():
+                    return finish("A team with this name already exists.", False)
+                if action == "create":
+                    Team.objects.create(name=name)
+                    return finish("Team created successfully.")
+                team.name = name
+                team.save(update_fields=["name"])
+                return finish("Team updated successfully.")
+        except (ProtectedError, RestrictedError):
+            return finish("This team has protected records and cannot be deleted.", False, 409)
+        except IntegrityError:
+            return finish("The change conflicts with an existing team or linked record. No changes were saved.", False, 409)
+
+    counts = dict(User.objects.exclude(team_id=None).values_list("team_id").annotate(total=Count("pk")))
+    department_names = {}
+    for team_id, department_name in User.objects.exclude(team_id=None).exclude(department_id=None).values_list("team_id", "department__name").distinct():
+        department_names.setdefault(team_id, set()).add(department_name)
+    items = [{"id": team.pk, "name": team.name, "employees": counts.get(team.pk, 0),
+              "departments": sorted(department_names.get(team.pk, set()))}
+             for team in Team.objects.order_by("name", "id")]
+    if request.GET.get("format") == "json":
+        return JsonResponse({"ok": True, "items": items})
+    return render(request, "master_admin/master_admin_teams.html", {"team_items": items})
+
+# ADD this NEW function once at the END of monitoringapp/views.py.
+# Keep existing Admin report functions unchanged. No migrations.
+
+@never_cache
+@require_GET
+def master_admin_reports(request):
+    from datetime import datetime, time, timedelta
+    from urllib.parse import urlencode
+    from django.conf import settings
+    from django.contrib import messages
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    from django.http import HttpResponse, HttpResponseForbidden
+    from django.shortcuts import redirect, render
+    from django.urls import reverse
+    from django.utils import timezone
+    from django.utils.dateparse import parse_date
+    from .models import MorningReport, EveningReport
+
+    if not _master_admin_allowed(request):
+        if not request.user.is_authenticated:
+            return redirect("master_admin_login")
+        return HttpResponseForbidden("Master Admin access required.")
+    report_tab = request.GET.get("tab", "leads")
+    if report_tab not in {"leads", "members"}:
+        report_tab = "leads"
+    role = "Team Lead" if report_tab == "leads" else "Team Member"
+    show_all = request.GET.get("all") == "1"
+    query = request.GET.get("q", "").strip()[:200]
+    filter_date = None
+    raw_date = request.GET.get("date", "").strip()
+    if raw_date and raw_date != "None":
+        try:
+            selected_date = parse_date(raw_date)
+        except ValueError:
+            selected_date = None
+        if selected_date:
+            filter_date = selected_date.isoformat()
+        else:
+            messages.error(request, "Choose a valid report date.")
+
+    morning = MorningReport.objects.filter(user__job_Position__iexact=role).select_related("user").order_by("-created_at", "-id")
+    evening = EveningReport.objects.filter(user__job_Position__iexact=role).select_related("user").order_by("-created_at", "-id")
+    if query:
+        match = (Q(user__name__icontains=query) | Q(user__username__icontains=query)
+                 | Q(team__icontains=query) | Q(department__icontains=query)
+                 | Q(report_text__icontains=query) | Q(status__icontains=query))
+        morning, evening = morning.filter(match), evening.filter(match)
+    day = parse_date(filter_date) if filter_date else (None if show_all else timezone.localdate())
+    if day is not None:
+        start = datetime.combine(day, time.min)
+        end = datetime.combine(day + timedelta(days=1), time.min)
+        if settings.USE_TZ:
+            tz = timezone.get_current_timezone()
+            start, end = timezone.make_aware(start, tz), timezone.make_aware(end, tz)
+        morning = morning.filter(created_at__gte=start, created_at__lt=end)
+        evening = evening.filter(created_at__gte=start, created_at__lt=end)
+
+    if request.GET.get("export") == "1":
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+        from openpyxl.utils import get_column_letter
+        from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Team Reports"
+        ws.append(["Report Type", "Date", "Time", "Name", "Team", "Department", "Report", "Status"])
+        for rows, label in ((morning, "Morning"), (evening, "Evening")):
+            for report in rows.iterator(chunk_size=500):
+                stamp = report.created_at
+                if timezone.is_aware(stamp):
+                    stamp = timezone.localtime(stamp)
+                values = [label, stamp.strftime("%Y-%m-%d"), stamp.strftime("%I:%M %p"),
+                          report.user.name or report.user.username, report.team,
+                          report.department, report.report_text, report.status]
+                ws.append([ILLEGAL_CHARACTERS_RE.sub("", str(value or "")) for value in values])
+                # Treat all employee-entered content as text, including strings starting with '='.
+                for cell in ws[ws.max_row]:
+                    cell.data_type = "s"
+                    cell.alignment = Alignment(wrap_text=True, vertical="top")
+        for cell in ws[1]:
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = PatternFill("solid", fgColor="7351A4")
+        for index, width in enumerate([15, 15, 12, 24, 20, 24, 65, 18], 1):
+            ws.column_dimensions[get_column_letter(index)].width = width
+        ws.freeze_panes = "A2"
+        ws.auto_filter.ref = ws.dimensions
+        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = f'attachment; filename="master_admin_{report_tab}_reports.xlsx"'
+        wb.save(response)
+        return response
+
+    morning_page = Paginator(morning, 25).get_page(request.GET.get("mpage"))
+    evening_page = Paginator(evening, 25).get_page(request.GET.get("epage"))
+    params = {"tab": report_tab}
+    if show_all:
+        params["all"] = "1"
+    if filter_date:
+        params["date"] = filter_date
+    if query:
+        params["q"] = query
+    params.update(mpage=morning_page.number, epage=evening_page.number)
+
+    def page_link(key, value):
+        return reverse("master_admin_reports") + "?" + urlencode({**params, key: value})
+
+    return render(request, "master_admin/master_admin_reports.html", {
+        "report_tab": report_tab, "show_all": show_all, "filter_date": filter_date,
+        "query": query, "morning_reports": morning_page.object_list,
+        "evening_reports": evening_page.object_list,
+        "morning_page": morning_page, "evening_page": evening_page,
+        "morning_prev": page_link("mpage", morning_page.previous_page_number()) if morning_page.has_previous() else "",
+        "morning_next": page_link("mpage", morning_page.next_page_number()) if morning_page.has_next() else "",
+        "evening_prev": page_link("epage", evening_page.previous_page_number()) if evening_page.has_previous() else "",
+        "evening_next": page_link("epage", evening_page.next_page_number()) if evening_page.has_next() else "",
+    })
+
+
+# ADD these NEW Master Admin functions once at the END of monitoringapp/views.py.
+# Existing Accounts functions stay unchanged. Requires the audit model/migration first.
+# Uses existing Accounts forms and duplicate/snapshot helpers already in this file.
+from pathlib import Path
+from decimal import Decimal
+from django.contrib import messages
+from django.db import transaction
+from django.db.models import F, Q
+from django.http import FileResponse, JsonResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST, require_GET
+from .models import AccountsIncome, AccountsIncomeHistory, AccountsExpense, AccountsExpenseHistory, AccountsSale, AccountsSalePayment, MasterAdminAccountsAudit
+from .forms import AccountsIncomeForm, AccountsExpenseForm, AccountsSaleForm, AccountsSalePaymentForm
+
+
+def _master_accounts_actor(request):
+    return request.user if _master_admin_allowed(request) else None
+
+
+def _master_accounts_actor_name(actor):
+    return f"Master Admin: {actor.get_full_name() or actor.username} (#{actor.pk})"[:255]
+
+
+def _master_accounts_audit(entry, actor, kind, action, before=None):
+    snapshot = {}
+    for field in entry._meta.concrete_fields:
+        if field.name in {"created_by", "created_at", "updated_at"}:
+            continue
+        value = getattr(entry, field.attname)
+        snapshot[field.name] = str(value) if value is not None else ""
+    MasterAdminAccountsAudit.objects.create(actor=actor, actor_name=_master_accounts_actor_name(actor),
+        kind=kind, entry_number=entry.pk, action=action,
+        snapshot={"before": before or {}, "after": {} if action == "deleted" else snapshot, "deleted": snapshot if action == "deleted" else {}})
+    if kind in {"income", "expense"}:
+        before = before or {}
+        after = {} if action == "deleted" else (_income_snapshot(entry) if kind == "income" else _expense_snapshot(entry))
+        changes = {key: {"before": before.get(key, ""), "after": after.get(key, "")}
+                   for key in before.keys() | after.keys() if before.get(key, "") != after.get(key, "")}
+        model = AccountsIncomeHistory if kind == "income" else AccountsExpenseHistory
+        model.objects.create(**{kind: entry, kind + "_number": entry.pk}, actor=None,
+            actor_name=_master_accounts_actor_name(actor), action=action, changes=changes)
+
+
+def _master_accounts_creators(page, kind):
+    entries = list(page.object_list)
+    names = {}
+    for audit in MasterAdminAccountsAudit.objects.filter(kind=kind, action="created", entry_number__in=[item.pk for item in entries]).order_by("created_at", "pk"):
+        names.setdefault(audit.entry_number, audit.actor_name)
+    for item in entries:
+        item.recorded_by_name = getattr(item.created_by, "name", "") or names.get(item.pk, "—")
+    page.object_list = entries
+
+
+def _master_accounts_notification(kind, title, message):
+    # Existing Accounts notification model accepts actor=None for Django superusers.
+    return _create_accounts_notification(kind=kind, title=title, message=message, actor=None)
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_accounts_income(request):
+    import calendar
+    import re
+    from datetime import date
+    from decimal import Decimal
+    from io import BytesIO
+
+    from django.core.paginator import Paginator
+    from django.db.models import Q, Sum
+    from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+    from django.shortcuts import redirect, render
+    from django.utils import timezone
+
+    current_user = _master_accounts_actor(request)
+    if current_user is None:
+        return HttpResponseForbidden("You do not have access to Accounts income.")
+
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    form = AccountsIncomeForm(request.POST if request.method == "POST" else None,
+        request.FILES if request.method == "POST" else None)
+    if request.method == "POST" and form.is_valid():
+        if _income_duplicate(form) and request.POST.get("confirm_duplicate") != "1":
+            if is_ajax:
+                return _income_duplicate_response()
+            form.add_error(None, "A similar income already exists. Review the entry and use Save Anyway to confirm.")
+        else:
+            with transaction.atomic():
+                income = form.save(commit=False)
+                income.created_by = None
+                income.save()
+                _master_accounts_audit(income, current_user, "income", "created")
+                _master_accounts_notification(
+                    kind="income",
+                    title="Income added",
+                    message=(
+                        f"{_master_accounts_actor_name(current_user)} added income "
+                        f"#{income.pk}: {income.category}, "
+                        f"₹{income.amount:,.2f} "
+                        f"on {income.date:%d %b %Y}."
+                    ),
+
+                )
+            if is_ajax:
+                return JsonResponse({"ok": True, "message": "Income added successfully.", "id": income.pk}, status=201)
+            messages.success(request, "Income added successfully.")
+            return redirect("master_admin_accounts_income")
+
+    if request.method == "POST" and is_ajax:
+        return JsonResponse({
+            "ok": False,
+            "message": "Please correct the highlighted fields.",
+            "errors": form.errors.get_json_data(),
+        }, status=400)
+
+    today = timezone.localdate()
+    month_start = today.replace(day=1)
+    month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
+    all_entries = AccountsIncome.objects.select_related("created_by")
+    entries = all_entries
+    query = request.GET.get("q", "").strip()[:200]
+    if query:
+        entries = entries.filter(
+            Q(category__icontains=query)
+            | Q(description__icontains=query)
+            | Q(reference__icontains=query)
+        )
+
+    category_filter = request.GET.get("category", "").strip()[:100]
+    if category_filter:
+        entries = entries.filter(category__iexact=category_filter)
+
+    period = request.GET.get("period", "all").strip()
+    selected_date = request.GET.get("date", "").strip() or today.isoformat()
+    selected_month = request.GET.get("month", "").strip() or today.strftime("%Y-%m")
+    from_date = request.GET.get("start", "").strip()
+    to_date = request.GET.get("end", "").strip()
+    range_start = range_end = None
+    filter_error = ""
+
+    def read_date(value):
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            raise ValueError("Invalid date format.")
+        return date.fromisoformat(value)
+
+    try:
+        if period == "weekly":
+            anchor = read_date(selected_date)
+            monday_ordinal = max(date.min.toordinal(), anchor.toordinal() - anchor.weekday())
+            range_start = date.fromordinal(monday_ordinal)
+            range_end = date.fromordinal(min(date.max.toordinal(), monday_ordinal + 6))
+        elif period == "monthly":
+            if not re.fullmatch(r"\d{4}-\d{2}", selected_month):
+                raise ValueError("Invalid month format.")
+            year, month = map(int, selected_month.split("-"))
+            range_start = date(year, month, 1)
+            range_end = date(year, month, calendar.monthrange(year, month)[1])
+        elif period == "custom":
+            if not from_date or not to_date:
+                raise ValueError("Choose both From Date and To Date.")
+            range_start, range_end = read_date(from_date), read_date(to_date)
+            if range_start > range_end:
+                raise ValueError("From Date must be on or before To Date.")
+        elif period != "all":
+            raise ValueError("Choose a valid period.")
+    except (ValueError, OverflowError) as error:
+        filter_error = (
+            str(error) if period == "custom"
+            else "Choose a valid date, month or period."
+        )
+        range_start = range_end = None
+        entries = entries.none()
+
+    if range_start is not None and not filter_error:
+        entries = entries.filter(date__range=(range_start, range_end))
+    entries = entries.order_by("-date", "-id")
+
+    def income_total(queryset):
+        return queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+    # Export the entire filtered queryset before applying pagination.
+    if request.method == "GET" and request.GET.get("export") == "xlsx" and not filter_error:
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+        from openpyxl.utils import get_column_letter
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Income"
+        headers = ["Date", "Category", "Description", "Payment Method", "Reference", "Recorded By", "Amount (INR)"]
+        sheet.append(headers)
+        total = Decimal("0.00")
+        export_creators = dict(MasterAdminAccountsAudit.objects.filter(kind="income", action="created", entry_number__in=entries.values("pk")).values_list("entry_number", "actor_name"))
+        for entry in entries.iterator():
+            creator = getattr(entry.created_by, "name", "") or export_creators.get(entry.pk, "—")
+            sheet.append([
+                entry.date, entry.category, entry.description,
+                entry.get_payment_method_display(), entry.reference or "—",
+                creator, entry.amount,
+            ])
+            row = sheet.max_row
+            # User-entered strings must remain text, including values starting with '='.
+            for column in range(2, 7):
+                cell = sheet.cell(row, column)
+                cell.value = str(cell.value or "")
+                cell.data_type = "s"
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
+            sheet.cell(row, 1).number_format = "dd mmm yyyy"
+            for column in (7,):
+                sheet.cell(row, column).number_format = "#,##0.00"
+            total += entry.amount
+
+        last_data_row = sheet.max_row
+        sheet.append(["Total", None, None, None, None, None, total])
+        total_row = sheet.max_row
+        sheet.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=6)
+        for column in (7,):
+            sheet.cell(total_row, column).number_format = "#,##0.00"
+        for cell in sheet[1]:
+            cell.fill = PatternFill("solid", fgColor="5B32A7")
+            cell.font = Font(color="FFFFFF", bold=True)
+            cell.alignment = Alignment(vertical="center")
+        for cell in sheet[total_row]:
+            cell.fill = PatternFill("solid", fgColor="EDE9FE")
+            cell.font = Font(bold=True)
+        for column, width in enumerate([18, 25, 50, 22, 25, 25, 20], start=1):
+            sheet.column_dimensions[get_column_letter(column)].width = width
+        sheet.row_dimensions[1].height = 26
+        sheet.freeze_panes = "A2"
+        sheet.auto_filter.ref = f"A1:G{last_data_row}"
+        sheet.sheet_view.showGridLines = False
+        output = BytesIO()
+        workbook.save(output)
+        workbook.close()
+        response = HttpResponse(
+            output.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f'attachment; filename="income_{today.isoformat()}.xlsx"'
+        response["Cache-Control"] = "no-store"
+        return response
+
+    page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
+    _master_accounts_creators(page_obj, "income")
+    return render(request, "master_admin/master_admin_accounts_income.html", {
+        "current_user": current_user,
+        "accounts_active": "income",
+        "form": form,
+        "query": query,
+        "period": period,
+        "selected_date": selected_date,
+        "selected_month": selected_month,
+        "from_date": from_date,
+        "to_date": to_date,
+        "range_start": range_start,
+        "range_end": range_end,
+        "filter_error": filter_error,
+        "has_filters": bool(query or period != "all" or category_filter),
+        "category_filter": category_filter,
+        "categories": all_entries.order_by("category").values_list("category", flat=True).distinct(),
+        "page_obj": page_obj,
+        "total_entries": entries.count(),
+        "total_income": income_total(entries),
+        "today_income": income_total(all_entries.filter(date=today)),
+        "month_income": income_total(all_entries.filter(date__range=(month_start, month_end))),
+        "month_label": month_start.strftime("%B %Y"),
+    }, status=400 if request.method == "POST" or filter_error else 200)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_accounts_income_edit(request, pk):
+    actor = _master_accounts_actor(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Master Admin access required."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        entry = AccountsIncome.objects.select_for_update().filter(pk=pk).first()
+        if entry is None:
+            return JsonResponse({"ok": False, "message": "This income no longer exists."}, status=404)
+        if request.method == "GET":
+            return JsonResponse({"ok": True, "item": {
+                "date": entry.date.isoformat(), "category": entry.category,
+                "amount": str(entry.amount),
+                "payment_method": entry.payment_method,
+                "description": entry.description, "reference": entry.reference,
+            }, "receipt_url": reverse("master_admin_accounts_income_receipt", args=[entry.pk]) if entry.receipt else ""})
+        before = _income_snapshot(entry)
+        form = AccountsIncomeForm(request.POST, request.FILES, instance=entry)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        # Recheck duplicates when identifying fields change.
+        identifying = {"date", "category", "amount", "reference"}
+        if any(str(form.cleaned_data.get(key) or "") != before.get(key, "") for key in identifying) and _income_duplicate(form, entry.pk) and request.POST.get("confirm_duplicate") != "1":
+            return _income_duplicate_response()
+        entry = form.save(commit=False)
+        if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
+            entry.receipt = ""
+        entry.save()
+        _master_accounts_audit(entry, actor, "income", "updated", before)
+        _master_accounts_notification(
+            kind="income",
+            title="Income updated",
+            message=(
+                f"{_master_accounts_actor_name(actor)} updated income "
+                f"#{entry.pk}: {entry.category}, "
+                f"₹{entry.amount:,.2f} "
+                f"on {entry.date:%d %b %Y}."
+            ),
+
+        )
+    return JsonResponse({"ok": True, "message": "Income updated successfully.", "id": entry.pk})
+
+
+@never_cache
+@require_POST
+def master_admin_accounts_income_delete(request, pk):
+    actor = _master_accounts_actor(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Master Admin access required."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        entry = AccountsIncome.objects.select_for_update().filter(pk=pk).first()
+        if entry is None:
+            return JsonResponse({"ok": False, "message": "This income no longer exists."}, status=404)
+        _master_accounts_audit(entry, actor, "income", "deleted", _income_snapshot(entry))
+        _master_accounts_notification(
+            kind="income",
+            title="Income deleted",
+            message=(
+                f"{_master_accounts_actor_name(actor)} deleted income "
+                f"#{entry.pk}: {entry.category}, "
+                f"₹{entry.amount:,.2f} "
+                f"on {entry.date:%d %b %Y}."
+            ),
+
+        )
+        entry.delete()
+    return JsonResponse({"ok": True, "message": "Income deleted successfully.", "id": pk})
+
+
+@never_cache
+@require_http_methods(["GET"])
+def master_admin_accounts_income_receipt(request, pk):
+    if _master_accounts_actor(request) is None:
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    entry = AccountsIncome.objects.filter(pk=pk).first()
+    if entry is None or not entry.receipt:
+        return JsonResponse({"ok": False, "message": "Receipt not available."}, status=404)
+    try:
+        handle = entry.receipt.open("rb")
+    except (FileNotFoundError, OSError):
+        return JsonResponse({"ok": False, "message": "Receipt file not available."}, status=404)
+    suffix = Path(entry.receipt.name).suffix.lower()
+    mime = {".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}.get(suffix, "application/octet-stream")
+    response = FileResponse(handle, as_attachment=request.GET.get("download") == "1",
+        filename=f"income_{pk}_receipt{suffix}", content_type=mime)
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@never_cache
+@require_http_methods(["GET"])
+def master_admin_accounts_income_history(request, pk):
+    if _master_accounts_actor(request) is None:
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    if not AccountsIncome.objects.filter(pk=pk).exists():
+        return JsonResponse({"ok": False, "message": "This income no longer exists."}, status=404)
+    items = AccountsIncomeHistory.objects.filter(income_id=pk)[:50]
+    return JsonResponse({"ok": True, "items": [{"action": item.get_action_display(),
+        "actor": item.actor_name or "—", "time": timezone.localtime(item.created_at).strftime("%d %b %Y, %I:%M %p"),
+        "changes": item.changes} for item in items]})
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_accounts_expenses(request):
+    import calendar
+    import re
+    from datetime import date
+    from decimal import Decimal
+    from io import BytesIO
+
+    from django.core.paginator import Paginator
+    from django.db.models import Q, Sum
+    from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+    from django.shortcuts import redirect, render
+    from django.utils import timezone
+
+    current_user = _master_accounts_actor(request)
+    if current_user is None:
+        return HttpResponseForbidden("You do not have access to Accounts expense.")
+
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    form = AccountsExpenseForm(request.POST if request.method == "POST" else None,
+        request.FILES if request.method == "POST" else None)
+    if request.method == "POST" and form.is_valid():
+        if _expense_duplicate(form) and request.POST.get("confirm_duplicate") != "1":
+            if is_ajax:
+                return _expense_duplicate_response()
+            form.add_error(None, "A similar expense already exists. Review the entry and use Save Anyway to confirm.")
+        else:
+            with transaction.atomic():
+                expense = form.save(commit=False)
+                expense.created_by = None
+                expense.save()
+                _master_accounts_audit(expense, current_user, "expense", "created")
+                _master_accounts_notification(
+                    kind="expense",
+                    title="Expense added",
+                    message=(
+                        f"{_master_accounts_actor_name(current_user)} added expense "
+                        f"#{expense.pk}: {expense.category}, "
+                        f"₹{expense.amount:,.2f} "
+                        f"on {expense.date:%d %b %Y}."
+                    ),
+
+                )
+            if is_ajax:
+                return JsonResponse({"ok": True, "message": "Expense added successfully.", "id": expense.pk}, status=201)
+            messages.success(request, "Expense added successfully.")
+            return redirect("master_admin_accounts_expenses")
+
+    if request.method == "POST" and is_ajax:
+        return JsonResponse({
+            "ok": False,
+            "message": "Please correct the highlighted fields.",
+            "errors": form.errors.get_json_data(),
+        }, status=400)
+
+    today = timezone.localdate()
+    month_start = today.replace(day=1)
+    month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
+    all_entries = AccountsExpense.objects.select_related("created_by")
+    entries = all_entries
+    query = request.GET.get("q", "").strip()[:200]
+    if query:
+        entries = entries.filter(
+            Q(category__icontains=query)
+            | Q(description__icontains=query)
+            | Q(reference__icontains=query)
+            | Q(paid_to__icontains=query)
+        )
+
+    category_filter = request.GET.get("category", "").strip()[:100]
+    payment_filter = request.GET.get("status", "").strip()
+    if category_filter:
+        entries = entries.filter(category__iexact=category_filter)
+    if payment_filter == "paid":
+        entries = entries.filter(Q(paid_amount__isnull=True) | Q(paid_amount=F("amount")))
+    elif payment_filter == "pending":
+        entries = entries.filter(paid_amount=0)
+    elif payment_filter == "partial":
+        entries = entries.filter(paid_amount__gt=0, paid_amount__lt=F("amount"))
+    else:
+        payment_filter = ""
+
+    period = request.GET.get("period", "all").strip()
+    selected_date = request.GET.get("date", "").strip() or today.isoformat()
+    selected_month = request.GET.get("month", "").strip() or today.strftime("%Y-%m")
+    from_date = request.GET.get("start", "").strip()
+    to_date = request.GET.get("end", "").strip()
+    range_start = range_end = None
+    filter_error = ""
+
+    def read_date(value):
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            raise ValueError("Invalid date format.")
+        return date.fromisoformat(value)
+
+    try:
+        if period == "weekly":
+            anchor = read_date(selected_date)
+            monday_ordinal = max(date.min.toordinal(), anchor.toordinal() - anchor.weekday())
+            range_start = date.fromordinal(monday_ordinal)
+            range_end = date.fromordinal(min(date.max.toordinal(), monday_ordinal + 6))
+        elif period == "monthly":
+            if not re.fullmatch(r"\d{4}-\d{2}", selected_month):
+                raise ValueError("Invalid month format.")
+            year, month = map(int, selected_month.split("-"))
+            range_start = date(year, month, 1)
+            range_end = date(year, month, calendar.monthrange(year, month)[1])
+        elif period == "custom":
+            if not from_date or not to_date:
+                raise ValueError("Choose both From Date and To Date.")
+            range_start, range_end = read_date(from_date), read_date(to_date)
+            if range_start > range_end:
+                raise ValueError("From Date must be on or before To Date.")
+        elif period != "all":
+            raise ValueError("Choose a valid period.")
+    except (ValueError, OverflowError) as error:
+        filter_error = (
+            str(error) if period == "custom"
+            else "Choose a valid date, month or period."
+        )
+        range_start = range_end = None
+        entries = entries.none()
+
+    if range_start is not None and not filter_error:
+        entries = entries.filter(date__range=(range_start, range_end))
+    entries = entries.order_by("-date", "-id")
+
+    def expense_total(queryset):
+        return queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+    # Export the entire filtered queryset before applying pagination.
+    if request.method == "GET" and request.GET.get("export") == "xlsx" and not filter_error:
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+        from openpyxl.utils import get_column_letter
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Expenses"
+        headers = ["Date", "Category", "Description", "Paid To", "Payment Method", "Reference", "Recorded By", "Total Amount (INR)", "Paid Amount (INR)", "Balance (INR)", "Status"]
+        sheet.append(headers)
+        total = paid_total = balance_total = Decimal("0.00")
+        export_creators = dict(MasterAdminAccountsAudit.objects.filter(kind="expense", action="created", entry_number__in=entries.values("pk")).values_list("entry_number", "actor_name"))
+        for entry in entries.iterator():
+            creator = getattr(entry.created_by, "name", "") or export_creators.get(entry.pk, "—")
+            sheet.append([
+                entry.date, entry.category, entry.description, entry.paid_to or "—",
+                entry.get_payment_method_display(), entry.reference or "—",
+                creator, entry.amount, entry.effective_paid_amount, entry.balance_amount, entry.payment_status_label,
+            ])
+            row = sheet.max_row
+            # User-entered strings must remain text, including values starting with '='.
+            for column in range(2, 8):
+                cell = sheet.cell(row, column)
+                cell.value = str(cell.value or "")
+                cell.data_type = "s"
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
+            sheet.cell(row, 1).number_format = "dd mmm yyyy"
+            for column in (8, 9, 10):
+                sheet.cell(row, column).number_format = "#,##0.00"
+            sheet.cell(row, 11).data_type = "s"
+            paid_total += entry.effective_paid_amount
+            balance_total += entry.balance_amount
+            total += entry.amount
+
+        last_data_row = sheet.max_row
+        sheet.append(["Total", None, None, None, None, None, None, total, paid_total, balance_total, None])
+        total_row = sheet.max_row
+        sheet.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=7)
+        for column in (8, 9, 10):
+            sheet.cell(total_row, column).number_format = "#,##0.00"
+        for cell in sheet[1]:
+            cell.fill = PatternFill("solid", fgColor="5B32A7")
+            cell.font = Font(color="FFFFFF", bold=True)
+            cell.alignment = Alignment(vertical="center")
+        for cell in sheet[total_row]:
+            cell.fill = PatternFill("solid", fgColor="EDE9FE")
+            cell.font = Font(bold=True)
+        for column, width in enumerate([18, 25, 50, 25, 22, 25, 25, 20, 20, 20, 20], start=1):
+            sheet.column_dimensions[get_column_letter(column)].width = width
+        sheet.row_dimensions[1].height = 26
+        sheet.freeze_panes = "A2"
+        sheet.auto_filter.ref = f"A1:K{last_data_row}"
+        sheet.sheet_view.showGridLines = False
+        output = BytesIO()
+        workbook.save(output)
+        workbook.close()
+        response = HttpResponse(
+            output.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = f'attachment; filename="expense_{today.isoformat()}.xlsx"'
+        response["Cache-Control"] = "no-store"
+        return response
+
+    page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
+    _master_accounts_creators(page_obj, "expense")
+    return render(request, "master_admin/master_admin_accounts_expenses.html", {
+        "current_user": current_user,
+        "accounts_active": "expenses",
+        "form": form,
+        "query": query,
+        "period": period,
+        "selected_date": selected_date,
+        "selected_month": selected_month,
+        "from_date": from_date,
+        "to_date": to_date,
+        "range_start": range_start,
+        "range_end": range_end,
+        "filter_error": filter_error,
+        "has_filters": bool(query or period != "all" or category_filter or payment_filter),
+        "category_filter": category_filter,
+        "payment_filter": payment_filter,
+        "categories": all_entries.order_by("category").values_list("category", flat=True).distinct(),
+        "page_obj": page_obj,
+        "total_entries": entries.count(),
+        "total_expense": expense_total(entries),
+        "today_expense": expense_total(all_entries.filter(date=today)),
+        "month_expense": expense_total(all_entries.filter(date__range=(month_start, month_end))),
+        "month_label": month_start.strftime("%B %Y"),
+    }, status=400 if request.method == "POST" or filter_error else 200)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_accounts_expense_edit(request, pk):
+    actor = _master_accounts_actor(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Master Admin access required."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        entry = AccountsExpense.objects.select_for_update().filter(pk=pk).first()
+        if entry is None:
+            return JsonResponse({"ok": False, "message": "This expense no longer exists."}, status=404)
+        if request.method == "GET":
+            return JsonResponse({"ok": True, "item": {
+                "date": entry.date.isoformat(), "category": entry.category,
+                "amount": str(entry.amount), "paid_amount": str(entry.effective_paid_amount),
+                "payment_method": entry.payment_method, "paid_to": entry.paid_to,
+                "description": entry.description, "reference": entry.reference,
+            }, "receipt_url": reverse("master_admin_accounts_expense_receipt", args=[entry.pk]) if entry.receipt else ""})
+        before = _expense_snapshot(entry)
+        form = AccountsExpenseForm(request.POST, request.FILES, instance=entry)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        # Recheck duplicates when identifying fields change; editing only paid amount is safe.
+        identifying = {"date", "category", "amount", "paid_to", "reference"}
+        if any(str(form.cleaned_data.get(key) or "") != before.get(key, "") for key in identifying) and _expense_duplicate(form, entry.pk) and request.POST.get("confirm_duplicate") != "1":
+            return _expense_duplicate_response()
+        entry = form.save(commit=False)
+        if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
+            entry.receipt = ""
+        entry.save()
+        _master_accounts_audit(entry, actor, "expense", "updated", before)
+        _master_accounts_notification(
+            kind="expense",
+            title="Expense updated",
+            message=(
+                f"{_master_accounts_actor_name(actor)} updated expense "
+                f"#{entry.pk}: {entry.category}, "
+                f"₹{entry.amount:,.2f} "
+                f"on {entry.date:%d %b %Y}."
+            ),
+
+        )
+    return JsonResponse({"ok": True, "message": "Expense updated successfully.", "id": entry.pk})
+
+
+@never_cache
+@require_POST
+def master_admin_accounts_expense_delete(request, pk):
+    actor = _master_accounts_actor(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Master Admin access required."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        entry = AccountsExpense.objects.select_for_update().filter(pk=pk).first()
+        if entry is None:
+            return JsonResponse({"ok": False, "message": "This expense no longer exists."}, status=404)
+        _master_accounts_audit(entry, actor, "expense", "deleted", _expense_snapshot(entry))
+        _master_accounts_notification(
+            kind="expense",
+            title="Expense deleted",
+            message=(
+                f"{_master_accounts_actor_name(actor)} deleted expense "
+                f"#{entry.pk}: {entry.category}, "
+                f"₹{entry.amount:,.2f} "
+                f"on {entry.date:%d %b %Y}."
+            ),
+
+        )
+        entry.delete()
+    return JsonResponse({"ok": True, "message": "Expense deleted successfully.", "id": pk})
+
+
+@never_cache
+@require_http_methods(["GET"])
+def master_admin_accounts_expense_receipt(request, pk):
+    if _master_accounts_actor(request) is None:
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    entry = AccountsExpense.objects.filter(pk=pk).first()
+    if entry is None or not entry.receipt:
+        return JsonResponse({"ok": False, "message": "Receipt not available."}, status=404)
+    try:
+        handle = entry.receipt.open("rb")
+    except (FileNotFoundError, OSError):
+        return JsonResponse({"ok": False, "message": "Receipt file not available."}, status=404)
+    suffix = Path(entry.receipt.name).suffix.lower()
+    mime = {".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}.get(suffix, "application/octet-stream")
+    response = FileResponse(handle, as_attachment=request.GET.get("download") == "1",
+        filename=f"expense_{pk}_receipt{suffix}", content_type=mime)
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@never_cache
+@require_http_methods(["GET"])
+def master_admin_accounts_expense_history(request, pk):
+    if _master_accounts_actor(request) is None:
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    if not AccountsExpense.objects.filter(pk=pk).exists():
+        return JsonResponse({"ok": False, "message": "This expense no longer exists."}, status=404)
+    items = AccountsExpenseHistory.objects.filter(expense_id=pk)[:50]
+    return JsonResponse({"ok": True, "items": [{"action": item.get_action_display(),
+        "actor": item.actor_name or "—", "time": timezone.localtime(item.created_at).strftime("%d %b %Y, %I:%M %p"),
+        "changes": item.changes} for item in items]})
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_accounts_sales(request):
+    import calendar
+    import re
+    from datetime import date
+    from io import BytesIO
+
+    current_user = _master_accounts_actor(request)
+    if current_user is None:
+        return HttpResponseForbidden("You do not have access to Accounts sales.")
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    form = AccountsSaleForm(request.POST if request.method == "POST" else None, request.FILES if request.method == "POST" else None)
+    if request.method == "POST" and form.is_valid():
+        if _sale_duplicate(form) and request.POST.get("confirm_duplicate") != "1":
+            if is_ajax:
+                return _sale_duplicate_response()
+            form.add_error(None, "A similar sale already exists. Review it and use Save Anyway to confirm.")
+        else:
+            with transaction.atomic():
+                sale = form.save(commit=False)
+                sale.created_by = None
+                sale.save()
+                _master_accounts_audit(sale, current_user, "sale", "created")
+                if sale.received_amount > 0:
+                    initial_payment = AccountsSalePayment.objects.create(
+                        sale=sale,
+                        date=sale.date,
+                        amount=sale.received_amount,
+                        created_by=None,
+                        payment_method="other",
+                        note="Initial received amount at sale creation.",
+                    )
+                    _master_accounts_audit(initial_payment, current_user, "payment", "created")
+
+                _master_accounts_notification(
+                    kind="sale",
+                    title="Sale added",
+                    message=(
+                        f"{_master_accounts_actor_name(current_user)} added sale "
+                        f"#{sale.pk} for {sale.customer_name}: "
+                        f"₹{sale.amount:,.2f}. "
+                        f"Received: ₹{sale.received_amount:,.2f}."
+                    ),
+
+                )
+            if is_ajax:
+                return JsonResponse({"ok": True, "message": "Sale added successfully.", "id": sale.pk}, status=201)
+            messages.success(request, "Sale added successfully.")
+            return redirect("master_admin_accounts_sales")
+    if request.method == "POST" and is_ajax:
+        return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+            "errors": form.errors.get_json_data()}, status=400)
+
+    today = timezone.localdate()
+    month_start = today.replace(day=1)
+    month_end = today.replace(day=calendar.monthrange(today.year, today.month)[1])
+    all_entries = AccountsSale.objects.select_related("created_by")
+    entries = all_entries
+    query = request.GET.get("q", "").strip()[:200]
+    status_filter = request.GET.get("status", "").strip()
+    if status_filter not in {"", "paid", "partial", "unpaid", "overdue"}:
+        status_filter = ""
+    if query:
+        entries = entries.filter(Q(customer_name__icontains=query) |
+            Q(invoice_number__icontains=query) | Q(description__icontains=query))
+    if status_filter == "paid":
+        entries = entries.filter(received_amount=F("amount"))
+    elif status_filter == "partial":
+        entries = entries.filter(received_amount__gt=0, received_amount__lt=F("amount"))
+    elif status_filter == "unpaid":
+        entries = entries.filter(received_amount=0)
+
+    if status_filter == "overdue":
+        entries = entries.filter(due_date__lt=today, received_amount__lt=F("amount"))
+
+    period = request.GET.get("period", "all").strip()
+    selected_date = request.GET.get("date", "").strip() or today.isoformat()
+    selected_month = request.GET.get("month", "").strip() or today.strftime("%Y-%m")
+    from_date = request.GET.get("start", "").strip()
+    to_date = request.GET.get("end", "").strip()
+    range_start = range_end = None
+    filter_error = ""
+
+    def read_date(value):
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            raise ValueError("Invalid date format.")
+        return date.fromisoformat(value)
+
+    try:
+        if period == "weekly":
+            anchor = read_date(selected_date)
+            monday_ordinal = max(date.min.toordinal(), anchor.toordinal() - anchor.weekday())
+            range_start = date.fromordinal(monday_ordinal)
+            range_end = date.fromordinal(min(date.max.toordinal(), monday_ordinal + 6))
+        elif period == "monthly":
+            if not re.fullmatch(r"\d{4}-\d{2}", selected_month):
+                raise ValueError("Invalid month format.")
+            year, month = map(int, selected_month.split("-"))
+            range_start = date(year, month, 1)
+            range_end = date(year, month, calendar.monthrange(year, month)[1])
+        elif period == "custom":
+            if not from_date or not to_date:
+                raise ValueError("Choose both From Date and To Date.")
+            range_start, range_end = read_date(from_date), read_date(to_date)
+            if range_start > range_end:
+                raise ValueError("From Date must be on or before To Date.")
+        elif period != "all":
+            raise ValueError("Choose a valid period.")
+    except (ValueError, OverflowError) as error:
+        filter_error = (
+            str(error) if period == "custom"
+            else "Choose a valid date, month or period."
+        )
+        range_start = range_end = None
+        entries = entries.none()
+
+    if range_start is not None and not filter_error:
+        entries = entries.filter(date__range=(range_start, range_end))
+    entries = entries.order_by("-date", "-id")
+
+    totals = entries.aggregate(sales=Sum("amount"), received=Sum("received_amount"))
+    total_sales = totals["sales"] or Decimal("0.00")
+    total_received = totals["received"] or Decimal("0.00")
+    total_balance = total_sales - total_received
+
+    # Export all matching rows, before pagination.
+    if request.method == "GET" and request.GET.get("export") == "xlsx" and not filter_error:
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Font, PatternFill
+        from openpyxl.utils import get_column_letter
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Sales"
+        sheet.append(["Date", "Customer", "Invoice", "Description", "Sale Amount (INR)",
+            "Received (INR)", "Balance (INR)", "Status", "Recorded By", "Due Date", "Overdue"])
+        export_creators = dict(MasterAdminAccountsAudit.objects.filter(kind="sale", action="created", entry_number__in=entries.values("pk")).values_list("entry_number", "actor_name"))
+        for entry in entries.iterator():
+            sheet.append([entry.date, entry.customer_name, entry.invoice_number or "—",
+                entry.description, entry.amount, entry.received_amount, entry.balance_amount,
+                entry.payment_status_label, getattr(entry.created_by, "name", "") or export_creators.get(entry.pk, "—"), entry.due_date, "Yes" if entry.is_overdue else "No"])
+            row = sheet.max_row
+            for column in (2, 3, 4, 8, 9, 11):
+                cell = sheet.cell(row, column)
+                cell.value = str(cell.value or "")
+                cell.data_type = "s"
+                cell.alignment = Alignment(vertical="top", wrap_text=True)
+            sheet.cell(row, 10).number_format = "dd mmm yyyy"
+            sheet.cell(row, 1).number_format = "dd mmm yyyy"
+            for column in (5, 6, 7):
+                sheet.cell(row, column).number_format = "#,##0.00"
+        last_data_row = sheet.max_row
+        sheet.append(["Total", None, None, None, total_sales, total_received, total_balance, None, None, None, None])
+        sheet.merge_cells(start_row=sheet.max_row, start_column=1, end_row=sheet.max_row, end_column=4)
+        for cell in sheet[1]:
+            cell.fill = PatternFill("solid", fgColor="5B32A7")
+            cell.font = Font(color="FFFFFF", bold=True)
+        for cell in sheet[sheet.max_row]:
+            cell.fill = PatternFill("solid", fgColor="EDE9FE")
+            cell.font = Font(bold=True)
+        for column in (5, 6, 7):
+            sheet.cell(sheet.max_row, column).number_format = "#,##0.00"
+        for column, width in enumerate([18, 30, 25, 50, 22, 22, 22, 22, 28, 18, 14], start=1):
+            sheet.column_dimensions[get_column_letter(column)].width = width
+        sheet.row_dimensions[1].height = 26
+        sheet.freeze_panes = "A2"
+        sheet.auto_filter.ref = f"A1:K{last_data_row}"
+        sheet.sheet_view.showGridLines = False
+        output = BytesIO()
+        workbook.save(output)
+        workbook.close()
+        response = HttpResponse(output.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+        response["Content-Disposition"] = f'attachment; filename="sales_{today.isoformat()}.xlsx"'
+        response["Cache-Control"] = "no-store"
+        return response
+
+    page_obj = Paginator(entries, 20).get_page(request.GET.get("page"))
+    def sales_total(queryset):
+        return queryset.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+    _master_accounts_creators(page_obj, "sale")
+    return render(request, "master_admin/master_admin_accounts_sales.html", {
+        "current_user": current_user, "accounts_active": "sales", "form": form,
+        "query": query, "status_filter": status_filter,
+        "has_filters": bool(query or status_filter or period != "all"),
+        "period": period, "selected_date": selected_date, "selected_month": selected_month,
+        "from_date": from_date, "to_date": to_date, "range_start": range_start,
+        "range_end": range_end, "filter_error": filter_error,
+        "page_obj": page_obj, "total_entries": entries.count(), "total_sales": total_sales,
+        "total_received": total_received, "total_balance": total_balance,
+        "month_sales": sales_total(all_entries.filter(date__range=(month_start, month_end))),
+        "today_sales": sales_total(all_entries.filter(date=today)),
+        "month_label": month_start.strftime("%B %Y"),
+    }, status=400 if request.method == "POST" or filter_error else 200)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_accounts_sale_edit(request, pk):
+    actor = _master_accounts_actor(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Master Admin access required."},
+            status=403 if request.session.get("user_id") else 401)
+    with transaction.atomic():
+        sale = AccountsSale.objects.select_for_update().filter(pk=pk).first()
+        if sale is None:
+            return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
+        if request.method == "GET":
+            return JsonResponse({"ok": True, "item": {
+                "date": sale.date.isoformat(), "customer_name": sale.customer_name,
+                "invoice_number": sale.invoice_number, "description": sale.description,
+                "amount": str(sale.amount), "due_date": sale.due_date.isoformat() if sale.due_date else ""},
+                "invoice_url": reverse("master_admin_accounts_sale_invoice", args=[sale.pk]) if sale.invoice_file else "",
+                "received_amount": str(sale.received_amount)})
+        before = {"date": sale.date.isoformat(), "customer_name": sale.customer_name,
+            "invoice_number": sale.invoice_number, "amount": str(sale.amount)}
+        form = AccountsSaleForm(request.POST, request.FILES, instance=sale)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        if (any(str(form.cleaned_data.get(key) or "") != value for key, value in before.items())
+                and _sale_duplicate(form, sale.pk) and request.POST.get("confirm_duplicate") != "1"):
+            return _sale_duplicate_response()
+        sale = form.save(commit=False)
+        if request.POST.get("remove_invoice") == "1" and not request.FILES.get("invoice_file"):
+            sale.invoice_file = ""
+        sale.save()
+        _master_accounts_audit(sale, actor, "sale", "updated", before)
+        _master_accounts_notification(
+            kind="sale",
+            title="Sale updated",
+            message=(
+                f"{_master_accounts_actor_name(actor)} updated sale "
+                f"#{sale.pk} for {sale.customer_name}: "
+                f"₹{sale.amount:,.2f}."
+            ),
+
+        )
+    return JsonResponse({
+        "ok": True,
+        "message": "Sale updated successfully.",
+        "id": sale.pk,
+    })
+
+
+@never_cache
+@require_POST
+def master_admin_accounts_sale_delete(request, pk):
+    actor = _master_accounts_actor(request)
+    if actor is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Master Admin access required.",
+        }, status=403 if request.session.get("user_id") else 401)
+
+    with transaction.atomic():
+        sale = (
+            AccountsSale.objects
+            .select_for_update()
+            .filter(pk=pk)
+            .first()
+        )
+        if sale is None:
+            return JsonResponse({
+                "ok": False,
+                "message": "This sale no longer exists.",
+            }, status=404)
+
+        _master_accounts_notification(
+            kind="sale",
+            title="Sale deleted",
+            message=(
+                f"{_master_accounts_actor_name(actor)} deleted sale "
+                f"#{sale.pk} for {sale.customer_name}: "
+                f"₹{sale.amount:,.2f}."
+            ),
+
+        )
+        _master_accounts_audit(sale, actor, "sale", "deleted")
+        sale.delete()
+
+    return JsonResponse({
+        "ok": True,
+        "message": "Sale deleted successfully.",
+        "id": pk,
+    })
+
+
+@never_cache
+@require_http_methods(["GET"])
+def master_admin_accounts_sale_invoice(request, pk):
+    if _master_accounts_actor(request) is None:
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    sale = AccountsSale.objects.filter(pk=pk).first()
+    if sale is None or not sale.invoice_file:
+        return JsonResponse({"ok": False, "message": "Invoice not available."}, status=404)
+    try:
+        handle = sale.invoice_file.open("rb")
+    except (OSError, FileNotFoundError):
+        return JsonResponse({"ok": False, "message": "Invoice file not available."}, status=404)
+    suffix = Path(sale.invoice_file.name).suffix.lower()
+    mime = {".pdf": "application/pdf", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}.get(suffix, "application/octet-stream")
+    response = FileResponse(handle, as_attachment=request.GET.get("download") == "1",
+        filename=f"sale_{pk}_invoice{suffix}", content_type=mime)
+    response["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_accounts_sale_payments(request, pk):
+    actor = _master_accounts_actor(request)
+    if actor is None:
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    with transaction.atomic():
+        sale = AccountsSale.objects.select_for_update().filter(pk=pk).first()
+        if sale is None:
+            return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
+        if request.method == "POST":
+            form = AccountsSalePaymentForm(request.POST)
+            if not form.is_valid():
+                return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                    "errors": form.errors.get_json_data()}, status=400)
+            token = form.cleaned_data["request_token"]
+            existing = AccountsSalePayment.objects.filter(request_token=token).first()
+            if existing:
+                if existing.sale_id != pk or any(getattr(existing, key) != form.cleaned_data[key]
+                        for key in ("date", "amount", "payment_method", "reference", "note")):
+                    return JsonResponse({"ok": False, "message": "This payment request changed. Close and reopen Payments."}, status=409)
+                return JsonResponse({"ok": True, "message": "Payment already recorded.", "id": existing.pk})
+            if form.cleaned_data["date"] < sale.date:
+                form.add_error("date", "Payment date cannot be before the sale date.")
+            if form.cleaned_data["date"] > timezone.localdate():
+                form.add_error("date", "Use the date the payment was received; future payments cannot be recorded.")
+            if form.cleaned_data["amount"] > sale.balance_amount:
+                form.add_error("amount", "Payment cannot exceed the outstanding balance.")
+            if form.errors:
+                return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                    "errors": form.errors.get_json_data()}, status=400)
+            payment = form.save(commit=False)
+            payment.sale, payment.created_by, payment.request_token = sale, None, token
+            changed = AccountsSale.objects.filter(pk=pk,
+                received_amount__lte=F("amount") - payment.amount).update(
+                    received_amount=F("received_amount") + payment.amount, updated_at=timezone.now())
+            if not changed:
+                return JsonResponse({"ok": False, "message": "Balance changed. Close and reopen Payments."}, status=409)
+            payment.save()
+            _master_accounts_audit(payment, actor, "payment", "created")
+            _master_accounts_notification(
+                kind="payment",
+                title="Sales payment received",
+                message=(
+                    f"{_master_accounts_actor_name(actor)} recorded a payment of "
+                    f"₹{payment.amount:,.2f} for "
+                    f"{sale.customer_name}, sale #{sale.pk}, "
+                    f"on {payment.date:%d %b %Y}."
+                ),
+
+            )
+            return JsonResponse({
+                "ok": True,
+                "message": "Payment recorded successfully.",
+                "id": payment.pk,
+            })
+        items = list(sale.payments.select_related("created_by").all())
+        master_payment_names = {item.entry_number: item.actor_name for item in MasterAdminAccountsAudit.objects.filter(
+            kind="payment", action="created", entry_number__in=[item.pk for item in items])}
+        recorded = sum((item.amount for item in items), Decimal("0.00"))
+        return JsonResponse({"ok": True, "customer": sale.customer_name,
+            "received": str(sale.received_amount), "balance": str(sale.balance_amount),
+            "opening_received": str(sale.received_amount - recorded),
+            "today": timezone.localdate().isoformat(), "sale_date": sale.date.isoformat(),
+            "items": [{"date": item.date.isoformat(), "amount": str(item.amount),
+                "method": item.get_payment_method_display(), "reference": item.reference,
+                "note": item.note, "actor": getattr(item.created_by, "name", "") or master_payment_names.get(item.pk, "—")} for item in items]})
+
+
+
+@never_cache
+@require_GET
+def master_admin_accounts_overview(request):
+    from django.db.models import Sum
+    from django.http import HttpResponseForbidden, JsonResponse
+    if not _master_admin_allowed(request):
+        if request.GET.get("format") == "json":
+            return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+        if not request.user.is_authenticated:
+            return redirect("master_admin_login")
+        return HttpResponseForbidden("Master Admin access required.")
+    period, anchor, start, end, error = _accounts_report_range(request.GET, timezone.localdate())
+    income = AccountsIncome.objects.filter(date__range=(start, end))
+    expense = AccountsExpense.objects.filter(date__range=(start, end))
+    sales = AccountsSale.objects.filter(date__range=(start, end))
+    if error:
+        income, expense, sales = income.none(), expense.none(), sales.none()
+    zero = Decimal("0.00")
+    income_total = income.aggregate(total=Sum("amount"))["total"] or zero
+    expense_total = expense.aggregate(total=Sum("amount"))["total"] or zero
+    totals = sales.aggregate(amount=Sum("amount"), received=Sum("received_amount"))
+    sale_total, received = totals["amount"] or zero, totals["received"] or zero
+    audit = [{"actor": item.actor_name, "kind": item.get_kind_display(),
+              "action": item.get_action_display(), "entry": item.entry_number,
+              "time": timezone.localtime(item.created_at).strftime("%d %b %Y, %I:%M %p")}
+             for item in MasterAdminAccountsAudit.objects.all()[:30]]
+    data = {"ok": not bool(error), "message": error,
+        "income": str(income_total), "expense": str(expense_total),
+        "net": str(income_total - expense_total), "sales": str(sale_total),
+        "received": str(received), "balance": str(sale_total - received), "audit": audit}
+    if request.GET.get("format") == "json":
+        return JsonResponse(data, status=400 if error else 200)
+    return render(request, "master_admin/master_admin_accounts_overview.html", {
+        "accounts_active": "overview", "period": period, "anchor": anchor,
+        "range_start": start, "range_end": end, "filter_error": error, "data": data,
+        "from_date": request.GET.get("start", ""), "to_date": request.GET.get("end", ""),
+    })
