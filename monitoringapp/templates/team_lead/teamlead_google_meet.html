@@ -3922,7 +3922,7 @@
     data-meeting-id="{{ meeting.id }}"
     data-meeting-date="{{ meeting.date|date:'Y-m-d' }}"
     data-meeting-time="{{ meeting.time|time:'H:i:s' }}"
-    data-meeting-link="{{ meeting.meeting_link|escapejs }}"
+    data-meeting-link="{{ meeting.meeting_link|escape }}"
 >
 
     <!-- PURPOSE -->
@@ -3934,6 +3934,7 @@
 
             <span title="{{ meeting.purpose }}">
                 {{ meeting.purpose }}
+                {% if meeting.is_admin_meeting %}<small style="display:block;color:#bba3df;font-size:11px">Invited by Admin</small>{% endif %}
             </span>
         </div>
     </td>
@@ -3993,19 +3994,21 @@
         <div class="meeting-actions">
 
     <!-- EDIT -->
+{% if meeting.created_by_id == team_lead.pk %}
     <button
         type="button"
         class="edit-meeting-btn"
         data-meeting-id="{{ meeting.id }}"
-        data-purpose="{{ meeting.purpose|escapejs }}"
+        data-purpose="{{ meeting.purpose|escape }}"
         data-date="{{ meeting.date|date:'Y-m-d' }}"
         data-time="{{ meeting.time|time:'H:i' }}"
-        data-link="{{ meeting.meeting_link|escapejs }}"
+        data-link="{{ meeting.meeting_link|escape }}"
         data-participants="{% for member in meeting.participants.all %}{{ member.id }}{% if not forloop.last %},{% endif %}{% endfor %}"
     >
         <i data-lucide="pencil"></i>
         <span>Edit</span>
     </button>
+{% endif %}
 
 
     <!-- VIEW -->
@@ -4014,11 +4017,11 @@
         class="view-meeting-btn"
 
         data-meeting-id="{{ meeting.id }}"
-        data-purpose="{{ meeting.purpose|escapejs }}"
+        data-purpose="{{ meeting.purpose|escape }}"
         data-date="{{ meeting.date|date:'d M Y' }}"
         data-time="{{ meeting.time|time:'h:i A' }}"
-        data-link="{{ meeting.meeting_link|escapejs }}"
-        data-participants="{% for member in meeting.participants.all %}{{ member.name|escapejs }}{% if not forloop.last %}, {% endif %}{% endfor %}"
+        data-link="{{ meeting.meeting_link|escape }}"
+        data-participants="{% for member in meeting.participants.all %}{{ member.name|escape }}{% if not forloop.last %}, {% endif %}{% endfor %}"
     >
         <i data-lucide="eye"></i>
         <span>View</span>
@@ -4575,9 +4578,7 @@
 
 </div>
 
-</body>
 
-</html>
 
 
     <!-- =========================================================
