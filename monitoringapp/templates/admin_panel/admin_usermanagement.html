@@ -1,0 +1,2682 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+{% block title %}User Management - Cybexel{% endblock %}
+{% block page_class %}admin-usermanagement-page{% endblock %}
+{% block extra_css %}
+<style>
+body.admin-usermanagement-page .section-eyebrow,
+body.admin-usermanagement-page .table-eyebrow {
+    color: #9986ff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .18em;
+}
+
+body.admin-usermanagement-page .section-heading {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 22px;
+}
+
+body.admin-usermanagement-page .section-heading > div:first-child {
+    min-width: 0;
+}
+
+body.admin-usermanagement-page .section-eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    color: #8d7df2;
+    font-size: 9px;
+}
+
+body.admin-usermanagement-page .section-heading h2 {
+    margin: 0;
+    color: #fff;
+    font-size: 21px;
+    font-weight: 750;
+}
+
+body.admin-usermanagement-page .heading-line {
+    flex: 1 1 auto;
+    min-width: 20px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255,255,255,.10), transparent);
+}
+
+body.admin-usermanagement-page .dashboard-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 24px;
+    margin-bottom: 28px;
+    border: 1px solid rgba(255,255,255,.075);
+    border-radius: 22px;
+    background: linear-gradient(145deg, rgba(28,30,43,.76), rgba(16,18,28,.66));
+    box-shadow: 0 15px 35px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.035);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+}
+
+body.admin-usermanagement-page .card-heading {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 23px;
+}
+
+body.admin-usermanagement-page .card-icon {
+    width: 45px;
+    height: 45px;
+    min-width: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(126,96,230,.25), rgba(54,105,194,.15));
+    border: 1px solid rgba(145,120,255,.18);
+    color: #a798ff;
+}
+
+body.admin-usermanagement-page .card-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+body.admin-usermanagement-page .card-heading h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 750;
+}
+
+body.admin-usermanagement-page .card-heading p {
+    margin: 4px 0 0;
+    color: rgba(255,255,255,.38);
+    font-size: 11px;
+}
+
+body.admin-usermanagement-page .user-form,
+body.admin-usermanagement-page .edit-form-grid {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 17px 18px;
+}
+
+body.admin-usermanagement-page .form-group,
+body.admin-usermanagement-page .edit-form-group {
+    min-width: 0;
+    max-width: 100%;
+}
+
+body.admin-usermanagement-page .form-group.full,
+body.admin-usermanagement-page .edit-form-group.full,
+body.admin-usermanagement-page .create-button,
+body.admin-usermanagement-page .modal-actions {
+    grid-column: 1 / -1;
+}
+
+body.admin-usermanagement-page .form-label,
+body.admin-usermanagement-page .edit-label {
+    display: block;
+    margin-bottom: 7px;
+    color: rgba(255,255,255,.62);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+}
+
+body.admin-usermanagement-page .input-wrapper,
+body.admin-usermanagement-page .select-wrapper,
+body.admin-usermanagement-page .password-wrapper {
+    position: relative;
+    min-width: 0;
+}
+
+body.admin-usermanagement-page .input-icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,.30);
+    pointer-events: none;
+    z-index: 2;
+}
+
+body.admin-usermanagement-page .input-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+body.admin-usermanagement-page .glass-input,
+body.admin-usermanagement-page .glass-select,
+body.admin-usermanagement-page .glass-file,
+body.admin-usermanagement-page .edit-input,
+body.admin-usermanagement-page .edit-select {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    outline: none;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 12px;
+    background: rgba(255,255,255,.035);
+    color: #fff;
+    font-size: 12px;
+}
+
+body.admin-usermanagement-page .glass-input,
+body.admin-usermanagement-page .glass-select,
+body.admin-usermanagement-page .edit-input,
+body.admin-usermanagement-page .edit-select {
+    padding: 11px 13px;
+}
+
+body.admin-usermanagement-page .input-wrapper .glass-input {
+    padding-left: 40px;
+}
+
+body.admin-usermanagement-page .glass-input::placeholder,
+body.admin-usermanagement-page .edit-input::placeholder {
+    color: rgba(255,255,255,.25);
+}
+
+body.admin-usermanagement-page .glass-input:focus,
+body.admin-usermanagement-page .glass-select:focus,
+body.admin-usermanagement-page .glass-file:focus,
+body.admin-usermanagement-page .edit-input:focus,
+body.admin-usermanagement-page .edit-select:focus {
+    border-color: rgba(139,116,255,.48);
+    background: rgba(117,93,220,.055);
+    box-shadow: 0 0 0 3px rgba(118,94,220,.08);
+}
+
+body.admin-usermanagement-page .glass-select,
+body.admin-usermanagement-page .edit-select {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    padding-right: 35px;
+}
+
+body.admin-usermanagement-page .select-wrapper::after {
+    content: "";
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-right: 1px solid rgba(255,255,255,.50);
+    border-bottom: 1px solid rgba(255,255,255,.50);
+    transform: translateY(-65%) rotate(45deg);
+    pointer-events: none;
+}
+
+body.admin-usermanagement-page .glass-select option,
+body.admin-usermanagement-page .edit-select option,
+body.admin-usermanagement-page .filter-select option {
+    background: #171924;
+    color: #fff;
+}
+
+body.admin-usermanagement-page .glass-file {
+    padding: 8px 10px;
+}
+
+body.admin-usermanagement-page .glass-file::file-selector-button {
+    margin-right: 10px;
+    padding: 7px 11px;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(125,98,220,.22);
+    color: #fff;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+body.admin-usermanagement-page .password-wrapper .glass-input {
+    padding-right: 42px;
+}
+
+body.admin-usermanagement-page .password-toggle {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    color: rgba(255,255,255,.35);
+    cursor: pointer;
+}
+
+body.admin-usermanagement-page .password-toggle:hover {
+    color: #fff;
+}
+
+body.admin-usermanagement-page .create-button {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 4px;
+    padding: 12px 18px;
+    border: 1px solid rgba(144,120,255,.25);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(119,88,220,.75), rgba(56,102,184,.72));
+    color: #fff;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(74,52,155,.18);
+    transition: .2s ease;
+}
+
+body.admin-usermanagement-page .create-button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.08);
+}
+
+body.admin-usermanagement-page .create-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+body.admin-usermanagement-page .messages-container {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+body.admin-usermanagement-page .message {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.07);
+    background: rgba(255,255,255,.05);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+body.admin-usermanagement-page .message.success {
+    background: rgba(40,180,110,.10);
+    border-color: rgba(70,220,145,.16);
+}
+
+body.admin-usermanagement-page .message.error {
+    background: rgba(230,60,75,.10);
+    border-color: rgba(255,90,105,.17);
+}
+
+body.admin-usermanagement-page .employee-card {
+    margin-bottom: 0;
+}
+
+body.admin-usermanagement-page .table-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 18px;
+}
+
+body.admin-usermanagement-page .table-eyebrow {
+    display: block;
+    color: #8d7df2;
+    font-size: 9px;
+    letter-spacing: .16em;
+}
+
+body.admin-usermanagement-page .table-section-header h4 {
+    margin: 4px 0 0;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 750;
+}
+
+body.admin-usermanagement-page .count-badge {
+    min-width: 32px;
+    height: 28px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(126,96,230,.13);
+    border: 1px solid rgba(126,96,230,.20);
+    color: #a89cff;
+    font-size: 11px;
+    font-weight: 750;
+}
+
+body.admin-usermanagement-page .filter-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-bottom: 20px;
+    padding: 18px;
+    border-radius: 17px;
+    background: rgba(255,255,255,.025);
+    border: 1px solid rgba(255,255,255,.06);
+}
+
+body.admin-usermanagement-page .filter-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 13px;
+    color: rgba(255,255,255,.70);
+    font-size: 11px;
+    font-weight: 750;
+}
+
+body.admin-usermanagement-page .filter-heading svg {
+    width: 15px;
+    height: 15px;
+    color: #9d8cff;
+}
+
+body.admin-usermanagement-page .filter-grid {
+    width: 100%;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+body.admin-usermanagement-page .filter-input,
+body.admin-usermanagement-page .filter-select {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 10px;
+    background: rgba(0,0,0,.18);
+    color: rgba(255,255,255,.76);
+    outline: none;
+    font-size: 11px;
+}
+
+body.admin-usermanagement-page .filter-input::placeholder {
+    color: rgba(255,255,255,.27);
+}
+
+body.admin-usermanagement-page .filter-input:focus,
+body.admin-usermanagement-page .filter-select:focus {
+    border-color: rgba(139,116,255,.40);
+    background: rgba(115,91,220,.04);
+}
+
+body.admin-usermanagement-page .filter-select {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+
+body.admin-usermanagement-page .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 15px;
+    background: rgba(0,0,0,.10);
+}
+
+body.admin-usermanagement-page .employee-table {
+    width: 100%;
+    min-width: 1400px;
+    border-collapse: collapse;
+    color: rgba(255,255,255,.65);
+    font-size: 11px;
+}
+
+body.admin-usermanagement-page .employee-table thead {
+    background: linear-gradient(90deg, rgba(115,90,220,.10), rgba(46,93,170,.08));
+}
+
+body.admin-usermanagement-page .employee-table th {
+    padding: 13px 12px;
+    text-align: left;
+    color: rgba(255,255,255,.50);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid rgba(255,255,255,.065);
+}
+
+body.admin-usermanagement-page .employee-table td {
+    padding: 12px;
+    white-space: nowrap;
+    color: rgba(255,255,255,.62);
+    border-bottom: 1px solid rgba(255,255,255,.045);
+}
+
+body.admin-usermanagement-page .employee-table tbody tr:hover {
+    background: rgba(255,255,255,.025);
+}
+
+body.admin-usermanagement-page .employee-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+body.admin-usermanagement-page .employee-avatar-wrapper {
+    position: relative;
+    width: 38px;
+    height: 38px;
+}
+
+body.admin-usermanagement-page .employee-avatar,
+body.admin-usermanagement-page .employee-avatar-fallback {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+body.admin-usermanagement-page .employee-avatar-fallback {
+    background: linear-gradient(135deg, rgba(118,91,215,.35), rgba(49,93,168,.28));
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+body.admin-usermanagement-page .user-status-dot {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 9px;
+    height: 9px;
+    border: 2px solid #171923;
+    border-radius: 50%;
+    background: #45dc91;
+    box-shadow: 0 0 8px rgba(69,220,145,.55);
+}
+
+body.admin-usermanagement-page .employee-name {
+    color: #fff !important;
+    font-weight: 700;
+}
+
+body.admin-usermanagement-page .status-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.035);
+    border: 1px solid rgba(255,255,255,.06);
+    font-size: 10px;
+}
+
+body.admin-usermanagement-page .status-text::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #45dc91;
+}
+
+body.admin-usermanagement-page .status-text.status-inactive::before {
+    background: #ff6978;
+}
+
+body.admin-usermanagement-page .action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+body.admin-usermanagement-page .edit-button,
+body.admin-usermanagement-page .delete-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 10px;
+    border-radius: 9px;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    transition: .18s ease;
+}
+
+body.admin-usermanagement-page .edit-button {
+    border: 1px solid rgba(90,140,255,.17);
+    background: rgba(68,119,210,.10);
+    color: #8cb8ff;
+}
+
+body.admin-usermanagement-page .edit-button:hover {
+    background: rgba(68,119,210,.18);
+    transform: translateY(-1px);
+}
+
+body.admin-usermanagement-page .delete-button {
+    border: 1px solid rgba(255,80,95,.15);
+    background: rgba(255,70,85,.07);
+    color: #ff8994;
+}
+
+body.admin-usermanagement-page .delete-button:hover {
+    background: rgba(255,70,85,.14);
+    transform: translateY(-1px);
+}
+
+body.admin-usermanagement-page .edit-button svg,
+body.admin-usermanagement-page .delete-button svg {
+    width: 13px;
+    height: 13px;
+}
+
+body.admin-usermanagement-page .empty-row {
+    padding: 35px !important;
+    text-align: center;
+    color: rgba(255,255,255,.28) !important;
+}
+
+body.admin-usermanagement-page .employee-list-heading {
+    align-items: center;
+}
+
+body.admin-usermanagement-page .employee-list-heading-actions {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+body.admin-usermanagement-page .employee-list-heading-actions .heading-line {
+    flex: 1 1 auto;
+}
+
+body.admin-usermanagement-page .add-employee-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 16px;
+    border: 1px solid rgba(139,112,255,.28);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(117,89,220,.24), rgba(82,66,170,.16));
+    color: #dcd7ff;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: .2s ease;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 8px 20px rgba(72,52,160,.14);
+}
+
+body.admin-usermanagement-page .add-employee-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(157,137,255,.50);
+    background: linear-gradient(135deg, rgba(117,89,220,.34), rgba(82,66,170,.24));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 24px rgba(72,52,160,.22);
+}
+
+body.admin-usermanagement-page .add-employee-btn svg {
+    width: 17px;
+    height: 17px;
+}
+
+body.admin-usermanagement-page .add-employee-modal-box {
+    max-width: 900px;
+}
+
+body.admin-usermanagement-page .add-employee-modal-box .user-form {
+    margin-top: 4px;
+}
+
+body.admin-usermanagement-page .modal-actions.full {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+body.admin-usermanagement-page .employee-list-heading {
+        align-items: flex-start;
+    }
+
+body.admin-usermanagement-page .employee-list-heading-actions {
+        width: auto;
+        flex: 0 0 auto;
+    }
+
+body.admin-usermanagement-page .employee-list-heading-actions .heading-line {
+        display: none;
+    }
+
+body.admin-usermanagement-page .add-employee-btn {
+        min-height: 38px;
+        padding: 0 12px;
+        border-radius: 10px;
+    }
+
+body.admin-usermanagement-page .add-employee-btn span {
+        display: none;
+    }
+
+body.admin-usermanagement-page .add-employee-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+body.admin-usermanagement-page .edit-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(0,0,0,.68);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 2000;
+}
+
+body.admin-usermanagement-page .edit-modal.hidden {
+    display: none;
+}
+
+body.admin-usermanagement-page .edit-modal-box {
+    width: 100%;
+    max-width: 850px;
+    max-height: 90vh;
+    min-width: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 25px;
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 24px;
+    background: linear-gradient(145deg, rgba(28,30,43,.97), rgba(12,14,22,.97));
+    box-shadow: 0 35px 90px rgba(0,0,0,.60), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+body.admin-usermanagement-page .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+body.admin-usermanagement-page .modal-title-wrap {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+body.admin-usermanagement-page .modal-icon {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    background: rgba(117,89,220,.16);
+    border: 1px solid rgba(139,112,255,.18);
+    color: #a99bff;
+}
+
+body.admin-usermanagement-page .modal-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+body.admin-usermanagement-page .modal-title {
+    margin: 0;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+body.admin-usermanagement-page .modal-subtitle {
+    margin: 3px 0 0;
+    color: rgba(255,255,255,.32);
+    font-size: 10px;
+}
+
+body.admin-usermanagement-page .close-modal {
+    width: 35px;
+    height: 35px;
+    flex: 0 0 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,.07);
+    border-radius: 10px;
+    background: rgba(255,255,255,.035);
+    color: rgba(255,255,255,.50);
+    cursor: pointer;
+}
+
+body.admin-usermanagement-page .close-modal:hover {
+    color: #fff;
+    background: rgba(255,255,255,.07);
+}
+
+body.admin-usermanagement-page .edit-form-grid {
+    gap: 15px 17px;
+}
+
+body.admin-usermanagement-page .edit-label {
+    margin-bottom: 6px;
+}
+
+body.admin-usermanagement-page .edit-input,
+body.admin-usermanagement-page .edit-select {
+    font-size: 11px;
+}
+
+body.admin-usermanagement-page .profile-preview {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+body.admin-usermanagement-page .profile-preview img {
+    width: 58px;
+    height: 58px;
+    flex: 0 0 58px;
+    object-fit: cover;
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: rgba(255,255,255,.03);
+}
+
+body.admin-usermanagement-page .profile-preview-text {
+    margin-bottom: 7px;
+    color: rgba(255,255,255,.35);
+    font-size: 10px;
+}
+
+body.admin-usermanagement-page .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 9px;
+    margin-top: 5px;
+    padding-top: 17px;
+    border-top: 1px solid rgba(255,255,255,.06);
+}
+
+body.admin-usermanagement-page .modal-cancel,
+body.admin-usermanagement-page .modal-save {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+body.admin-usermanagement-page .modal-cancel {
+    border: 1px solid rgba(255,255,255,.07);
+    background: rgba(255,255,255,.035);
+    color: rgba(255,255,255,.55);
+}
+
+body.admin-usermanagement-page .modal-cancel:hover {
+    color: #fff;
+    background: rgba(255,255,255,.06);
+}
+
+body.admin-usermanagement-page .modal-save {
+    border: 1px solid rgba(139,116,255,.22);
+    background: linear-gradient(135deg, rgba(119,88,220,.75), rgba(56,102,184,.72));
+    color: #fff;
+}
+
+body.admin-usermanagement-page .modal-save:hover {
+    filter: brightness(1.08);
+}
+
+body.admin-usermanagement-page .modal-cancel svg,
+body.admin-usermanagement-page .modal-save svg {
+    width: 14px;
+    height: 14px;
+}
+
+@media (max-width: 1200px) {
+body.admin-usermanagement-page .filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+body.admin-usermanagement-page .user-form {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+body.admin-usermanagement-page .user-form,
+body.admin-usermanagement-page .edit-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+body.admin-usermanagement-page .form-group.full,
+body.admin-usermanagement-page .edit-form-group.full,
+body.admin-usermanagement-page .create-button,
+body.admin-usermanagement-page .modal-actions {
+        grid-column: auto;
+    }
+
+body.admin-usermanagement-page .filter-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+body.admin-usermanagement-page .dashboard-card {
+        padding: 17px;
+        border-radius: 18px;
+    }
+
+body.admin-usermanagement-page .card-heading {
+        align-items: flex-start;
+    }
+
+body.admin-usermanagement-page .card-icon {
+        width: 41px;
+        height: 41px;
+        min-width: 41px;
+    }
+
+body.admin-usermanagement-page .employee-table {
+        min-width: 1400px;
+    }
+
+body.admin-usermanagement-page .edit-modal {
+        padding: 10px;
+    }
+
+body.admin-usermanagement-page .edit-modal-box {
+        padding: 18px;
+        border-radius: 19px;
+    }
+
+body.admin-usermanagement-page .profile-preview {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+body.admin-usermanagement-page .modal-actions {
+        flex-direction: column-reverse;
+    }
+
+body.admin-usermanagement-page .modal-cancel,
+body.admin-usermanagement-page .modal-save {
+        width: 100%;
+    }
+}
+
+body.admin-usermanagement-page .section-eyebrow,
+body.admin-usermanagement-page .table-eyebrow {
+    color: #a78bfa;
+}
+
+body.admin-usermanagement-page .section-heading {
+    gap: 22px;
+    margin-bottom: 24px;
+}
+
+body.admin-usermanagement-page .section-eyebrow {
+    margin-bottom: 8px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+
+body.admin-usermanagement-page .section-heading h2 {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+body.admin-usermanagement-page .dashboard-card {
+    padding: 26px;
+    border-radius: 23px;
+    background: linear-gradient(145deg, rgba(27,26,34,.90), rgba(16,16,22,.92));
+    border: 1px solid rgba(255,255,255,.09);
+    box-shadow: 0 20px 50px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+body.admin-usermanagement-page .dashboard-card:hover {
+    border-color: rgba(139,92,246,.23);
+    transform: translateY(-2px);
+}
+
+body.admin-usermanagement-page .card-heading h3 {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+body.admin-usermanagement-page .card-heading p {
+    color: #8f8c96;
+    font-size: 11px;
+}
+
+body.admin-usermanagement-page .create-button,
+body.admin-usermanagement-page .modal-save {
+    background: linear-gradient(135deg,#7c4bd4,#5b32a7);
+}
+
+@media (max-width: 768px) {
+body.admin-usermanagement-page .section-heading { gap: 10px; }
+
+body.admin-usermanagement-page .heading-line { display: none; }
+
+body.admin-usermanagement-page .user-form,
+body.admin-usermanagement-page .edit-form-grid { grid-template-columns: 1fr; }
+
+body.admin-usermanagement-page .filter-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+body.admin-usermanagement-page .dashboard-card { padding: 15px; }
+}
+
+body.admin-usermanagement-page .joining-date-picker {
+            position: relative;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .custom-date-input {
+            width: 100%;
+            min-height: 0;
+            height: auto;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 11px 13px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 12px;
+            background: rgba(5, 5, 11, 0.78);
+            color: #f7f3ff;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+            transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .custom-date-input:hover,
+body.admin-usermanagement-page .joining-date-picker .custom-date-input:focus {
+            outline: none;
+            border-color: rgba(139, 92, 246, .70);
+            background: rgba(11, 9, 19, .95);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, .10);
+        }
+
+body.admin-usermanagement-page .joining-date-picker .custom-date-input span {
+            color: #f2effa;
+            white-space: nowrap;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .custom-date-input span.is-placeholder {
+            color: rgba(255,255,255,.36);
+        }
+
+body.admin-usermanagement-page .joining-date-picker .custom-date-input svg {
+            width: 17px;
+            height: 17px;
+            flex: 0 0 auto;
+            color: #c4b5fd;
+            pointer-events: none;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .custom-calendar {
+            position: absolute;
+            z-index: 9999;
+            top: calc(100% + 9px);
+            left: 0;
+            width: 300px;
+            padding: 12px;
+            box-sizing: border-box;
+            border: 1px solid rgba(255,255,255,.13);
+            border-radius: 17px;
+            background:
+                radial-gradient(circle at 90% 0%, rgba(96,165,250,.13), transparent 32%),
+                radial-gradient(circle at 0% 0%, rgba(139,92,246,.20), transparent 38%),
+                rgba(12, 11, 20, .97);
+            box-shadow:
+                0 28px 65px rgba(0,0,0,.58),
+                inset 0 1px 0 rgba(255,255,255,.06);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            display: none;
+        }
+
+body.admin-usermanagement-page .joining-date-picker.open .custom-calendar {
+            display: block;
+            animation: teamReportCalendarIn .16s ease-out;
+        }
+
+@keyframes teamReportCalendarIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px) scale(.985);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-header {
+            display: grid;
+            grid-template-columns: 34px 1fr 34px;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 11px;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-month-title {
+            border: 0;
+            background: transparent;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 800;
+            text-align: center;
+            cursor: default;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-nav {
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255,255,255,.08);
+            border-radius: 9px;
+            background: rgba(255,255,255,.045);
+            color: #ddd6fe;
+            cursor: pointer;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-nav:hover {
+            background: rgba(139,92,246,.18);
+            border-color: rgba(139,92,246,.45);
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-nav svg {
+            width: 16px;
+            height: 16px;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-weekdays,
+body.admin-usermanagement-page .joining-date-picker .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-weekdays {
+            margin-bottom: 5px;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-weekdays span {
+            height: 28px;
+            display: grid;
+            place-items: center;
+            color: rgba(255,255,255,.45);
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-day {
+            width: 100%;
+            aspect-ratio: 1;
+            min-height: 30px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            background: transparent;
+            color: rgba(255,255,255,.86);
+            font-size: 12px;
+            cursor: pointer;
+            transition: .15s ease;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-day:hover {
+            background: rgba(139,92,246,.18);
+            border-color: rgba(139,92,246,.36);
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-day.is-muted {
+            color: rgba(255,255,255,.22);
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-day.is-today {
+            border-color: rgba(96,165,250,.55);
+            color: #bfdbfe;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-day.is-selected {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            border-color: rgba(196,181,253,.80);
+            color: #fff;
+            font-weight: 800;
+            box-shadow: 0 7px 18px rgba(124,58,237,.28);
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,.08);
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-footer-btn {
+            border: 0;
+            background: transparent;
+            color: #c4b5fd;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            padding: 5px 7px;
+            border-radius: 7px;
+        }
+
+body.admin-usermanagement-page .joining-date-picker .calendar-footer-btn:hover {
+            color: #fff;
+            background: rgba(139,92,246,.14);
+        }
+
+@media (max-width: 768px) {
+body.admin-usermanagement-page .joining-date-picker {
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+            }
+}
+
+@media (max-width: 480px) {
+body.admin-usermanagement-page .joining-date-picker {
+                width: 100%;
+                max-width: 100%;
+                flex-basis: 100%;
+            }
+
+body.admin-usermanagement-page .joining-date-picker .custom-calendar {
+                width: min(300px, calc(100vw - 28px));
+            }
+}
+
+@media (max-width: 430px) {
+body.admin-usermanagement-page .joining-date-picker .custom-calendar {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+body.admin-usermanagement-page .joining-date-picker.open .custom-calendar {
+                animation: teamReportCalendarInMobile .16s ease-out;
+            }
+}
+
+@keyframes teamReportCalendarInMobile {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-5px) scale(.985);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0) scale(1);
+            }
+        }
+
+body.admin-usermanagement-page .add-employee-modal-box {
+    scrollbar-width: thin;
+    scrollbar-color: #7c3aed rgba(255, 255, 255, 0.06);
+}
+
+body.admin-usermanagement-page .add-employee-modal-box::-webkit-scrollbar {
+    width: 8px;
+}
+
+body.admin-usermanagement-page .add-employee-modal-box::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+}
+
+body.admin-usermanagement-page .add-employee-modal-box::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+        180deg,
+        #8b5cf6,
+        #6366f1
+    );
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+body.admin-usermanagement-page .add-employee-modal-box::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+        180deg,
+        #a78bfa,
+        #818cf8
+    );
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+body.admin-usermanagement-page .filter-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    margin-bottom: 14px;
+}
+
+body.admin-usermanagement-page .filter-heading {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+body.admin-usermanagement-page .filter-heading i {
+    width: 17px;
+    height: 17px;
+    color: #9b7cff;
+}
+
+body.admin-usermanagement-page .reset-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    height: 34px;
+    padding: 0 13px;
+
+    border: 1px solid rgba(139, 92, 246, 0.35);
+    border-radius: 9px;
+
+    background: rgba(124, 58, 237, 0.08);
+    color: #c4b5fd;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+body.admin-usermanagement-page .reset-filter-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+    min-height: 14px !important;
+    max-width: 14px !important;
+    max-height: 14px !important;
+    stroke-width: 2 !important;
+}
+
+body.admin-usermanagement-page .reset-filter-btn:hover {
+    background: linear-gradient(
+        135deg,
+        rgba(124, 58, 237, 0.20),
+        rgba(99, 102, 241, 0.16)
+    );
+
+    border-color: rgba(139, 92, 246, 0.65);
+    color: #ffffff;
+
+    transform: translateY(-1px);
+    box-shadow: 0 5px 18px rgba(124, 58, 237, 0.18);
+}
+
+body.admin-usermanagement-page .reset-filter-btn:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+body.admin-usermanagement-page .filter-heading-row {
+        align-items: center;
+    }
+
+body.admin-usermanagement-page .reset-filter-btn {
+        width: 34px;
+        padding: 0;
+    }
+
+body.admin-usermanagement-page .reset-filter-btn span {
+        display: none;
+    }
+}
+body.admin-usermanagement-page .table-wrapper { max-height: 440px; overflow: auto; scrollbar-width: thin; scrollbar-color: #74559b transparent; }
+body.admin-usermanagement-page .employee-table th { position: sticky; top: 0; z-index: 1; background: #21192b; text-align: left; }
+body.admin-usermanagement-page .employee-table td { vertical-align: middle; }
+body.admin-usermanagement-page .action-buttons { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; }
+body.admin-usermanagement-page .action-buttons form { margin: 0; }
+body.admin-usermanagement-page .edit-modal { background: rgba(8, 7, 11, .3); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+body.admin-usermanagement-page .edit-modal-box { max-height: calc(100dvh - 40px); background: linear-gradient(145deg,#241b30,#14121d); }
+body.admin-usermanagement-page.user-modal-open .dashboard-box { overflow: hidden !important; }
+body.admin-usermanagement-page .delete-confirm-box { max-width: 420px; }
+body.admin-usermanagement-page .delete-confirm-box p { color: #aaa6b2; line-height: 1.6; }
+@media (max-width: 768px) {
+ body.admin-usermanagement-page .edit-modal { padding: 12px; }
+ body.admin-usermanagement-page .edit-modal-box { max-height: calc(100dvh - 24px); padding: 18px; }
+ body.admin-usermanagement-page .glass-input, body.admin-usermanagement-page .glass-select,
+ body.admin-usermanagement-page .edit-input, body.admin-usermanagement-page .edit-select { font-size: 16px; }
+}
+
+/* Server-rendered state before the first live status response. */
+body.admin-usermanagement-page .user-status-dot[data-status="inactive"] {
+    background: #ff6978;
+    box-shadow: 0 0 8px rgba(255,105,120,.35);
+}
+
+body.admin-usermanagement-page #designation { padding-left: 42px; }
+body.admin-usermanagement-page .edit-modal input,
+body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
+</style>
+{% endblock %}
+{% block content %}
+<div hidden aria-hidden="true" id="userOperationMessages">
+  {% for message in messages %}<span data-user-operation-message data-level="{{ message.level }}">{{ message }}</span>{% endfor %}
+</div>
+
+    <div class="dashboard-box">
+
+        <section class="dashboard-header">
+            <div class="dashboard-header-content">
+                <div>
+                    <div class="dashboard-eyebrow">CYBEXEL ADMIN PANEL</div>
+                    <h1>USER MANAGEMENT</h1>
+                    <p>Create, manage and maintain your organization users.</p>
+                </div>
+
+                <div class="system-status">
+                    <span class="status-dot"></span>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-content">
+
+            <div class="section-heading employee-list-heading">
+                <div>
+                    <span class="section-eyebrow">USER DIRECTORY</span>
+                    <h2>Employee List</h2>
+                </div>
+                <div class="employee-list-heading-actions">
+                    <div class="heading-line"></div>
+                    <button type="button" class="add-employee-btn" onclick="openAddEmployeeModal()" aria-label="Add Employee">
+                        <i data-lucide="user-plus"></i>
+                        <span>Add Employee</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="dashboard-card employee-card">
+                <div class="filter-card">
+                    <!-- <div class="filter-heading">
+                        <i data-lucide="sliders-horizontal"></i>
+                        <span>FILTER EMPLOYEES</span>
+                    </div> -->
+                    <div class="filter-heading-row">
+    <div class="filter-heading">
+        <i data-lucide="sliders-horizontal"></i>
+        <span>FILTER EMPLOYEES</span>
+    </div>
+
+    <button
+        type="button"
+        class="reset-filter-btn"
+        id="resetFiltersBtn"
+        title="Reset Filters"
+    >
+        <i data-lucide="rotate-ccw"></i>
+        <span>Reset</span>
+    </button>
+</div>
+
+                    <form id="filterForm">
+                        <div class="filter-grid">
+                            <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search name, email or employee ID..." class="filter-input">
+
+                            <select name="department" class="filter-select">
+                                <option value="">All Departments</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept.name }}" {% if request.GET.department == dept.name %}selected{% endif %}>
+                                    {{ dept.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+
+                            <select name="team" class="filter-select">
+                                <option value="">All Teams</option>
+                                {% for t in teams %}
+                                <option value="{{ t.name }}" {% if request.GET.team == t.name %}selected{% endif %}>
+                                    {{ t.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+
+                            <select name="position" class="filter-select">
+                                <option value="">All Positions</option>
+                                {% for p in job_positions %}
+                                    {% if p %}
+                                    <option value="{{ p }}" {% if request.GET.position == p %}selected{% endif %}>
+                                        {{ p }}
+                                    </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="table-section-header">
+                    <div>
+                        <span class="table-eyebrow">EMPLOYEES</span>
+                        <h4>Registered Users</h4>
+                    </div>
+                    <span class="count-badge" id="employeeCount">{{ users|length }}</span>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="employee-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Emp ID</th>
+                                <th>Department</th>
+                                <th>Team</th>
+                                <th>Job Position</th>
+                                <th>Designation</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Work Location</th>
+                                <th>Joining Date</th>
+                                <th>Username</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="employeeTableBody">
+                            {% for user in users %}
+                            <tr data-user-row="{{ user.pk }}">
+                                <td>
+                                    <div class="employee-avatar-wrapper">
+                                        {% if user.profile_image %}
+                                        <img src="{{ user.profile_image.url }}" class="employee-avatar" alt="{{ user.name }}">
+                                        {% else %}
+                                        <div class="employee-avatar-fallback">{{ user.name|first|upper }}</div>
+                                        {% endif %}
+                                        <span class="user-status-dot" data-user-id="{{ user.id }}" data-status="{{ user.status }}" title="{{ user.status|capfirst }}"></span>
+                                    </div>
+                                </td>
+
+                                <td>{{ user.employee_id }}</td>
+                                <td>{{ user.department }}</td>
+                                <td>{{ user.team }}</td>
+                                <td>{{ user.job_Position }}</td>
+                                <td>{{ user.designation }}</td>
+                                <td class="employee-name">{{ user.name }}</td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.phone }}</td>
+                                <td>{{ user.work_location }}</td>
+                                <td>{{ user.joining_date }}</td>
+                                <td>{{ user.username }}</td>
+
+                                <td>
+                                    <span data-user-status="{{ user.id }}" class="status-text {% if user.status == 'inactive' %}status-inactive{% endif %}">
+                                        {{ user.status|capfirst }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    {% with role=user.job_Position|lower %}
+    {% if role == "team lead" or role == "team member" %}
+                                    <div class="action-buttons">
+                                        <button
+                                            type="button"
+                                            onclick="openEditModal(this)"
+                                            class="edit-button"
+                                            data-id="{{ user.id }}"
+                                            data-empid="{{ user.employee_id }}"
+                                            data-name="{{ user.name }}"
+                                            data-email="{{ user.email }}"
+                                            data-phone="{{ user.phone }}"
+                                            data-department="{{ user.department_id|default_if_none:'' }}"
+                                            data-team="{{ user.team_id|default_if_none:'' }}"
+                                            data-designation="{{ user.designation }}"
+                                            data-job_position="{{ user.job_Position }}"
+                                            data-worklocation="{{ user.work_location }}"
+                                            data-joining="{{ user.joining_date|date:'Y-m-d' }}"
+                                            data-username="{{ user.username }}"
+                                            data-status="{{ user.status }}"
+                                            data-profile="{% if user.profile_image %}{{ user.profile_image.url }}{% endif %}"
+                                        >
+                                            <i data-lucide="pencil"></i>
+                                            Edit
+                                        </button>
+
+                                        <form method="post" action="{% url 'delete_user' user.id %}" class="delete-user-form">{% csrf_token %}<button type="submit" class="delete-button">
+                                            <i data-lucide="trash-2"></i>
+                                            Delete
+                                        </button></form>
+                                    </div>
+                                        {% else %}
+        <span>View only</span>
+    {% endif %}
+{% endwith %}
+                                </td>
+                            </tr>
+
+                            {% empty %}
+                            <tr>
+                                <td colspan="14" class="empty-row">No users found</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+<!-- ADD EMPLOYEE MODAL -->
+<div id="addEmployeeModal" class="edit-modal hidden" hidden style="display:none !important">
+    <div class="edit-modal-box add-employee-modal-box">
+        <div class="modal-header">
+            <div class="modal-title-wrap">
+                <div class="modal-icon"><i data-lucide="user-plus"></i></div>
+                <div>
+                    <h2 class="modal-title">Add Employee</h2>
+                    <p class="modal-subtitle">Enter the employee information below</p>
+                </div>
+            </div>
+
+            <button type="button" class="close-modal" onclick="closeAddEmployeeModal()" aria-label="Close">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" class="user-form">
+            {% csrf_token %}
+
+            <div class="form-group full">
+                <label for="profile_image" class="form-label">Profile Picture</label>
+                <input type="file" id="profile_image" name="profile_image" accept="image/*" class="glass-file">
+            </div>
+
+            <div class="form-group">
+                <label for="name" class="form-label">Full Name</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="user"></i></span>
+                    <input type="text" id="name" name="name" class="glass-input" placeholder="Enter full name" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="employee_id" class="form-label">Employee ID</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="badge"></i></span>
+                    <input type="text" id="employee_id" name="employee_id" class="glass-input" placeholder="Employee ID" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="mail"></i></span>
+                    <input type="email" id="email" name="email" class="glass-input" placeholder="employee@company.com" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone" class="form-label">Phone</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="phone"></i></span>
+                    <input type="text" id="phone" name="phone" class="glass-input" placeholder="Phone number">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="department" class="form-label">Department</label>
+                <div class="select-wrapper">
+                    <select id="department" name="department" class="glass-select" required>
+                        <option value="">Select Department</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="team" class="form-label">Team</label>
+                <div class="select-wrapper">
+                    <select id="team" name="team" class="glass-select">
+                        <option value="">Select Team</option>
+                        {% for team in teams %}
+                        <option value="{{ team.id }}">{{ team.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="job_Position" class="form-label">Job Position</label>
+                <div class="select-wrapper">
+                    <select id="job_Position" name="job_Position" class="glass-select" required>
+                        <option value="">Select Job Position</option>
+                        <option value="Team Lead">Team Lead</option>
+                        <option value="Team Member">Team Member</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="designation" class="form-label">Designation</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="briefcase-business"></i></span>
+                    <select id="designation" name="designation" class="glass-select" required disabled><option value="">Choose department first</option></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="work_location" class="form-label">Work Location</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="map-pin"></i></span>
+                    <input type="text" id="work_location" name="work_location" class="glass-input" placeholder="Work location">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="joining_date" class="form-label">Joining Date</label>
+                <div class="joining-date-picker custom-date-picker" data-date-picker>
+                    <input type="hidden" id="joining_date" name="joining_date" required>
+                    <button type="button" class="custom-date-input" data-date-toggle aria-haspopup="dialog" aria-expanded="false">
+                        <span data-date-display>dd-mm-yyyy</span>
+                        <i data-lucide="calendar-days"></i>
+                    </button>
+                    <div class="custom-calendar" data-calendar role="dialog" aria-label="Choose joining date">
+                        <div class="calendar-header">
+                            <button type="button" class="calendar-nav" data-prev-month aria-label="Previous month"><i data-lucide="chevron-left"></i></button>
+                            <button type="button" class="calendar-month-title" data-month-title></button>
+                            <button type="button" class="calendar-nav" data-next-month aria-label="Next month"><i data-lucide="chevron-right"></i></button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                        </div>
+                        <div class="calendar-days" data-calendar-days></div>
+                        <div class="calendar-footer">
+                            <button type="button" class="calendar-footer-btn" data-clear-date>Clear</button>
+                            <button type="button" class="calendar-footer-btn" data-today-date>Today</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <div class="input-wrapper">
+                    <span class="input-icon"><i data-lucide="at-sign"></i></span>
+                    <input type="text" id="username" name="username" class="glass-input" placeholder="Enter username" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" name="password" class="glass-input" placeholder="Enter password" required>
+                    <button type="button" id="togglePassword" class="password-toggle" aria-label="Show password"><i data-lucide="eye" id="eyeIcon"></i></button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="status" class="form-label">Status</label>
+                <div class="select-wrapper">
+                    <select id="status" name="status" class="glass-select">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-actions full">
+                <button type="button" onclick="closeAddEmployeeModal()" class="modal-cancel">
+                    <i data-lucide="x"></i>
+                    Cancel
+                </button>
+                <button type="submit" class="modal-save">
+                    <i data-lucide="user-plus"></i>
+                    Add Employee
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="edit-modal hidden" hidden style="display:none !important">
+    <div class="edit-modal-box">
+
+        <div class="modal-header">
+            <div class="modal-title-wrap">
+                <div class="modal-icon"><i data-lucide="user-pen"></i></div>
+                <div>
+                    <h2 class="modal-title">Edit Employee</h2>
+                    <p class="modal-subtitle">Update employee information</p>
+                </div>
+            </div>
+
+            <button type="button" class="close-modal" onclick="closeEditModal()" aria-label="Close">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+
+        <form id="editForm" method="POST" enctype="multipart/form-data" action="{% url 'edit_user' %}" class="edit-form-grid">
+            {% csrf_token %}
+            <input type="hidden" id="edit_id" name="id">
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_emp_id">Employee ID</label>
+                <input type="text" id="edit_emp_id" name="edit_emp_id" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_name">Full Name</label>
+                <input type="text" id="edit_name" name="edit_name" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_email">Email</label>
+                <input type="email" id="edit_email" name="edit_email" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_phone">Phone</label>
+                <input type="text" id="edit_phone" name="edit_phone" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_department">Department</label>
+                <select id="edit_department" name="edit_department" class="edit-select"><option value="">Not assigned</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_team">Team</label>
+                <select id="edit_team" name="edit_team" class="edit-select"><option value="">Not assigned</option>
+                    {% for team in teams %}
+                    <option value="{{ team.id }}">{{ team.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_job_position">Job Position</label>
+                <select id="edit_job_position" name="edit_job_position" class="edit-select" required><option value="Team Lead">Team Lead</option><option value="Team Member">Team Member</option></select>
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_designation">Designation</label>
+                <select id="edit_designation" name="edit_designation" class="edit-select" required disabled><option value="">Choose department first</option></select>
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_work_location">Work Location</label>
+                <input type="text" id="edit_work_location" name="edit_work_location" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_joining_date">Joining Date</label>
+                <input type="date" id="edit_joining_date" name="edit_joining_date" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_username">Username</label>
+                <input type="text" id="edit_username" name="edit_username" class="edit-input">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_password">Password</label>
+                <input type="password" id="edit_password" name="edit_password" class="edit-input" placeholder="Leave blank to keep current">
+            </div>
+
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_status">Status</label>
+                <select id="edit_status" name="edit_status" class="edit-select">
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+
+            <div class="edit-form-group full">
+                <label class="edit-label">Profile Image</label>
+                <div class="profile-preview">
+                    <img id="edit_profile_image" src="" alt="Profile Preview">
+                    <div>
+                        <div class="profile-preview-text">Current profile image</div>
+                        <input type="file" id="edit_profile_upload" name="edit_profile_upload" class="glass-file" accept="image/*">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" onclick="closeEditModal()" class="modal-cancel">
+                    <i data-lucide="x"></i>
+                    Cancel
+                </button>
+
+                <button type="submit" class="modal-save">
+                    <i data-lucide="save"></i>
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div id="deleteUserModal" class="edit-modal hidden" hidden style="display:none !important" role="dialog" aria-modal="true" aria-labelledby="deleteUserHeading" tabindex="-1">
+  <div class="edit-modal-box delete-confirm-box">
+    <div class="modal-header"><h2 id="deleteUserHeading" class="modal-title">Delete employee?</h2><button type="button" class="close-modal" onclick="closeUserDeleteModal()" aria-label="Close"><i data-lucide="x"></i></button></div>
+    <p>This will permanently delete this employee and their related records. Continue?</p>
+    <div class="modal-actions"><button type="button" class="modal-cancel" onclick="closeUserDeleteModal()">Cancel</button><button type="button" class="delete-button" id="confirmUserDelete">Delete employee</button></div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+{{ designation_options|json_script:"departmentDesignationOptions" }}
+<script>
+
+// The modal must be outside adminMain before the background becomes inert.
+["addEmployeeModal", "editModal", "deleteUserModal"].forEach(id => {
+    const modal = document.getElementById(id);
+    if (modal) document.body.append(modal);
+});
+// Also cover any existing edit-modal with a different ID.
+document.querySelectorAll(".edit-modal").forEach(modal => {
+    if (document.getElementById("adminMain")?.contains(modal)) document.body.append(modal);
+});
+let departmentDesignationOptions = {};
+try {
+    const raw = document.getElementById("departmentDesignationOptions")?.textContent;
+    const parsed = raw ? JSON.parse(raw) : {};
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) departmentDesignationOptions = parsed;
+} catch (error) { console.warn("Designation choices will be loaded from the server."); }
+const designationRequests = new Map();
+async function fillDesignationChoices(departmentId, selectId, selected = "") {
+    const input = document.getElementById(selectId);
+    if (!input) return;
+    const key = String(departmentId || "");
+    designationRequests.get(selectId)?.abort();
+    const controller = new AbortController(); designationRequests.set(selectId, controller);
+    const show = (names) => {
+        input.replaceChildren(new Option(key ? "Select designation" : "Choose department first", ""));
+        names.forEach(name => input.add(new Option(name, name)));
+        input.disabled = !key || names.length === 0;
+        if (key && !names.length) input.options[0].text = "Add designations in Dashboard first";
+        if (selected && names.includes(selected)) input.value = selected;
+    };
+    if (!key) { show([]); return; }
+    const cached = departmentDesignationOptions[key];
+    if (Array.isArray(cached)) show(cached);
+    else { input.replaceChildren(new Option("Loading designations…", "")); input.disabled = true; }
+    try {
+        const url = new URL(window.location.href);
+        url.search = ""; url.searchParams.set("designation_department", key);
+        const response = await fetch(url, {headers:{"X-Requested-With":"XMLHttpRequest"},credentials:"same-origin",cache:"no-store",signal:controller.signal});
+        if (!response.headers.get("content-type")?.includes("application/json")) throw new Error("Designation endpoint is not connected.");
+        const result = await response.json();
+        if (!response.ok || !result.ok || !Array.isArray(result.items)) throw new Error(result.message || "Unable to load designations.");
+        if (designationRequests.get(selectId) !== controller) return;
+        departmentDesignationOptions[key] = result.items; show(result.items);
+    } catch (error) {
+        if (error.name === "AbortError") return;
+        if (!Array.isArray(cached)) {
+            input.replaceChildren(new Option("Unable to load — choose department again", ""));input.disabled = true;
+            if (typeof window.showToast === "function") window.showToast(error.message, "error");
+        }
+        console.error(error);
+    }
+}
+document.getElementById("department")?.addEventListener("change", event => {
+    fillDesignationChoices(event.target.value, "designation");
+});
+document.getElementById("edit_department")?.addEventListener("change", event => {
+    fillDesignationChoices(event.target.value, "edit_designation");
+});
+fillDesignationChoices(document.getElementById("department")?.value, "designation");
+
+/* PASSWORD TOGGLE */
+const togglePassword = document.getElementById("togglePassword");
+const password = document.getElementById("password");
+
+if (togglePassword && password) {
+    togglePassword.addEventListener("click", function () {
+        const type = password.getAttribute("type") === "password" ? "text" : "password";
+        password.setAttribute("type", type);
+
+        togglePassword.innerHTML =
+            type === "password"
+                ? '<i data-lucide="eye"></i>'
+                : '<i data-lucide="eye-off"></i>';
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    });
+}
+
+/* SELECT VALUE HELPER
+   Handles both ID values and displayed department/team names. */
+function setSelectValueOrText(selectId, value) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    const cleanValue = String(value ?? "").trim();
+
+    select.value = cleanValue;
+
+    if (select.value === cleanValue) return;
+
+    const option = Array.from(select.options).find(function (opt) {
+        return opt.text.trim() === cleanValue;
+    });
+
+    if (option) {
+        select.value = option.value;
+    }
+}
+
+/* ADD EMPLOYEE MODAL */
+function openAddEmployeeModal() {
+    const modal = document.getElementById("addEmployeeModal");
+    if (!modal) return;
+
+    fillDesignationChoices(document.getElementById("department")?.value, "designation");
+    setUserModalVisibility(modal, true);
+    document.body.style.overflow = "hidden";
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+}
+
+function setUserModalVisibility(modal, visible) {
+    if (!modal) return;
+    modal.hidden = !visible;
+    modal.classList.toggle('hidden', !visible);
+    if (visible) modal.style.removeProperty('display');
+    else modal.style.setProperty('display', 'none', 'important');
+}
+
+function closeAddEmployeeModal() {
+    const modal = document.getElementById("addEmployeeModal");
+    if (modal) {
+        setUserModalVisibility(modal, false);
+    }
+
+    document.body.style.overflow = "";
+}
+
+const addEmployeeModal = document.getElementById("addEmployeeModal");
+
+if (addEmployeeModal) {
+    addEmployeeModal.addEventListener("click", function (event) {
+        if (event.target === this) {
+            closeAddEmployeeModal();
+        }
+    });
+}
+
+/* EDIT MODAL */
+function openEditModal(button) {
+    document.getElementById("edit_id").value = button.dataset.id || "";
+    document.getElementById("edit_emp_id").value = button.dataset.empid || "";
+    document.getElementById("edit_name").value = button.dataset.name || "";
+    document.getElementById("edit_email").value = button.dataset.email || "";
+    document.getElementById("edit_phone").value = button.dataset.phone || "";
+
+    setSelectValueOrText("edit_department", button.dataset.department);
+    setSelectValueOrText("edit_team", button.dataset.team);
+
+    fillDesignationChoices(document.getElementById("edit_department").value, "edit_designation", button.dataset.designation || "");
+    document.getElementById("edit_job_position").value = button.dataset.job_position || "";
+    document.getElementById("edit_work_location").value = button.dataset.worklocation || "";
+
+    const joiningDate = button.dataset.joining || "";
+    const joiningInput = document.getElementById("edit_joining_date");
+
+    if (joiningDate) {
+        try {
+            joiningInput.value = joiningDate;
+        } catch (error) {
+            joiningInput.value = joiningDate;
+        }
+    } else {
+        joiningInput.value = "";
+    }
+
+    document.getElementById("edit_username").value = button.dataset.username || "";
+    document.getElementById("edit_password").value = "";
+    document.getElementById("edit_status").value = button.dataset.status || "active";
+
+    const preview = document.getElementById("edit_profile_image");
+    const imgSrc = button.dataset.profile || "";
+
+    if (imgSrc) {
+        preview.src = imgSrc;
+    } else {
+        preview.removeAttribute("src");
+    }
+
+    setUserModalVisibility(document.getElementById("editModal"), true);
+    document.body.style.overflow = "hidden";
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+}
+
+function closeEditModal() {
+    const modal = document.getElementById("editModal");
+    if (modal) {
+        setUserModalVisibility(modal, false);
+    }
+
+    document.body.style.overflow = "";
+}
+
+/* CLOSE ON BACKDROP */
+document.getElementById("editModal").addEventListener("click", function (event) {
+    if (event.target === this) {
+        closeEditModal();
+    }
+});
+
+/* ESCAPE KEY */
+document.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") return;
+
+    const addModal = document.getElementById("addEmployeeModal");
+    if (addModal && !addModal.classList.contains("hidden")) {
+        closeAddEmployeeModal();
+        return;
+    }
+
+    const editModal = document.getElementById("editModal");
+    if (editModal && !editModal.classList.contains("hidden")) {
+        closeEditModal();
+    }
+});
+
+
+/* =========================================================
+   JOINING DATE CUSTOM DATE PICKER
+   Same behavior/UI as Project Assigning
+========================================================= */
+document.addEventListener("DOMContentLoaded", function () {
+    const monthFormatter = new Intl.DateTimeFormat("en-US", {
+        month: "long",
+        year: "numeric"
+    });
+
+    const pad = n => String(n).padStart(2, "0");
+
+    function toISO(date) {
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
+    function fromISO(value) {
+        if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            return null;
+        }
+
+        const [year, month, day] = value.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
+
+        if (
+            date.getFullYear() !== year ||
+            date.getMonth() !== month - 1 ||
+            date.getDate() !== day
+        ) {
+            return null;
+        }
+
+        return date;
+    }
+
+    function sameDate(a, b) {
+        return !!(
+            a &&
+            b &&
+            a.getFullYear() === b.getFullYear() &&
+            a.getMonth() === b.getMonth() &&
+            a.getDate() === b.getDate()
+        );
+    }
+
+    document.querySelectorAll(".joining-date-picker[data-date-picker]").forEach(function (picker) {
+        const hiddenInput = picker.querySelector('input[type="hidden"]');
+        const toggle = picker.querySelector("[data-date-toggle]");
+        const display = picker.querySelector("[data-date-display]");
+        const daysWrap = picker.querySelector("[data-calendar-days]");
+        const monthTitle = picker.querySelector("[data-month-title]");
+        const prevBtn = picker.querySelector("[data-prev-month]");
+        const nextBtn = picker.querySelector("[data-next-month]");
+        const clearBtn = picker.querySelector("[data-clear-date]");
+        const todayBtn = picker.querySelector("[data-today-date]");
+
+        if (!hiddenInput || !toggle || !display || !daysWrap || !monthTitle) {
+            return;
+        }
+
+        let selectedDate = fromISO(hiddenInput.value);
+        let viewDate = selectedDate
+            ? new Date(selectedDate)
+            : new Date();
+
+        viewDate = new Date(
+            viewDate.getFullYear(),
+            viewDate.getMonth(),
+            1
+        );
+
+        function updateDisplay() {
+            if (selectedDate) {
+                display.textContent =
+                    `${pad(selectedDate.getDate())}-${pad(selectedDate.getMonth() + 1)}-${selectedDate.getFullYear()}`;
+                display.classList.remove("is-placeholder");
+            } else {
+                display.textContent = "dd-mm-yyyy";
+                display.classList.add("is-placeholder");
+            }
+        }
+
+        function renderCalendar() {
+            monthTitle.textContent = monthFormatter.format(viewDate);
+            daysWrap.innerHTML = "";
+
+            const year = viewDate.getFullYear();
+            const month = viewDate.getMonth();
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            for (let i = firstDay - 1; i >= 0; i--) {
+                addDay(
+                    new Date(year, month - 1, daysInPrevMonth - i),
+                    true
+                );
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                addDay(
+                    new Date(year, month, day),
+                    false
+                );
+            }
+
+            const totalCells = firstDay + daysInMonth;
+            const remaining = (7 - (totalCells % 7)) % 7;
+
+            for (let day = 1; day <= remaining; day++) {
+                addDay(
+                    new Date(year, month + 1, day),
+                    true
+                );
+            }
+        }
+
+        function addDay(date, muted) {
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.className = "calendar-day";
+            button.textContent = date.getDate();
+
+            if (muted) {
+                button.classList.add("is-muted");
+            }
+
+            if (sameDate(date, new Date())) {
+                button.classList.add("is-today");
+            }
+
+            if (sameDate(date, selectedDate)) {
+                button.classList.add("is-selected");
+            }
+
+            button.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                selectedDate = new Date(
+                    date.getFullYear(),
+                    date.getMonth(),
+                    date.getDate()
+                );
+
+                hiddenInput.value = toISO(selectedDate);
+
+                viewDate = new Date(
+                    selectedDate.getFullYear(),
+                    selectedDate.getMonth(),
+                    1
+                );
+
+                updateDisplay();
+                renderCalendar();
+                closeCalendar();
+            });
+
+            daysWrap.appendChild(button);
+        }
+
+        function openCalendar(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            document.querySelectorAll(".joining-date-picker.open").forEach(function (other) {
+                if (other !== picker) {
+                    other.classList.remove("open");
+
+                    const otherToggle = other.querySelector("[data-date-toggle]");
+
+                    if (otherToggle) {
+                        otherToggle.setAttribute("aria-expanded", "false");
+                    }
+                }
+            });
+
+            picker.classList.add("open");
+            toggle.setAttribute("aria-expanded", "true");
+            renderCalendar();
+        }
+
+        function closeCalendar() {
+            picker.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+        }
+
+        /*
+         * The whole date field is the trigger.
+         * The calendar icon is inside this same button, so clicking either
+         * the date text or the icon opens the exact same calendar.
+         */
+        toggle.addEventListener("click", openCalendar);
+
+        toggle.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+                openCalendar(event);
+            }
+
+            if (event.key === "Escape") {
+                closeCalendar();
+            }
+        });
+
+        if (prevBtn) {
+            prevBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                viewDate = new Date(
+                    viewDate.getFullYear(),
+                    viewDate.getMonth() - 1,
+                    1
+                );
+
+                renderCalendar();
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                viewDate = new Date(
+                    viewDate.getFullYear(),
+                    viewDate.getMonth() + 1,
+                    1
+                );
+
+                renderCalendar();
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                selectedDate = null;
+                hiddenInput.value = "";
+
+                const today = new Date();
+
+                viewDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    1
+                );
+
+                updateDisplay();
+                renderCalendar();
+                closeCalendar();
+            });
+        }
+
+        if (todayBtn) {
+            todayBtn.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const today = new Date();
+
+                selectedDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    today.getDate()
+                );
+
+                hiddenInput.value = toISO(selectedDate);
+
+                viewDate = new Date(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    1
+                );
+
+                updateDisplay();
+                renderCalendar();
+                closeCalendar();
+            });
+        }
+
+        updateDisplay();
+        renderCalendar();
+    });
+
+    /*
+     * Close only when clicking outside the date-picker.
+     * Calendar buttons stop propagation, so they remain clickable.
+     */
+    document.addEventListener("click", function (event) {
+        document.querySelectorAll(".joining-date-picker.open").forEach(function (picker) {
+            if (!picker.contains(event.target)) {
+                picker.classList.remove("open");
+
+                const toggle = picker.querySelector("[data-date-toggle]");
+
+                if (toggle) {
+                    toggle.setAttribute("aria-expanded", "false");
+                }
+            }
+        });
+    });
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+});
+
+/* =========================================================
+   RESET EMPLOYEE FILTERS
+========================================================= */
+
+/* Modal focus/scroll handling, shared by Add, Edit and Delete. */
+let pendingDeleteForm = null;
+let returnFocus = null;
+function closeUserDeleteModal() {
+    setUserModalVisibility(document.getElementById('deleteUserModal'), false);
+    pendingDeleteForm = null;
+}
+document.addEventListener('submit', function(event) {
+    if (!event.target.matches('.delete-user-form')) return;
+    event.preventDefault();
+    pendingDeleteForm = event.target;
+    setUserModalVisibility(document.getElementById('deleteUserModal'), true);
+});
+
+document.getElementById('deleteUserModal').addEventListener('click', function(event) {
+    if (event.target === this) closeUserDeleteModal();
+});
+const userModals = Array.from(document.querySelectorAll('.edit-modal'));
+for (const modal of userModals) {
+    modal.setAttribute('role','dialog');
+    modal.setAttribute('aria-modal','true');
+    modal.setAttribute('tabindex','-1');
+}
+function syncUserModalState() {
+    const active = userModals.find(modal => !modal.classList.contains('hidden'));
+    const wasOpen = document.body.classList.contains('user-modal-open');
+    if (wasOpen !== Boolean(active)) document.body.classList.toggle('user-modal-open', Boolean(active));
+    const main = document.getElementById('adminMain');
+    if (main) main.inert = Boolean(active) && !main.contains(active);
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && !sidebar.classList.contains('open')) {
+        sidebar.inert = Boolean(active) || window.matchMedia('(max-width: 768px)').matches;
+    }
+    if (active && !wasOpen) {
+        returnFocus = document.activeElement;
+        (active.querySelector('button,input,select') || active).focus();
+    } else if (!active && wasOpen && returnFocus?.isConnected) returnFocus.focus();
+}
+new MutationObserver(syncUserModalState).observe(document.body, {subtree:true, attributes:true, attributeFilter:['class']});
+document.addEventListener('keydown', function(event) {
+    const active = userModals.find(modal => !modal.classList.contains('hidden'));
+    if (!active) return;
+    if (event.key === 'Escape') { closeUserDeleteModal(); return; }
+    if (event.key !== 'Tab') return;
+    const fields = Array.from(active.querySelectorAll('button,input,select,textarea,a[href],[tabindex="0"]')).filter(el => !el.disabled && el.getClientRects().length);
+    if (!fields.length) { event.preventDefault(); active.focus(); return; }
+    const first=fields[0],last=fields[fields.length-1];
+    if (event.shiftKey && document.activeElement===first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement===last) { event.preventDefault(); first.focus(); }
+});
+
+/* One update controller for filtering, CRUD and background table updates. */
+(() => {
+    const filter = document.getElementById('filterForm');
+    const body = document.getElementById('employeeTableBody');
+    if (!filter || !body) return;
+    let busy = false, sequence = 0, request = null, timer = null, debounce = null, signature = '';
+    const endpoint = window.location.pathname;
+    const modalOpen = () => Array.from(document.querySelectorAll('.edit-modal')).some(modal => !modal.classList.contains('hidden'));
+    const notify = (message, type = 'success') => {
+        if (typeof window.showToast === 'function') {
+            try { window.showToast(message, type); return; } catch (_) {}
+        }
+        // Keep feedback visible even when the shared toast component is unavailable.
+        let container = document.getElementById('userSaveToastFallback');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'userSaveToastFallback';
+            container.style.cssText = 'position:fixed;right:16px;bottom:20px;z-index:100000;max-width:min(360px,calc(100vw - 32px));display:grid;gap:8px';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+        toast.style.cssText = 'padding:14px 18px;border:1px solid #79608e;border-radius:12px;background:#2a2036;color:#f6efff;box-shadow:0 8px 24px #0003;font:14px/1.5 Arial,sans-serif';
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 6000);
+    };
+    function showError(form, message) {
+        let alert = form.querySelector('.user-live-error');
+        if (!alert) { alert = document.createElement('p'); alert.className = 'user-live-error'; alert.setAttribute('role', 'alert'); form.prepend(alert); }
+        alert.textContent = message;
+        alert.style.color = '#efa6b2';
+    }
+    function url() {
+        const result = new URL(endpoint, window.location.origin);
+        for (const [key, value] of new FormData(filter)) if (String(value).trim()) result.searchParams.set(key, value);
+        return result;
+    }
+    function apply(doc) {
+        const next = doc.getElementById('employeeTableBody');
+        if (!next) throw new Error('Unable to load users. Check your login and connection.');
+        if (signature !== next.innerHTML) {
+            const scroll = body.closest('.table-wrapper');
+            const left = scroll.scrollLeft, top = scroll.scrollTop;
+            const active = document.activeElement;
+            const user = body.contains(active) ? active.closest('tr')?.dataset.userRow : null;
+            const action = active?.classList.contains('delete-button') ? '.delete-button' : '.edit-button';
+            signature = next.innerHTML;
+            body.replaceChildren(...Array.from(next.childNodes));
+            scroll.scrollLeft = left; scroll.scrollTop = top;
+            if (user) Array.from(body.querySelectorAll('tr')).find(row => row.dataset.userRow === user)?.querySelector(action)?.focus({preventScroll:true});
+            if (window.lucide) window.lucide.createIcons();
+        }
+        const count = document.getElementById('employeeCount');
+        if (count) count.textContent = doc.getElementById('employeeCount')?.textContent || '0';
+        const catalog = doc.getElementById('departmentDesignationOptions');
+        if (catalog) { try { departmentDesignationOptions = JSON.parse(catalog.textContent || '{}'); } catch (_) {} }
+    }
+    async function refresh() {
+        request?.abort();
+        const controller = new AbortController(); request = controller;
+        const token = ++sequence;
+        const timeout = setTimeout(() => controller.abort(), 12000);
+        const target = url();
+        try {
+            const response = await fetch(target, {credentials:'same-origin', cache:'no-store', signal:controller.signal});
+            if (!response.ok) throw new Error('Unable to update the employee list.');
+            const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+            if (token !== sequence || controller.signal.aborted || target.href !== url().href) return;
+            apply(doc);
+            return doc;
+        } finally { clearTimeout(timeout); if (request === controller) request = null; }
+    }
+    function schedule() {
+        clearTimeout(timer);
+        if (document.hidden) return;
+        timer = setTimeout(async () => {
+            if (!busy && !modalOpen()) { try { await refresh(); } catch (_) {} }
+            schedule();
+        }, 10000);
+    }
+    function changeFilter() {
+        clearTimeout(debounce);
+        request?.abort(); ++sequence;
+        if (busy) return;
+        refresh().catch(error => { if (error.name !== 'AbortError') notify(error.message, 'error'); });
+        schedule();
+    }
+    filter.addEventListener('submit', event => { event.preventDefault(); changeFilter(); });
+    filter.querySelectorAll('input,select').forEach(control => {
+        control.addEventListener('change', changeFilter);
+        if (control.tagName === 'INPUT') control.addEventListener('input', () => {
+            request?.abort(); ++sequence; clearTimeout(debounce); debounce = setTimeout(changeFilter, 250);
+        });
+    });
+    document.getElementById('resetFiltersBtn')?.addEventListener('click', () => {
+        filter.querySelectorAll('input,select').forEach(control => { control.value = ''; }); changeFilter();
+    });
+    async function save(form, button, deleting = false) {
+        if (busy) return;
+        busy = true; request?.abort(); ++sequence; clearTimeout(debounce);
+        const data = new FormData(form);
+        if (button?.name) data.append(button.name, button.value || '1');
+        const controls = [document.querySelector('#addEmployeeModal button[type=submit]'), document.querySelector('#editForm button[type=submit]'), document.getElementById('confirmUserDelete')];
+        const enabled = controls.filter(control => control && !control.disabled);
+        enabled.forEach(control => { control.disabled = true; });
+        form.querySelector('.user-live-error')?.remove();
+        let saved = false;
+        try {
+            const response = await fetch(form.getAttribute('action') || endpoint, {
+                method:'POST', body:data, credentials:'same-origin', headers:{'X-Requested-With':'XMLHttpRequest'}
+            });
+            let result;
+            if ((response.headers.get('Content-Type') || '').includes('application/json')) {
+                result = await response.json();
+                if (!response.ok || result.ok !== true) throw new Error(result.message || 'Unable to save employee.');
+            } else {
+                const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+                if (!response.ok || !doc.getElementById('employeeTableBody')) throw new Error('Unable to save employee. Check your login.');
+                // Existing views redirect with Django messages; distinguish validation errors from success.
+                const messages = Array.from(doc.querySelectorAll('[data-user-operation-message], #toast-django-messages [data-type]'));
+                const level = item => Number(item.dataset.level) || ({success:25,error:40,warning:30}[String(item.dataset.type || '').split(/\s+/).find(tag => ['success','error','warning'].includes(tag))] || 0);
+                const failure = messages.find(item => level(item) >= 40);
+                if (failure) throw new Error(failure.textContent.trim());
+                const success = messages.find(item => level(item) === 25);
+                if (!success) throw new Error('The server did not confirm this change. Check the form and try again.');
+                result = {ok:true, message:success.textContent.trim()};
+            }
+            saved = true;
+            if (deleting) closeUserDeleteModal();
+            else if (form.getAttribute('id') === 'editForm') closeEditModal();
+            else {
+                closeAddEmployeeModal(); form.reset();
+                document.getElementById('joining_date')?.dispatchEvent(new Event('change', {bubbles:true}));
+                fillDesignationChoices('', 'designation');
+            }
+            syncUserModalState();
+            notify(result.message || 'Employee saved successfully.');
+            await refresh();
+        } catch (error) {
+            if (saved) notify('Saved. List updates will retry automatically.', 'warning');
+            else {
+                const message = error instanceof TypeError ? 'Connection interrupted. Check the employee list before retrying.' : error.message;
+                if (!deleting) showError(form, message);
+                notify(message, 'error');
+            }
+        } finally { enabled.forEach(control => { control.disabled = false; }); busy = false; schedule(); }
+    }
+    document.addEventListener('submit', event => {
+        const form = event.target;
+        if (!form.matches('#editForm, #addEmployeeModal .user-form')) return;
+        event.preventDefault(); save(form, event.submitter);
+    });
+    document.getElementById('confirmUserDelete')?.addEventListener('click', event => {
+        if (pendingDeleteForm) save(pendingDeleteForm, event.currentTarget, true);
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) { clearTimeout(timer); request?.abort(); }
+        else { if (!busy && !modalOpen()) refresh().catch(() => {}); schedule(); }
+    });
+    window.addEventListener('online', () => { if (!busy && !modalOpen()) refresh().catch(() => {}); });
+    window.addEventListener('pagehide', () => { clearTimeout(timer); clearTimeout(debounce); request?.abort(); });
+    window.addEventListener('pageshow', schedule);
+    schedule();
+})();
+
+</script>
+{% endblock %}

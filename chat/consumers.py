@@ -2,8 +2,8 @@
 import json
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from monitoringapp.chat_receipts import broadcast_chat_activity
 
+from monitoringapp.chat_receipts import broadcast_chat_activity
 class MemberChatConsumer(AsyncWebsocketConsumer):
     group_chat = False
     allowed_positions = {'team_member'}
@@ -122,3 +122,24 @@ class LeadGroupChatConsumer(MemberChatConsumer):
 
 class PersonalChatConsumer(MemberChatConsumer):
     allowed_positions = {"team_lead"}
+
+
+class AdminChatConsumer(MemberChatConsumer):
+    allowed_positions = {"management"}
+
+    @database_sync_to_async
+    def is_management_user(self):
+        from monitoringapp.models import User
+        return User.objects.filter(pk=self.user_id, job_Position__iexact="Management").exists()
+
+    async def allowed(self):
+        return await self.is_management_user() and await super().allowed()
+
+    async def save_message(self, message):
+        if not await self.is_management_user():
+            return None
+        return await super().save_message(message)
+
+
+class AdminGroupChatConsumer(AdminChatConsumer):
+    group_chat = True

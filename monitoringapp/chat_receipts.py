@@ -16,12 +16,42 @@ from .models import ChatReadState, Group, GroupMember, GroupMessage, User
 logger = logging.getLogger(__name__)
 
 
-def _user(request):
-    position = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
-    if position not in {"team_member", "team_lead"}:
-        return None
-    return User.objects.filter(pk=request.session.get("user_id")).first()
+# def _user(request):
+#     position = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
+#     if position not in {"team_member", "team_lead", "management"}:
+#         return None
+#     users = User.objects.filter(pk=request.session.get("user_id"))
+#     if position == "management":
+#         users = users.filter(job_Position__iexact="Management")
+#     return users.first()
 
+
+
+def _user(request):
+    position = (
+        str(request.session.get("position", ""))
+        .strip()
+        .lower()
+        .replace(" ", "_")
+    )
+
+    if position not in {
+        "team_member",
+        "team_lead",
+        "management",
+    }:
+        return None
+
+    users = User.objects.filter(
+        pk=request.session.get("user_id")
+    )
+
+    if position == "management":
+        users = users.filter(
+            job_Position__iexact="Management"
+        )
+
+    return users.first()
 
 def _target(user, kind, target_id, lock=False):
     if kind == "personal":

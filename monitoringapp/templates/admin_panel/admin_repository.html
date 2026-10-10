@@ -1,0 +1,2071 @@
+{% extends 'admin_panel/base.html' %}
+{% load static %}
+{% block title %}Admin Knowledge Repository - Cybexel{% endblock %}
+{% block page_class %}admin-repository-page{% endblock %}
+{% block extra_css %}<style>
+body.admin-repository-page .repository-page {
+      width: 100%;
+    }
+
+body.admin-repository-page .repository-hero {
+      margin-bottom: 28px;
+    }
+
+body.admin-repository-page .repository-hero p {
+      max-width: 760px;
+    }
+
+body.admin-repository-page .repository-form-card {
+      position: relative;
+      overflow: hidden;
+
+      margin-bottom: 28px;
+      padding: 28px;
+
+      border-radius: 22px;
+
+      background:
+        radial-gradient(
+          circle at 92% 0%,
+          rgba(113,72,190,.13),
+          transparent 34%
+        ),
+        linear-gradient(
+          145deg,
+          rgba(24,22,35,.92),
+          rgba(11,11,17,.96)
+        );
+
+      border: 1px solid rgba(255,255,255,.09);
+
+      box-shadow:
+        0 20px 55px rgba(0,0,0,.28),
+        inset 0 1px 0 rgba(255,255,255,.025);
+    }
+
+body.admin-repository-page .repository-form-card::before {
+      content: "";
+
+      position: absolute;
+      inset: 0;
+
+      pointer-events: none;
+
+      background:
+        linear-gradient(
+          120deg,
+          rgba(124,58,237,.05),
+          transparent 35%,
+          rgba(59,130,246,.035)
+        );
+    }
+
+body.admin-repository-page .repository-form-header {
+      position: relative;
+      z-index: 1;
+
+      display: flex;
+      align-items: center;
+      gap: 14px;
+
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+
+body.admin-repository-page .repository-form-icon {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 14px;
+
+      color: #ddd0ff;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(124,75,212,.30),
+          rgba(79,70,229,.18)
+        );
+
+      border: 1px solid rgba(167,139,250,.24);
+
+      box-shadow:
+        0 12px 28px rgba(99,102,241,.12);
+    }
+
+body.admin-repository-page .repository-form-icon svg {
+      width: 21px;
+      height: 21px;
+    }
+
+body.admin-repository-page .repository-form-header h2 {
+      margin: 0;
+
+      color: #fff;
+
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+body.admin-repository-page .repository-form-header p {
+      margin: 5px 0 0;
+
+      color: #85818d;
+
+      font-size: 12px;
+    }
+
+body.admin-repository-page .repository-field {
+      position: relative;
+      z-index: 1;
+
+      margin-bottom: 15px;
+    }
+
+body.admin-repository-page .repository-field label {
+      display: block;
+
+      margin-bottom: 7px;
+
+      color: #a78bfa;
+
+      font-size: 9px;
+      font-weight: 800;
+
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+body.admin-repository-page .repository-input,
+body.admin-repository-page .repository-textarea,
+body.admin-repository-page .repository-file {
+      width: 100%;
+      box-sizing: border-box;
+
+      color: #f7f3ff;
+
+      background: rgba(5,5,11,.68);
+
+      border: 1px solid rgba(255,255,255,.10);
+
+      border-radius: 12px;
+
+      outline: none;
+
+      font-size: 12px;
+
+      transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        background .2s ease;
+    }
+
+body.admin-repository-page .repository-input {
+      min-height: 44px;
+      padding: 0 13px;
+    }
+
+body.admin-repository-page .repository-textarea {
+      min-height: 100px;
+
+      padding: 12px 13px;
+
+      resize: vertical;
+    }
+
+body.admin-repository-page .repository-file {
+      min-height: 44px;
+
+      padding: 9px 12px;
+    }
+
+body.admin-repository-page .repository-input::placeholder,
+body.admin-repository-page .repository-textarea::placeholder {
+      color: rgba(255,255,255,.34);
+    }
+
+body.admin-repository-page .repository-input:focus,
+body.admin-repository-page .repository-textarea:focus,
+body.admin-repository-page .repository-file:focus {
+      border-color: rgba(139,92,246,.65);
+
+      box-shadow:
+        0 0 0 3px rgba(139,92,246,.09);
+
+      background: rgba(11,9,19,.90);
+    }
+
+body.admin-repository-page .repository-submit {
+      position: relative;
+      z-index: 1;
+
+      min-height: 42px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+
+      padding: 0 17px;
+
+      border-radius: 12px;
+
+      color: #fff;
+
+      background:
+        linear-gradient(
+          135deg,
+          #7c4bd4,
+          #5b32a7
+        );
+
+      border: 1px solid rgba(167,139,250,.35);
+
+      box-shadow:
+        0 10px 25px rgba(124,75,212,.18);
+
+      font-size: 11px;
+      font-weight: 700;
+
+      cursor: pointer;
+
+      transition: all .22s ease;
+    }
+
+body.admin-repository-page .repository-submit:hover {
+      transform: translateY(-2px);
+
+      box-shadow:
+        0 14px 30px rgba(124,75,212,.25);
+    }
+
+body.admin-repository-page .repository-section-heading {
+      margin-bottom: 15px;
+    }
+
+body.admin-repository-page .repository-grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, minmax(0,1fr));
+
+      gap: 16px;
+    }
+
+body.admin-repository-page .repository-card {
+      position: relative;
+
+      min-width: 0;
+
+      overflow: hidden;
+
+      padding: 22px;
+
+      border-radius: 20px;
+
+      background:
+        radial-gradient(
+          circle at 92% 0%,
+          rgba(113,72,190,.12),
+          transparent 35%
+        ),
+        linear-gradient(
+          145deg,
+          rgba(27,26,34,.90),
+          rgba(16,16,22,.92)
+        );
+
+      border: 1px solid rgba(255,255,255,.09);
+
+      box-shadow:
+        0 20px 50px rgba(0,0,0,.20),
+        inset 0 1px 0 rgba(255,255,255,.035);
+
+      transition:
+        transform .22s ease,
+        border-color .22s ease;
+    }
+
+body.admin-repository-page .repository-card::before {
+      content: "";
+
+      position: absolute;
+      inset: 0;
+
+      pointer-events: none;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(139,92,246,.045),
+          transparent 42%
+        );
+    }
+
+body.admin-repository-page .repository-card:hover {
+      transform: translateY(-3px);
+
+      border-color:
+        rgba(139,92,246,.28);
+    }
+
+body.admin-repository-page .repository-card-content {
+      position: relative;
+      z-index: 1;
+
+      padding-right: 28px;
+    }
+
+body.admin-repository-page .repository-card h3 {
+      margin: 0 0 9px;
+
+      color: #fff;
+
+      font-size: 17px;
+      line-height: 1.35;
+      font-weight: 800;
+
+      overflow-wrap: anywhere;
+    }
+
+body.admin-repository-page .repository-description {
+      margin: 0;
+
+      color: #92909b;
+
+      font-size: 12px;
+      line-height: 1.65;
+
+      overflow-wrap: anywhere;
+
+      display: -webkit-box;
+
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+
+      overflow: hidden;
+    }
+
+body.admin-repository-page .repository-meta {
+      margin-top: 15px;
+
+      color: #66636e;
+
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+body.admin-repository-page .repository-view-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+
+      margin-top: 15px;
+      padding: 0;
+
+      color: #bca7ff;
+
+      background: transparent;
+
+      border: 0;
+
+      font-size: 11px;
+      font-weight: 700;
+
+      cursor: pointer;
+    }
+
+body.admin-repository-page .repository-view-button:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+body.admin-repository-page .repository-view-button svg {
+      width: 15px;
+      height: 15px;
+    }
+
+body.admin-repository-page .repository-delete {
+      position: absolute;
+      z-index: 3;
+
+      top: 14px;
+      right: 14px;
+
+      width: 32px;
+      height: 32px;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 10px;
+
+      color: #ff9ba4;
+
+      background:
+        rgba(255,70,85,.055);
+
+      border:
+        1px solid rgba(255,70,85,.13);
+
+      cursor: pointer;
+
+      transition: all .2s ease;
+    }
+
+body.admin-repository-page .repository-delete:hover {
+      color: #fff;
+
+      background:
+        rgba(255,70,85,.14);
+
+      transform:
+        translateY(-1px);
+    }
+
+body.admin-repository-page .repository-delete svg {
+      width: 16px;
+      height: 16px;
+
+      stroke: currentColor;
+    }
+
+body.admin-repository-page .repository-empty {
+      grid-column: 1 / -1;
+
+      padding: 35px 20px;
+
+      text-align: center;
+
+      border-radius: 20px;
+
+      color: #77737f;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(27,26,34,.75),
+          rgba(16,16,22,.80)
+        );
+
+      border:
+        1px solid rgba(255,255,255,.08);
+    }
+
+body.admin-repository-page .repository-modal {
+      position: fixed;
+      inset: 0;
+
+      z-index: 1000;
+
+      display: none;
+
+      align-items: center;
+      justify-content: center;
+
+      padding: 28px;
+
+      background:
+        radial-gradient(
+          circle at 50% 35%,
+          rgba(124,75,212,.10),
+          transparent 42%
+        ),
+        rgba(0,0,0,.76);
+
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+body.admin-repository-page .repository-modal.open {
+      display: flex;
+
+      animation:
+        repositoryModalFade .22s ease;
+    }
+
+@keyframes repositoryModalFade {
+
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+
+    }
+
+body.admin-repository-page .repository-modal-card {
+      position: relative;
+
+      width: min(760px, 94vw);
+
+      max-height: 84vh;
+
+      overflow-y: auto;
+      overflow-x: hidden;
+
+      box-sizing: border-box;
+
+      padding: 32px;
+
+      border-radius: 26px;
+
+      color: #fff;
+
+      background:
+        radial-gradient(
+          circle at 100% 0%,
+          rgba(96,165,250,.13),
+          transparent 30%
+        ),
+        radial-gradient(
+          circle at 0% 0%,
+          rgba(139,92,246,.20),
+          transparent 38%
+        ),
+        linear-gradient(
+          145deg,
+          rgba(28,25,40,.98),
+          rgba(10,10,17,.98)
+        );
+
+      border:
+        1px solid rgba(255,255,255,.13);
+
+      box-shadow:
+        0 35px 90px rgba(0,0,0,.68),
+        0 0 70px rgba(124,75,212,.10),
+        inset 0 1px 0 rgba(255,255,255,.07);
+
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+
+      animation:
+        repositoryModalOpen .25s
+        cubic-bezier(.2,.8,.2,1);
+    }
+
+@keyframes repositoryModalOpen {
+
+      from {
+        opacity: 0;
+
+        transform:
+          translateY(18px)
+          scale(.97);
+      }
+
+      to {
+        opacity: 1;
+
+        transform:
+          translateY(0)
+          scale(1);
+      }
+
+    }
+
+body.admin-repository-page .repository-modal-card::before {
+      content: "";
+
+      position: absolute;
+
+      top: -80px;
+      left: 50%;
+
+      transform:
+        translateX(-50%);
+
+      width: 360px;
+      height: 150px;
+
+      background:
+        rgba(124,75,212,.13);
+
+      filter:
+        blur(55px);
+
+      pointer-events: none;
+    }
+
+body.admin-repository-page .repository-modal-card::after {
+      content: "";
+
+      position: absolute;
+
+      top: 0;
+      left: 12%;
+      right: 12%;
+
+      height: 1px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(167,139,250,.55),
+          rgba(96,165,250,.45),
+          transparent
+        );
+
+      pointer-events: none;
+    }
+
+body.admin-repository-page .repository-modal-header {
+      position: relative;
+      z-index: 2;
+
+      display: flex;
+
+      align-items: flex-start;
+      justify-content: space-between;
+
+      gap: 18px;
+
+      padding-bottom: 22px;
+      margin-bottom: 24px;
+
+      border-bottom:
+        1px solid rgba(255,255,255,.08);
+    }
+
+body.admin-repository-page .repository-modal-title-wrap {
+      display: flex;
+
+      align-items: flex-start;
+
+      gap: 15px;
+
+      min-width: 0;
+    }
+
+body.admin-repository-page .repository-modal-icon {
+      width: 48px;
+      height: 48px;
+
+      flex: 0 0 48px;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 15px;
+
+      color: #d9ccff;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(124,75,212,.32),
+          rgba(79,70,229,.14)
+        );
+
+      border:
+        1px solid rgba(167,139,250,.25);
+
+      box-shadow:
+        0 12px 30px rgba(99,102,241,.12),
+        inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+body.admin-repository-page .repository-modal-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+body.admin-repository-page .repository-modal-card h2 {
+      position: relative;
+      z-index: 2;
+
+      margin: 0;
+
+      color: #fff;
+
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 800;
+
+      overflow-wrap: anywhere;
+    }
+
+body.admin-repository-page .repository-modal-subtitle {
+      margin-top: 6px;
+
+      color: #77737f;
+
+      font-size: 10px;
+      font-weight: 700;
+
+      letter-spacing: 1.8px;
+
+      text-transform: uppercase;
+    }
+
+body.admin-repository-page .repository-modal-x {
+      position: relative;
+      z-index: 5;
+
+      width: 38px;
+      height: 38px;
+
+      flex: 0 0 38px;
+
+      display: inline-flex;
+
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 12px;
+
+      color: #aaa5b5;
+
+      background:
+        rgba(255,255,255,.035);
+
+      border:
+        1px solid rgba(255,255,255,.08);
+
+      cursor: pointer;
+
+      transition:
+        color .2s ease,
+        background .2s ease,
+        border-color .2s ease,
+        transform .2s ease;
+    }
+
+body.admin-repository-page .repository-modal-x svg {
+      width: 17px;
+      height: 17px;
+    }
+
+body.admin-repository-page .repository-modal-x:hover {
+      color: #fff;
+
+      background:
+        rgba(255,70,85,.12);
+
+      border-color:
+        rgba(255,70,85,.22);
+
+      transform:
+        rotate(90deg);
+    }
+
+body.admin-repository-page .repository-modal-description {
+      position: relative;
+      z-index: 2;
+
+      margin-bottom: 24px;
+
+      padding: 19px 20px;
+
+      border-radius: 16px;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,.035),
+          rgba(255,255,255,.015)
+        );
+
+      border:
+        1px solid rgba(255,255,255,.065);
+
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.025);
+    }
+
+body.admin-repository-page .repository-modal-description-label {
+      margin-bottom: 8px;
+
+      color: #a78bfa;
+
+      font-size: 9px;
+      font-weight: 800;
+
+      letter-spacing: 2px;
+
+      text-transform: uppercase;
+    }
+
+body.admin-repository-page .repository-modal-card p {
+      position: relative;
+      z-index: 2;
+
+      color: #aaa6b2;
+
+      font-size: 13px;
+
+      line-height: 1.8;
+
+      overflow-wrap: anywhere;
+    }
+
+body.admin-repository-page .repository-modal-description p {
+      margin: 0;
+    }
+
+body.admin-repository-page .repository-modal-actions {
+      position: relative;
+      z-index: 2;
+
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, minmax(0,1fr));
+
+      gap: 13px;
+
+      margin-bottom: 22px;
+    }
+
+body.admin-repository-page .repository-modal-action {
+      min-height: 58px;
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 13px;
+
+      padding: 0 16px;
+
+      border-radius: 15px;
+
+      color: #ddd8e8;
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255,255,255,.045),
+          rgba(255,255,255,.018)
+        );
+
+      border:
+        1px solid rgba(255,255,255,.075);
+
+      text-decoration: none;
+
+      transition:
+        transform .2s ease,
+        border-color .2s ease,
+        background .2s ease;
+    }
+
+body.admin-repository-page .repository-modal-action:hover {
+      transform:
+        translateY(-2px);
+
+      color: #fff;
+
+      border-color:
+        rgba(139,92,246,.30);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(124,75,212,.12),
+          rgba(79,70,229,.045)
+        );
+    }
+
+body.admin-repository-page .repository-modal-action-icon {
+      width: 38px;
+      height: 38px;
+
+      flex: 0 0 38px;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 11px;
+
+      color: #c8b8ff;
+
+      background:
+        rgba(124,75,212,.12);
+
+      border:
+        1px solid rgba(167,139,250,.15);
+    }
+
+body.admin-repository-page .repository-modal-action-icon svg {
+      width: 17px;
+      height: 17px;
+    }
+
+body.admin-repository-page .repository-modal-action-content {
+      min-width: 0;
+    }
+
+body.admin-repository-page .repository-modal-action-title {
+      display: block;
+
+      color: #f4f1fa;
+
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+body.admin-repository-page .repository-modal-action-subtitle {
+      display: block;
+
+      margin-top: 3px;
+
+      color: #6f6b77;
+
+      font-size: 9px;
+
+      overflow: hidden;
+
+      text-overflow: ellipsis;
+
+      white-space: nowrap;
+    }
+
+body.admin-repository-page .repository-modal-meta {
+      position: relative;
+      z-index: 2;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 12px;
+
+      padding-top: 18px;
+
+      border-top:
+        1px solid rgba(255,255,255,.07);
+    }
+
+body.admin-repository-page .repository-modal-meta-label {
+      color: #62606a;
+
+      font-size: 9px;
+      font-weight: 800;
+
+      letter-spacing: 1.4px;
+
+      text-transform: uppercase;
+    }
+
+body.admin-repository-page .repository-modal-meta-value {
+      color: #a8a3b0;
+
+      font-size: 10px;
+    }
+
+body.admin-repository-page .repository-close {
+      position: relative;
+      z-index: 2;
+
+      min-height: 42px;
+
+      margin-top: 22px;
+
+      padding: 0 18px;
+
+      display: inline-flex;
+
+      align-items: center;
+      justify-content: center;
+
+      gap: 7px;
+
+      border-radius: 12px;
+
+      color: #cfc9d8;
+
+      background:
+        rgba(255,255,255,.035);
+
+      border:
+        1px solid rgba(255,255,255,.08);
+
+      font-size: 10px;
+      font-weight: 800;
+
+      letter-spacing: .5px;
+
+      cursor: pointer;
+
+      transition: all .2s ease;
+    }
+
+body.admin-repository-page .repository-close:hover {
+      color: #fff;
+
+      background:
+        rgba(255,70,85,.11);
+
+      border-color:
+        rgba(255,70,85,.22);
+
+      transform:
+        translateY(-1px);
+    }
+
+body.admin-repository-page .repository-close svg {
+      width: 15px;
+      height: 15px;
+    }
+
+body.admin-repository-page .repository-modal-card::-webkit-scrollbar {
+      width: 6px;
+    }
+
+body.admin-repository-page .repository-modal-card::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+body.admin-repository-page .repository-modal-card::-webkit-scrollbar-thumb {
+      background:
+        rgba(139,92,246,.28);
+
+      border-radius: 20px;
+    }
+
+body.admin-repository-page .repository-modal-card::-webkit-scrollbar-thumb:hover {
+      background:
+        rgba(139,92,246,.45);
+    }
+
+@media (max-width: 900px) {
+body.admin-repository-page .repository-grid {
+        grid-template-columns:
+          repeat(2, minmax(0,1fr));
+      }
+
+body.admin-repository-page .repository-form-card {
+        padding: 22px;
+      }
+}
+
+@media (max-width: 640px) {
+body.admin-repository-page .repository-grid {
+        grid-template-columns: 1fr;
+      }
+
+body.admin-repository-page .repository-form-card {
+        padding: 18px;
+      }
+
+body.admin-repository-page .repository-form-header {
+        align-items: flex-start;
+      }
+
+body.admin-repository-page .repository-submit {
+        width: 100%;
+      }
+
+body.admin-repository-page .repository-card {
+        padding: 18px;
+      }
+
+body.admin-repository-page .repository-modal {
+        padding: 12px;
+      }
+
+body.admin-repository-page .repository-modal-card {
+        width: 100%;
+        max-height: 88vh;
+
+        padding: 21px;
+
+        border-radius: 22px;
+      }
+
+body.admin-repository-page .repository-modal-header {
+        gap: 10px;
+      }
+
+body.admin-repository-page .repository-modal-icon {
+        width: 42px;
+        height: 42px;
+
+        flex-basis: 42px;
+
+        border-radius: 13px;
+      }
+
+body.admin-repository-page .repository-modal-card h2 {
+        font-size: 19px;
+      }
+
+body.admin-repository-page .repository-modal-actions {
+        grid-template-columns: 1fr;
+      }
+
+body.admin-repository-page .repository-modal-description {
+        padding: 16px;
+      }
+
+body.admin-repository-page .repository-modal-meta {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+body.admin-repository-page .repository-close {
+        width: 100%;
+      }
+}
+
+body.admin-repository-page h1 {
+      font-size: 42px;
+            }
+
+body.admin-repository-page .repository-delete-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(4, 4, 10, .75);
+  backdrop-filter: blur(7px);
+}
+
+body.admin-repository-page .repository-delete-overlay.open { display: flex; }
+
+body.admin-repository-page .repository-delete-box {
+  width: min(430px, 100%);
+  padding: 24px;
+  border: 1px solid rgba(167, 139, 250, .35);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #211a32, #11101b);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, .5);
+}
+
+body.admin-repository-page .repository-delete-box h3 { color: #fff; font-size: 19px; font-weight: 800; }
+
+body.admin-repository-page .repository-delete-box p { margin-top: 10px; color: #c9c1d7; line-height: 1.6; }
+
+body.admin-repository-page .repository-delete-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+body.admin-repository-page .repository-delete-buttons button {
+  padding: 10px 15px;
+  border-radius: 9px;
+  color: #fff;
+  background: #393048;
+  cursor: pointer;
+}
+
+body.admin-repository-page .repository-delete-buttons .repository-delete-confirm { background: #cf4359; }
+
+body.admin-repository-page .repository-modal,
+body.admin-repository-page .repository-delete-overlay {
+  z-index: 10000;
+  padding: 18px;
+  overflow: hidden;
+  background: rgba(12, 8, 24, .82);
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+
+body.admin-repository-page .repository-modal-card,
+body.admin-repository-page .repository-delete-box {
+  border: 1px solid rgba(167, 139, 250, .34);
+  box-shadow: 0 28px 75px rgba(0, 0, 0, .6);
+}
+
+body.admin-repository-page .repository-modal-card {
+  max-height: min(86dvh, 720px);
+  overscroll-behavior: contain;
+}
+
+body.admin-repository-page .repository-delete-box {
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+body.admin-repository-page .resource-tabs {display:flex;gap:6px;padding:6px;margin:0 0 22px;border:1px solid rgba(255,255,255,.07);border-radius:17px;background:rgba(255,255,255,.025);}
+body.admin-repository-page .resource-tab {flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:10px 14px;border:1px solid transparent;border-radius:12px;background:transparent;color:#898493;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s;}
+body.admin-repository-page .resource-tab:hover {color:#e4ddef;background:rgba(139,92,246,.06);}
+body.admin-repository-page .resource-tab[aria-selected="true"] {background:linear-gradient(110deg,rgba(139,92,246,.20),rgba(139,92,246,.09));border-color:rgba(167,139,250,.23);color:#faf7ff;}
+body.admin-repository-page .resource-tab svg {width:17px;height:17px;flex-shrink:0;}
+body.admin-repository-page .resource-tab:focus-visible {outline:2px solid #a78bfa;outline-offset:2px;}
+body.admin-repository-page .resource-tab-count {display:inline-flex;align-items:center;justify-content:center;min-width:27px;height:27px;padding:0 7px;border-radius:9px;background:rgba(139,92,246,.09);color:#b69bec;font-size:11px;box-sizing:border-box;}
+body.admin-repository-page .resource-tab[aria-selected="true"] .resource-tab-count {background:rgba(139,92,246,.30);color:#eee4ff;}
+body.admin-repository-page .repository-card[hidden],body.admin-repository-page .resource-tab-empty[hidden] {display:none!important;}
+body.admin-repository-page .resource-tab-empty {grid-column:1/-1;text-align:center;padding:32px 16px;color:#b7adc8;font-size:13px;}
+@media(max-width:600px) {body.admin-repository-page .resource-tabs {gap:4px;padding:5px;} body.admin-repository-page .resource-tab {flex-direction:column;gap:6px;padding:9px 5px;font-size:11px;} body.admin-repository-page .resource-tab svg {width:16px;height:16px;} body.admin-repository-page .resource-tab-count {min-width:22px;height:22px;border-radius:7px;}}
+</style>{% endblock %}
+{% block content %}
+<div hidden aria-hidden="true">
+ {% for message in messages %}<span data-resource-operation-message data-level="{{ message.level }}">{{ message }}</span>{% endfor %}
+</div>
+
+
+    <div class="dashboard-box">
+
+
+      <!-- =====================================================
+           PAGE HEADER
+      ===================================================== -->
+
+      <section class="dashboard-header repository-hero">
+
+        <div class="dashboard-header-content">
+
+          <div>
+
+            <div class="dashboard-eyebrow">
+              CYBEXEL ADMIN PANEL
+            </div>
+
+            <h1>
+              KNOWLEDGE REPOSITORY
+            </h1>
+
+            <p>
+              Store and manage useful files, reference links and
+              knowledge resources for
+              the Admin workspace.
+            </p>
+
+          </div>
+
+
+          <div class="system-status">
+
+            <span class="status-dot"></span>
+
+            <span>
+              System Online
+            </span>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================================
+           REPOSITORY CONTENT
+      ===================================================== -->
+
+      <section class="dashboard-content repository-page">
+
+
+        <!-- ===================================================
+             ADD RESOURCE HEADING
+        =================================================== -->
+
+        <div class="section-heading repository-section-heading">
+
+          <div>
+
+            <span class="section-eyebrow">
+              RESOURCE MANAGEMENT
+            </span>
+
+            <h2>
+              Add Knowledge Resource
+            </h2>
+
+          </div>
+
+          <div class="heading-line"></div>
+
+        </div>
+
+
+        <!-- ===================================================
+             ADD RESOURCE FORM
+        =================================================== -->
+
+        <form
+          method="POST"
+          enctype="multipart/form-data"
+          class="repository-form-card"
+          action="{% url 'admin_repository' %}"
+        >
+
+          {% csrf_token %}
+{% if repository_error %}<p class="repository-live-error" role="alert" style="color:#fca5a5">{{ repository_error }}</p>{% endif %}
+
+
+          <div class="repository-form-header">
+
+            <div class="repository-form-icon">
+              <i data-lucide="book-open"></i>
+            </div>
+
+            <div>
+
+              <h2>
+                Add New Resource
+              </h2>
+
+              <p>
+                Add a document, description or reference link
+                to the repository.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <!-- TITLE -->
+
+          <div class="repository-field">
+
+            <label for="repository-title">
+              Title
+            </label>
+
+            <input
+              id="repository-title"
+              type="text"
+              name="title" maxlength="255" value="{{ form_title }}"
+              placeholder="Enter resource title"
+              class="repository-input"
+              required
+            >
+
+          </div>
+
+
+          <!-- DESCRIPTION -->
+
+          <div class="repository-field">
+
+            <label for="repository-description">
+              Description
+            </label>
+
+            <textarea
+              id="repository-description"
+              name="description"
+              rows="3"
+              placeholder="Enter a short description"
+              class="repository-textarea"
+            >{{ form_description }}</textarea>
+
+          </div>
+
+
+          <!-- LINK -->
+
+          <div class="repository-field">
+
+            <label for="repository-link">
+              Reference Link
+            </label>
+
+            <input
+              id="repository-link"
+              type="url"
+              name="link" maxlength="200" value="{{ form_link }}"
+              placeholder="https://example.com"
+              class="repository-input"
+            >
+
+          </div>
+
+
+          <!-- FILE -->
+
+          <div class="repository-field">
+
+            <label for="repository-file">
+              File
+            </label>
+
+            <input
+              id="repository-file"
+              type="file"
+              name="file"
+              class="repository-file"
+            >
+
+          </div>
+
+
+          <!-- SUBMIT -->
+
+          <button
+            type="submit"
+            class="repository-submit"
+          >
+
+            <i data-lucide="plus"></i>
+
+            <span>
+              Add Resource
+            </span>
+
+          </button>
+
+        </form>
+
+
+        <!-- ===================================================
+             AVAILABLE RESOURCES HEADING
+        =================================================== -->
+
+        <div class="section-heading repository-section-heading">
+
+          <div>
+
+            <span class="section-eyebrow">
+              KNOWLEDGE BASE
+            </span>
+
+            <h2>
+              Available Resources
+            </h2>
+
+          </div>
+
+          <div class="heading-line"></div>
+
+        </div>
+
+
+        <!-- ===================================================
+             RESOURCE GRID
+        =================================================== -->
+
+        <div class="resource-tabs" role="tablist" aria-label="Resource categories">
+  <button type="button" id="resourceTabAdmin" class="resource-tab" role="tab" data-resource-tab="admin" aria-selected="true" aria-controls="resourceTabPanel"><i data-lucide="book-open" aria-hidden="true"></i><span>Admin Resources</span> <span class="resource-tab-count" data-resource-count="admin">0</span></button>
+  <button type="button" id="resourceTabLeads" class="resource-tab" role="tab" data-resource-tab="lead" aria-selected="false" aria-controls="resourceTabPanel" tabindex="-1"><i data-lucide="users" aria-hidden="true"></i><span>Team Leads</span> <span class="resource-tab-count" data-resource-count="lead">0</span></button>
+  <button type="button" id="resourceTabMembers" class="resource-tab" role="tab" data-resource-tab="member" aria-selected="false" aria-controls="resourceTabPanel" tabindex="-1"><i data-lucide="user-round" aria-hidden="true"></i><span>Team Members</span> <span class="resource-tab-count" data-resource-count="member">0</span></button>
+</div>
+
+<div class="repository-grid" id="resourceTabPanel" role="tabpanel" aria-labelledby="resourceTabAdmin" tabindex="0">
+
+
+          {% for item in knowledge_items %}
+
+
+            <!-- ===============================================
+                 RESOURCE CARD
+            =============================================== -->
+
+            <article class="repository-card" data-resource-category="{% if item.is_admin_resource %}admin{% elif item.source_label|lower == 'team lead' or item.user.job_Position|lower == 'team lead' %}lead{% else %}member{% endif %}">
+
+
+              <!-- DELETE -->
+
+              {% if item.is_admin_resource %}
+<form
+                method="POST"
+                action="{% url 'admin_repository_delete' item.id %}"
+              >
+
+                {% csrf_token %}
+
+                <button
+                  type="submit"
+                  class="repository-delete"
+                  title="Delete"
+                  aria-label="Delete {{ item.title }}"
+                  onclick="return openRepositoryDeleteModal(this);"
+                >
+
+                  <i data-lucide="trash-2"></i>
+
+                </button>
+
+              </form>
+{% endif %}
+
+
+              <!-- CARD CONTENT -->
+
+              <div class="repository-card-content">
+<span style="display:inline-block;margin-bottom:8px;font-size:11px;color:#c4b5fd">{{ item.source_label }}</span>
+
+                <h3>
+                  {{ item.title }}
+                </h3>
+
+
+                <p class="repository-description">
+                  {{ item.description }}
+                </p>
+
+
+                <!-- VIEW MORE -->
+
+                <button
+                  type="button"
+                  onclick="openAdminRepositoryModal('{{ item.card_key }}')"
+                  class="repository-view-button"
+                >
+
+                  <i data-lucide="eye"></i>
+
+                  <span>
+                    View More
+                  </span>
+
+                </button>
+
+
+                <!-- META -->
+
+                <p class="repository-meta">
+
+                  Added by
+                  {{ item.owner_username }}
+
+                  on
+
+                  {{ item.created_at|date:"d M Y" }}
+
+                </p>
+
+              </div>
+
+            </article>
+
+
+            <!-- ===============================================
+                 UNIQUE VIEW MORE MODAL
+            =============================================== -->
+
+            <div
+              id="modal-{{ item.card_key }}"
+              class="repository-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="repository-modal-title-{{ item.card_key }}"
+              onclick="handleAdminRepositoryModalBackdrop(event, '{{ item.card_key }}')"
+            >
+
+
+              <div class="repository-modal-card">
+
+
+                <!-- =========================================
+                     MODAL HEADER
+                ========================================= -->
+
+                <div class="repository-modal-header">
+
+
+                  <div class="repository-modal-title-wrap">
+
+
+                    <div class="repository-modal-icon">
+
+                      <i data-lucide="book-open"></i>
+
+                    </div>
+
+
+                    <div>
+
+                      <h2
+                        id="repository-modal-title-{{ item.card_key }}"
+                      >
+                        {{ item.title }}
+                      </h2>
+
+                      <div class="repository-modal-subtitle">
+                        Knowledge Repository Resource
+                      </div>
+
+                    </div>
+
+
+                  </div>
+
+
+                  <!-- TOP RIGHT CLOSE -->
+
+                  <button
+                    type="button"
+                    class="repository-modal-x"
+                    onclick="closeAdminRepositoryModal('{{ item.card_key }}')"
+                    aria-label="Close"
+                  >
+
+                    <i data-lucide="x"></i>
+
+                  </button>
+
+
+                </div>
+
+
+                <!-- =========================================
+                     DESCRIPTION
+                ========================================= -->
+
+                <div class="repository-modal-description">
+
+
+                  <div class="repository-modal-description-label">
+                    Description
+                  </div>
+
+
+                  <p>
+                    {{ item.description }}
+                  </p>
+
+
+                </div>
+
+
+                <!-- =========================================
+                     FILE / LINK ACTIONS
+                ========================================= -->
+
+                {% if item.file or item.link %}
+
+                  <div class="repository-modal-actions">
+
+
+                    {% if item.file %}
+
+                      <a
+                        href="{{ item.file.url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="repository-modal-action"
+                      >
+
+
+                        <div class="repository-modal-action-icon">
+
+                          <i data-lucide="download"></i>
+
+                        </div>
+
+
+                        <div class="repository-modal-action-content">
+
+                          <span class="repository-modal-action-title">
+                            Download File
+                          </span>
+
+                          <span class="repository-modal-action-subtitle">
+                            Open attached resource
+                          </span>
+
+                        </div>
+
+
+                      </a>
+
+                    {% endif %}
+
+
+                    {% if item.link %}
+
+                      <a
+                        href="{{ item.link }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="repository-modal-action"
+                      >
+
+
+                        <div class="repository-modal-action-icon">
+
+                          <i data-lucide="external-link"></i>
+
+                        </div>
+
+
+                        <div class="repository-modal-action-content">
+
+                          <span class="repository-modal-action-title">
+                            Open Reference Link
+                          </span>
+
+                          <span class="repository-modal-action-subtitle">
+                            Visit external resource
+                          </span>
+
+                        </div>
+
+
+                      </a>
+
+                    {% endif %}
+
+
+                  </div>
+
+                {% endif %}
+
+
+                <!-- =========================================
+                     META INFORMATION
+                ========================================= -->
+
+                <div class="repository-modal-meta">
+
+                  <span class="repository-modal-meta-label">
+                    Added By
+                  </span>
+
+                  <span class="repository-modal-meta-value">
+
+                    {{ item.owner_username }}
+
+                    &nbsp;•&nbsp;
+
+                    {{ item.created_at|date:"d M Y" }}
+
+                  </span>
+
+                </div>
+
+
+                <!-- =========================================
+                     CLOSE BUTTON
+                ========================================= -->
+
+                <button
+                  type="button"
+                  onclick="closeAdminRepositoryModal('{{ item.card_key }}')"
+                  class="repository-close"
+                >
+
+                  <i data-lucide="x"></i>
+
+                  <span>
+                    Close Resource
+                  </span>
+
+                </button>
+
+
+              </div>
+
+            </div>
+
+
+          {% endfor %}
+          <p class="resource-tab-empty" id="resourceTabEmpty" role="status" hidden></p>
+
+
+        </div>
+
+      </section>
+
+    </div>
+
+<div id="repositoryDeleteModal" class="repository-delete-overlay"
+     role="dialog" aria-modal="true" aria-hidden="true"
+     aria-labelledby="repositoryDeleteTitle"
+     onclick="if (event.target === this) closeRepositoryDeleteModal()">
+  <div class="repository-delete-box">
+    <h3 id="repositoryDeleteTitle">Delete resource?</h3>
+    <p>Are you sure you want to delete this resource? This action cannot be undone.</p>
+
+    <div class="repository-delete-buttons">
+      <button type="button" onclick="closeRepositoryDeleteModal()">Cancel</button>
+      <button type="button" class="repository-delete-confirm"
+              onclick="submitRepositoryDelete()">Delete Resource</button>
+    </div>
+  </div>
+</div>
+
+  
+{% endblock %}
+{% block extra_js %}<script>
+
+
+    /* =========================================================
+       OPEN MODAL
+    ========================================================= */
+
+    let repositoryPreviousBodyOverflow = null;
+    let repositoryPreviousHtmlOverflow = null;
+    let repositoryTrigger = null;
+
+    function lockRepositoryPage() {
+      repositoryTrigger = document.activeElement;
+      repositoryPreviousBodyOverflow = document.body.style.overflow;
+      repositoryPreviousHtmlOverflow = document.documentElement.style.overflow;
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    }
+
+    function unlockRepositoryPage() {
+      if (document.querySelector('.repository-modal.open, .repository-delete-overlay.open')) return;
+      document.body.style.overflow = repositoryPreviousBodyOverflow || '';
+      document.documentElement.style.overflow = repositoryPreviousHtmlOverflow || '';
+      if (repositoryTrigger && repositoryTrigger.isConnected) repositoryTrigger.focus();
+      repositoryTrigger = null;
+    }
+
+    function openAdminRepositoryModal(id) {
+      const modal = document.getElementById('modal-' + id);
+      if (!modal) return;
+      if (modal.parentElement !== document.body) document.body.appendChild(modal);
+      lockRepositoryPage();
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden', 'false');
+      const closeButton = modal.querySelector('.repository-modal-x');
+      if (closeButton) closeButton.focus();
+    }
+
+    function closeAdminRepositoryModal(id) {
+      const modal = document.getElementById('modal-' + id);
+      if (!modal) return;
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+      unlockRepositoryPage();
+    }
+
+    /* =========================================================
+       BACKDROP CLICK
+    ========================================================= */
+
+    function handleAdminRepositoryModalBackdrop(
+      event,
+      id
+    ) {
+
+      if (
+        event.target.id ===
+        'modal-' + id
+      ) {
+
+        closeAdminRepositoryModal(id);
+
+      }
+
+    }
+
+
+    /* =========================================================
+       ESCAPE KEY
+    ========================================================= */
+
+    document.addEventListener(
+      'keydown',
+      function(event) {
+
+        if (event.key === 'Escape') {
+
+          document
+            .querySelectorAll(
+              '.repository-modal.open'
+            )
+            .forEach(
+              function(modal) {
+
+                closeAdminRepositoryModal(modal.id.slice(6));
+
+              }
+            );
+
+
+
+        }
+
+      }
+    );
+
+
+    /* =========================================================
+       LUCIDE ICONS
+    ========================================================= */
+
+    document.addEventListener(
+      "DOMContentLoaded",
+      function() {
+
+        /* Lucide icons */
+
+        if (window.lucide) {
+
+          lucide.createIcons();
+
+        }
+
+      }
+    );
+
+  
+
+let pendingRepositoryDeleteForm = null;
+
+function openRepositoryDeleteModal(button) {
+  pendingRepositoryDeleteForm = button.closest('form');
+  const modal = document.getElementById('repositoryDeleteModal');
+  if (modal.parentElement !== document.body) document.body.appendChild(modal);
+  lockRepositoryPage();
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  modal.querySelector('.repository-delete-confirm').focus();
+  return false;
+}
+
+function closeRepositoryDeleteModal() {
+  const modal = document.getElementById('repositoryDeleteModal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  pendingRepositoryDeleteForm = null;
+  unlockRepositoryPage();
+}
+
+function submitRepositoryDelete() {
+  // AJAX handler is installed below.
+}
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Escape") closeRepositoryDeleteModal();
+});
+
+
+(function () {
+ const tabs = Array.from(document.querySelectorAll('[data-resource-tab]'));
+ const panel = document.getElementById('resourceTabPanel');
+ const form = document.querySelector('.repository-form-card');
+ if (!tabs.length || !panel || !form) return;
+ let selected = 'admin', busy = false, request = null, revision = 0, timer = null, signature = '';
+ const pageUrl = form.getAttribute('action');
+ const labels = {admin:'No Admin resources available yet.',lead:'No Team Lead resources available yet.',member:'No Team Member resources available yet.'};
+ const notify = (message,type = 'success') => {
+  if (typeof window.showToast === 'function') window.showToast(message,type);
+  else {
+   let status = document.getElementById('repositoryLiveStatus');
+   if (!status) { status = document.createElement('p'); status.id = 'repositoryLiveStatus'; status.setAttribute('role','status'); form.after(status); }
+   status.textContent = message;
+  }
+ };
+ const modalOpen = () => Boolean(document.querySelector('.repository-modal.open,.repository-delete-overlay.open'));
+ function selectTab(tab,focus = false) {
+  selected = tab.dataset.resourceTab;
+  tabs.forEach(button => { const active = button === tab; button.setAttribute('aria-selected',String(active)); button.tabIndex = active ? 0 : -1; });
+  const cards = Array.from(panel.querySelectorAll('[data-resource-category]'));
+  tabs.forEach(button => { button.querySelector('[data-resource-count]').textContent = cards.filter(card => card.dataset.resourceCategory === button.dataset.resourceTab).length; });
+  let visible = 0;
+  cards.forEach(card => { card.hidden = card.dataset.resourceCategory !== selected; if (!card.hidden) visible++; });
+  const empty = document.getElementById('resourceTabEmpty');
+  if (empty) { empty.textContent = labels[selected]; empty.hidden = visible > 0; }
+  panel.setAttribute('aria-labelledby',tab.id);
+  if (focus) tab.focus();
+ }
+ tabs.forEach((tab,index) => {
+  tab.addEventListener('click',() => selectTab(tab));
+  tab.addEventListener('keydown',event => {
+   let next;
+   if (event.key === 'ArrowRight') next = (index+1)%tabs.length;
+   else if (event.key === 'ArrowLeft') next = (index+tabs.length-1)%tabs.length;
+   else if (event.key === 'Home') next = 0;
+   else if (event.key === 'End') next = tabs.length-1;
+   else return;
+   event.preventDefault(); selectTab(tabs[next],true);
+  });
+ });
+ function apply(doc) {
+  const next = doc.getElementById(panel.id);
+  if (!next) throw new Error('Unable to load resources. Check your login and connection.');
+  const nextSignature = next.innerHTML;
+  if (signature !== nextSignature && !modalOpen()) {
+   const top = panel.scrollTop, left = panel.scrollLeft;
+   // Preview modals move to body when opened. Remove stale closed copies before replacing the grid.
+   document.querySelectorAll('.repository-modal').forEach(modal => { if (!panel.contains(modal)) modal.remove(); });
+   panel.replaceChildren(...Array.from(next.childNodes));
+   signature = nextSignature;
+   panel.scrollTop = top; panel.scrollLeft = left;
+  }
+  selectTab(tabs.find(tab => tab.dataset.resourceTab === selected) || tabs[0]);
+  if (window.lucide) window.lucide.createIcons();
+ }
+ async function refresh() {
+  request?.abort(); const controller = new AbortController(); request = controller;
+  const token = ++revision, timeout = setTimeout(() => controller.abort(),12000);
+  try {
+   const response = await fetch(pageUrl,{credentials:'same-origin',cache:'no-store',signal:controller.signal});
+   if (!response.ok) throw new Error('Unable to update resources.');
+   const doc = new DOMParser().parseFromString(await response.text(),'text/html');
+   if (token !== revision || controller.signal.aborted) return;
+   apply(doc);
+  } finally { clearTimeout(timeout); if (request === controller) request = null; }
+ }
+ function schedule() {
+  clearTimeout(timer); if (document.hidden) return;
+  timer = setTimeout(async () => { if (!busy && !modalOpen()) { try { await refresh(); } catch (_) {} } schedule(); },10000);
+ }
+ async function save(target,deleting = false) {
+  if (busy) return;
+  busy = true; request?.abort(); ++revision;
+  const enabled = [form.querySelector('button[type=submit]'),document.querySelector('.repository-delete-confirm')].filter(button => button && !button.disabled);
+  enabled.forEach(button => { button.disabled = true; });
+  if (!deleting) form.querySelector('.repository-live-error')?.remove();
+  let saved = false;
+  try {
+   const response = await fetch(target.getAttribute('action') || pageUrl,{method:'POST',body:new FormData(target),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}});
+   let result;
+   if ((response.headers.get('Content-Type') || '').includes('application/json')) {
+    result = await response.json(); if (!response.ok || result.ok !== true) throw new Error(result.message || 'Unable to save resource.');
+   } else {
+    const doc = new DOMParser().parseFromString(await response.text(),'text/html');
+    const validation = doc.querySelector('.repository-live-error');
+    if (validation) throw new Error(validation.textContent.trim());
+    const messages = Array.from(doc.querySelectorAll('[data-resource-operation-message]'));
+    const failure = messages.find(message => Number(message.dataset.level) >= 40);
+    if (failure) throw new Error(failure.textContent.trim());
+    const success = messages.find(message => Number(message.dataset.level) === 25);
+    if (!response.ok || !doc.getElementById(panel.id) || !success) throw new Error('The server did not confirm this change. Check your login and try again.');
+    result = {ok:true,message:success.textContent.trim()};
+   }
+   saved = true;
+   if (deleting) closeRepositoryDeleteModal();
+   else { form.reset(); form.querySelector('.repository-live-error')?.remove(); }
+   notify(result.message || (deleting ? 'Resource deleted successfully.' : 'Resource added successfully.'));
+   await refresh();
+  } catch(error) {
+   if (saved) notify('Saved successfully. Resource updates will retry automatically.','warning');
+   else {
+    if (!deleting) { const alert = document.createElement('p'); alert.className = 'repository-live-error'; alert.setAttribute('role','alert'); alert.style.color = '#efa6b2'; alert.textContent = error.message; form.prepend(alert); }
+    notify(error.message,'error');
+   }
+  } finally { enabled.forEach(button => { button.disabled = false; }); busy = false; schedule(); }
+ }
+ form.addEventListener('submit',event => { event.preventDefault(); save(form); });
+ // Covers keyboard form submission as well as the delete icon click.
+ panel.addEventListener('submit',event => {
+  const button = event.target.querySelector('.repository-delete');
+  if (!button) return;
+  event.preventDefault(); if (!busy) openRepositoryDeleteModal(button);
+ });
+ window.submitRepositoryDelete = () => { if (pendingRepositoryDeleteForm) save(pendingRepositoryDeleteForm,true); };
+ document.addEventListener('visibilitychange',() => {
+  if (document.hidden) { clearTimeout(timer); request?.abort(); }
+  else { if (!busy && !modalOpen()) refresh().catch(() => {}); schedule(); }
+ });
+ window.addEventListener('online',() => { if (!busy && !modalOpen()) refresh().catch(() => {}); });
+ window.addEventListener('pagehide',() => { clearTimeout(timer); request?.abort(); });
+ window.addEventListener('pageshow',schedule);
+ selectTab(tabs[0]); schedule();
+})();
+
+</script>{% endblock %}

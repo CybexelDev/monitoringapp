@@ -1,0 +1,865 @@
+{% extends 'admin_panel/base.html' %}
+{% block title %}Admin Dashboard - Cybexel{% endblock %}
+{% block page_class %}admin-dashboard-page{% endblock %}
+{% block extra_css %}
+<style>
+.admin-dashboard-page .designation-fields{width:100%;min-width:0;display:grid;gap:9px}
+.admin-dashboard-page .designation-fields>label{font-size:12px;color:#bcb3ca}
+.admin-dashboard-page .designation-rows{display:grid;gap:8px}
+.admin-dashboard-page .designation-row,.admin-dashboard-page .department-designation-form{display:flex;gap:8px;align-items:center;min-width:0}
+.admin-dashboard-page .designation-row input,.admin-dashboard-page .department-designation-form input:not([type=hidden]){min-width:0;flex:1;background:rgba(255,255,255,.04);color:inherit;border:1px solid rgba(167,139,250,.2);border-radius:9px;padding:10px 12px;font:inherit;font-size:12px}
+.admin-dashboard-page .designation-row button,.admin-dashboard-page .designation-add{flex:none;border:1px solid rgba(167,139,250,.25);background:rgba(139,92,246,.1);color:#c4b5fd;border-radius:8px;padding:8px 11px;cursor:pointer;font-size:12px}
+.admin-dashboard-page .designation-add{justify-self:start}
+.admin-dashboard-page .designation-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.admin-dashboard-page .designation-chips span{font-size:11px;padding:4px 7px;border-radius:6px;background:rgba(139,92,246,.1);color:#c4b5fd}
+.admin-dashboard-page .name-cell:has(.designation-chips){display:block}
+.admin-dashboard-page .department-designation-form{margin-top:10px}
+.admin-dashboard-page form.add-form:has(.designation-fields){flex-wrap:wrap}
+@media(max-width:600px){.admin-dashboard-page .department-designation-form{flex-wrap:wrap}.admin-dashboard-page .department-designation-form input:not([type=hidden]){width:100%;flex-basis:140px}}
+
+.admin-dashboard-page .add-form:has(.designation-fields){display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
+.admin-dashboard-page .add-form:has(.designation-fields) .input-wrapper{position:relative;width:100%;min-width:0}
+.admin-dashboard-page .add-form:has(.designation-fields) .input-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%)}
+.admin-dashboard-page input[name=department_name]{box-sizing:border-box;width:100%;padding-left:46px}
+.admin-dashboard-page .add-form:has(.designation-fields) .add-button{width:100%}
+.admin-dashboard-page td:has(.designation-chips){padding:16px 18px;vertical-align:middle}
+.admin-dashboard-page .designation-chips{margin-top:7px;max-width:360px}
+.admin-dashboard-page .department-action-group{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.admin-dashboard-page .department-action-group form{margin:0}
+.admin-dashboard-page .department-edit{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(167,139,250,.25);background:rgba(139,92,246,.1);color:#c4b5fd;border-radius:8px;padding:8px 11px;font:inherit;font-size:12px;cursor:pointer}
+.admin-dashboard-page .department-edit svg{width:13px;height:13px}
+.department-editor{width:min(460px,calc(100vw - 32px));box-sizing:border-box;max-height:85dvh;overflow:auto;color:#f4f0fa;background:#211c2d;border:1px solid #514261;border-radius:16px;padding:22px}
+.department-editor::backdrop{background:rgba(8,6,13,.45);backdrop-filter:blur(3px)}
+.department-editor header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.department-editor h2{font-size:18px;margin:0}
+.department-editor label{display:block;font-size:12px;color:#bfb5cb;margin:12px 0 8px}
+.department-editor input:not([type=hidden]){box-sizing:border-box;width:100%;min-width:0;padding:11px 12px;border-radius:9px;border:1px solid #514261;color:inherit;background:#17131f;font:inherit;font-size:13px}
+.department-editor-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.department-editor button{cursor:pointer;border:1px solid #514261;color:#d9c6f8;background:#31253f;border-radius:8px;padding:8px 11px;font:inherit;font-size:12px}
+.department-editor footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.department-editor button[type=submit]{background:#7544b6;color:#fff;border-color:#7544b6}
+.department-editor-error{font-size:12px;color:#f5a6ae;line-height:1.5}
+
+
+/* Compact department directory: scoped to the department table. */
+.admin-dashboard-page table:has(.department-identity){min-width:510px;width:100%;table-layout:auto}
+.admin-dashboard-page table:has(.department-identity) th{font-size:10px;letter-spacing:.07em;padding:14px 18px;background:rgba(139,92,246,.075)}
+.admin-dashboard-page table:has(.department-identity) th:last-child{text-align:right}
+.admin-dashboard-page table:has(.department-identity) td{padding:17px 18px;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,.055)}
+.admin-dashboard-page table:has(.department-identity) tr:last-child td{border-bottom:0}
+.admin-dashboard-page table:has(.department-identity) tbody tr:hover{background:rgba(167,139,250,.035)}
+.admin-dashboard-page table:has(.department-identity) td:first-child{width:40px}
+.admin-dashboard-page .department-identity{display:flex;align-items:center;gap:12px;min-width:0}
+.admin-dashboard-page .department-symbol{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:10px;border:1px solid rgba(167,139,250,.16);background:rgba(139,92,246,.085);color:#baa2ea}
+.admin-dashboard-page .department-symbol svg{width:16px;height:16px}
+.admin-dashboard-page .department-copy{min-width:0}
+.admin-dashboard-page .department-copy strong{display:block;font-size:13px;font-weight:600;color:#ece7f3;overflow-wrap:anywhere;line-height:1.4}
+.admin-dashboard-page .department-meta>span{display:block;color:#998fa7;font-size:10px;margin-top:4px}
+.admin-dashboard-page .department-copy .designation-chips{display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-top:8px;max-width:280px}
+.admin-dashboard-page .department-copy .designation-chips>span{max-width:105px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border:1px solid rgba(167,139,250,.12);border-radius:5px;padding:3px 6px;background:rgba(139,92,246,.045);color:#b8a8ce;font-size:10px;line-height:1.3}
+.admin-dashboard-page .department-more{border:0;background:none;color:#ad91d6;font:inherit;font-size:10px;padding:3px 4px;cursor:pointer;white-space:nowrap}
+.admin-dashboard-page .department-action-group{gap:7px;white-space:nowrap}
+.admin-dashboard-page .department-action-group .department-edit,.admin-dashboard-page .department-action-group .delete-button{height:30px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;font-size:11px;padding:0 9px;border-radius:7px;font-weight:500}
+.admin-dashboard-page .department-action-group .delete-button{background:transparent;color:#d5949d;border-color:rgba(211,102,119,.23)}
+.admin-dashboard-page .department-action-group .department-edit{background:rgba(139,92,246,.07);color:#c0a8e7}
+@media(max-width:600px){.admin-dashboard-page table:has(.department-identity) th,.admin-dashboard-page table:has(.department-identity) td{padding:13px 11px}.admin-dashboard-page .department-symbol{display:none}}
+
+
+/* Organization workspace: lists first, add forms on demand. */
+.admin-dashboard-page .organization-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:20px;align-items:start}
+.admin-dashboard-page .org-panel{min-width:0;min-height:0;height:auto;padding:22px;border-radius:14px;background:#17141e;border:1px solid rgba(178,153,213,.15);box-shadow:none}
+.admin-dashboard-page .org-panel .card-heading{display:flex;align-items:center;gap:12px;margin-bottom:20px;min-width:0}
+.admin-dashboard-page .org-panel .card-heading>div:last-of-type{flex:1;min-width:0}
+.admin-dashboard-page .org-panel .card-heading h3{font-size:17px;margin:0 0 5px;font-weight:650}
+.admin-dashboard-page .org-panel .card-heading p{font-size:12px;color:#9c92ab;line-height:1.4;margin:0}
+.admin-dashboard-page .org-panel .card-icon{width:40px;height:40px;border-radius:10px;flex:none;background:rgba(139,92,246,.08);color:#bda4e2;border:1px solid rgba(167,139,250,.16)}
+.admin-dashboard-page .org-panel .card-icon svg{width:18px;height:18px}
+.admin-dashboard-page .org-create-toggle{display:inline-flex;align-items:center;gap:7px;flex:none;background:#7043ac;border:1px solid #8155b8;color:white;font:inherit;font-size:12px;font-weight:600;padding:10px 13px;border-radius:8px;cursor:pointer;box-shadow:none}
+.admin-dashboard-page .org-create-toggle svg{width:14px;height:14px}
+.admin-dashboard-page .org-create-form[hidden]{display:none!important}
+.admin-dashboard-page .org-create-form{padding:16px;margin:0 0 20px;border:1px solid rgba(167,139,250,.15);border-radius:10px;background:rgba(139,92,246,.025)}
+.admin-dashboard-page .org-panel .add-button{background:#7043ac;border-radius:8px;box-shadow:none;min-height:42px;font-size:12px}
+.admin-dashboard-page .org-panel .table-section-header{margin-top:0;margin-bottom:12px}
+.admin-dashboard-page .org-panel .table-section-header .table-eyebrow{display:none}
+.admin-dashboard-page .org-panel .table-section-header h4{font-size:12px;color:#a69ab5;font-weight:500}
+.admin-dashboard-page .org-panel .table-wrapper{max-height:390px;overflow:auto;border:1px solid rgba(178,153,213,.12);border-radius:9px;background:#14111a}
+.admin-dashboard-page .org-directory{width:100%;min-width:430px;border-collapse:collapse;table-layout:auto}
+.admin-dashboard-page .org-directory th{position:sticky;top:0;background:#211a2c;padding:13px 15px;color:#afa2bf;letter-spacing:.04em;font-size:10px;font-weight:600;text-transform:uppercase;border-bottom:1px solid rgba(178,153,213,.12);text-align:left}
+.admin-dashboard-page .org-directory th:last-child{text-align:right}
+.admin-dashboard-page .org-directory td{padding:15px;vertical-align:middle;border-bottom:1px solid rgba(178,153,213,.07);font-size:13px;line-height:1.4}
+.admin-dashboard-page .org-directory tr:last-child td{border-bottom:0}
+.admin-dashboard-page .org-directory tbody tr:hover{background:rgba(167,139,250,.035)}
+.admin-dashboard-page .org-directory td:first-child{width:30px;color:#887c96}
+.admin-dashboard-page .org-directory .number-badge{background:transparent;padding:0;border:0;color:#887c96;font-size:11px;min-width:0}
+.admin-dashboard-page .org-name strong{display:block;font-size:13px;font-weight:550;color:#eee8f5;overflow-wrap:anywhere}
+.admin-dashboard-page .org-name small{display:block;margin-top:3px;font-size:10px;color:#887c96}
+.admin-dashboard-page .org-role-count{display:inline-flex;align-items:center;gap:9px;padding:5px 0;background:none;border:0;color:#bca4da;font:inherit;font-size:11px;cursor:pointer;white-space:nowrap}
+.admin-dashboard-page .org-role-count svg{width:12px;height:12px;opacity:.65}
+.admin-dashboard-page .org-directory td:last-child{text-align:right;width:80px}
+.admin-dashboard-page .org-icon-button{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border-radius:7px;border:1px solid rgba(167,139,250,.2);background:rgba(139,92,246,.05);color:#bca4da;cursor:pointer}
+.admin-dashboard-page .org-directory .org-icon-button svg{width:13px;height:13px}
+.admin-dashboard-page .org-directory .delete-button{color:#bf8391;background:transparent;border-color:rgba(191,131,145,.17);padding:0;font-size:12px}
+.admin-dashboard-page .org-team-table td form{margin:0;display:flex;justify-content:flex-end}
+.admin-dashboard-page .org-panel button:focus-visible{outline:2px solid #bca4da;outline-offset:3px}
+@media(max-width:1050px){.admin-dashboard-page .organization-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.admin-dashboard-page .org-panel{padding:15px}.admin-dashboard-page .org-panel .card-heading{flex-wrap:wrap}.admin-dashboard-page .org-create-toggle{margin-left:52px}.admin-dashboard-page .org-directory{min-width:390px}}
+
+
+.admin-dashboard-page .dashboard-filters{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin:0 0 20px;padding:16px;border:1px solid rgba(167,139,250,.18);border-radius:12px;background:rgba(139,92,246,.04)}
+.admin-dashboard-page .dashboard-filters label{display:flex;flex-direction:column;gap:7px;font-size:12px;color:#c4b5d8;flex:1;min-width:150px}
+.admin-dashboard-page .dashboard-filters select{width:100%;box-sizing:border-box;padding:11px;border:1px solid #514261;border-radius:8px;background:#211c2d;color:#f4f0fa;font:inherit;min-height:42px}
+.admin-dashboard-page .dashboard-filters button,.admin-dashboard-page .employee-pages button{padding:10px 15px;border:1px solid #735298;border-radius:8px;background:#7544b6;color:white;font:inherit;font-size:12px;cursor:pointer}
+.admin-dashboard-page .dashboard-filters button[type=button],.admin-dashboard-page .employee-pages button{background:transparent;color:#c4b5d8}
+.admin-dashboard-page .employee-counts{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;font-size:12px;color:#bfb5cb}.admin-dashboard-page .employee-counts strong{color:#e9dcff;margin-left:5px}
+.admin-dashboard-page .employee-panel{margin-bottom:24px;padding:18px;border:1px solid rgba(167,139,250,.18);border-radius:12px;min-width:0}.admin-dashboard-page .employee-panel h3{font-size:16px;margin:0 0 16px}.admin-dashboard-page .employee-panel .table-wrapper{overflow:auto;max-height:400px}.admin-dashboard-page .employee-panel table{width:100%;min-width:640px;border-collapse:collapse}.admin-dashboard-page .employee-panel th,.admin-dashboard-page .employee-panel td{padding:12px;text-align:left;font-size:12px;border-bottom:1px solid rgba(167,139,250,.12)}.admin-dashboard-page .employee-panel th{position:sticky;top:0;background:#211c2d;z-index:1}.admin-dashboard-page .employee-status{display:inline-block;padding:4px 8px;border-radius:5px;background:rgba(148,163,184,.12);color:#cbd5e1}.admin-dashboard-page .employee-status.active{background:rgba(52,211,153,.1);color:#6ee7b7}.admin-dashboard-page .employee-status.inactive{background:rgba(248,113,113,.1);color:#fca5a5}.admin-dashboard-page .employee-pages{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:14px;font-size:12px}.admin-dashboard-page .employee-pages button:disabled{opacity:.4;cursor:default}
+@media(max-width:600px){.admin-dashboard-page .dashboard-filters label{flex-basis:100%}.admin-dashboard-page .dashboard-filters button{flex:1}.admin-dashboard-page .employee-panel{padding:12px}}
+
+
+.admin-dashboard-page .admin-summary-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.admin-dashboard-page .admin-summary-card{position:relative;min-width:0;padding:18px;border:1px solid rgba(167,139,250,.18);border-radius:13px;background:linear-gradient(135deg,rgba(139,92,246,.09),rgba(139,92,246,.025));box-sizing:border-box}
+.admin-dashboard-page .admin-summary-card .summary-label{display:block;font-size:12px;color:#bcb0cd;line-height:1.5;padding-right:22px}
+.admin-dashboard-page .admin-summary-card strong{display:block;font-size:30px;font-weight:650;color:#eee5fc;line-height:1.25;margin:12px 0 8px;font-variant-numeric:tabular-nums}
+.admin-dashboard-page .admin-summary-card small{font-size:10px;color:#9789aa;display:block;line-height:1.5}
+.admin-dashboard-page .summary-mark{position:absolute;top:20px;right:17px;width:7px;height:7px;border-radius:50%;background:#ad8cde;box-shadow:0 0 0 4px rgba(173,140,222,.08)}
+.admin-dashboard-page .admin-summary-card[data-summary=active] .summary-mark{background:#6ee7b7;box-shadow:0 0 0 4px rgba(110,231,183,.08)}
+.admin-dashboard-page .admin-summary-card[data-summary=inactive] .summary-mark{background:#ee9aa7;box-shadow:0 0 0 4px rgba(238,154,167,.08)}
+.admin-dashboard-page .summary-note{font-size:11px;color:#a69ab5;margin:-10px 0 18px;line-height:1.5}
+.admin-dashboard-page .org-setup-heading{font-size:17px;font-weight:600;color:#e4d7f6;margin:26px 0 16px}
+@media(max-width:1100px){.admin-dashboard-page .admin-summary-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.admin-dashboard-page .admin-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.admin-dashboard-page .admin-summary-card{padding:14px}.admin-dashboard-page .admin-summary-card strong{font-size:26px}.admin-dashboard-page .summary-mark{top:17px;right:14px}}
+@media(max-width:340px){.admin-dashboard-page .admin-summary-grid{grid-template-columns:1fr}}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- =====================================================
+         THE BIG BOX
+         EVERYTHING ON THE RIGHT SIDE IS INSIDE THIS BOX
+         ONLY THIS BOX WILL SCROLL
+    ====================================================== -->
+
+    <div class="dashboard-box">
+
+        <!-- =================================================
+             DASHBOARD HEADER
+        ================================================== -->
+
+        <section class="dashboard-header">
+
+            <div class="dashboard-header-content">
+
+                <div>
+
+                    <div class="dashboard-eyebrow">
+                        CYBEXEL ADMIN PANEL
+                    </div>
+
+                    <h1>
+                        ADMIN DASHBOARD
+                    </h1>
+
+                    <p>
+                        Monitor your teams and manage organization setup from one place.
+                    </p>
+
+                </div>
+
+                <!-- System status -->
+                <div class="system-status">
+
+                    <span class="status-dot"></span>
+
+                    <span>
+                        System Online
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- =================================================
+             DASHBOARD CONTENT
+        ================================================== -->
+
+        <section class="dashboard-content">
+
+            <!-- Section heading -->
+            <div class="section-heading">
+
+                <div>
+
+                    <span class="section-eyebrow">
+                        MANAGEMENT
+                    </span>
+
+                    <h2>
+                        Dashboard Overview
+                    </h2>
+
+                </div>
+
+                <div class="heading-line"></div>
+
+            </div>
+
+            <!-- =================================================
+                 DEPARTMENT + TEAM GRID
+            ================================================== -->
+
+
+            <section class="admin-summary-grid" id="adminDashboardSummary" aria-label="Employee summary">
+<article class="admin-summary-card" data-summary="total"><span class="summary-mark" aria-hidden="true"></span><span class="summary-label">Total Employees</span><strong data-summary-count="total">{{ employee_counts.total }}</strong><small>Team Leads & Team Members</small></article>
+<article class="admin-summary-card" data-summary="leads"><span class="summary-mark" aria-hidden="true"></span><span class="summary-label">Team Leads</span><strong data-summary-count="leads">{{ employee_counts.leads }}</strong><small>Leadership team</small></article>
+<article class="admin-summary-card" data-summary="members"><span class="summary-mark" aria-hidden="true"></span><span class="summary-label">Team Members</span><strong data-summary-count="members">{{ employee_counts.members }}</strong><small>Assigned employees</small></article>
+<article class="admin-summary-card" data-summary="active"><span class="summary-mark" aria-hidden="true"></span><span class="summary-label">Active</span><strong data-summary-count="active">{{ employee_counts.active }}</strong><small>Current activity status</small></article>
+<article class="admin-summary-card" data-summary="inactive"><span class="summary-mark" aria-hidden="true"></span><span class="summary-label">Inactive</span><strong data-summary-count="inactive">{{ employee_counts.inactive }}</strong><small>Current activity status</small></article>
+</section><p class="summary-note">Summary follows the applied Department and Team filters. Activity status uses the existing activity tracking rules.</p>
+            <form id="dashboardFilterForm" class="dashboard-filters" method="get" action="{% url 'admin_dashboard' %}">
+                <label for="dashboardDepartment">Department<select id="dashboardDepartment" name="department"><option value="">All departments</option>{% for dept in departments %}<option value="{{ dept.pk }}" {% if filter_department == dept.pk|stringformat:'s' %}selected{% endif %}>{{ dept.name }}</option>{% endfor %}</select></label>
+                <label for="dashboardTeam">Team<select id="dashboardTeam" name="team"><option value="">All teams</option>{% for team in teams %}<option value="{{ team.pk }}" {% if filter_team == team.pk|stringformat:'s' %}selected{% endif %}>{{ team.name }}</option>{% endfor %}</select></label>
+                <button type="submit">Apply filters</button><button type="button" id="dashboardFilterReset">Reset</button>
+            </form>
+            {{ department_team_options|json_script:"dashboardTeamOptions" }}
+            <section class="employee-panel" aria-label="Filtered employees">
+                <h3>Team overview</h3>
+                <div id="dashboardEmployeeResults" aria-live="polite">
+                    <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Department</th><th>Team</th><th>Role</th><th>Status</th></tr></thead><tbody>{% for employee in employee_page %}<tr><td>{{ employee.name|default:employee.username }}</td><td>{{ employee.department.name|default:'—' }}</td><td>{{ employee.team.name|default:'—' }}</td><td>{{ employee.job_Position }}</td><td><span class="employee-status {{ employee.status|lower }}">{{ employee.status|title }}</span></td></tr>{% empty %}<tr><td colspan="5">No employees match these filters.</td></tr>{% endfor %}</tbody></table></div>
+                    <div class="employee-pages"><button type="button" data-employee-page="{% if employee_page.has_previous %}{{ employee_page.previous_page_number }}{% else %}1{% endif %}" {% if not employee_page.has_previous %}disabled{% endif %}>Previous</button><span>Page {{ employee_page.number }} of {{ employee_page.paginator.num_pages }}</span><button type="button" data-employee-page="{% if employee_page.has_next %}{{ employee_page.next_page_number }}{% else %}{{ employee_page.number }}{% endif %}" {% if not employee_page.has_next %}disabled{% endif %}>Next</button></div>
+                </div>
+            </section>
+
+            <h3 class="org-setup-heading">Organization Setup</h3>
+            <div class="organization-grid">
+
+                <!-- =================================================
+                     DEPARTMENT CARD
+                ================================================== -->
+
+                <div class="dashboard-card org-panel org-department-panel">
+
+                    <!-- Card heading -->
+                    <div class="card-heading">
+
+                        <div class="card-icon department-icon"><i data-lucide="building-2"></i></div>
+
+                        <div>
+
+                            <h3>
+                                Departments
+                            </h3>
+
+                            <p>
+                                Create and manage company departments
+                            </p>
+
+                        </div>
+
+                    <button type="button" class="org-create-toggle" data-toggle-create="newDepartmentForm" aria-controls="newDepartmentForm" aria-expanded="false"><i data-lucide="plus" aria-hidden="true"></i>New Department</button>
+                    </div>
+
+                    <!-- Department Form -->
+                    <form method="POST" class="add-form org-create-form" id="newDepartmentForm" hidden>
+
+                        {% csrf_token %}
+
+                        <div class="input-wrapper">
+
+                            <span class="input-icon"><i data-lucide="layers-3"></i></span>
+
+                            <input
+                                type="text"
+                                name="department_name"
+                                placeholder="Department Name"
+                                required
+                            >
+
+                        </div>
+
+
+<div class="designation-fields">
+  <label>Designations</label>
+  <div class="designation-rows">
+    <div class="designation-row"><input name="designation_names" placeholder="e.g. Python Developer" maxlength="100" required><button type="button" data-remove-designation aria-label="Remove designation">×</button></div>
+  </div>
+  <button type="button" class="designation-add" data-add-designation>+ Add Designation</button>
+</div>
+                        <button
+                            type="submit"
+                            name="add_department"
+                            class="add-button"
+                        >
+
+                            <span class="button-icon"><i data-lucide="plus"></i></span>
+
+                            Add Department
+
+                        </button>
+
+                    </form>
+
+                    <!-- Department title -->
+                    <div class="table-section-header">
+
+                        <div>
+
+                            <span class="table-eyebrow">
+                                DEPARTMENTS
+                            </span>
+
+                            <h4>
+                                Existing Departments
+                            </h4>
+
+                        </div>
+
+                        <span class="count-badge">
+                            {{ departments|length }}
+                        </span>
+
+                    </div>
+
+                    <!-- Department table -->
+                    <div class="table-wrapper">
+
+                        <table class="org-directory org-department-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>#</th>
+
+                                    <th>
+                                        Department Name
+                                    </th>
+
+                                    <th>Designations</th>
+                                    <th>
+                                        Action
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {% for dept in departments %}
+
+                                <tr data-row-key="department-{{ dept.pk }}">
+
+                                    <td>
+
+                                        <span class="number-badge">
+                                            {{ forloop.counter }}
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="org-name"><strong>{{ dept.name }}</strong><small>Department</small></div>
+                                    </td>
+                                    <td class="org-role-cell"><button type="button" class="org-role-count" data-edit-department="{{ dept.pk }}" aria-label="Manage designations for {{ dept.name }}">{{ dept.designations.all|length }} role{{ dept.designations.all|length|pluralize }}<i data-lucide="chevron-right" aria-hidden="true"></i></button></td>
+
+                                    <td class="department-actions">
+                                      <div class="department-action-group">
+                                        <button type="button" class="department-edit org-icon-button" title="Edit department" data-edit-department="{{ dept.pk }}" aria-label="Edit {{ dept.name }}"><i data-lucide="pencil" aria-hidden="true"></i></button>
+                                        <form
+                                            action="{% url 'delete_department' dept.id %}"
+                                            method="post"
+                                            class="org-delete-form" data-confirm="Delete this department?"
+                                        >
+
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="delete-button org-icon-button" title="Delete department" aria-label="Delete {{ dept.name }}"
+                                            ><i data-lucide="trash-2" aria-hidden="true"></i></button>
+
+                                        </form>
+                                      </div>
+                                    </td>
+
+                                </tr>
+
+                                {% empty %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="4"
+                                        class="empty-row"
+                                    >
+                                        No departments added yet.
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <!-- =================================================
+                     TEAM CARD
+                ================================================== -->
+
+                <div class="dashboard-card team-card org-panel org-team-panel">
+
+                    <!-- Card heading -->
+                    <div class="card-heading">
+
+                        <div class="card-icon team-icon"><i data-lucide="users-round"></i></div>
+
+                        <div>
+
+                            <h3>
+                                Teams
+                            </h3>
+
+                            <p>
+                                Create and manage company teams
+                            </p>
+
+                        </div>
+
+                    <button type="button" class="org-create-toggle" data-toggle-create="newTeamForm" aria-controls="newTeamForm" aria-expanded="false"><i data-lucide="plus" aria-hidden="true"></i>New Team</button>
+                    </div>
+
+                    <!-- Team Form -->
+                    <form method="POST" class="add-form org-create-form" id="newTeamForm" hidden>
+
+                        {% csrf_token %}
+
+                        <div class="input-wrapper">
+
+                            <span class="input-icon"><i data-lucide="layers-3"></i></span>
+
+                            <input
+                                type="text"
+                                name="team_name"
+                                placeholder="Team Name"
+                                required
+                            >
+
+                        </div>
+
+                        <button
+                            type="submit"
+                            name="add_team"
+                            class="add-button"
+                        >
+
+                            <span class="button-icon"><i data-lucide="plus"></i></span>
+
+                            Add Team
+
+                        </button>
+
+                    </form>
+
+                    <!-- Team title -->
+                    <div class="table-section-header">
+
+                        <div>
+
+                            <span class="table-eyebrow">
+                                TEAMS
+                            </span>
+
+                            <h4>
+                                Existing Teams
+                            </h4>
+
+                        </div>
+
+                        <span class="count-badge">
+                            {{ teams|length }}
+                        </span>
+
+                    </div>
+
+                    <!-- Team table -->
+                    <div class="table-wrapper">
+
+                        <table class="org-directory org-team-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>#</th>
+
+                                    <th>
+                                        Team Name
+                                    </th>
+
+                                    <th>
+                                        Action
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {% for team in teams %}
+
+                                <tr data-row-key="team-{{ team.pk }}">
+
+                                    <td>
+
+                                        <span class="number-badge">
+                                            {{ forloop.counter }}
+                                        </span>
+
+                                    </td>
+
+                                    <td>
+
+                                        <div class="name-cell">
+
+                                            <span class="name-dot"></span>
+
+                                            {{ team.name }}
+
+                                        </div>
+
+                                    </td>
+
+                                    <td>
+
+                                        <form
+                                            action="{% url 'delete_team' team.id %}"
+                                            method="post"
+                                            class="org-delete-form" data-confirm="Delete this team?"
+                                        >
+
+                                            {% csrf_token %}
+
+                                            <button
+                                                type="submit"
+                                                class="delete-button org-icon-button" title="Delete team" aria-label="Delete {{ team.name }}"
+                                            ><i data-lucide="trash-2" aria-hidden="true"></i></button>
+
+                                        </form>
+
+                                    </td>
+
+                                </tr>
+
+                                {% empty %}
+
+                                <tr>
+
+                                    <td
+                                        colspan="3"
+                                        class="empty-row"
+                                    >
+                                        No teams added yet.
+                                    </td>
+
+                                </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!--
+                Future dashboard contents can be added here.
+                They will automatically stay INSIDE the big box.
+            -->
+
+        </section>
+
+    </div>
+{% endblock %}
+
+
+{% block extra_js %}
+{{ department_editor_items|json_script:"departmentEditorData" }}
+<dialog class="department-editor" id="departmentEditor">
+ <form method="post" id="departmentEditorForm">
+  {% csrf_token %}<input type="hidden" name="edit_department" value="1"><input type="hidden" name="department_id" id="editorDepartmentId">
+  <header><h2>Edit Department</h2><button type="button" data-close-editor aria-label="Close">×</button></header>
+  <label for="editorDepartmentName">Department Name</label><input id="editorDepartmentName" name="department_name" maxlength="100" required>
+  <label>Designations</label><div id="departmentEditorRows"></div>
+  <button type="button" id="addEditorDesignation">+ Add Designation</button>
+  <p class="department-editor-error" id="departmentEditorError" role="alert"></p>
+  <footer><button type="button" data-close-editor>Cancel</button><button type="submit">Save Changes</button></footer>
+ </form>
+</dialog>
+
+
+<script>
+(() => {
+  const root = document.querySelector('.admin-dashboard-page .dashboard-box');
+  const dialog = document.getElementById('departmentEditor');
+  const editor = document.getElementById('departmentEditorForm');
+  const rows = document.getElementById('departmentEditorRows');
+  const error = document.getElementById('departmentEditorError');
+  const catalogNode = document.getElementById('departmentEditorData');
+  if (!root || !dialog || !editor || !rows || !catalogNode) return;
+  let pageUrl = window.location.href;
+  let busy = false, controller = null, timer = null, overflow = '';
+  const signatures = new Map();
+  const notify = (message, type = 'success') => {
+    if (typeof window.showToast === 'function') window.showToast(message, type);
+    else {
+      let status = document.getElementById('dashboardLiveStatus');
+      if (!status) {
+        status = document.createElement('p'); status.id = 'dashboardLiveStatus';
+        status.setAttribute('role', 'status'); root.prepend(status);
+      }
+      status.textContent = message;
+    }
+  };
+  const readCatalog = () => JSON.parse(catalogNode.textContent || '{}');
+  function applyPage(doc) {
+    if (!doc.querySelector('.org-department-table') || !doc.querySelector('.org-team-table')) {
+      throw new Error('Unable to load dashboard updates. Check your login and connection.');
+    }
+    for (const selector of ['.org-department-panel', '.org-team-panel']) {
+      const panel = root.querySelector(selector), next = doc.querySelector(selector);
+      const body = panel?.querySelector('tbody'), nextBody = next?.querySelector('tbody');
+      if (!body || !nextBody) throw new Error('Dashboard table not found.');
+      const signature = nextBody.innerHTML;
+      if (signatures.get(selector) !== signature) {
+        const wrapper = panel.querySelector('.table-wrapper');
+        const top = wrapper.scrollTop, left = wrapper.scrollLeft;
+        const active = document.activeElement;
+        const key = body.contains(active) ? active.closest('tr')?.dataset.rowKey : null;
+        const focusClass = active?.classList.contains('delete-button') ? '.delete-button' : '.department-edit';
+        body.replaceChildren(...Array.from(nextBody.childNodes));
+        signatures.set(selector, signature);
+        wrapper.scrollTop = top; wrapper.scrollLeft = left;
+        if (key) Array.from(body.querySelectorAll('tr')).find(row => row.dataset.rowKey === key)?.querySelector(focusClass)?.focus({preventScroll:true});
+      }
+      const count = panel.querySelector('.count-badge'), nextCount = next.querySelector('.count-badge');
+      if (count && nextCount) count.textContent = nextCount.textContent;
+    }
+    const incomingSummary = doc.getElementById('adminDashboardSummary');
+    if (incomingSummary) {
+      for (const count of document.querySelectorAll('#adminDashboardSummary [data-summary-count]')) {
+        const next = incomingSummary.querySelector(`[data-summary-count="${count.dataset.summaryCount}"]`);
+        if (next && count.textContent !== next.textContent) count.textContent = next.textContent;
+      }
+    }
+    const incomingResults = doc.getElementById('dashboardEmployeeResults');
+    const results = document.getElementById('dashboardEmployeeResults');
+    if (incomingResults && results && results.innerHTML !== incomingResults.innerHTML) {
+      const wrapper = results.querySelector('.table-wrapper');
+      const top = wrapper?.scrollTop || 0, left = wrapper?.scrollLeft || 0;
+      results.innerHTML = incomingResults.innerHTML;
+      const nextWrapper = results.querySelector('.table-wrapper');
+      if (nextWrapper) { nextWrapper.scrollTop = top; nextWrapper.scrollLeft = left; }
+    }
+    const incomingOptions = doc.getElementById('dashboardTeamOptions');
+    if (incomingOptions) {
+      document.getElementById('dashboardTeamOptions').textContent = incomingOptions.textContent;
+      const incomingFilter = doc.getElementById('dashboardFilterForm');
+      for (const name of ['department', 'team']) {
+        const select = filters.elements.namedItem(name), selected = select.value;
+        select.innerHTML = incomingFilter.elements.namedItem(name).innerHTML;
+        select.value = [...select.options].some(option => option.value === selected) ? selected : '';
+      }
+      teamChoices();
+    }
+    const nextCatalog = doc.getElementById('departmentEditorData');
+    if (nextCatalog) catalogNode.textContent = nextCatalog.textContent;
+    if (window.lucide) window.lucide.createIcons();
+  }
+  async function sync() {
+    if (controller) return;
+    controller = new AbortController();
+    const current = controller;
+    const timeout = setTimeout(() => current.abort(), 12000);
+    try {
+      const response = await fetch(pageUrl, {credentials:'same-origin', cache:'no-store', signal:current.signal});
+      if (!response.ok) throw new Error('Dashboard update failed.');
+      const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+      if (controller === current && !current.signal.aborted) applyPage(doc);
+    } finally {
+      clearTimeout(timeout);
+      if (controller === current) controller = null;
+    }
+  }
+  function schedule() {
+    clearTimeout(timer);
+    if (document.hidden) return;
+    timer = setTimeout(async () => {
+      if (!busy && !dialog.open) { try { await sync(); } catch (_) { /* Retry on the next poll. */ } }
+      schedule();
+    }, 10000);
+  }
+  async function mutate(form, button, isDelete = false) {
+    if (busy) return;
+    busy = true;
+    controller?.abort(); controller = null;
+    const data = new FormData(form);
+    if (button?.name) data.append(button.name, button.value || '1');
+    const rowKey = isDelete ? form.closest('tr')?.dataset.rowKey : null;
+    const controls = Array.from(root.querySelectorAll('button[type=submit]'));
+    controls.push(editor.querySelector('button[type=submit]'));
+    const enabled = controls.filter(control => control && !control.disabled);
+    enabled.forEach(control => { control.disabled = true; });
+    let saved = false;
+    try {
+      const response = await fetch(form.getAttribute('action') || pageUrl, {
+        method:'POST', body:data, credentials:'same-origin',
+        headers:{'X-Requested-With':'XMLHttpRequest'}
+      });
+      let result = null;
+      if ((response.headers.get('Content-Type') || '').includes('application/json')) result = await response.json();
+      else {
+        const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+        if (!doc.querySelector('.org-department-table')) throw new Error('Unable to save. Check your login.');
+      }
+      if (!response.ok || result?.ok === false) throw new Error(result?.message || 'Unable to save changes.');
+      // Existing delete views may return a redirect rather than JSON. Confirm the row disappeared.
+      if (isDelete) {
+        await sync();
+        if (rowKey && Array.from(root.querySelectorAll('tr[data-row-key]')).some(row => row.dataset.rowKey === rowKey)) {
+          throw new Error(result?.message || 'This item was not deleted. It may still be in use.');
+        }
+        saved = true;
+      } else {
+        saved = true;
+        if (form === editor) dialog.close();
+        else {
+          form.reset(); form.hidden = true;
+          root.querySelector(`[aria-controls="${form.id}"]`)?.setAttribute('aria-expanded', 'false');
+          const designationRows = form.querySelector('.designation-rows');
+          if (designationRows) while (designationRows.children.length > 1) designationRows.lastElementChild.remove();
+        }
+        await sync();
+      }
+      notify(result?.message || (isDelete ? 'Deleted successfully.' : 'Saved successfully.'));
+    } catch (failure) {
+      if (saved) notify('Saved successfully. Table updates will retry automatically.', 'warning');
+      else if (form === editor) error.textContent = failure.message;
+      else notify(failure.message, 'error');
+    } finally {
+      enabled.forEach(control => { control.disabled = false; }); busy = false; schedule();
+    }
+  }
+  function addRow(id = '', name = '') {
+    const row = document.createElement('div'); row.className = 'department-editor-row';
+    const hidden = document.createElement('input'); hidden.type = 'hidden'; hidden.name = 'designation_ids'; hidden.value = id;
+    const input = document.createElement('input'); input.name = 'designation_names'; input.value = name;
+    input.maxLength = 100; input.required = true; input.placeholder = 'Designation name'; input.setAttribute('aria-label', 'Designation name');
+    const remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.setAttribute('aria-label', 'Remove designation');
+    remove.addEventListener('click', () => { if (rows.children.length > 1) row.remove(); else input.value = ''; });
+    row.append(hidden, input, remove); rows.append(row); return input;
+  }
+  document.addEventListener('click', event => {
+    const toggle = event.target.closest('[data-toggle-create]');
+    if (toggle && root.contains(toggle)) {
+      const form = document.getElementById(toggle.dataset.toggleCreate);
+      if (form) { form.hidden = !form.hidden; toggle.setAttribute('aria-expanded', String(!form.hidden)); if (!form.hidden) form.querySelector('input:not([type=hidden])')?.focus(); }
+    }
+    const edit = event.target.closest('[data-edit-department]');
+    if (edit && root.contains(edit) && !busy && !dialog.open) {
+      try {
+        const item = readCatalog()[edit.dataset.editDepartment];
+        if (!item) return;
+        editor.reset(); error.textContent = ''; rows.replaceChildren();
+        document.getElementById('editorDepartmentId').value = edit.dataset.editDepartment;
+        document.getElementById('editorDepartmentName').value = item.name;
+        item.designations.forEach(value => addRow(value.id, value.name)); if (!item.designations.length) addRow();
+        overflow = document.body.style.overflow; dialog.showModal(); document.body.style.overflow = 'hidden';
+      } catch (_) { notify('Unable to open the department editor.', 'error'); }
+    }
+    const add = event.target.closest('[data-add-designation]');
+    if (add && root.contains(add)) {
+      const row = document.createElement('div'); row.className = 'designation-row';
+      const input = document.createElement('input'); input.name = 'designation_names'; input.maxLength = 100; input.required = true; input.placeholder = 'Designation name'; input.setAttribute('aria-label', 'Designation name');
+      const remove = document.createElement('button'); remove.type = 'button'; remove.dataset.removeDesignation = ''; remove.textContent = '×'; remove.setAttribute('aria-label', 'Remove designation');
+      row.append(input, remove); add.closest('.designation-fields').querySelector('.designation-rows').append(row); input.focus();
+    }
+    const remove = event.target.closest('[data-remove-designation]');
+    if (remove && root.contains(remove)) {
+      const group = remove.closest('.designation-rows');
+      if (group.children.length > 1) remove.closest('.designation-row').remove(); else group.querySelector('input').value = '';
+    }
+  });
+  document.getElementById('addEditorDesignation').addEventListener('click', () => addRow().focus());
+  dialog.querySelectorAll('[data-close-editor]').forEach(button => button.addEventListener('click', () => dialog.close()));
+  dialog.addEventListener('close', () => { document.body.style.overflow = overflow; schedule(); });
+  document.addEventListener('submit', event => {
+    const form = event.target;
+    const isDelete = form.matches('.org-delete-form') && root.contains(form);
+    if (form !== editor && !(root.contains(form) && form.matches('.add-form')) && !isDelete) return;
+    event.preventDefault();
+    if (busy) return;
+    if (isDelete && !window.confirm(form.dataset.confirm)) return;
+    if (form === editor) error.textContent = '';
+    mutate(form, event.submitter, isDelete);
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(timer); controller?.abort(); } else { if (!busy && !dialog.open) sync().catch(() => {}); schedule(); } });
+  window.addEventListener('online', () => { if (!busy && !dialog.open) sync().catch(() => {}); });
+  window.addEventListener('pagehide', () => { clearTimeout(timer); controller?.abort(); });
+  window.addEventListener('pageshow', schedule);
+
+  const filters = document.getElementById('dashboardFilterForm');
+  function teamChoices() {
+    const map = JSON.parse(document.getElementById('dashboardTeamOptions').textContent || '{}');
+    const department = filters.elements.namedItem('department').value;
+    const team = filters.elements.namedItem('team');
+    for (const option of team.options) {
+      const allowed = !department || !option.value || (map[department] || []).map(String).includes(option.value);
+      option.hidden = !allowed; option.disabled = !allowed;
+    }
+    if (team.selectedOptions[0]?.disabled) team.value = '';
+  }
+  async function filterPage(url) {
+    if (busy || dialog.open) return;
+    controller?.abort(); controller = null;
+    pageUrl = url.href;
+    const buttons = [...filters.querySelectorAll('button')];
+    buttons.forEach(button => button.disabled = true);
+    document.getElementById('dashboardEmployeeResults').setAttribute('aria-busy', 'true');
+    try { await sync(); history.replaceState(null, '', pageUrl); }
+    catch (failure) { if (failure.name !== 'AbortError') notify('Unable to load filters. Please retry.', 'error'); }
+    finally { buttons.forEach(button => button.disabled = false); document.getElementById('dashboardEmployeeResults').removeAttribute('aria-busy'); schedule(); }
+  }
+  filters.elements.namedItem('department').addEventListener('change', teamChoices);
+  filters.addEventListener('submit', event => {
+    event.preventDefault();
+    const url = new URL(pageUrl); url.searchParams.delete('page');
+    for (const name of ['department', 'team']) { const value = filters.elements.namedItem(name).value; if (value) url.searchParams.set(name, value); else url.searchParams.delete(name); }
+    filterPage(url);
+  });
+  document.getElementById('dashboardFilterReset').addEventListener('click', () => {
+    filters.elements.namedItem('department').value = ''; filters.elements.namedItem('team').value = ''; teamChoices();
+    const url = new URL(pageUrl); for (const name of ['department', 'team', 'page']) url.searchParams.delete(name); filterPage(url);
+  });
+  root.addEventListener('click', event => {
+    const button = event.target.closest('[data-employee-page]'); if (!button || button.disabled) return;
+    const url = new URL(pageUrl); url.searchParams.set('page', button.dataset.employeePage); filterPage(url);
+  });
+  teamChoices();
+
+  schedule();
+})();
+</script>
+{% endblock %}

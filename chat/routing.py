@@ -4,12 +4,16 @@ from .consumers import (
     MemberChatConsumer,
     MemberGroupChatConsumer,
     PersonalChatConsumer,
+    AdminChatConsumer,
+    AdminGroupChatConsumer,
     LeadGroupChatConsumer,
 )
-from .receipt_consumers import ChatUpdatesConsumer
+from .receipt_consumers__ import ChatUpdatesConsumer
 
 
 websocket_urlpatterns = [
+    re_path(r"^ws/admin/chat/(?P<conversation_id>\d+)/$", AdminChatConsumer.as_asgi()),
+    re_path(r"^ws/admin/group/(?P<group_id>\d+)/$", AdminGroupChatConsumer.as_asgi()),
     re_path(
         r"^ws/member/chat/(?P<conversation_id>\d+)/$",
         MemberChatConsumer.as_asgi(),

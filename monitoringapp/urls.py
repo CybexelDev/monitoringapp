@@ -186,6 +186,43 @@ urlpatterns = [
     path("admin_login", views.admin_login, name="admin_login"),
     path("admin_logout/", views.admin_logout, name="admin_logout"),
     path("admin_dashboard", views.admin_dashboard, name="admin_dashboard"),
+    path("admin-panel/notepad/", views.admin_notepad, name="admin_notepad"),
+path(
+    "admin-panel/notepad/<int:pk>/delete/",
+    views.admin_notepad_delete,
+    name="admin_notepad_delete",
+),
+path(
+    "admin-panel/repository/",
+    views.admin_repository,
+    name="admin_repository",
+),
+path(
+    "admin-panel/repository/<int:pk>/delete/",
+    views.admin_repository_delete,
+    name="admin_repository_delete",
+),
+path(
+    "admin-panel/repository/<int:pk>/file/",
+    views.admin_repository_file,
+    name="admin_repository_file",
+),
+path(
+    "admin-panel/announcements/",
+    views.admin_announcements,
+    name="admin_announcements",
+),
+path(
+    "teamlead/announcements/<int:pk>/admin-seen/",
+    views.teamlead_admin_announcement_seen,
+    name="teamlead_admin_announcement_seen",
+),
+path(
+    "admin-panel/google-meet/",
+    views.admin_google_meet,
+    name="admin_google_meet",
+),
+
     path(
         "delete-department/<int:pk>/", views.delete_department, name="delete_department"
     ),
@@ -193,6 +230,24 @@ urlpatterns = [
     path(
         "admin_usermanagement", views.admin_usermanagement, name="admin_usermanagement"
     ),
+path("admin-chat/<int:user_id>/", views.admin_chat_room, name="admin_chat_room"),
+path("admin-chat/group/<int:group_id>/", views.admin_group_chat, name="admin_group_chat"),
+path(
+    "api/chat/meta/",
+    chat_receipts.chat_meta,
+    name="chat_meta",
+),
+path(
+    "api/chat/read/",
+    chat_receipts.chat_mark_read,
+    name="chat_mark_read",
+),
+path("admin-panel/notifications/", views.admin_notifications, name="admin_notifications"),
+path("admin-panel/notifications/read-all/", views.admin_notifications_read_all, name="admin_notifications_read_all"),
+path("admin-panel/notifications/<int:notification_id>/open/", views.admin_notification_open, name="admin_notification_open"),
+path("admin-panel/reminders/", views.admin_reminders, name="admin_reminders"),
+
+
     path("delete/<int:id>/", views.delete_user, name="delete_user"),
     path("edit-user/", views.edit_user, name="edit_user"),
     path("add-contact/", views.add_contact, name="add_contact"),

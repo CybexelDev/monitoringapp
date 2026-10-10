@@ -1,97 +1,106 @@
 {% load static %}
-
-<button class="menu-toggle mobile-menu-button" type="button">
-    ☰
-</button>
-
-<aside id="sidebar" class="glass-sidebar">
-
+{% firstof logged_in_user current_user as sidebar_user %}
+{% if not sidebar_user and request.resolver_match.url_name == 'admin_profile' %}
+    {% firstof user as sidebar_user %}
+{% endif %}
+{% url 'get_logged_in_user_api' as sidebar_profile_api %}
+{% with active_route=request.resolver_match.url_name %}
+<button id="adminMenuButton" class="menu-toggle mobile-menu-button" type="button" aria-label="Open sidebar" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu" aria-hidden="true"></i></button>
+<div id="adminSidebarOverlay" class="sidebar-overlay" hidden></div>
+<aside id="sidebar" class="glass-sidebar" aria-label="Admin navigation">
     <div class="sidebar-profile">
-
-        <div class="sidebar-logo">
-            <img src="{% static 'images/logo.png' %}" alt="Developer Logo">
-        </div>
-
-        <div class="sidebar-profile-text">
-            <h3>DEVELOPER</h3>
-            <span>TAGGING HERE</span>
-        </div>
-
+        <div class="sidebar-logo"><img src="{% static 'images/logo.png' %}" alt="Cybexel"></div>
+        <div class="sidebar-profile-text"><h3>ADMIN</h3><span>CYBEXEL WORKSPACE</span></div>
     </div>
-
-    <nav class="sidebar-nav">
-
-        <a href="{% url 'admin_dashboard' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
-            <span class="sidebar-icon">
-                <i data-lucide="layout-dashboard"></i>
-            </span>
+    <nav class="sidebar-nav" aria-label="Main navigation">
+        <a href="{% url 'admin_dashboard' %}" class="sidebar-item {% if active_route == 'admin_dashboard' %}active{% endif %}" {% if active_route == 'admin_dashboard' %}aria-current="page"{% endif %}>
+            <span class="sidebar-icon"><i data-lucide="layout-dashboard" aria-hidden="true"></i></span>
             <span>Dashboard</span>
         </a>
-
-        <a href="{% url 'admin_usermanagement' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'admin_usermanagement' %}active{% endif %}">
-            <span class="sidebar-icon">
-                <i data-lucide="users"></i>
-            </span>
+        <a href="{% url 'admin_usermanagement' %}" class="sidebar-item {% if active_route == 'admin_usermanagement' %}active{% endif %}" {% if active_route == 'admin_usermanagement' %}aria-current="page"{% endif %}>
+            <span class="sidebar-icon"><i data-lucide="users" aria-hidden="true"></i></span>
             <span>User Management</span>
         </a>
-
-        <a href="{% url 'admin_reports' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'admin_reports' %}active{% endif %}">
-            <span class="sidebar-icon">
-                <i data-lucide="chart-no-axes-combined"></i>
-            </span>
+        <a href="{% url 'admin_announcements' %}" class="sidebar-item {% if active_route == 'admin_announcements' %}active{% endif %}" {% if active_route == 'admin_announcements' %}aria-current="page"{% endif %}>
+            <span class="sidebar-icon"><i data-lucide="megaphone" aria-hidden="true"></i></span>
+            <span>Announcements</span>
+        </a>
+        <a href="{% url 'admin_reports' %}" class="sidebar-item {% if active_route == 'admin_reports' %}active{% endif %}" {% if active_route == 'admin_reports' %}aria-current="page"{% endif %}>
+            <span class="sidebar-icon"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span>
             <span>Reports</span>
         </a>
-
-        <a href="{% url 'admin_chat' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'admin_chat' %}active{% endif %}">
-            <span class="sidebar-icon">
-                <i data-lucide="message-circle"></i>
-            </span>
+        <a href="{% url 'admin_notepad' %}" class="sidebar-item {% if active_route == 'admin_notepad' %}active{% endif %}" {% if active_route == 'admin_notepad' %}aria-current="page"{% endif %}>
+            <span class="sidebar-icon"><i data-lucide="notebook-pen" aria-hidden="true"></i></span>
+            <span>Notepad</span>
+        </a>
+        <a href="{% url 'admin_repository' %}" class="sidebar-item {% if active_route == 'admin_repository' %}active{% endif %}" {% if active_route == 'admin_repository' %}aria-current="page"{% endif %}>
+            <span class="sidebar-icon"><i data-lucide="book-open" aria-hidden="true"></i></span>
+            <span>Knowledge Repository</span>
+        </a>
+        <a href="{% url 'admin_chat' %}" class="sidebar-item {% if active_route == 'admin_chat' or active_route == 'admin_chat_room' or active_route == 'admin_group_chat' %}active{% endif %}" {% if active_route == 'admin_chat' or active_route == 'admin_chat_room' or active_route == 'admin_group_chat' %}aria-current="page"{% endif %}>
+            <span class="sidebar-icon"><i data-lucide="message-circle" aria-hidden="true"></i></span>
             <span>Chat</span>
         </a>
-
-        <a href="{% url 'admin_profile' %}"
-           class="sidebar-item {% if request.resolver_match.url_name == 'admin_profile' %}active{% endif %}">
+        <a href="{% url 'admin_google_meet' %}" class="sidebar-item {% if active_route == 'admin_google_meet' %}active{% endif %}" {% if active_route == 'admin_google_meet' %}aria-current="page"{% endif %}>
+            <span class="sidebar-icon"><i data-lucide="video" aria-hidden="true"></i></span>
+            <span>Google Meet</span>
+        </a>
+        <a href="{% url 'admin_reminders' %}" class="sidebar-item {% if active_route == 'admin_reminders' %}active{% endif %}" {% if active_route == 'admin_reminders' %}aria-current="page"{% endif %}>
+            <span class="sidebar-icon"><i data-lucide="calendar-clock" aria-hidden="true"></i></span>
+            <span>Reminders</span>
+        </a>
+        <a href="{% url 'admin_notifications' %}" id="adminNotificationLink" data-feed-url="{% url 'admin_notifications' %}?format=json" class="sidebar-item {% if active_route == 'admin_notifications' %}active{% endif %}" {% if active_route == 'admin_notifications' %}aria-current="page"{% endif %}>
+            <span class="sidebar-icon" style="position:relative">
+                <i data-lucide="bell" aria-hidden="true"></i>
+                <span id="adminNotificationBadge" hidden style="position:absolute;top:-7px;right:-8px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#e05268;color:white;font-size:9px;line-height:16px;text-align:center;font-weight:700;pointer-events:none"></span>
+            </span>
+            <span>Notifications</span>
+        </a>
+        <a id="adminSidebarProfileLink" data-profile-url="{{ sidebar_profile_api }}" href="{% url 'admin_profile' %}" class="sidebar-item {% if active_route == 'admin_profile' %}active{% endif %}" {% if active_route == 'admin_profile' %}aria-current="page"{% endif %}>
             <span class="sidebar-icon">
-                <i data-lucide="circle-user-round"></i>
+                {% if sidebar_user.profile_image %}
+                <img src="{{ sidebar_user.profile_image.url }}" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0;">
+                {% else %}<i data-lucide="circle-user-round" aria-hidden="true"></i>{% endif %}
             </span>
             <span>Profile</span>
         </a>
-
-        <a href="https://meet.google.com/"
-           target="_blank"
-           rel="noopener noreferrer"
-           class="sidebar-item">
-
-            <span class="sidebar-icon">
-                <i data-lucide="video"></i>
-            </span>
-
-            <span>Google Meet</span>
-
-            <span class="sidebar-external">
-                <i data-lucide="arrow-up-right"></i>
-            </span>
-
-        </a>
-
     </nav>
-
     <div class="sidebar-bottom">
-
         <a href="{% url 'admin_logout' %}" class="sidebar-logout">
-
-            <span class="sidebar-icon">
-                <i data-lucide="log-out"></i>
-            </span>
-
-            <span>Logout</span>
-
+            <span class="sidebar-icon"><i data-lucide="log-out" aria-hidden="true"></i></span><span>Logout</span>
         </a>
-
     </div>
-
 </aside>
+{% endwith %}
+
+<script>
+(function () {
+    function initSidebarPhoto() {
+        const link = document.getElementById('adminSidebarProfileLink');
+        const icon = link?.querySelector('.sidebar-icon');
+        if (!icon || icon.querySelector('img') || !link.dataset.profileUrl) return;
+        // Resolve the signed-in user's photo once when template context lacks it.
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        fetch(link.dataset.profileUrl, {
+            credentials: 'same-origin', cache: 'no-store',
+            headers: {'Accept': 'application/json'}, signal: controller.signal
+        }).then(response => {
+            if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) throw new Error('Profile unavailable');
+            return response.json();
+        }).then(data => {
+            if (!data.profile_image_url || icon.querySelector('img')) return;
+            const url = new URL(data.profile_image_url, location.origin);
+            if (!['http:', 'https:'].includes(url.protocol)) return;
+            const img = document.createElement('img');
+            img.alt = ''; img.width = 28; img.height = 28;
+            img.style.cssText = 'width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0';
+            img.onload = () => { if (icon.isConnected && !icon.querySelector('img')) icon.replaceChildren(img); };
+            img.src = url.href;
+        }).catch(() => {}).finally(() => clearTimeout(timeout));
+        window.addEventListener('pagehide', () => controller.abort(), {once: true});
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initSidebarPhoto, {once: true});
+    else initSidebarPhoto();
+})();
+</script>

@@ -28,6 +28,7 @@ class ChatUpdatesConsumer(AsyncWebsocketConsumer):
         from monitoringapp.models import User
 
         session = self.scope.get("session", {})
+
         position = (
             str(session.get("position", ""))
             .strip()
@@ -35,17 +36,26 @@ class ChatUpdatesConsumer(AsyncWebsocketConsumer):
             .replace(" ", "_")
         )
 
-        if position not in {"team_member", "team_lead"}:
+        if position not in {
+            "team_member",
+            "team_lead",
+            "management",
+        }:
             return None
 
-        user_id = session.get("user_id")
-
-        return (
-            User.objects.filter(pk=user_id)
-            .values_list("pk", flat=True)
-            .first()
+        users = User.objects.filter(
+            pk=session.get("user_id")
         )
 
+        if position == "management":
+            users = users.filter(
+                job_Position__iexact="Management"
+            )
+
+        return (
+            users.values_list("pk", flat=True)
+            .first()
+        )
     async def disconnect(self, close_code):
         if getattr(self, "joined", False):
             await self.channel_layer.group_discard(

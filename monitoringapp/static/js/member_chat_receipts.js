@@ -113,6 +113,12 @@
       const text = seen ? '✓✓' : '✓';
 
       if (tick.textContent !== text) {
+    tick.textContent = text;
+}
+
+tick.classList.toggle('seen', seen);
+
+      if (tick.textContent !== text) {
         tick.textContent = text;
       }
 
