@@ -85,16 +85,27 @@
   const updateButton = document.getElementById('incomeUpdateButton');
   const deleteButton = document.getElementById('incomeDeleteButton');
   if (!root || !form || !button || !addDialog || !editDialog || !deleteDialog || !editForm || !updateButton || !deleteButton) return;
+  if (root.dataset.ledgerInitialized === '1') return;
+  root.dataset.ledgerInitialized = '1';
   let saving = false, loading = false, deleteUrl = '', opener = null;
+  let snapshotController = null, snapshotSequence = 0, snapshotSignature = '', pagePaused = false, sessionExpired = false;
+  const toastHome = (document.getElementById('toastContainer') || document.getElementById('toast-container'))?.parentNode;
   let scrollLocks = [];
   const busy = () => saving || loading;
   const csrf = () => form.elements.namedItem('csrfmiddlewaretoken').value;
 
   function notice(message, type = 'success') {
-    if (typeof window.showToast === 'function') window.showToast(message, type);
-    else if (feedback) {
-      feedback.textContent = message; feedback.dataset.type = type; feedback.hidden = false;
+    const activeDialog = document.querySelector('dialog[open]');
+    const container = document.getElementById('toastContainer') || document.getElementById('toast-container');
+    if (container) (activeDialog || toastHome || document.body).appendChild(container);
+    if (typeof window.showToast === 'function') {
+      try { window.showToast(message, type); return; } catch (_) {}
     }
+    if (feedback) { feedback.textContent = message; feedback.dataset.type = type; feedback.hidden = false; }
+    const node = document.createElement('div');
+    node.textContent = message; node.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    node.style.cssText = 'position:fixed;right:16px;bottom:20px;z-index:100000;max-width:min(360px,calc(100vw - 32px));padding:14px 18px;border:1px solid #79608e;border-radius:12px;background:#211c2c;color:#f6efff;font:14px/1.5 system-ui;box-shadow:0 8px 24px #0003';
+    (activeDialog || document.body).appendChild(node);setTimeout(() => node.remove(), 6000);
   }
   function clearErrors(targetForm, general) {
     general.hidden = true; general.textContent = '';
@@ -119,45 +130,70 @@
     first?.focus();
   }
   async function requestJson(url, options = {}) {
-    const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', ...options});
-    if (!(response.headers.get('content-type') || '').includes('application/json')) {
-      throw new Error('Unexpected response. Check your session and income list before trying again.');
-    }
-    const data = await response.json();
-    if (options.method === 'POST' && response.ok && data.ok) {
-      document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
-    }
-    return {response, data};
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), options.method === 'POST' ? 30000 : 15000);
+    try {
+      const response = await fetch(url, {credentials:'same-origin', cache:'no-store', ...options, signal:controller.signal});
+      if (response.redirected || !(response.headers.get('content-type') || '').includes('application/json')) {
+        throw new Error('Unexpected response. Check your session and ledger before trying again.');
+      }
+      const data = await response.json();
+      if (options.method === 'POST' && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
+      return {response, data};
+    } catch (error) {
+      if (error.name === 'AbortError') throw new Error('Request timed out. Check the ledger before retrying; the change may have saved.');
+      throw error;
+    } finally { clearTimeout(timeout); }
   }
   const postOptions = body => ({
     method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf()}, body
   });
   async function refreshSnapshot(url, historyMode, silent = false) {
-    if (loading) return false;
-    loading = true; root.setAttribute('aria-busy', 'true');
+    if (loading || pagePaused || sessionExpired || (silent && (document.hidden || saving || document.querySelector('dialog[open]')))) return false;
+    const target = new URL(url, location.href), token = ++snapshotSequence;
+    const controller = new AbortController();snapshotController = controller;
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    loading = true;root.setAttribute('aria-busy', 'true');
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-      let response;
-      try { response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', signal: controller.signal}); }
-      finally { clearTimeout(timeout); }
-      if (!response.ok && response.status !== 400) throw new Error('Income list could not be loaded.');
+      const response = await fetch(target, {credentials:'same-origin',cache:'no-store',signal:controller.signal});
+      if (token !== snapshotSequence || controller.signal.aborted || pagePaused) return false;
+      if (response.redirected || response.status === 401 || response.status === 403) {
+        sessionExpired = true;
+        notice('Your session or access has changed. Sign in again to continue.', 'error');
+        return false;
+      }
+      if (!response.ok && response.status !== 400) throw new Error('Ledger could not be loaded.');
       const page = new DOMParser().parseFromString(await response.text(), 'text/html');
       const snapshot = page.getElementById('incomeSnapshot');
-      if (!snapshot) throw new Error('Income list unavailable. Sign in again if your session has ended.');
-      if (silent && (saving || document.hidden || document.querySelector('dialog[open]') || root.contains(document.activeElement))) return false;
-      const current = document.getElementById('incomeSnapshot');
-      const positions = [...current.querySelectorAll('[class*=table-scroll]')].map(node => ({top: node.scrollTop, left: node.scrollLeft}));
-      current.replaceWith(snapshot);
-      snapshot.querySelectorAll('[class*=table-scroll]').forEach((node, index) => {
-        if (positions[index]) {node.scrollTop = positions[index].top; node.scrollLeft = positions[index].left;}
-      });
-      if (historyMode === 'push') history.pushState(null, '', url);
-      if (historyMode === 'replace') history.replaceState(null, '', url);
-      window.lucide?.createIcons();
+      if (!snapshot) throw new Error('Ledger unavailable. Check your session.');
+      if (token !== snapshotSequence || controller.signal.aborted || pagePaused || !root.isConnected || (silent && (saving || document.hidden || document.querySelector('dialog[open]') || target.href !== new URL(location.href).href))) return false;
+      const signature = snapshot.innerHTML;
+      if (!silent || signature !== snapshotSignature) {
+        const current = document.getElementById('incomeSnapshot');
+        const positions = [...current.querySelectorAll('[class*=table-scroll]')].map(node => ({top:node.scrollTop,left:node.scrollLeft}));
+        const active = document.activeElement;
+        const focusedAction = current.contains(active) ? Array.from(active.attributes || []).find(attribute => attribute.name.startsWith('data-income-')) : null;
+        if (silent) {
+          // Keep the live filter controls and their focus while updating ledger rows and totals.
+          const currentFilters = current.querySelector('#incomeSearchForm'), nextFilters = snapshot.querySelector('#incomeSearchForm');
+          if (currentFilters && nextFilters) nextFilters.replaceWith(currentFilters);
+        }
+        current.replaceWith(snapshot);
+        snapshot.querySelectorAll('[class*=table-scroll]').forEach((node,index) => {if(positions[index]){node.scrollTop=positions[index].top;node.scrollLeft=positions[index].left;}});
+        if (focusedAction) Array.from(snapshot.querySelectorAll('button')).find(button => button.getAttribute(focusedAction.name) === focusedAction.value && button.getAttribute('aria-label') === active.getAttribute('aria-label'))?.focus({preventScroll:true});
+        snapshotSignature = signature;window.lucide?.createIcons();
+      }
+      if (historyMode === 'push') history.pushState(null, '', target);
+      if (historyMode === 'replace') history.replaceState(null, '', target);
       return true;
-    } catch (error) { if (!silent) notice(error.message, 'error'); return false; }
-    finally { loading = false; root.removeAttribute('aria-busy'); }
+    } catch (error) {
+      if (!silent && error.name !== 'AbortError') notice(error.message, 'error');
+      else if (!silent && !pagePaused && !document.hidden) notice('List update timed out. Updates will retry automatically.', 'warning');
+      return false;
+    } finally {
+      clearTimeout(timeout);
+      if(snapshotController === controller){snapshotController=null;loading=false;root.removeAttribute('aria-busy');}
+    }
   }
   function openPopup(dialog, trigger) {
     opener = trigger;
@@ -240,7 +276,7 @@
       }
       form.reset(); addDialog.close(); notice(data.message || 'Income saved successfully.');
       if (!await refreshSnapshot(location.href, 'replace')) {
-        notice('Income was saved. Reload the list to see the new entry.', 'warning');
+        notice('Income was saved. List updates will retry automatically.', 'warning');
       }
     } catch (error) { notice(error.message || 'Unable to confirm the save. Check the list before submitting again.', 'error'); }
     finally { saving = false; setModalBusy(addDialog, false); label.textContent = 'Save Income'; }
@@ -265,7 +301,7 @@
     if (exportLabel) exportLabel.textContent = 'Exporting…';
     root.setAttribute('aria-busy', 'true');
     try {
-      const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store'});
+      const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(30000)});
       if (!response.ok || !(response.headers.get('content-type') || '').includes('spreadsheetml')) {
         if (response.status === 400) {
           const errorPage = new DOMParser().parseFromString(await response.text(), 'text/html');
@@ -368,7 +404,7 @@
         showErrors(editForm, general, data.errors); general.textContent ||= data.message || 'Update failed.'; general.hidden = false; return;
       }
       editDialog.close(); notice(data.message || 'Income updated successfully.');
-      if (!await refreshSnapshot(location.href, 'replace')) notice('Income updated. Reload the list to see the changes.', 'warning');
+      if (!await refreshSnapshot(location.href, 'replace')) notice('Income updated. List updates will retry automatically.', 'warning');
     } catch (_) {
       general.textContent = 'Unable to confirm the update. Close this popup and check the list before retrying.'; general.hidden = false;
     } finally { saving = false; setModalBusy(editDialog, false); updateButton.textContent = 'Save Changes'; }
@@ -383,20 +419,26 @@
       const {response, data} = await requestJson(deleteUrl, postOptions(deleteData));
       if (!response.ok || !data.ok) { general.textContent = data.message || 'Delete failed.'; general.hidden = false; return; }
       deleteDialog.close(); notice(data.message || 'Income deleted successfully.'); deleteUrl = '';
-      if (!await refreshSnapshot(location.href, 'replace')) notice('Income deleted. Reload the list to see the changes.', 'warning');
+      if (!await refreshSnapshot(location.href, 'replace')) notice('Income deleted. List updates will retry automatically.', 'warning');
     } catch (_) {
       general.textContent = 'Unable to confirm deletion. Close this popup and check the list before retrying.'; general.hidden = false;
     } finally { saving = false; setModalBusy(deleteDialog, false); deleteButton.textContent = 'Delete Income'; }
   });
   function refreshLiveList() {
-    if (!root.isConnected || document.hidden || busy() || document.querySelector('dialog[open]') || root.contains(document.activeElement)) return;
+    if (pagePaused || sessionExpired || !root.isConnected || document.hidden || busy() || document.querySelector('dialog[open]')) return;
     refreshSnapshot(location.href, undefined, true);
   }
   const liveTimer = setInterval(() => {
     if (!root.isConnected) { clearInterval(liveTimer); return; }
     refreshLiveList();
   }, 15000);
-  document.addEventListener('visibilitychange', refreshLiveList);
+  document.addEventListener('visibilitychange', () => {
+    if(document.hidden){if(snapshotController){++snapshotSequence;snapshotController.abort();snapshotController=null;loading=false;root.removeAttribute('aria-busy');}}
+    else refreshLiveList();
+  });
+  window.addEventListener('online', refreshLiveList);
+  window.addEventListener('pagehide', () => {pagePaused=true;++snapshotSequence;snapshotController?.abort();snapshotController=null;loading=false;root.removeAttribute('aria-busy');});
+  window.addEventListener('pageshow', () => {pagePaused=false;refreshLiveList();});
   window.addEventListener('focus', refreshLiveList);
   window.addEventListener('popstate', () => {
     if (root.isConnected && !busy()) {
@@ -423,16 +465,27 @@
   const updateButton = document.getElementById('expenseUpdateButton');
   const deleteButton = document.getElementById('expenseDeleteButton');
   if (!root || !form || !button || !addDialog || !editDialog || !deleteDialog || !editForm || !updateButton || !deleteButton) return;
+  if (root.dataset.ledgerInitialized === '1') return;
+  root.dataset.ledgerInitialized = '1';
   let saving = false, loading = false, deleteUrl = '', opener = null;
+  let snapshotController = null, snapshotSequence = 0, snapshotSignature = '', pagePaused = false, sessionExpired = false;
+  const toastHome = (document.getElementById('toastContainer') || document.getElementById('toast-container'))?.parentNode;
   let scrollLocks = [];
   const busy = () => saving || loading;
   const csrf = () => form.elements.namedItem('csrfmiddlewaretoken').value;
 
   function notice(message, type = 'success') {
-    if (typeof window.showToast === 'function') window.showToast(message, type);
-    else if (feedback) {
-      feedback.textContent = message; feedback.dataset.type = type; feedback.hidden = false;
+    const activeDialog = document.querySelector('dialog[open]');
+    const container = document.getElementById('toastContainer') || document.getElementById('toast-container');
+    if (container) (activeDialog || toastHome || document.body).appendChild(container);
+    if (typeof window.showToast === 'function') {
+      try { window.showToast(message, type); return; } catch (_) {}
     }
+    if (feedback) { feedback.textContent = message; feedback.dataset.type = type; feedback.hidden = false; }
+    const node = document.createElement('div');
+    node.textContent = message; node.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    node.style.cssText = 'position:fixed;right:16px;bottom:20px;z-index:100000;max-width:min(360px,calc(100vw - 32px));padding:14px 18px;border:1px solid #79608e;border-radius:12px;background:#211c2c;color:#f6efff;font:14px/1.5 system-ui;box-shadow:0 8px 24px #0003';
+    (activeDialog || document.body).appendChild(node);setTimeout(() => node.remove(), 6000);
   }
   function clearErrors(targetForm, general) {
     general.hidden = true; general.textContent = '';
@@ -457,45 +510,70 @@
     first?.focus();
   }
   async function requestJson(url, options = {}) {
-    const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', ...options});
-    if (!(response.headers.get('content-type') || '').includes('application/json')) {
-      throw new Error('Unexpected response. Check your session and expense list before trying again.');
-    }
-    const data = await response.json();
-    if (options.method === 'POST' && response.ok && data.ok) {
-      document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
-    }
-    return {response, data};
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), options.method === 'POST' ? 30000 : 15000);
+    try {
+      const response = await fetch(url, {credentials:'same-origin', cache:'no-store', ...options, signal:controller.signal});
+      if (response.redirected || !(response.headers.get('content-type') || '').includes('application/json')) {
+        throw new Error('Unexpected response. Check your session and ledger before trying again.');
+      }
+      const data = await response.json();
+      if (options.method === 'POST' && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
+      return {response, data};
+    } catch (error) {
+      if (error.name === 'AbortError') throw new Error('Request timed out. Check the ledger before retrying; the change may have saved.');
+      throw error;
+    } finally { clearTimeout(timeout); }
   }
   const postOptions = body => ({
     method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf()}, body
   });
   async function refreshSnapshot(url, historyMode, silent = false) {
-    if (loading) return false;
-    loading = true; root.setAttribute('aria-busy', 'true');
+    if (loading || pagePaused || sessionExpired || (silent && (document.hidden || saving || document.querySelector('dialog[open]')))) return false;
+    const target = new URL(url, location.href), token = ++snapshotSequence;
+    const controller = new AbortController();snapshotController = controller;
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    loading = true;root.setAttribute('aria-busy', 'true');
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-      let response;
-      try { response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', signal: controller.signal}); }
-      finally { clearTimeout(timeout); }
-      if (!response.ok && response.status !== 400) throw new Error('Expense list could not be loaded.');
+      const response = await fetch(target, {credentials:'same-origin',cache:'no-store',signal:controller.signal});
+      if (token !== snapshotSequence || controller.signal.aborted || pagePaused) return false;
+      if (response.redirected || response.status === 401 || response.status === 403) {
+        sessionExpired = true;
+        notice('Your session or access has changed. Sign in again to continue.', 'error');
+        return false;
+      }
+      if (!response.ok && response.status !== 400) throw new Error('Ledger could not be loaded.');
       const page = new DOMParser().parseFromString(await response.text(), 'text/html');
       const snapshot = page.getElementById('expenseSnapshot');
-      if (!snapshot) throw new Error('Expense list unavailable. Sign in again if your session has ended.');
-      if (silent && (saving || document.hidden || document.querySelector('dialog[open]') || root.contains(document.activeElement))) return false;
-      const current = document.getElementById('expenseSnapshot');
-      const positions = [...current.querySelectorAll('[class*=table-scroll]')].map(node => ({top: node.scrollTop, left: node.scrollLeft}));
-      current.replaceWith(snapshot);
-      snapshot.querySelectorAll('[class*=table-scroll]').forEach((node, index) => {
-        if (positions[index]) {node.scrollTop = positions[index].top; node.scrollLeft = positions[index].left;}
-      });
-      if (historyMode === 'push') history.pushState(null, '', url);
-      if (historyMode === 'replace') history.replaceState(null, '', url);
-      window.lucide?.createIcons();
+      if (!snapshot) throw new Error('Ledger unavailable. Check your session.');
+      if (token !== snapshotSequence || controller.signal.aborted || pagePaused || !root.isConnected || (silent && (saving || document.hidden || document.querySelector('dialog[open]') || target.href !== new URL(location.href).href))) return false;
+      const signature = snapshot.innerHTML;
+      if (!silent || signature !== snapshotSignature) {
+        const current = document.getElementById('expenseSnapshot');
+        const positions = [...current.querySelectorAll('[class*=table-scroll]')].map(node => ({top:node.scrollTop,left:node.scrollLeft}));
+        const active = document.activeElement;
+        const focusedAction = current.contains(active) ? Array.from(active.attributes || []).find(attribute => attribute.name.startsWith('data-expense-')) : null;
+        if (silent) {
+          // Keep the live filter controls and their focus while updating ledger rows and totals.
+          const currentFilters = current.querySelector('#expenseSearchForm'), nextFilters = snapshot.querySelector('#expenseSearchForm');
+          if (currentFilters && nextFilters) nextFilters.replaceWith(currentFilters);
+        }
+        current.replaceWith(snapshot);
+        snapshot.querySelectorAll('[class*=table-scroll]').forEach((node,index) => {if(positions[index]){node.scrollTop=positions[index].top;node.scrollLeft=positions[index].left;}});
+        if (focusedAction) Array.from(snapshot.querySelectorAll('button')).find(button => button.getAttribute(focusedAction.name) === focusedAction.value && button.getAttribute('aria-label') === active.getAttribute('aria-label'))?.focus({preventScroll:true});
+        snapshotSignature = signature;window.lucide?.createIcons();
+      }
+      if (historyMode === 'push') history.pushState(null, '', target);
+      if (historyMode === 'replace') history.replaceState(null, '', target);
       return true;
-    } catch (error) { if (!silent) notice(error.message, 'error'); return false; }
-    finally { loading = false; root.removeAttribute('aria-busy'); }
+    } catch (error) {
+      if (!silent && error.name !== 'AbortError') notice(error.message, 'error');
+      else if (!silent && !pagePaused && !document.hidden) notice('List update timed out. Updates will retry automatically.', 'warning');
+      return false;
+    } finally {
+      clearTimeout(timeout);
+      if(snapshotController === controller){snapshotController=null;loading=false;root.removeAttribute('aria-busy');}
+    }
   }
   function openPopup(dialog, trigger) {
     opener = trigger;
@@ -578,7 +656,7 @@
       }
       form.reset(); addDialog.close(); notice(data.message || 'Expense saved successfully.');
       if (!await refreshSnapshot(location.href, 'replace')) {
-        notice('Expense was saved. Reload the list to see the new entry.', 'warning');
+        notice('Expense was saved. List updates will retry automatically.', 'warning');
       }
     } catch (error) { notice(error.message || 'Unable to confirm the save. Check the list before submitting again.', 'error'); }
     finally { saving = false; setModalBusy(addDialog, false); label.textContent = 'Save Expense'; }
@@ -603,7 +681,7 @@
     if (exportLabel) exportLabel.textContent = 'Exporting…';
     root.setAttribute('aria-busy', 'true');
     try {
-      const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store'});
+      const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(30000)});
       if (!response.ok || !(response.headers.get('content-type') || '').includes('spreadsheetml')) {
         if (response.status === 400) {
           const errorPage = new DOMParser().parseFromString(await response.text(), 'text/html');
@@ -706,7 +784,7 @@
         showErrors(editForm, general, data.errors); general.textContent ||= data.message || 'Update failed.'; general.hidden = false; return;
       }
       editDialog.close(); notice(data.message || 'Expense updated successfully.');
-      if (!await refreshSnapshot(location.href, 'replace')) notice('Expense updated. Reload the list to see the changes.', 'warning');
+      if (!await refreshSnapshot(location.href, 'replace')) notice('Expense updated. List updates will retry automatically.', 'warning');
     } catch (_) {
       general.textContent = 'Unable to confirm the update. Close this popup and check the list before retrying.'; general.hidden = false;
     } finally { saving = false; setModalBusy(editDialog, false); updateButton.textContent = 'Save Changes'; }
@@ -721,20 +799,26 @@
       const {response, data} = await requestJson(deleteUrl, postOptions(deleteData));
       if (!response.ok || !data.ok) { general.textContent = data.message || 'Delete failed.'; general.hidden = false; return; }
       deleteDialog.close(); notice(data.message || 'Expense deleted successfully.'); deleteUrl = '';
-      if (!await refreshSnapshot(location.href, 'replace')) notice('Expense deleted. Reload the list to see the changes.', 'warning');
+      if (!await refreshSnapshot(location.href, 'replace')) notice('Expense deleted. List updates will retry automatically.', 'warning');
     } catch (_) {
       general.textContent = 'Unable to confirm deletion. Close this popup and check the list before retrying.'; general.hidden = false;
     } finally { saving = false; setModalBusy(deleteDialog, false); deleteButton.textContent = 'Delete Expense'; }
   });
   function refreshLiveList() {
-    if (!root.isConnected || document.hidden || busy() || document.querySelector('dialog[open]') || root.contains(document.activeElement)) return;
+    if (pagePaused || sessionExpired || !root.isConnected || document.hidden || busy() || document.querySelector('dialog[open]')) return;
     refreshSnapshot(location.href, undefined, true);
   }
   const liveTimer = setInterval(() => {
     if (!root.isConnected) { clearInterval(liveTimer); return; }
     refreshLiveList();
   }, 15000);
-  document.addEventListener('visibilitychange', refreshLiveList);
+  document.addEventListener('visibilitychange', () => {
+    if(document.hidden){if(snapshotController){++snapshotSequence;snapshotController.abort();snapshotController=null;loading=false;root.removeAttribute('aria-busy');}}
+    else refreshLiveList();
+  });
+  window.addEventListener('online', refreshLiveList);
+  window.addEventListener('pagehide', () => {pagePaused=true;++snapshotSequence;snapshotController?.abort();snapshotController=null;loading=false;root.removeAttribute('aria-busy');});
+  window.addEventListener('pageshow', () => {pagePaused=false;refreshLiveList();});
   window.addEventListener('focus', refreshLiveList);
   window.addEventListener('popstate', () => {
     if (root.isConnected && !busy()) {
@@ -763,16 +847,27 @@
   const updateButton = document.getElementById('saleUpdateButton');
   const deleteButton = document.getElementById('saleDeleteButton');
   if (!root || !form || !button || !addDialog || !editDialog || !deleteDialog || !editForm || !updateButton || !deleteButton) return;
+  if (root.dataset.ledgerInitialized === '1') return;
+  root.dataset.ledgerInitialized = '1';
   let saving = false, loading = false, deleteUrl = '', opener = null;
+  let snapshotController = null, snapshotSequence = 0, snapshotSignature = '', pagePaused = false, sessionExpired = false;
+  const toastHome = (document.getElementById('toastContainer') || document.getElementById('toast-container'))?.parentNode;
   let scrollLocks = [];
   const busy = () => saving || loading;
   const csrf = () => form.elements.namedItem('csrfmiddlewaretoken').value;
 
   function notice(message, type = 'success') {
-    if (typeof window.showToast === 'function') window.showToast(message, type);
-    else if (feedback) {
-      feedback.textContent = message; feedback.dataset.type = type; feedback.hidden = false;
+    const activeDialog = document.querySelector('dialog[open]');
+    const container = document.getElementById('toastContainer') || document.getElementById('toast-container');
+    if (container) (activeDialog || toastHome || document.body).appendChild(container);
+    if (typeof window.showToast === 'function') {
+      try { window.showToast(message, type); return; } catch (_) {}
     }
+    if (feedback) { feedback.textContent = message; feedback.dataset.type = type; feedback.hidden = false; }
+    const node = document.createElement('div');
+    node.textContent = message; node.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    node.style.cssText = 'position:fixed;right:16px;bottom:20px;z-index:100000;max-width:min(360px,calc(100vw - 32px));padding:14px 18px;border:1px solid #79608e;border-radius:12px;background:#211c2c;color:#f6efff;font:14px/1.5 system-ui;box-shadow:0 8px 24px #0003';
+    (activeDialog || document.body).appendChild(node);setTimeout(() => node.remove(), 6000);
   }
   function clearErrors(targetForm, general) {
     general.hidden = true; general.textContent = '';
@@ -797,45 +892,70 @@
     first?.focus();
   }
   async function requestJson(url, options = {}) {
-    const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', ...options});
-    if (!(response.headers.get('content-type') || '').includes('application/json')) {
-      throw new Error('Unexpected response. Check your session and sale list before trying again.');
-    }
-    const data = await response.json();
-    if (options.method === 'POST' && response.ok && data.ok) {
-      document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
-    }
-    return {response, data};
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), options.method === 'POST' ? 30000 : 15000);
+    try {
+      const response = await fetch(url, {credentials:'same-origin', cache:'no-store', ...options, signal:controller.signal});
+      if (response.redirected || !(response.headers.get('content-type') || '').includes('application/json')) {
+        throw new Error('Unexpected response. Check your session and ledger before trying again.');
+      }
+      const data = await response.json();
+      if (options.method === 'POST' && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
+      return {response, data};
+    } catch (error) {
+      if (error.name === 'AbortError') throw new Error('Request timed out. Check the ledger before retrying; the change may have saved.');
+      throw error;
+    } finally { clearTimeout(timeout); }
   }
   const postOptions = body => ({
     method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf()}, body
   });
   async function refreshSnapshot(url, historyMode, silent = false) {
-    if (loading) return false;
-    loading = true; root.setAttribute('aria-busy', 'true');
+    if (loading || pagePaused || sessionExpired || (silent && (document.hidden || saving || document.querySelector('dialog[open]')))) return false;
+    const target = new URL(url, location.href), token = ++snapshotSequence;
+    const controller = new AbortController();snapshotController = controller;
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    loading = true;root.setAttribute('aria-busy', 'true');
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-      let response;
-      try { response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', signal: controller.signal}); }
-      finally { clearTimeout(timeout); }
-      if (!response.ok && response.status !== 400) throw new Error('Sale list could not be loaded.');
+      const response = await fetch(target, {credentials:'same-origin',cache:'no-store',signal:controller.signal});
+      if (token !== snapshotSequence || controller.signal.aborted || pagePaused) return false;
+      if (response.redirected || response.status === 401 || response.status === 403) {
+        sessionExpired = true;
+        notice('Your session or access has changed. Sign in again to continue.', 'error');
+        return false;
+      }
+      if (!response.ok && response.status !== 400) throw new Error('Ledger could not be loaded.');
       const page = new DOMParser().parseFromString(await response.text(), 'text/html');
       const snapshot = page.getElementById('saleSnapshot');
-      if (!snapshot) throw new Error('Sale list unavailable. Sign in again if your session has ended.');
-      if (silent && (saving || document.hidden || document.querySelector('dialog[open]') || root.contains(document.activeElement))) return false;
-      const current = document.getElementById('saleSnapshot');
-      const positions = [...current.querySelectorAll('[class*=table-scroll]')].map(node => ({top: node.scrollTop, left: node.scrollLeft}));
-      current.replaceWith(snapshot);
-      snapshot.querySelectorAll('[class*=table-scroll]').forEach((node, index) => {
-        if (positions[index]) {node.scrollTop = positions[index].top; node.scrollLeft = positions[index].left;}
-      });
-      if (historyMode === 'push') history.pushState(null, '', url);
-      if (historyMode === 'replace') history.replaceState(null, '', url);
-      window.lucide?.createIcons();
+      if (!snapshot) throw new Error('Ledger unavailable. Check your session.');
+      if (token !== snapshotSequence || controller.signal.aborted || pagePaused || !root.isConnected || (silent && (saving || document.hidden || document.querySelector('dialog[open]') || target.href !== new URL(location.href).href))) return false;
+      const signature = snapshot.innerHTML;
+      if (!silent || signature !== snapshotSignature) {
+        const current = document.getElementById('saleSnapshot');
+        const positions = [...current.querySelectorAll('[class*=table-scroll]')].map(node => ({top:node.scrollTop,left:node.scrollLeft}));
+        const active = document.activeElement;
+        const focusedAction = current.contains(active) ? Array.from(active.attributes || []).find(attribute => attribute.name.startsWith('data-sale-')) : null;
+        if (silent) {
+          // Keep the live filter controls and their focus while updating ledger rows and totals.
+          const currentFilters = current.querySelector('#saleSearchForm'), nextFilters = snapshot.querySelector('#saleSearchForm');
+          if (currentFilters && nextFilters) nextFilters.replaceWith(currentFilters);
+        }
+        current.replaceWith(snapshot);
+        snapshot.querySelectorAll('[class*=table-scroll]').forEach((node,index) => {if(positions[index]){node.scrollTop=positions[index].top;node.scrollLeft=positions[index].left;}});
+        if (focusedAction) Array.from(snapshot.querySelectorAll('button')).find(button => button.getAttribute(focusedAction.name) === focusedAction.value && button.getAttribute('aria-label') === active.getAttribute('aria-label'))?.focus({preventScroll:true});
+        snapshotSignature = signature;window.lucide?.createIcons();
+      }
+      if (historyMode === 'push') history.pushState(null, '', target);
+      if (historyMode === 'replace') history.replaceState(null, '', target);
       return true;
-    } catch (error) { if (!silent) notice(error.message, 'error'); return false; }
-    finally { loading = false; root.removeAttribute('aria-busy'); }
+    } catch (error) {
+      if (!silent && error.name !== 'AbortError') notice(error.message, 'error');
+      else if (!silent && !pagePaused && !document.hidden) notice('List update timed out. Updates will retry automatically.', 'warning');
+      return false;
+    } finally {
+      clearTimeout(timeout);
+      if(snapshotController === controller){snapshotController=null;loading=false;root.removeAttribute('aria-busy');}
+    }
   }
   function openPopup(dialog, trigger) {
     opener = trigger;
@@ -919,7 +1039,7 @@
       }
       form.reset(); addDialog.close(); notice(data.message || 'Sale saved successfully.');
       if (!await refreshSnapshot(location.href, 'replace')) {
-        notice('Sale was saved. Reload the list to see the new entry.', 'warning');
+        notice('Sale was saved. List updates will retry automatically.', 'warning');
       }
     } catch (error) { notice(error.message || 'Unable to confirm the save. Check the list before submitting again.', 'error'); }
     finally { saving = false; setModalBusy(addDialog, false); label.textContent = 'Save Sale'; }
@@ -944,7 +1064,7 @@
     if (exportLabel) exportLabel.textContent = 'Exporting…';
     root.setAttribute('aria-busy', 'true');
     try {
-      const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store'});
+      const response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(30000)});
       if (!response.ok || !(response.headers.get('content-type') || '').includes('spreadsheetml')) {
         if (response.status === 400) {
           const errorPage = new DOMParser().parseFromString(await response.text(), 'text/html');
@@ -1039,7 +1159,7 @@
         showErrors(editForm, general, data.errors); general.textContent ||= data.message || 'Update failed.'; general.hidden = false; return;
       }
       editDialog.close(); notice(data.message || 'Sale updated successfully.');
-      if (!await refreshSnapshot(location.href, 'replace')) notice('Sale updated. Reload the list to see the changes.', 'warning');
+      if (!await refreshSnapshot(location.href, 'replace')) notice('Sale updated. List updates will retry automatically.', 'warning');
     } catch (_) {
       general.textContent = 'Unable to confirm the update. Close this popup and check the list before retrying.'; general.hidden = false;
     } finally { saving = false; setModalBusy(editDialog, false); updateButton.textContent = 'Save Changes'; }
@@ -1054,7 +1174,7 @@
       const {response, data} = await requestJson(deleteUrl, postOptions(deleteData));
       if (!response.ok || !data.ok) { general.textContent = data.message || 'Delete failed.'; general.hidden = false; return; }
       deleteDialog.close(); notice(data.message || 'Sale deleted successfully.'); deleteUrl = '';
-      if (!await refreshSnapshot(location.href, 'replace')) notice('Sale deleted. Reload the list to see the changes.', 'warning');
+      if (!await refreshSnapshot(location.href, 'replace')) notice('Sale deleted. List updates will retry automatically.', 'warning');
     } catch (_) {
       general.textContent = 'Unable to confirm deletion. Close this popup and check the list before retrying.'; general.hidden = false;
     } finally { saving = false; setModalBusy(deleteDialog, false); deleteButton.textContent = 'Delete Sale'; }
@@ -1091,20 +1211,26 @@
         general.textContent ||= data.message || 'Payment could not be recorded.'; general.hidden = false; return;
       }
       notice(data.message); paymentsDialog.close();
-      if (!await refreshSnapshot(location.href, 'replace')) notice('Payment recorded. Reload the list to see updated totals.', 'warning');
+      if (!await refreshSnapshot(location.href, 'replace')) notice('Payment recorded. Totals will retry updating automatically.', 'warning');
     } catch (_) {
       general.textContent = 'Unable to confirm payment. Retry without changing the form, or close and check Payment History first.'; general.hidden = false;
     } finally { saving = false; setModalBusy(paymentsDialog, false); paymentSaveButton.textContent = 'Record Payment'; }
   });
   function refreshLiveList() {
-    if (!root.isConnected || document.hidden || busy() || document.querySelector('dialog[open]') || root.contains(document.activeElement)) return;
+    if (pagePaused || sessionExpired || !root.isConnected || document.hidden || busy() || document.querySelector('dialog[open]')) return;
     refreshSnapshot(location.href, undefined, true);
   }
   const liveTimer = setInterval(() => {
     if (!root.isConnected) { clearInterval(liveTimer); return; }
     refreshLiveList();
   }, 15000);
-  document.addEventListener('visibilitychange', refreshLiveList);
+  document.addEventListener('visibilitychange', () => {
+    if(document.hidden){if(snapshotController){++snapshotSequence;snapshotController.abort();snapshotController=null;loading=false;root.removeAttribute('aria-busy');}}
+    else refreshLiveList();
+  });
+  window.addEventListener('online', refreshLiveList);
+  window.addEventListener('pagehide', () => {pagePaused=true;++snapshotSequence;snapshotController?.abort();snapshotController=null;loading=false;root.removeAttribute('aria-busy');});
+  window.addEventListener('pageshow', () => {pagePaused=false;refreshLiveList();});
   window.addEventListener('focus', refreshLiveList);
   window.addEventListener('popstate', () => {
     if (root.isConnected && !busy()) {
