@@ -9,6 +9,213 @@
 .master-finance-page .master-finance-links a:focus-visible{outline:2px solid #b592ff;outline-offset:2px}
 .master-finance-page .master-finance-links svg{width:17px;height:17px;flex-shrink:0}
 @media(max-width:600px){.master-finance-page .master-finance-links{grid-template-columns:repeat(2,minmax(0,1fr))}.master-finance-page .master-finance-links a{min-height:44px;padding:8px;font-size:12px}}
-@media(max-width:600px){.master-finance-page .master-finance-shell{padding:16px 12px}}</style>{% endblock %}
-{% block content %}<section class="master-finance-shell accounts-shell"><header class="accounts-header"><div><p class="accounts-eyebrow">CYBEXEL MASTER ADMIN</p><h1>{% block page_heading %}ACCOUNTS MANAGEMENT{% endblock %}</h1><p class="accounts-description">{% block page_description %}Manage financial records across the Accounts team.{% endblock %}</p></div></header><nav class="master-finance-links" aria-label="Accounts sections"><a href="{% url 'master_admin_accounts_overview' %}" {% if accounts_active == 'overview' %}aria-current="page"{% endif %}><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Overview</span></a><a href="{% url 'master_admin_accounts_income' %}" {% if accounts_active == 'income' %}aria-current="page"{% endif %}><i data-lucide="arrow-down-left" aria-hidden="true"></i><span>Income</span></a><a href="{% url 'master_admin_accounts_expenses' %}" {% if accounts_active == 'expenses' %}aria-current="page"{% endif %}><i data-lucide="arrow-up-right" aria-hidden="true"></i><span>Expenses</span></a><a href="{% url 'master_admin_accounts_sales' %}" {% if accounts_active == 'sales' %}aria-current="page"{% endif %}><i data-lucide="receipt-text" aria-hidden="true"></i><span>Sales</span></a></nav>{% block finance_content %}{% endblock %}</section>{% endblock %}
-{% block extra_js %}<script src="{% static 'js/accounts.js' %}?v=master-finance-1" defer></script>{% endblock %}
+@media(max-width:600px){.master-finance-page .master-finance-shell{padding:16px 12px}}
+/* Master Admin finance: match User Management without altering Accounts portal. */
+body.master-finance-page #adminMain>.master-finance-shell{box-sizing:border-box;height:100%;min-height:0;min-width:0;padding:16px;overflow:auto;overflow-x:hidden;border-radius:28px;background:linear-gradient(145deg,rgba(17,16,24,.94),rgba(8,9,14,.96));border:1px solid rgba(255,255,255,.10);scrollbar-width:thin;scrollbar-color:rgba(151,112,235,.65) transparent;overscroll-behavior:contain}
+.master-finance-page .master-finance-shell>.dashboard-header{margin-bottom:26px}
+.master-finance-page .master-finance-links{margin-bottom:24px;border-color:rgba(171,140,244,.15)}
+.master-finance-page .master-finance-links a{min-height:43px;font-size:12px}
+.master-finance-page .accounts-panel,.master-finance-page .accounts-stat{min-width:0;box-sizing:border-box;border:1px solid rgba(255,255,255,.075);border-radius:22px;background:linear-gradient(145deg,rgba(28,30,43,.76),rgba(16,18,28,.66));box-shadow:0 15px 35px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.035)}
+.master-finance-page .accounts-panel{padding:24px;margin-bottom:22px}
+.master-finance-page .accounts-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.master-finance-page .accounts-panel h2{margin:0 0 5px;font-size:18px;font-weight:750;color:#fff;line-height:1.4}
+.master-finance-page .accounts-eyebrow{color:#a78bfa;font-size:9px;letter-spacing:1.8px;margin-bottom:6px}
+.master-finance-page .accounts-muted{color:#96939e;font-size:11px;line-height:1.7}
+.master-finance-page :is(.income-summary-grid,.expense-summary-grid,.sale-summary-grid){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px}
+.master-finance-page .accounts-stat{padding:21px;min-height:142px}
+.master-finance-page .accounts-stat-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.master-finance-page .accounts-stat h3{margin:0;color:#8f8c96;font-size:9px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;line-height:1.6}
+.master-finance-page .accounts-stat-top svg{width:18px;height:18px;color:#a78bfa}
+.master-finance-page .accounts-stat-value{font-size:clamp(23px,2.3vw,30px);line-height:1.3;font-weight:800;font-variant-numeric:tabular-nums;margin:18px 0 9px;overflow-wrap:anywhere}
+.master-finance-page .accounts-stat>span{color:#85818d;font-size:10px;line-height:1.6}
+.master-finance-page :is(.income-heading-actions,.expense-heading-actions,.sale-heading-actions){display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.master-finance-page :is(.income-filter-form,.expense-filter-form,.sale-filter-form,.finance-overview-filter){padding:18px;margin-bottom:20px;border-radius:17px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06)}
+.master-finance-page :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:end}
+.master-finance-page :is(.income-field,.expense-field,.sale-field){min-width:0}
+.master-finance-page :is(.income-field,.expense-field,.sale-field) label,.master-finance-page .finance-overview-filter label{display:block;margin-bottom:7px;color:rgba(255,255,255,.62);font-size:10px;font-weight:700;letter-spacing:.04em}
+.master-finance-page .accounts-input{width:100%;min-width:0;min-height:42px;box-sizing:border-box;padding:11px 13px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(7,7,11,.60);color:#fff;font-size:12px;line-height:1.5;outline:none;color-scheme:dark}
+.master-finance-page .accounts-input:focus{border-color:rgba(139,116,255,.48);box-shadow:0 0 0 3px rgba(118,94,220,.08)}
+.master-finance-page select.accounts-input option{background:#171924;color:#fff}
+.master-finance-page :is(.income-search-input,.expense-search-input,.sale-search-input){position:relative}
+.master-finance-page :is(.income-search-input,.expense-search-input,.sale-search-input)>svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#9d8cff;pointer-events:none}
+.master-finance-page :is(.income-search-input,.expense-search-input,.sale-search-input)>.accounts-input{padding-left:39px}
+.master-finance-page :is(.income-filter-footer,.expense-filter-footer,.sale-filter-footer){display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:16px}
+.master-finance-page :is(.income-filter-actions,.expense-filter-actions,.sale-filter-actions){display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.master-finance-page :is(.income-filter-description,.expense-filter-description,.sale-filter-description){font-size:11px;line-height:1.7;color:#96939e}
+.master-finance-page :is(.income-button,.expense-button,.sale-button){display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:10px 15px;border-radius:11px;border:1px solid rgba(139,112,255,.28);background:linear-gradient(135deg,rgba(117,89,220,.24),rgba(82,66,170,.16));color:#dcd7ff;font-size:11px;font-weight:700;line-height:1.4;cursor:pointer;text-decoration:none}
+.master-finance-page :is(.income-button-secondary,.expense-button-secondary,.sale-button-secondary){background:rgba(255,255,255,.035);border-color:rgba(255,255,255,.09);color:#aaa6b2}
+.master-finance-page :is(.income-button-export,.expense-button-export,.sale-button-export){background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.20);color:#9ee7ba}
+.master-finance-page :is(.income-button-danger,.expense-button-danger,.sale-button-danger){color:#ff8994;background:rgba(255,70,85,.07);border-color:rgba(255,80,95,.15)}
+.master-finance-page :is(.income-button,.expense-button,.sale-button)>svg{width:15px;height:15px}
+.master-finance-page :is(.income-row-actions,.expense-row-actions,.sale-row-actions){display:flex;align-items:center;flex-wrap:nowrap;gap:7px}
+.master-finance-page :is(.income-icon-button,.expense-icon-button,.sale-icon-button){display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:34px;min-height:34px;padding:7px;border-radius:9px;border:1px solid rgba(126,96,230,.20);background:rgba(126,96,230,.13);color:#c4b5fd}
+.master-finance-page :is(.income-icon-button,.expense-icon-button,.sale-icon-button)>svg{width:15px;height:15px}
+.master-finance-page .accounts-table-scroll{width:100%;max-height:440px;overflow:auto;border:1px solid rgba(255,255,255,.06);border-radius:15px;background:rgba(0,0,0,.10);scrollbar-width:thin;scrollbar-color:#74559b transparent;overscroll-behavior:contain}
+.master-finance-page .accounts-table{width:100%;min-width:760px;border-collapse:separate;border-spacing:0;font-size:11px}
+.master-finance-page .accounts-table th{position:sticky;top:0;z-index:1;padding:13px 15px;background:#21192b;color:rgba(255,255,255,.50);font-size:9px;font-weight:800;letter-spacing:.08em;white-space:nowrap;text-transform:uppercase;text-align:left;border-bottom:1px solid rgba(255,255,255,.065)}
+.master-finance-page .accounts-table td{padding:13px 15px;color:#dedbe2;border-bottom:1px solid rgba(255,255,255,.045);vertical-align:middle;line-height:1.65}
+.master-finance-page .accounts-table tr:last-child td{border-bottom:0}
+.master-finance-page .accounts-table .amount{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.master-finance-page .accounts-table .description-cell{min-width:200px;max-width:360px;overflow-wrap:anywhere}
+.master-finance-page .accounts-table .description-cell p{margin:5px 0 0;color:#96939e;font-size:11px}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog){box-sizing:border-box;max-width:calc(100vw - 32px);max-height:calc(100dvh - 40px);padding:25px;border-radius:24px;background:linear-gradient(145deg,#241b30,#14121d);border:1px solid rgba(255,255,255,.09);color:#fff;overflow:auto;scrollbar-width:thin;scrollbar-color:#7c3aed transparent;overscroll-behavior:contain}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog)::backdrop{background:rgba(8,7,11,.3);backdrop-filter:blur(3px)}
+.master-finance-page :is(.income-dialog-header,.expense-dialog-header,.sale-dialog-header){display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:20px}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) h2{font-size:18px;line-height:1.4;margin:0;font-weight:800}
+body.master-finance-page:has(dialog[open]) .master-finance-shell{overflow:hidden!important}
+.master-finance-page .finance-overview-filter{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:14px;align-items:end}
+.master-finance-page .finance-overview-filter label{margin-bottom:0;min-width:0}
+.master-finance-page .finance-overview-filter .accounts-input{margin-top:7px}
+.master-finance-page .finance-overview-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:20px 0}
+@media(max-width:1100px){.master-finance-page :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid){grid-template-columns:repeat(2,minmax(0,1fr))}.master-finance-page .finance-overview-filter{grid-template-columns:repeat(2,minmax(0,1fr))}.master-finance-page .finance-overview-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:768px){body.master-finance-page #adminMain>.master-finance-shell{padding:13px!important;border-radius:20px}.master-finance-page .accounts-panel{padding:17px}.master-finance-page :is(.income-summary-grid,.expense-summary-grid,.sale-summary-grid){grid-template-columns:1fr;gap:12px}.master-finance-page .accounts-stat{min-height:125px;padding:18px}.master-finance-page .accounts-stat-value{font-size:27px}.master-finance-page .master-finance-links a{min-height:43px;font-size:11px;padding:8px}.master-finance-page .accounts-table-scroll{max-height:360px}.master-finance-page .accounts-input{font-size:16px}.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog){padding:18px;max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px)}}
+@media(max-width:480px){.master-finance-page :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid),.master-finance-page .finance-overview-filter{grid-template-columns:1fr}.master-finance-page .accounts-panel{padding:14px}.master-finance-page :is(.income-filter-form,.expense-filter-form,.sale-filter-form,.finance-overview-filter){padding:13px}.master-finance-page :is(.income-filter-actions,.expense-filter-actions,.sale-filter-actions){width:100%}.master-finance-page :is(.income-filter-actions,.expense-filter-actions,.sale-filter-actions)>button{flex:1 1 120px}.master-finance-page .finance-overview-stats{gap:10px}.master-finance-page .finance-overview-stats .accounts-stat{padding:14px}.master-finance-page .finance-overview-stats .accounts-stat-value{font-size:23px}.master-finance-page .accounts-panel-heading{gap:14px}.master-finance-page :is(.income-heading-actions,.expense-heading-actions,.sale-heading-actions){width:100%;justify-content:space-between}}
+
+
+/* Compact ledger filters: prevent inherited full-row search/period spans. */
+body.master-finance-page :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid){display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+body.master-finance-page :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid)>:is(.income-field,.expense-field,.sale-field){grid-column:auto!important;flex:1 1 150px;width:auto;min-width:0;max-width:none;margin:0}
+body.master-finance-page :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid)>:is(.income-field,.expense-field,.sale-field):first-child{grid-column:auto!important;flex:2 1 260px}
+body.master-finance-page :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid)>[hidden]{display:none!important}
+body.master-finance-page :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid) .accounts-input{height:42px;min-height:42px}
+body.master-finance-page :is(.income-filter-footer,.expense-filter-footer,.sale-filter-footer){margin-top:14px;gap:12px}
+body.master-finance-page :is(.income-filter-description,.expense-filter-description,.sale-filter-description){flex:1 1 220px;font-size:10px;line-height:1.6}
+body.master-finance-page :is(.income-filter-actions,.expense-filter-actions,.sale-filter-actions){flex:0 1 auto;gap:8px}
+@media(max-width:600px){body.master-finance-page :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid)>:is(.income-field,.expense-field,.sale-field):first-child{flex-basis:100%}body.master-finance-page :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid)>:is(.income-field,.expense-field,.sale-field){flex:1 1 130px}body.master-finance-page :is(.income-filter-actions,.expense-filter-actions,.sale-filter-actions){width:100%;justify-content:flex-end}}
+@media(max-width:380px){body.master-finance-page :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid)>:is(.income-field,.expense-field,.sale-field){flex-basis:100%}}
+
+
+/* Distinct colors for ledger action icons. */
+body.master-finance-page :is([data-income-view],[data-expense-view],[data-sale-view]){color:#c4b5fd;background:rgba(139,92,246,.09);border-color:rgba(139,92,246,.23);box-shadow:none}
+body.master-finance-page :is([data-income-view],[data-expense-view],[data-sale-view]):hover{color:#c4b5fd;background:rgba(139,92,246,.18);border-color:rgba(139,92,246,.40)}
+body.master-finance-page :is([data-income-view],[data-expense-view],[data-sale-view]) svg{color:inherit;stroke:currentColor}
+body.master-finance-page :is([data-income-edit],[data-expense-edit],[data-sale-edit]){color:#8cb8ff;background:rgba(68,119,210,.09);border-color:rgba(68,119,210,.23);box-shadow:none}
+body.master-finance-page :is([data-income-edit],[data-expense-edit],[data-sale-edit]):hover{color:#8cb8ff;background:rgba(68,119,210,.18);border-color:rgba(68,119,210,.40)}
+body.master-finance-page :is([data-income-edit],[data-expense-edit],[data-sale-edit]) svg{color:inherit;stroke:currentColor}
+body.master-finance-page :is([data-income-history],[data-expense-history],[data-sale-history]){color:#e5bd76;background:rgba(217,161,68,.09);border-color:rgba(217,161,68,.23);box-shadow:none}
+body.master-finance-page :is([data-income-history],[data-expense-history],[data-sale-history]):hover{color:#e5bd76;background:rgba(217,161,68,.18);border-color:rgba(217,161,68,.40)}
+body.master-finance-page :is([data-income-history],[data-expense-history],[data-sale-history]) svg{color:inherit;stroke:currentColor}
+body.master-finance-page :is([data-income-delete],[data-expense-delete],[data-sale-delete]){color:#ff8994;background:rgba(255,70,85,.09);border-color:rgba(255,70,85,.23);box-shadow:none}
+body.master-finance-page :is([data-income-delete],[data-expense-delete],[data-sale-delete]):hover{color:#ff8994;background:rgba(255,70,85,.18);border-color:rgba(255,70,85,.40)}
+body.master-finance-page :is([data-income-delete],[data-expense-delete],[data-sale-delete]) svg{color:inherit;stroke:currentColor}
+body.master-finance-page :is([data-income-payments],[data-expense-payments],[data-sale-payments]){color:#83d9bd;background:rgba(52,180,140,.09);border-color:rgba(52,180,140,.23);box-shadow:none}
+body.master-finance-page :is([data-income-payments],[data-expense-payments],[data-sale-payments]):hover{color:#83d9bd;background:rgba(52,180,140,.18);border-color:rgba(52,180,140,.40)}
+body.master-finance-page :is([data-income-payments],[data-expense-payments],[data-sale-payments]) svg{color:inherit;stroke:currentColor}
+
+/* Keep ledger columns aligned and scroll the table within the page. */
+body.master-finance-page :is(#accountsIncomePage,#accountsSalePage){min-width:0;max-width:100%}
+body.master-finance-page :is(.income-table,.sale-table){display:table;width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0}
+body.master-finance-page .income-table{min-width:1060px}
+body.master-finance-page .sale-table{min-width:1380px}
+body.master-finance-page :is(.income-table,.sale-table) thead{display:table-header-group}
+body.master-finance-page :is(.income-table,.sale-table) tbody{display:table-row-group}
+body.master-finance-page :is(.income-table,.sale-table) tr{display:table-row}
+body.master-finance-page :is(.income-table,.sale-table) :is(th,td){display:table-cell;box-sizing:border-box;text-align:left;vertical-align:middle;padding:13px 15px;line-height:1.6}
+body.master-finance-page :is(.income-table,.sale-table) th{height:46px;white-space:nowrap;position:sticky;top:0;z-index:2;background:#21192b}
+body.master-finance-page :is(.income-table,.sale-table) td{white-space:normal;overflow-wrap:anywhere}
+body.master-finance-page :is(.income-table,.sale-table) :is(th,td):first-child{width:110px;white-space:nowrap}
+body.master-finance-page .income-table :is(th,td):nth-child(2){width:240px}
+body.master-finance-page .income-table :is(th,td):nth-child(3){width:110px}
+body.master-finance-page .income-table :is(th,td):nth-child(4){width:140px}
+body.master-finance-page .income-table :is(th,td):nth-child(5){width:150px}
+body.master-finance-page .income-table :is(th,td):nth-child(6){width:130px}
+body.master-finance-page .sale-table :is(th,td):nth-child(2){width:220px}
+body.master-finance-page .sale-table :is(th,td):nth-child(3){width:120px}
+body.master-finance-page .sale-table :is(th,td):nth-child(4){width:110px;white-space:nowrap}
+body.master-finance-page .sale-table :is(th,td):is(:nth-child(5),:nth-child(6),:nth-child(7)){width:125px}
+body.master-finance-page .sale-table :is(th,td):nth-child(8){width:110px}
+body.master-finance-page .sale-table :is(th,td):nth-child(9){width:150px}
+body.master-finance-page :is(.income-table,.sale-table) :is(th,td):last-child{width:180px;text-align:center}
+body.master-finance-page :is(.income-table,.sale-table) .amount{text-align:right!important;white-space:nowrap;font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+body.master-finance-page :is(.income-table,.sale-table) .description-cell{max-width:none;min-width:0}
+body.master-finance-page :is(.income-table,.sale-table) .description-cell strong{display:block;line-height:1.5;overflow-wrap:anywhere}
+body.master-finance-page :is(.income-table,.sale-table) .description-cell p{margin:5px 0 0;white-space:normal;overflow-wrap:anywhere;line-height:1.6}
+body.master-finance-page :is(.income-row-actions,.sale-row-actions){display:flex;justify-content:center;align-items:center;gap:7px;flex-wrap:nowrap;min-width:0;margin:0}
+body.master-finance-page :is(.income-row-actions,.sale-row-actions)>button{width:32px;height:32px;min-height:32px;flex:0 0 32px;padding:7px;margin:0}
+body.master-finance-page .sale-payment-badge{display:inline-flex;align-items:center;justify-content:center;max-width:100%;padding:5px 8px;border-radius:7px;font-size:10px;line-height:1.4;white-space:normal;text-align:center}
+body.master-finance-page .sale-overdue{display:block;width:fit-content;margin-top:5px}
+body.master-finance-page .accounts-table-scroll{max-width:100%;min-width:0;overflow-x:auto;overflow-y:auto;scrollbar-gutter:stable}
+body.master-finance-page .accounts-table-scroll::-webkit-scrollbar{height:7px;width:7px}
+body.master-finance-page .accounts-table-scroll::-webkit-scrollbar-thumb{border-radius:8px;background:#74559b}
+body.master-finance-page .accounts-table-scroll::-webkit-scrollbar-track{background:rgba(255,255,255,.025)}
+body.master-finance-page :is(.income-table,.sale-table) td[colspan]{width:auto;text-align:center}
+@media(max-width:768px){body.master-finance-page :is(.income-table,.sale-table) :is(th,td){padding:12px}body.master-finance-page .accounts-table-scroll{max-height:360px}}
+
+
+/* Responsive guardrails shared by Overview, Income, Expenses and Sales. */
+body.master-finance-page .master-finance-shell,
+body.master-finance-page :is(#accountsIncomePage,#accountsExpensePage,#accountsSalePage,#financeOverview,.accounts-panel,.accounts-stat,.accounts-panel-heading>div) { min-width: 0; max-width: 100%; }
+body.master-finance-page .dashboard-header-content { flex-wrap: wrap; gap: 20px; }
+body.master-finance-page .dashboard-header-content>div:first-child { min-width: 0; flex: 1 1 250px; }
+body.master-finance-page .dashboard-header h1 { width: fit-content; max-width: 100%; overflow-wrap: anywhere; background: linear-gradient(90deg,#fff,#c4b5fd 45%,#67c8ff); background-clip:text; -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+body.master-finance-page .accounts-panel,
+body.master-finance-page .accounts-stat { background: linear-gradient(145deg,rgba(27,26,34,.90),rgba(16,16,22,.92)); }
+body.master-finance-page :is(.income-form-grid,.expense-form-grid,.sale-form-grid) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+body.master-finance-page :is(.income-field-wide,.expense-field-wide,.sale-field-wide) { grid-column:1/-1; }
+body.master-finance-page :is(.income-field,.expense-field,.sale-field) { min-width:0; }
+body.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) { width:min(680px,calc(100vw - 32px)); overflow-wrap:anywhere; color-scheme:dark; background:linear-gradient(115deg,#201b2c,#14151f 58%,#1c1d32); scrollbar-color:#8972b1 #191722; }
+body.master-finance-page :is(.income-dialog-small,.expense-dialog-small,.sale-dialog-small) { width:min(430px,calc(100vw - 32px)); }
+body.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) :is(input,select,textarea) { min-width:0; max-width:100%; box-sizing:border-box; }
+body.master-finance-page :is(.income-dialog-footer,.expense-dialog-footer,.sale-dialog-footer,.income-form-footer,.expense-form-footer,.sale-form-footer) { display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:10px; }
+body.master-finance-page :is(.income-view-details,.expense-view-details,.sale-view-details) { min-width:0; }
+body.master-finance-page :is(.income-view-details,.expense-view-details,.sale-view-details) dd { min-width:0; overflow-wrap:anywhere; }
+body.master-finance-page .accounts-table { display:table; }
+body.master-finance-page .accounts-table thead { display:table-header-group; }
+body.master-finance-page .accounts-table tbody { display:table-row-group; }
+body.master-finance-page .accounts-table tr { display:table-row; }
+body.master-finance-page .accounts-table :is(th,td) { display:table-cell; }
+body.master-finance-page .expense-table { min-width:1460px; table-layout:fixed; }
+body.master-finance-page .expense-table :is(th,td) { padding:13px 15px; vertical-align:middle; overflow-wrap:anywhere; }
+body.master-finance-page .expense-table :is(th,td):first-child { width:110px; white-space:nowrap; }
+body.master-finance-page .expense-table :is(th,td):nth-child(2) { width:230px; }
+body.master-finance-page .expense-table :is(th,td):nth-child(3) { width:150px; }
+body.master-finance-page .expense-table :is(th,td):nth-child(4) { width:110px; }
+body.master-finance-page .expense-table :is(th,td):nth-child(5) { width:135px; }
+body.master-finance-page .expense-table :is(th,td):nth-child(6) { width:140px; }
+body.master-finance-page .expense-table :is(th,td):is(:nth-child(7),:nth-child(8),:nth-child(9)) { width:120px; }
+body.master-finance-page .expense-table :is(th,td):nth-child(10) { width:130px; }
+body.master-finance-page .expense-table :is(th,td):last-child { width:180px; }
+body.master-finance-page .expense-table td { white-space:normal; }
+body.master-finance-page .expense-table .description-cell { min-width:0; }
+body.master-finance-page .expense-row-actions { justify-content:center; }
+body.master-finance-page .expense-row-actions>button { width:32px; height:32px; min-height:32px; flex:0 0 32px; padding:7px; }
+body.master-finance-page .expense-table td[colspan] { width:auto; text-align:center; }
+body.master-finance-page .accounts-table-scroll { -webkit-overflow-scrolling:touch; }
+body.master-finance-page :is(.income-reset,.expense-reset,.sale-reset) { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:10px 13px; border:1px solid rgba(167,139,250,.18); border-radius:11px; background:rgba(167,139,250,.07); font-size:11px; color:#c4b5fd; text-decoration:none; }
+body.master-finance-page .accounts-stat-top h3 { min-width:0; overflow-wrap:anywhere; }
+body.master-finance-page .accounts-stat-top svg { flex-shrink:0; }
+@media(max-width:768px) {
+ body.master-finance-page .dashboard-header { min-height:auto; padding:22px 20px; }
+ body.master-finance-page .dashboard-header h1 { font-size:clamp(28px,6vw,38px); }
+ body.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) { max-height:calc(100dvh - 24px); }
+ body.master-finance-page .accounts-table-scroll { max-height:min(440px,60dvh); }
+}
+@media(max-width:600px) {
+ body.master-finance-page :is(.income-form-grid,.expense-form-grid,.sale-form-grid,.income-view-details,.expense-view-details,.sale-view-details) { grid-template-columns:minmax(0,1fr); }
+ body.master-finance-page :is(.income-form-footer,.expense-form-footer,.sale-form-footer)>button { flex:1 1 100%; }
+ body.master-finance-page :is(.income-dialog-footer,.expense-dialog-footer,.sale-dialog-footer)>button { flex:1 1 120px; }
+ body.master-finance-page .accounts-input { font-size:16px; }
+}
+@media(max-width:380px) {
+ body.master-finance-page .finance-overview-stats { grid-template-columns:minmax(0,1fr); }
+ body.master-finance-page :is(.income-filter-actions,.expense-filter-actions,.sale-filter-actions)>* { flex:1 1 100%; }
+}
+
+</style>{% endblock %}
+{% block content %}<section class="dashboard-box master-finance-shell accounts-shell"><section class="dashboard-header"><div class="dashboard-header-content"><div><div class="dashboard-eyebrow">CYBEXEL MASTER ADMIN PANEL</div><h1>{% block page_heading %}ACCOUNTS MANAGEMENT{% endblock %}</h1><p>{% block page_description %}Manage financial records across the Accounts team.{% endblock %}</p></div><div class="system-status"><span class="status-dot"></span><span>System Online</span></div></div></section><nav class="master-finance-links" aria-label="Accounts sections"><a href="{% url 'master_admin_accounts_overview' %}" {% if accounts_active == 'overview' %}aria-current="page"{% endif %}><i data-lucide="layout-dashboard" aria-hidden="true"></i><span>Overview</span></a><a href="{% url 'master_admin_accounts_income' %}" {% if accounts_active == 'income' %}aria-current="page"{% endif %}><i data-lucide="arrow-down-left" aria-hidden="true"></i><span>Income</span></a><a href="{% url 'master_admin_accounts_expenses' %}" {% if accounts_active == 'expenses' %}aria-current="page"{% endif %}><i data-lucide="arrow-up-right" aria-hidden="true"></i><span>Expenses</span></a><a href="{% url 'master_admin_accounts_sales' %}" {% if accounts_active == 'sales' %}aria-current="page"{% endif %}><i data-lucide="receipt-text" aria-hidden="true"></i><span>Sales</span></a></nav>{% block finance_content %}{% endblock %}</section>{% endblock %}
+{% block extra_js %}<script src="{% static 'js/accounts.js' %}?v=master-finance-1" defer></script><script>
+(() => {
+ function connectFinanceToasts(){
+  const node=document.getElementById('toastContainer')||document.getElementById('toast-container');
+  if(!node||node.dataset.financeLayerConnected)return;
+  node.dataset.financeLayerConnected='1';
+  const home=node.parentNode;
+  const dialogs=Array.from(document.querySelectorAll('dialog.income-dialog,dialog.expense-dialog,dialog.sale-dialog'));
+  function sync(){const opened=dialogs.filter(dialog=>dialog.open);const target=opened[opened.length-1]||home;if(node.parentNode!==target)target.appendChild(node);}
+  const observer=new MutationObserver(sync);
+  dialogs.forEach(dialog=>{observer.observe(dialog,{attributes:true,attributeFilter:['open']});dialog.addEventListener('close',sync);});
+  sync();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',connectFinanceToasts,{once:true});else connectFinanceToasts();
+})();
+</script>{% endblock %}

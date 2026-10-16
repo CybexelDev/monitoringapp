@@ -32,6 +32,8 @@
             dot.style.boxShadow = active ? '0 0 8px rgba(69,220,145,.4)' : '0 0 8px rgba(255,105,120,.35)';
         });
         document.querySelectorAll('[data-user-status="' + userId + '"]').forEach(badge => {
+            badge.dataset.status = status;
+            badge.classList.toggle('status-active', active);
             badge.classList.toggle('status-inactive', !active);
             badge.textContent = label;
         });
@@ -41,8 +43,10 @@
         userId = String(userId);
         if (!/^\d+$/.test(userId)) return Promise.resolve();
         if (pendingStatuses.has(userId)) return pendingStatuses.get(userId);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
         const pending = fetch('/api/user-status/' + userId + '/', {
-            credentials: 'same-origin', cache: 'no-store'
+            credentials: 'same-origin', cache: 'no-store', signal: controller.signal
         }).then(response => {
             if (!response.ok) return null;
             return response.json();
@@ -50,7 +54,7 @@
             if (data?.success) applyStatus(userId, data.status, dotElement);
         }).catch(() => {
             // Keep the last known state when the network is unavailable.
-        }).finally(() => pendingStatuses.delete(userId));
+        }).finally(() => { clearTimeout(timeout); pendingStatuses.delete(userId); });
         pendingStatuses.set(userId, pending);
         return pending;
     };

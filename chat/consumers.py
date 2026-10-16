@@ -143,3 +143,48 @@ class AdminChatConsumer(MemberChatConsumer):
 
 class AdminGroupChatConsumer(AdminChatConsumer):
     group_chat = True
+
+
+from .receipt_consumers import ChatUpdatesConsumer
+
+
+class MasterAdminChatConsumer(MemberChatConsumer):
+    allowed_positions = {"master_admin"}
+
+    @database_sync_to_async
+    def session_identity(self):
+        from monitoringapp.master_chat_identity import master_chat_user
+        person = master_chat_user(self.scope.get("user"))
+        return (person.pk, "master_admin") if person else (None, "")
+
+    @database_sync_to_async
+    def valid_master_identity(self):
+        from monitoringapp.master_chat_identity import master_chat_user
+        person = master_chat_user(self.scope.get("user"))
+        return person is not None and person.pk == self.user_id
+
+    async def allowed(self):
+        return await self.valid_master_identity() and await super().allowed()
+
+    async def save_message(self, message):
+        if not await self.valid_master_identity():
+            return None
+        return await super().save_message(message)
+
+
+class MasterAdminGroupChatConsumer(MasterAdminChatConsumer):
+    group_chat = True
+
+
+class MasterAdminChatUpdatesConsumer(ChatUpdatesConsumer):
+    @database_sync_to_async
+    def get_user_id(self):
+        from monitoringapp.master_chat_identity import master_chat_user
+        person = master_chat_user(self.scope.get("user"))
+        return person.pk if person else None
+
+    async def chat_invalidate(self, event):
+        if not await self.get_user_id():
+            await self.close(code=4403)
+            return
+        await super().chat_invalidate(event)

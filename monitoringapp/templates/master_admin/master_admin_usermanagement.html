@@ -1398,6 +1398,159 @@ body.admin-usermanagement-page .user-status-dot[data-status="inactive"] {
 body.admin-usermanagement-page #designation { padding-left: 42px; }
 body.admin-usermanagement-page .edit-modal input,
 body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
+
+/* Keep wide employee data inside its own scroll area. */
+body.admin-usermanagement-page .dashboard-content,
+body.admin-usermanagement-page .employee-card,
+body.admin-usermanagement-page .filter-card,
+body.admin-usermanagement-page .filter-grid > * { min-width: 0; max-width: 100%; }
+body.admin-usermanagement-page .dashboard-header-content { flex-wrap: wrap; gap: 18px; }
+body.admin-usermanagement-page .dashboard-header-content > div:first-child { min-width: 0; flex: 1 1 260px; }
+body.admin-usermanagement-page .dashboard-header h1 { overflow-wrap: anywhere; }
+body.admin-usermanagement-page .system-status { flex-shrink: 0; }
+body.admin-usermanagement-page .table-wrapper { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+body.admin-usermanagement-page .employee-table { display: table; }
+body.admin-usermanagement-page .employee-table thead { display: table-header-group; }
+body.admin-usermanagement-page .employee-table tbody { display: table-row-group; }
+body.admin-usermanagement-page .employee-table tr { display: table-row; }
+body.admin-usermanagement-page .employee-table th,
+body.admin-usermanagement-page .employee-table td { display: table-cell; }
+body.admin-usermanagement-page .edit-modal-box { width: 100%; box-sizing: border-box; overflow-y: auto; overflow-wrap: anywhere; }
+@media (max-width: 768px) {
+ body.admin-usermanagement-page .dashboard-header { padding: 22px 18px; min-height: auto; }
+ body.admin-usermanagement-page .dashboard-header h1 { font-size: clamp(26px, 6vw, 38px); letter-spacing: 1px; }
+ body.admin-usermanagement-page .employee-list-heading { flex-wrap: wrap; }
+ body.admin-usermanagement-page .filter-grid { grid-template-columns: minmax(0, 1fr); }
+ body.admin-usermanagement-page .table-wrapper { max-height: min(440px, 60dvh); }
+ body.admin-usermanagement-page .joining-date-picker .custom-calendar { width: min(300px, 100%); }
+}
+
+
+
+/* User Management palette: shared by the header and employee dialogs. */
+body.admin-usermanagement-page {
+    --user-panel: #14151f;
+    --user-field: #1e1e2b;
+    --user-line: rgba(178, 161, 219, .16);
+    --user-accent: #a78bfa;
+    --user-scroll: #8972b1;
+}
+body.admin-usermanagement-page .dashboard-header {
+    min-height: 200px;
+    padding: 32px 36px;
+    box-sizing: border-box;
+    border-radius: 28px;
+    background: linear-gradient(110deg, #231c2e 0%, #11131c 55%, #20203a 100%);
+    border: 1px solid rgba(255,255,255,.10);
+}
+body.admin-usermanagement-page .dashboard-header h1 {
+    display: inline-block;
+    max-width: 100%;
+    margin: 0;
+    font-size: clamp(34px, 4vw, 58px);
+    font-weight: 900;
+    line-height: 1.12;
+    letter-spacing: -1.5px;
+    background: linear-gradient(90deg, #faf5ff 0%, #c4b5fd 45%, #66caff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+body.admin-usermanagement-page .dashboard-eyebrow { color: #b196f5; }
+body.admin-usermanagement-page .edit-modal-box {
+    color-scheme: dark;
+    background: linear-gradient(115deg, #201b2c 0%, #14151f 58%, #1c1d32 100%);
+    border-color: var(--user-line);
+    box-shadow: 0 28px 80px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.04);
+    scrollbar-gutter: stable;
+}
+body.admin-usermanagement-page .edit-modal .glass-input,
+body.admin-usermanagement-page .edit-modal .glass-select,
+body.admin-usermanagement-page .edit-modal .edit-input,
+body.admin-usermanagement-page .edit-modal .edit-select,
+body.admin-usermanagement-page .edit-modal input[type=file],
+body.admin-usermanagement-page .edit-modal .custom-date-input {
+    color: #f0edf8;
+    background: var(--user-field);
+    border-color: var(--user-line);
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+}
+body.admin-usermanagement-page .edit-modal input::placeholder { color: #9490a4; opacity: 1; }
+body.admin-usermanagement-page .edit-modal select option { background: #1e1e2b; color: #f0edf8; }
+body.admin-usermanagement-page .edit-modal input:focus,
+body.admin-usermanagement-page .edit-modal select:focus {
+    outline: 2px solid rgba(167,139,250,.55);
+    outline-offset: 2px;
+    border-color: #9b80d3;
+}
+body.admin-usermanagement-page .edit-modal input:-webkit-autofill,
+body.admin-usermanagement-page .edit-modal input:-webkit-autofill:hover,
+body.admin-usermanagement-page .edit-modal input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #1e1e2b inset;
+    -webkit-text-fill-color: #f0edf8;
+    caret-color: #f0edf8;
+}
+body.admin-usermanagement-page .edit-modal .modal-icon {
+    color: #bea5fa;
+    background: rgba(139,108,205,.15);
+    border-color: rgba(167,139,250,.22);
+}
+body.admin-usermanagement-page .edit-modal .modal-subtitle { color: #a39bae; }
+body.admin-usermanagement-page .edit-modal .modal-save,
+body.admin-usermanagement-page .edit-modal .create-button {
+    background: linear-gradient(135deg, #8053ce, #6039a8);
+    color: #fff;
+    border: 1px solid rgba(192,167,243,.20);
+}
+body.admin-usermanagement-page .edit-modal input[type=file]::file-selector-button {
+    background: #38304f;
+    color: #f0e9ff;
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-right: 10px;
+}
+/* Both browser scrollbar implementations use the same muted accent. */
+body.admin-usermanagement-page .dashboard-box,
+body.admin-usermanagement-page .table-wrapper,
+body.admin-usermanagement-page .edit-modal-box {
+    scrollbar-width: thin;
+    scrollbar-color: var(--user-scroll) #191722;
+}
+body.admin-usermanagement-page .dashboard-box::-webkit-scrollbar,
+body.admin-usermanagement-page .table-wrapper::-webkit-scrollbar,
+body.admin-usermanagement-page .edit-modal-box::-webkit-scrollbar { width: 8px; height: 8px; }
+body.admin-usermanagement-page .dashboard-box::-webkit-scrollbar-track,
+body.admin-usermanagement-page .table-wrapper::-webkit-scrollbar-track,
+body.admin-usermanagement-page .edit-modal-box::-webkit-scrollbar-track { background: #191722; border-radius: 10px; }
+body.admin-usermanagement-page .dashboard-box::-webkit-scrollbar-thumb,
+body.admin-usermanagement-page .table-wrapper::-webkit-scrollbar-thumb,
+body.admin-usermanagement-page .edit-modal-box::-webkit-scrollbar-thumb {
+    background: var(--user-scroll);
+    border: 2px solid #191722;
+    border-radius: 10px;
+    background-clip: padding-box;
+}
+body.admin-usermanagement-page .dashboard-box::-webkit-scrollbar-thumb:hover,
+body.admin-usermanagement-page .table-wrapper::-webkit-scrollbar-thumb:hover,
+body.admin-usermanagement-page .edit-modal-box::-webkit-scrollbar-thumb:hover { background-color: #a58acb; }
+body.admin-usermanagement-page .edit-modal-box::-webkit-scrollbar-corner,
+body.admin-usermanagement-page .table-wrapper::-webkit-scrollbar-corner { background: #191722; }
+@media (max-width: 768px) {
+    body.admin-usermanagement-page .dashboard-header { min-height: auto; padding: 26px 22px; border-radius: 22px; }
+    body.admin-usermanagement-page .dashboard-header h1 { font-size: clamp(28px, 7vw, 42px); letter-spacing: -.7px; }
+    body.admin-usermanagement-page .dashboard-header-content { gap: 18px; }
+    body.admin-usermanagement-page .edit-modal-box { max-height: calc(100dvh - 24px); }
+}
+@media (max-width: 430px) {
+    body.admin-usermanagement-page .modal-header { gap: 10px; }
+    body.admin-usermanagement-page .modal-title-wrap { gap: 10px; }
+    body.admin-usermanagement-page .modal-title { font-size: 17px; }
+}
+
 </style>
 {% endblock %}
 {% block content %}
@@ -1863,7 +2016,28 @@ body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
 
             <div class="edit-form-group">
                 <label class="edit-label" for="edit_joining_date">Joining Date</label>
-                <input type="date" id="edit_joining_date" name="edit_joining_date" class="edit-input">
+                <div class="joining-date-picker custom-date-picker" data-date-picker>
+                    <input type="hidden" id="edit_joining_date" name="edit_joining_date">
+                    <button type="button" class="custom-date-input" data-date-toggle aria-haspopup="dialog" aria-expanded="false">
+                        <span data-date-display>dd-mm-yyyy</span>
+                        <i data-lucide="calendar-days"></i>
+                    </button>
+                    <div class="custom-calendar" data-calendar role="dialog" aria-label="Choose employee joining date">
+                        <div class="calendar-header">
+                            <button type="button" class="calendar-nav" data-prev-month aria-label="Previous month"><i data-lucide="chevron-left"></i></button>
+                            <button type="button" class="calendar-month-title" data-month-title></button>
+                            <button type="button" class="calendar-nav" data-next-month aria-label="Next month"><i data-lucide="chevron-right"></i></button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                        </div>
+                        <div class="calendar-days" data-calendar-days></div>
+                        <div class="calendar-footer">
+                            <button type="button" class="calendar-footer-btn" data-clear-date>Clear</button>
+                            <button type="button" class="calendar-footer-btn" data-today-date>Today</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="edit-form-group">
@@ -1921,6 +2095,7 @@ body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
 
 {% endblock %}
 {% block extra_js %}
+<script src="{% static 'js/activity.js' %}?v=presence-fix-20261015" defer></script>
 {{ designation_options|json_script:"departmentDesignationOptions" }}
 <script>
 
@@ -2095,6 +2270,8 @@ function openEditModal(button) {
     } else {
         joiningInput.value = "";
     }
+
+    joiningInput.dispatchEvent(new Event("change", {bubbles: true}));
 
     document.getElementById("edit_username").value = button.dataset.username || "";
     document.getElementById("edit_password").value = "";
@@ -2323,6 +2500,20 @@ document.addEventListener("DOMContentLoaded", function () {
             daysWrap.appendChild(button);
         }
 
+        function syncDateValue() {
+            selectedDate = fromISO(hiddenInput.value);
+            const anchor = selectedDate || new Date();
+            viewDate = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+            updateDisplay();
+            renderCalendar();
+        }
+
+        hiddenInput.addEventListener("change", syncDateValue);
+        hiddenInput.form?.addEventListener("reset", () => {
+            // Read the value after the browser completes the form reset.
+            setTimeout(() => { syncDateValue(); closeCalendar(); }, 0);
+        });
+
         function openCalendar(event) {
             if (event) {
                 event.preventDefault();
@@ -2341,9 +2532,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
 
+            syncDateValue();
             picker.classList.add("open");
             toggle.setAttribute("aria-expanded", "true");
-            renderCalendar();
         }
 
         function closeCalendar() {
@@ -2547,7 +2738,8 @@ document.addEventListener('keydown', function(event) {
     const filter = document.getElementById('filterForm');
     const body = document.getElementById('employeeTableBody');
     if (!filter || !body) return;
-    let busy = false, sequence = 0, request = null, timer = null, debounce = null, signature = '';
+    let busy = false, sequence = 0, request = null, timer = null, debounce = null, signature = body.innerHTML;
+    let pagePaused = false, sessionExpired = false;
     const endpoint = window.location.pathname;
     const modalOpen = () => Array.from(document.querySelectorAll('.edit-modal')).some(modal => !modal.classList.contains('hidden'));
     const notify = (message, type = 'success') => {
@@ -2608,6 +2800,7 @@ document.addEventListener('keydown', function(event) {
         if (catalog) { try { departmentDesignationOptions = JSON.parse(catalog.textContent || '{}'); } catch (_) {} }
     }
     async function refresh() {
+        if (pagePaused || sessionExpired || document.hidden || modalOpen()) return;
         request?.abort();
         const controller = new AbortController(); request = controller;
         const token = ++sequence;
@@ -2615,18 +2808,24 @@ document.addEventListener('keydown', function(event) {
         const target = url();
         try {
             const response = await fetch(target, {credentials:'same-origin', cache:'no-store', signal:controller.signal});
+            if (response.status === 401 || response.status === 403 || response.redirected) {
+                sessionExpired = true;
+                clearTimeout(timer);
+                notify('Your access or session has changed. Sign in again to continue.', 'error');
+                throw new Error('Employee updates paused. Check your login.');
+            }
             if (!response.ok) throw new Error('Unable to update the employee list.');
             const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
-            if (token !== sequence || controller.signal.aborted || target.href !== url().href) return;
+            if (token !== sequence || controller.signal.aborted || target.href !== url().href || pagePaused || document.hidden || modalOpen()) return;
             apply(doc);
             return doc;
         } finally { clearTimeout(timeout); if (request === controller) request = null; }
     }
     function schedule() {
         clearTimeout(timer);
-        if (document.hidden) return;
+        if (document.hidden || pagePaused || sessionExpired) return;
         timer = setTimeout(async () => {
-            if (!busy && !modalOpen()) { try { await refresh(); } catch (_) {} }
+            if (!busy && !request && !modalOpen()) { try { await refresh(); } catch (_) {} }
             schedule();
         }, 10000);
     }
@@ -2665,9 +2864,11 @@ document.addEventListener('keydown', function(event) {
         form.querySelector('.user-live-error')?.remove();
         if (deleting) document.querySelector('#deleteUserModal .user-live-error')?.remove();
         let saved = false;
+        const saveController = new AbortController();
+        const saveTimeout = setTimeout(() => saveController.abort(), 30000);
         try {
             const response = await fetch(form.getAttribute('action') || endpoint, {
-                method:'POST', body:data, credentials:'same-origin', headers:{'X-Requested-With':'XMLHttpRequest'}
+                method:'POST', body:data, credentials:'same-origin', signal:saveController.signal, headers:{'X-Requested-With':'XMLHttpRequest'}
             });
             let result;
             if ((response.headers.get('Content-Type') || '').includes('application/json')) {
@@ -2700,11 +2901,11 @@ document.addEventListener('keydown', function(event) {
         } catch (error) {
             if (saved) notify('Saved. List updates will retry automatically.', 'warning');
             else {
-                const message = error instanceof TypeError ? 'Connection interrupted. Check the employee list before retrying.' : error.message;
+                const message = error.name === 'AbortError' ? 'The request timed out. Check the employee list before retrying; the change may have saved.' : error instanceof TypeError ? 'Connection interrupted. Check the employee list before retrying.' : error.message;
                 showError(deleting ? document.querySelector('#deleteUserModal .delete-confirm-box') : form, message);
                 notify(message, 'error');
             }
-        } finally { enabled.forEach(control => { control.disabled = false; }); busy = false; schedule(); }
+        } finally { clearTimeout(saveTimeout); enabled.forEach(control => { control.disabled = false; }); busy = false; schedule(); }
     }
     document.addEventListener('submit', event => {
         const form = event.target;
@@ -2719,8 +2920,8 @@ document.addEventListener('keydown', function(event) {
         else { if (!busy && !modalOpen()) refresh().catch(() => {}); schedule(); }
     });
     window.addEventListener('online', () => { if (!busy && !modalOpen()) refresh().catch(() => {}); });
-    window.addEventListener('pagehide', () => { clearTimeout(timer); clearTimeout(debounce); request?.abort(); });
-    window.addEventListener('pageshow', schedule);
+    window.addEventListener('pagehide', () => { pagePaused = true; ++sequence; clearTimeout(timer); clearTimeout(debounce); request?.abort(); });
+    window.addEventListener('pageshow', () => { pagePaused = false; schedule(); });
     schedule();
 })();
 

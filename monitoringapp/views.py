@@ -43,22 +43,7 @@ def index(request):
     return render(request,'index.html')
 
 
-@never_cache
-def admin_login(request):
-    if request.user.is_authenticated and request.user.is_superuser:
-        return redirect('admin_dashboard')
 
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
-        if user is not None and user.is_superuser:
-            login(request, user)
-            return redirect('admin_dashboard')
-        else:
-            messages.error(request, "Invalid credentials or not a superuser")
-
-    return render(request, 'admin_login.html')
 
 def admin_logout(request):
     logout(request)
@@ -303,85 +288,6 @@ def _announcement_inbox(user):
 
 
 @never_cache
-@require_http_methods(["GET", "POST"])
-def admin_announcements(request):
-    owner = _admin_notepad_owner(request)
-    if owner is None:
-        return redirect("admin_login")
-    recipients = MonitoringUser.objects.filter(
-        Q(job_Position__iexact="Team Lead") | Q(job_Position__iexact="Team Member")
-    ).order_by("name", "pk")
-    if request.method == "POST":
-        action = request.POST.get("action", "")
-        if action in {"edit_announcement", "delete_announcement"}:
-            try:
-                pk = int(request.POST.get("announcement_id", ""))
-            except (ValueError, TypeError):
-                messages.error(request, "Invalid announcement ID.")
-                return redirect("admin_announcements")
-            announcement = get_object_or_404(Announcement, pk=pk, is_admin_announcement=True, is_active=True)
-            if action == "delete_announcement":
-                announcement.is_active = False
-                announcement.save(update_fields=["is_active", "updated_at"])
-                messages.success(request, "Announcement deleted successfully.")
-            else:
-                message = request.POST.get("message", "").strip()
-                if not message:
-                    messages.error(request, "Announcement message cannot be empty.")
-                    return redirect("admin_announcements")
-                announcement.message = message
-                announcement.save(update_fields=["message", "updated_at"])
-                messages.success(request, "Announcement updated successfully.")
-            return redirect("admin_announcements")
-        if action != "create_announcement":
-            messages.error(request, "Invalid announcement action.")
-            return redirect("admin_announcements")
-        message = request.POST.get("message", "").strip()
-        if not message:
-            messages.error(request, "Please enter an announcement message.")
-            return redirect("admin_announcements")
-        send_to = request.POST.get("send_to", "team")
-        if send_to == "selected":
-            try:
-                ids = [int(value) for value in request.POST.getlist("recipient_ids")]
-            except (ValueError, TypeError):
-                messages.error(request, "Select valid recipients.")
-                return redirect("admin_announcements")
-            recipients = recipients.filter(pk__in=ids)
-        elif send_to != "team":
-            messages.error(request, "Invalid recipient option.")
-            return redirect("admin_announcements")
-        recipients = list(recipients)
-        if not recipients:
-            messages.error(request, "Select at least one Team Lead or Team Member.")
-            return redirect("admin_announcements")
-        sender = {"admin_created_by": owner["auth_owner"]} if "auth_owner" in owner else {"created_by": owner["management_owner"]}
-        with transaction.atomic():
-            announcement = Announcement.objects.create(
-                title="Admin Announcement", message=message,
-                is_admin_announcement=True, **sender,
-            )
-            AnnouncementRecipient.objects.bulk_create([
-                AnnouncementRecipient(announcement=announcement, recipient=user)
-                for user in recipients
-            ])
-        messages.success(request, "Announcement sent successfully.")
-        return redirect("admin_announcements")
-    response = render(request, "admin_panel/admin_announcements.html", {
-        "announcements": Announcement.objects.filter(is_admin_announcement=True, is_active=True).prefetch_related("recipients__recipient").order_by("-created_at", "-pk")[:50],
-        "team_members": recipients,
-        "lead_announcements": Announcement.objects.filter(
-            is_admin_announcement=False, is_active=True,
-            created_by__job_Position__iexact="Team Lead",
-        ).select_related("created_by", "created_by__department").order_by("-created_at", "-pk"),
-    })
-
-    if request.method == "GET" and request.GET.get("format") == "json":
-        return JsonResponse({"ok": True, "html": response.content.decode(response.charset)})
-    return response
-
-
-@never_cache
 @require_POST
 def teamlead_admin_announcement_seen(request, pk):
     user = _announcement_role_user(request, "team_lead")
@@ -523,7 +429,6 @@ def admin_dashboard(request):
         except IntegrityError:
             return finish("This department, team or designation already exists.", False)
 
-    # Team has no direct department relation: derive choices from assigned employees.
     from django.core.paginator import Paginator
     from django.db.models import Count, Q
 
@@ -913,137 +818,6 @@ from django.views.decorators.http import require_http_methods
 from .models import GoogleMeeting, Department, User
 
 
-@never_cache
-@require_http_methods(["GET", "POST"])
-def admin_google_meet(request):
-    owner = _admin_notepad_owner(request)
-    if owner is None:
-        return redirect("admin_login")
-
-    eligible = User.objects.filter(
-        Q(job_Position__iexact="Team Lead")
-        | Q(job_Position__iexact="Team Member")
-    ).select_related("department").order_by("name", "pk")
-    meetings = GoogleMeeting.objects.filter(is_admin_meeting=True)
-
-    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-
-    def fail(message):
-        if is_ajax:
-            return JsonResponse({"ok": False, "message": message}, status=400)
-        messages.error(request, message)
-        return redirect("admin_google_meet")
-
-    if request.method == "POST":
-        action = request.POST.get("action", "create_meeting")
-        if action not in {"create_meeting", "edit_meeting"}:
-            return fail("Invalid meeting action.")
-        purpose = request.POST.get("purpose", "").strip()
-        if not purpose or len(purpose) > 255:
-            return fail("Enter a meeting purpose with a maximum of 255 characters.")
-        try:
-            meeting_date = parse_date(request.POST.get("date", ""))
-            meeting_time = parse_time(request.POST.get("time", ""))
-        except (ValueError, TypeError):
-            return fail("Enter a valid meeting date and time.")
-        if meeting_date is None or meeting_time is None or meeting_time.tzinfo:
-            return fail("Enter a valid meeting date and time.")
-        link = request.POST.get("meeting_link", "").strip()
-        try:
-            parsed_link = urlsplit(link)
-            valid_link = (
-                parsed_link.scheme == "https"
-                and parsed_link.netloc == "meet.google.com"
-                and parsed_link.path not in {"", "/"}
-                and len(link) <= 200
-            )
-        except ValueError:
-            valid_link = False
-        if not valid_link:
-            return fail("Enter a valid https://meet.google.com/... meeting link.")
-
-        mode = request.POST.get("participant_type", "all")
-        if mode == "all":
-            participants = eligible
-        elif mode == "leads":
-            participants = eligible.filter(job_Position__iexact="Team Lead")
-        elif mode == "department":
-            try:
-                department_id = int(request.POST.get("department_id", ""))
-            except (ValueError, TypeError):
-                return fail("Choose a valid department.")
-            if not Department.objects.filter(pk=department_id).exists():
-                return fail("Choose a valid department.")
-            participants = eligible.filter(department_id=department_id)
-        elif mode == "selected":
-            try:
-                ids = set(int(value) for value in request.POST.getlist("participants"))
-            except (ValueError, TypeError):
-                return fail("Choose valid participants.")
-            participants = eligible.filter(pk__in=ids)
-            if not ids or participants.count() != len(ids):
-                return fail("Choose valid Team Leads or Team Members.")
-        else:
-            return fail("Invalid participant selection.")
-        participants = list(participants)
-        if not participants:
-            return fail("Select at least one participant.")
-
-        scheduled = timezone.make_aware(
-            datetime.combine(meeting_date, meeting_time),
-            timezone.get_current_timezone(),
-        )
-        if action == "create_meeting" and scheduled <= timezone.now():
-            return fail("Choose a future meeting date and time.")
-        with transaction.atomic():
-            if action == "edit_meeting":
-                try:
-                    meeting_id = int(request.POST.get("meeting_id", ""))
-                except (ValueError, TypeError):
-                    return fail("Invalid meeting ID.")
-                meeting = get_object_or_404(meetings.select_for_update(), pk=meeting_id)
-                if meeting.meeting_status == "ended":
-                    return fail("An ended meeting cannot be edited.")
-                if (meeting.date != meeting_date or meeting.time != meeting_time) and scheduled <= timezone.now():
-                    return fail("Choose a future time when rescheduling a meeting.")
-            else:
-                sender = (
-                    {"admin_created_by": owner["auth_owner"]}
-                    if "auth_owner" in owner
-                    else {"created_by": owner["management_owner"]}
-                )
-                meeting = GoogleMeeting(is_admin_meeting=True, **sender)
-            meeting.purpose = purpose
-            meeting.date = meeting_date
-            meeting.time = meeting_time
-            meeting.meeting_link = link
-            meeting.save()
-            meeting.participants.set(participants)
-        message = "Meeting updated successfully." if action == "edit_meeting" else "Meeting scheduled successfully."
-        if is_ajax:
-            return JsonResponse({"ok": True, "message": message, "id": meeting.pk}, status=200 if action == "edit_meeting" else 201)
-        messages.success(request, message)
-        return redirect("admin_google_meet")
-
-    now = timezone.now()
-    meeting_list = list(meetings.prefetch_related("participants"))
-    def priority(meeting):
-        start = meeting.scheduled_datetime
-        ended = start + timedelta(hours=1) <= now
-        return (1 if ended else 0, -start.timestamp(), -meeting.pk)
-    meeting_list.sort(key=priority)
-    response = render(request, "admin_panel/admin_google_meet.html", {
-        "meetings": meeting_list,
-        "team_members": eligible,
-        "departments": Department.objects.order_by("name"),
-    })
-
-    if request.GET.get("format") == "json":
-        return JsonResponse({"ok": True, "html": response.content.decode(response.charset)})
-    return response
-
-
-# Add to monitoringapp/views.py. Keep existing Team Lead/Member views.
 from urllib.parse import urlencode
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -1154,12 +928,6 @@ def admin_notepad_delete(request, pk):
         "sort": sort, "page": request.POST.get("page", "1"),
     }))
 
-
-# monitoringapp/views.py
-# Add shared imports/helpers ONCE.
-# Replace the six named existing functions, including their decorators.
-# Do not append duplicate definitions or replace the full views.py.
-# Existing _admin_notepad_owner remains unchanged.
 
 
 # Add imports and helpers to monitoringapp/views.py ONCE.
@@ -1545,7 +1313,7 @@ def admin_group_chat(request, group_id):
     from asgiref.sync import async_to_sync
     from channels.layers import get_channel_layer
 
-    from .chat_receipts import broadcast_chat_activity    
+    from .chat_receipts___ import broadcast_chat_activity    
     from .member_chat_actions import chat_action
 
     current_user = _admin_chat_user(request)
@@ -2176,66 +1944,6 @@ def get_logged_in_user_api(request):
     })
 
 
-def forgot_password(request):
-    if request.method == "POST":
-        email = request.POST.get("email")
-
-        try:
-            user = User.objects.get(email=email)
-            otp = random.randint(100000, 999999)
-            request.session['reset_email'] = email
-            request.session['reset_otp'] = str(otp)
-
-            # Send OTP via email
-            send_mail(
-                "Password Reset OTP",
-                f"Your OTP for password reset is {otp}",
-                settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=False,
-            )
-
-            messages.success(request, "OTP sent to your email")
-            return redirect("verify_otp")
-
-        except User.DoesNotExist:
-            messages.error(request, "Email not registered")
-    
-    return render(request, "forgot_password.html")
-
-def verify_otp(request):
-    if request.method == "POST":
-        otp = request.POST.get("otp")
-        if otp == request.session.get("reset_otp"):
-            return redirect("reset_password")
-        else:
-            messages.error(request, "Invalid OTP")
-
-    return render(request, "verify_otp.html")
-
-
-# Step 3: Reset Password
-def reset_password(request):
-    if request.method == "POST":
-        password = request.POST.get("password")
-        confirm_password = request.POST.get("confirm_password")
-
-        if password == confirm_password:
-            email = request.session.get("reset_email")
-            user = User.objects.get(email=email)
-            user.password = password   # ⚠️ Better: use user.set_password(password) if using Django's auth User
-            user.save()
-
-            # Clear session values
-            request.session.pop("reset_email", None)
-            request.session.pop("reset_otp", None)
-
-            messages.success(request, "Password reset successful. Please login.")
-            return redirect("login")
-        else:
-            messages.error(request, "Passwords do not match")
-
-    return render(request, "reset_password.html")
 
 
 @never_cache
@@ -4223,7 +3931,7 @@ def teamlead_group_chat_view(request, group_id):
     from asgiref.sync import async_to_sync
     from channels.layers import get_channel_layer
 
-    from .chat_receipts import broadcast_chat_activity
+    from .chat_receipts___ import broadcast_chat_activity
     from .member_chat_actions import chat_action
 
     user_id = request.session.get("user_id")
@@ -5839,7 +5547,7 @@ def teamlead_task(request):
 
     user_id = request.session.get("user_id")
 
-    if not user_id:
+    if not user_id or request.session.get("position") != "team_lead":
         return redirect("index")
 
     user = get_object_or_404(User, id=user_id)
@@ -5860,10 +5568,7 @@ def teamlead_task(request):
     # MY TASKS
     # =========================================================
 
-    my_tasks = Task.objects.filter(
-        created_by=user,
-        assigned_to=user
-    ).order_by("-created_at")
+    my_tasks = Task.objects.filter(assigned_to=user).order_by("-created_at")
 
 
     # =========================================================
@@ -5884,9 +5589,7 @@ def teamlead_task(request):
     # Used for summary cards
     # =========================================================
 
-    all_tasks = Task.objects.filter(
-        created_by=user
-    )
+    all_tasks = Task.objects.filter(Q(created_by=user) | Q(assigned_to=user))
 
 
     total_tasks = all_tasks.count()
@@ -6055,22 +5758,24 @@ def teamlead_task(request):
 
     return response
 
+@never_cache
+@require_POST
 def update_task_teamlead(request, task_id):
     user_id = request.session.get("user_id")
-    if not user_id:
-        return redirect("login_view")
-
-    user = User.objects.get(id=user_id)
-    task = get_object_or_404(Task, id=task_id, created_by=user)
-
-    if request.method == "POST":
-        status = request.POST.get("status")
-        task.status = status
-        task.progress = {"pending": 0, "in_progress": 50, "completed": 100}.get(status, 0)
-        task.save()
+    if not user_id or request.session.get("position") != "team_lead":
+        return redirect("index")
+    user = get_object_or_404(User, pk=user_id)
+    task = get_object_or_404(Task.objects.filter(Q(created_by=user) | Q(assigned_to=user)), pk=task_id)
+    status = request.POST.get("status", "")
+    progress = {"pending": 0, "in_progress": 50, "completed": 100}
+    if status not in progress:
+        messages.error(request, "Invalid task status.")
+    else:
+        task.status, task.progress = status, progress[status]
+        task.save(update_fields=["status", "progress"])
         messages.success(request, "Task status updated successfully.")
+    return redirect("teamlead_task")
 
-    return redirect('teamlead_task')
 
 
 def delete_task_teamlead(request, task_id):
@@ -6168,26 +5873,32 @@ def update_activity(request):
     update_inactive_users()
     return JsonResponse({"success": True, "status": "active"})
 
+
+
+
 def get_user_status(request, user_id):
+    from datetime import timedelta
+    from django.http import JsonResponse
+    from django.utils import timezone
+
     user = User.objects.filter(pk=user_id).values("status", "last_activity").first()
     if user is None:
         return JsonResponse({"success": False, "message": "User not found"}, status=404)
 
-    status = user["status"]
+    cutoff = timezone.now() - timedelta(minutes=10)
     last_activity = user["last_activity"]
-    cutoff_time = timezone.now() - timedelta(minutes=10)
-    if last_activity and last_activity < cutoff_time:
-        status = "inactive"
-        if user["status"] != "inactive":
-            # Do not overwrite a concurrent heartbeat with an old read.
-            changed = User.objects.filter(
-                pk=user_id, last_activity__lt=cutoff_time
-            ).exclude(status="inactive").update(status="inactive")
-            if not changed:
-                latest = User.objects.filter(pk=user_id).values("status", "last_activity").first()
-                if latest:
-                    status = latest["status"]
-    return JsonResponse({"success": True, "status": status})
+    active = (
+        str(user["status"] or "").strip().lower() == "active"
+        and last_activity is not None
+        and last_activity > cutoff
+    )
+    response = JsonResponse({
+        "success": True,
+        "status": "active" if active else "inactive",
+    })
+    response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    return response
+
 
 
 from django.views.decorators.http import require_POST
@@ -6993,7 +6704,6 @@ def teammember_chat_room(request, user_id):
     other = get_object_or_404(User, pk=user_id)
     if user.pk == other.pk:
         return redirect('teammember_chat')
-    # Find either ordering so older conversations and their messages remain visible.
     room = Conversation.objects.filter(Q(user1=user, user2=other) | Q(user1=other, user2=user)).order_by('pk').first()
     if room is None:
         first, second = sorted([user, other], key=lambda person: person.pk)
@@ -7570,51 +7280,6 @@ def accounts_income(request):
         "month_label": month_start.strftime("%B %Y"),
     }, status=400 if request.method == "POST" or filter_error else 200)
 
-# @never_cache
-# @require_http_methods(["GET", "POST"])
-# def accounts_income_edit(request, pk):
-#     actor = _accounts_user(request)
-#     if actor is None:
-#         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
-#             status=403 if request.session.get("user_id") else 401)
-#     with transaction.atomic():
-#         entry = AccountsIncome.objects.select_for_update().filter(pk=pk).first()
-#         if entry is None:
-#             return JsonResponse({"ok": False, "message": "This income no longer exists."}, status=404)
-#         if request.method == "GET":
-#             return JsonResponse({"ok": True, "item": {
-#                 "date": entry.date.isoformat(), "category": entry.category,
-#                 "amount": str(entry.amount),
-#                 "payment_method": entry.payment_method,
-#                 "description": entry.description, "reference": entry.reference,
-#             }, "receipt_url": reverse("accounts_income_receipt", args=[entry.pk]) if entry.receipt else ""})
-#         before = _income_snapshot(entry)
-#         form = AccountsIncomeForm(request.POST, request.FILES, instance=entry)
-#         if not form.is_valid():
-#             return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
-#                 "errors": form.errors.get_json_data()}, status=400)
-#         # Recheck duplicates when identifying fields change.
-#         identifying = {"date", "category", "amount", "reference"}
-#         if any(str(form.cleaned_data.get(key) or "") != before.get(key, "") for key in identifying) and _income_duplicate(form, entry.pk) and request.POST.get("confirm_duplicate") != "1":
-#             return _income_duplicate_response()
-#         entry = form.save(commit=False)
-#         if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
-#             entry.receipt = ""
-#             entry.save()
-#         _income_audit(entry, actor, "updated", before)
-#         _create_accounts_notification(
-#             kind="income",
-#             title="Income updated",
-#             message=(
-#                 f"{actor.name} updated income "
-#                 f"#{entry.pk}: {entry.category}, "
-#                 f"₹{entry.amount:,.2f} "
-#                 f"on {entry.date:%d %b %Y}."
-#             ),
-#             actor=actor,
-#         )
-#     return JsonResponse({"ok": True, "message": "Income updated successfully.", "id": entry.pk})
-
 
 
 
@@ -7958,51 +7623,6 @@ def accounts_expenses(request):
         "month_expense": expense_total(all_entries.filter(date__range=(month_start, month_end))),
         "month_label": month_start.strftime("%B %Y"),
     }, status=400 if request.method == "POST" or filter_error else 200)
-
-# @never_cache
-# @require_http_methods(["GET", "POST"])
-# def accounts_expense_edit(request, pk):
-#     actor = _accounts_user(request)
-#     if actor is None:
-#         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
-#             status=403 if request.session.get("user_id") else 401)
-#     with transaction.atomic():
-#         entry = AccountsExpense.objects.select_for_update().filter(pk=pk).first()
-#         if entry is None:
-#             return JsonResponse({"ok": False, "message": "This expense no longer exists."}, status=404)
-#         if request.method == "GET":
-#             return JsonResponse({"ok": True, "item": {
-#                 "date": entry.date.isoformat(), "category": entry.category,
-#                 "amount": str(entry.amount), "paid_amount": str(entry.effective_paid_amount),
-#                 "payment_method": entry.payment_method, "paid_to": entry.paid_to,
-#                 "description": entry.description, "reference": entry.reference,
-#             }, "receipt_url": reverse("accounts_expense_receipt", args=[entry.pk]) if entry.receipt else ""})
-#         before = _expense_snapshot(entry)
-#         form = AccountsExpenseForm(request.POST, request.FILES, instance=entry)
-#         if not form.is_valid():
-#             return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
-#                 "errors": form.errors.get_json_data()}, status=400)
-#         # Recheck duplicates when identifying fields change; editing only paid amount is safe.
-#         identifying = {"date", "category", "amount", "paid_to", "reference"}
-#         if any(str(form.cleaned_data.get(key) or "") != before.get(key, "") for key in identifying) and _expense_duplicate(form, entry.pk) and request.POST.get("confirm_duplicate") != "1":
-#             return _expense_duplicate_response()
-#         entry = form.save(commit=False)
-#         if request.POST.get("remove_receipt") == "1" and not request.FILES.get("receipt"):
-#             entry.receipt = ""
-#             entry.save()
-#         _expense_audit(entry, actor, "updated", before)
-#         _create_accounts_notification(
-#             kind="expense",
-#             title="Expense updated",
-#             message=(
-#                 f"{actor.name} updated expense "
-#                 f"#{entry.pk}: {entry.category}, "
-#                 f"₹{entry.amount:,.2f} "
-#                 f"on {entry.date:%d %b %Y}."
-#             ),
-#             actor=actor,
-#         )
-#     return JsonResponse({"ok": True, "message": "Expense updated successfully.", "id": entry.pk})
 
 
 @never_cache
@@ -8767,88 +8387,6 @@ def accounts_notifications(request):
     })
 
 
-@never_cache
-@require_POST
-def accounts_notification_action(request, pk):
-    from django.http import JsonResponse
-    from django.urls import reverse
-    from .models import AccountsNotification
-
-    current_user = _accounts_user(request)
-    if current_user is None:
-        return JsonResponse({
-            "ok": False,
-            "message": "Accounts access required.",
-        }, status=403 if request.session.get("user_id") else 401)
-
-    item = AccountsNotification.objects.filter(
-        pk=pk,
-        recipient=current_user,
-    ).first()
-
-    if item is None:
-        return JsonResponse({
-            "ok": False,
-            "message": "Notification not found.",
-        }, status=404)
-
-    action = request.POST.get("action", "")
-    target_url = ""
-
-    if action in {"read", "open"}:
-        item.is_read = True
-        item.save(update_fields=["is_read"])
-
-        if action == "open":
-            routes = {
-                "income": "accounts_income",
-                "expense": "accounts_expenses",
-                "sale": "accounts_sales",
-                "payment": "accounts_sales",
-                "reminder": "accounts_reminders",
-                "note": "accounts_notepad",
-            }
-            target_url = reverse(
-                routes.get(item.kind, "accounts_notifications")
-            )
-
-    elif action == "unread":
-        item.is_read = False
-        item.save(update_fields=["is_read"])
-
-    elif action == "archive":
-        item.is_archived = True
-        item.save(update_fields=["is_archived"])
-
-    elif action == "restore":
-        item.is_archived = False
-        item.save(update_fields=["is_archived"])
-
-    else:
-        return JsonResponse({
-            "ok": False,
-            "message": "Invalid notification action.",
-        }, status=400)
-
-    unread_count = AccountsNotification.objects.filter(
-        recipient=current_user,
-        is_archived=False,
-        is_read=False,
-    ).count()
-
-    return JsonResponse({
-        "ok": True,
-        "message": {
-            "read": "Marked as read.",
-            "open": "Notification opened.",
-            "unread": "Marked as unread.",
-            "archive": "Notification archived.",
-            "restore": "Notification restored to inbox.",
-        }[action],
-        "unread_count": unread_count,
-        "url": target_url,
-    })
-
 
 @never_cache
 @require_POST
@@ -9486,9 +9024,6 @@ def accounts_profile(request):
     }, status=400 if error else 200)
 
 
-# REPLACE these three EXISTING functions in monitoringapp/views.py. Do not append duplicates.
-# Only save() indentation changes; Accounts permissions/validations remain unchanged.
-
 @never_cache
 @require_http_methods(["GET", "POST"])
 def accounts_income_edit(request, pk):
@@ -9634,10 +9169,6 @@ def accounts_sale_edit(request, pk):
 
 #<------------MASTER-ADMIN------------------>
 
-# monitoringapp/views.py: add these NEW functions once, at the end of the file.
-# Existing login/admin/accounts functions do not need replacement for this step.
-
-
 def _master_admin_allowed(request):
     user = request.user
     return bool(user.is_authenticated and user.is_active and user.is_superuser)
@@ -9675,11 +9206,13 @@ def master_admin_logout(request):
 @never_cache
 @require_GET
 def master_admin_dashboard(request):
+    from datetime import timedelta
     from decimal import Decimal
     from django.contrib.auth import get_user_model
     from django.db.models import Count, Q, Sum
     from django.db.models.functions import Lower, Trim
     from django.http import HttpResponseForbidden, JsonResponse
+    from django.shortcuts import redirect, render
     from django.utils import timezone
     from .models import User as Employee, Department, Team
     from .models import AccountsIncome, AccountsExpense, AccountsSale
@@ -9691,48 +9224,46 @@ def master_admin_dashboard(request):
         if not request.user.is_authenticated:
             return redirect("master_admin_login")
         return HttpResponseForbidden("Master Admin access required.")
-
-    today = timezone.localdate()
+    now = timezone.now()
+    today = timezone.localdate(now)
     month_start = today.replace(day=1)
     next_month = (month_start.replace(year=month_start.year + 1, month=1)
                   if month_start.month == 12 else month_start.replace(month=month_start.month + 1))
-    employees = Employee.objects.annotate(portal_role=Lower(Trim("job_Position")))
+    # Master Admin's linked chat identity is not another employee registration.
+    employees = Employee.objects.annotate(portal_role=Lower(Trim("job_Position"))).exclude(
+        portal_role__in=["master admin", "master_admin"])
     counts = employees.aggregate(
         users=Count("pk"),
-        admins=Count("pk", filter=Q(portal_role="management")),
-        leads=Count("pk", filter=Q(portal_role="team lead")),
-        members=Count("pk", filter=Q(portal_role="team member")),
+        admins=Count("pk", filter=Q(portal_role__in=["management", "admin"])),
+        leads=Count("pk", filter=Q(portal_role__in=["team lead", "team_lead", "team leader", "teamlead"])),
+        members=Count("pk", filter=Q(portal_role__in=["team member", "team_member", "team members", "teammember"])),
         accounts=Count("pk", filter=Q(portal_role__in=["accounts", "accounts team", "accounts_team"])),
+        active=Count("pk", filter=Q(status="active", last_activity__gte=now-timedelta(minutes=10))),
     )
-    # Presence follows the same ten-minute activity window used by the employee portals.
-    counts["active"] = employees.filter(last_activity__gte=timezone.now() - timedelta(minutes=10)).count()
     counts["inactive"] = counts["users"] - counts["active"]
     counts["master_admins"] = get_user_model().objects.filter(is_superuser=True, is_active=True).count()
     counts["departments"] = Department.objects.count()
     counts["teams"] = Team.objects.count()
 
     def month_total(model):
-        value = model.objects.filter(date__gte=month_start, date__lt=next_month).aggregate(total=Sum("amount"))["total"]
-        return format(value or Decimal("0.00"), ".2f")
+        total = model.objects.filter(date__gte=month_start, date__lt=next_month).aggregate(total=Sum("amount"))["total"]
+        return format(total if total is not None else Decimal("0.00"), ".2f")
 
     financial = {"income": month_total(AccountsIncome), "expenses": month_total(AccountsExpense), "sales": month_total(AccountsSale)}
-    recent_users = [{
-        "id": item.pk, "name": item.name, "employee_id": item.employee_id,
+    recent_users = [{"id": item.pk, "name": item.name, "employee_id": item.employee_id,
         "role": item.job_Position, "department": item.department.name if item.department else "Not assigned",
-        "team": item.team.name if item.team else "Not assigned",
-    } for item in Employee.objects.select_related("department", "team").order_by("-id")[:10]]
+        "team": item.team.name if item.team else "Not assigned"}
+        for item in employees.select_related("department", "team").order_by("-id")[:10]]
     payload = {"ok": True, "counts": counts, "financial": financial, "recent_users": recent_users,
-               "month_label": month_start.strftime("%B %Y"), "updated_at": timezone.localtime().strftime("%d %b %Y, %I:%M:%S %p")}
+        "month_label": month_start.strftime("%B %Y"),
+        "updated_at": timezone.localtime(now).strftime("%d %b %Y, %I:%M:%S %p")}
     if json_request:
         return JsonResponse(payload)
     return render(request, "master_admin/master_admin_dashboard.html", {
-        "master_user": request.user, **payload,
+        "master_user": request.user, "dashboard_data": payload, **payload,
     })
 
-# monitoringapp/views.py — REPLACE the existing six matching functions below.
-# Do not append duplicate definitions. Keep the existing imports/decorators.
-# Requires _master_admin_allowed() from Master Admin Step 1.
-# Existing Admin functions stay unchanged. No migration required.
+
 
 
 def _master_employee_form(data=None, files=None, instance=None):
@@ -10075,8 +9606,6 @@ def master_admin_departments(request):
     return render(request, "master_admin/master_admin_departments.html", {"department_items": items})
 
 
-# ADD this NEW function once at the end of monitoringapp/views.py.
-# Keep existing functions. Requires _master_admin_allowed(). No migration.
 
 @never_cache
 @require_http_methods(["GET", "POST"])
@@ -10156,21 +9685,17 @@ def master_admin_teams(request):
         return JsonResponse({"ok": True, "items": items})
     return render(request, "master_admin/master_admin_teams.html", {"team_items": items})
 
-# ADD this NEW function once at the END of monitoringapp/views.py.
-# Keep existing Admin report functions unchanged. No migrations.
+
 
 @never_cache
 @require_GET
 def master_admin_reports(request):
     from datetime import datetime, time, timedelta
-    from urllib.parse import urlencode
     from django.conf import settings
     from django.contrib import messages
-    from django.core.paginator import Paginator
     from django.db.models import Q
     from django.http import HttpResponse, HttpResponseForbidden
     from django.shortcuts import redirect, render
-    from django.urls import reverse
     from django.utils import timezone
     from django.utils.dateparse import parse_date
     from .models import MorningReport, EveningReport
@@ -10200,9 +9725,7 @@ def master_admin_reports(request):
     morning = MorningReport.objects.filter(user__job_Position__iexact=role).select_related("user").order_by("-created_at", "-id")
     evening = EveningReport.objects.filter(user__job_Position__iexact=role).select_related("user").order_by("-created_at", "-id")
     if query:
-        match = (Q(user__name__icontains=query) | Q(user__username__icontains=query)
-                 | Q(team__icontains=query) | Q(department__icontains=query)
-                 | Q(report_text__icontains=query) | Q(status__icontains=query))
+        match = Q(user__name__icontains=query)
         morning, evening = morning.filter(match), evening.filter(match)
     day = parse_date(filter_date) if filter_date else (None if show_all else timezone.localdate())
     if day is not None:
@@ -10248,35 +9771,20 @@ def master_admin_reports(request):
         wb.save(response)
         return response
 
-    morning_page = Paginator(morning, 25).get_page(request.GET.get("mpage"))
-    evening_page = Paginator(evening, 25).get_page(request.GET.get("epage"))
-    params = {"tab": report_tab}
-    if show_all:
-        params["all"] = "1"
-    if filter_date:
-        params["date"] = filter_date
-    if query:
-        params["q"] = query
-    params.update(mpage=morning_page.number, epage=evening_page.number)
-
-    def page_link(key, value):
-        return reverse("master_admin_reports") + "?" + urlencode({**params, key: value})
-
+    # Return the complete filtered lists; the template scrolls within each table.
     return render(request, "master_admin/master_admin_reports.html", {
-        "report_tab": report_tab, "show_all": show_all, "filter_date": filter_date,
-        "query": query, "morning_reports": morning_page.object_list,
-        "evening_reports": evening_page.object_list,
-        "morning_page": morning_page, "evening_page": evening_page,
-        "morning_prev": page_link("mpage", morning_page.previous_page_number()) if morning_page.has_previous() else "",
-        "morning_next": page_link("mpage", morning_page.next_page_number()) if morning_page.has_next() else "",
-        "evening_prev": page_link("epage", evening_page.previous_page_number()) if evening_page.has_previous() else "",
-        "evening_next": page_link("epage", evening_page.next_page_number()) if evening_page.has_next() else "",
+        "report_tab": report_tab,
+        "show_all": show_all,
+        "filter_date": filter_date,
+        "query": query,
+        "morning_reports": morning,
+        "evening_reports": evening,
+        "morning_count": morning.count(),
+        "evening_count": evening.count(),
     })
 
 
-# ADD these NEW Master Admin functions once at the END of monitoringapp/views.py.
-# Existing Accounts functions stay unchanged. Requires the audit model/migration first.
-# Uses existing Accounts forms and duplicate/snapshot helpers already in this file.
+
 from pathlib import Path
 from decimal import Decimal
 from django.contrib import messages
@@ -11395,3 +10903,2267 @@ def master_admin_accounts_overview(request):
         "range_start": start, "range_end": end, "filter_error": error, "data": data,
         "from_date": request.GET.get("start", ""), "to_date": request.GET.get("end", ""),
     })
+
+
+from django import forms
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Q, Count
+from django.db.models.functions import Lower, Trim
+from django.http import JsonResponse, HttpResponseForbidden
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST
+from .models import Task, User, Team, TeamLeadNotification, MasterAdminTaskAudit
+
+
+def _master_task_people():
+    return User.objects.annotate(task_role=Lower(Trim("job_Position"))).filter(
+        task_role__in=["team lead", "team_lead", "team member", "team_member"]
+    ).select_related("team", "department").order_by("name", "pk")
+
+
+class MasterAdminTaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ["title", "description", "assigned_to", "status", "progress"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["assigned_to"].queryset = _master_task_people()
+        self.fields["progress"].min_value = 0
+        self.fields["progress"].max_value = 100
+
+    def clean_title(self):
+        title = self.cleaned_data["title"].strip()
+        if not title:
+            raise forms.ValidationError("Enter a task title.")
+        return title
+
+    def clean_progress(self):
+        progress = self.cleaned_data["progress"]
+        if not 0 <= progress <= 100:
+            raise forms.ValidationError("Progress must be between 0 and 100.")
+        return progress
+
+    def clean(self):
+        data = super().clean()
+        if data.get("status") == "pending":
+            data["progress"] = 0
+        elif data.get("status") == "completed":
+            data["progress"] = 100
+        elif data.get("status") == "in_progress" and data.get("progress") == 100:
+            self.add_error("progress", "Use Completed for 100% progress.")
+        return data
+
+
+def _master_task_snapshot(task):
+    return {"title": task.title, "description": task.description or "",
+        "assigned_to": task.assigned_to_id, "status": task.status, "progress": task.progress}
+
+
+def _master_task_record(request, task, action, before=None):
+    audit = MasterAdminTaskAudit.objects.create(
+        actor=request.user, actor_name=(request.user.get_full_name() or request.user.username)[:255],
+        task_number=task.pk, action=action, before=before or {},
+        after={} if action == "deleted" else _master_task_snapshot(task))
+    recipients = {task.assigned_to_id}
+    if before and before.get("assigned_to"):
+        recipients.add(before["assigned_to"])
+    for person in _master_task_people().filter(pk__in=recipients):
+        role = person.task_role
+        TeamLeadNotification.objects.create(recipient=person, kind="task",
+            title=f"Task {action}", message=f"Master Admin {audit.actor_name} {action} task #{task.pk}: {task.title}",
+            url=reverse("teamlead_task" if role in {"team lead", "team_lead"} else "teammember_task"))
+
+
+def _master_task_denied(request):
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    if not request.user.is_authenticated:
+        return redirect("master_admin_login")
+    return HttpResponseForbidden("Master Admin access required.")
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_tasks(request):
+    if not _master_admin_allowed(request):
+        return _master_task_denied(request)
+    if request.method == "POST":
+        form = MasterAdminTaskForm(request.POST)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        with transaction.atomic():
+            task = form.save(commit=False)
+            task.created_by = None
+            task.save()
+            _master_task_record(request, task, "created")
+        return JsonResponse({"ok": True, "message": "Task assigned successfully.", "id": task.pk}, status=201)
+    tasks = Task.objects.select_related("assigned_to__team", "assigned_to__department", "created_by").annotate(
+        task_role=Lower(Trim("assigned_to__job_Position")))
+    tab = request.GET.get("tab", "all")
+    if tab not in {"all", "leads", "members"}:
+        tab = "all"
+    if tab == "leads":
+        tasks = tasks.filter(task_role__in=["team lead", "team_lead"])
+    elif tab == "members":
+        tasks = tasks.filter(task_role__in=["team member", "team_member"])
+    query = request.GET.get("q", "").strip()[:200]
+    if query:
+        tasks = tasks.filter(Q(title__icontains=query) | Q(description__icontains=query)
+            | Q(assigned_to__name__icontains=query) | Q(created_by__name__icontains=query))
+    team = request.GET.get("team", "")
+    if team.isdigit():
+        tasks = tasks.filter(assigned_to__team_id=int(team))
+    else:
+        team = ""
+    state = request.GET.get("status", "")
+    if state in dict(Task.STATUS_CHOICES):
+        tasks = tasks.filter(status=state)
+    else:
+        state = ""
+    counts = dict(tasks.values_list("status").annotate(total=Count("pk")))
+    page = Paginator(tasks.order_by("-created_at", "-pk"), 20).get_page(request.GET.get("page"))
+    items = list(page.object_list)
+    creators = {}
+    for audit in MasterAdminTaskAudit.objects.filter(action="created", task_number__in=[item.pk for item in items]).order_by("pk"):
+        creators.setdefault(audit.task_number, audit.actor_name)
+    data = []
+    for item in items:
+        item.creator_label = (item.created_by.name if item.created_by else
+            "Master Admin: " + creators[item.pk] if item.pk in creators else "Not recorded")
+        data.append({"id": item.pk, **_master_task_snapshot(item), "assignee": item.assigned_to.name,
+            "creator": item.creator_label, "team": item.assigned_to.team.name if item.assigned_to.team else "No team"})
+    page.object_list = items
+    params = request.GET.copy()
+    params.pop("page", None)
+    params.pop("fragment", None)
+    params.pop("tab", None)
+    return render(request, "master_admin/master_admin_tasks.html", {
+        "master_tasks_active": True, "task_tab": tab, "query": query, "selected_team": team,
+        "selected_status": state, "teams": Team.objects.order_by("name"), "people": _master_task_people(),
+        "page_obj": page, "task_items": data, "filter_params": params.urlencode(),
+        "total_tasks": sum(counts.values()), "pending_tasks": counts.get("pending", 0),
+        "in_progress_tasks": counts.get("in_progress", 0), "completed_tasks": counts.get("completed", 0),
+    })
+
+
+@never_cache
+@require_POST
+def master_admin_task_update(request, pk):
+    if not _master_admin_allowed(request):
+        return _master_task_denied(request)
+    with transaction.atomic():
+        task = Task.objects.select_for_update().filter(pk=pk).first()
+        if task is None:
+            return JsonResponse({"ok": False, "message": "Task no longer exists."}, status=404)
+        before = _master_task_snapshot(task)
+        data = request.POST.copy()
+        # A row status change is supported without overwriting other fields.
+        if data.get("mode") == "status":
+            status = data.get("status")
+            data = {**before, "status": status,
+                "progress": {"pending": 0, "in_progress": 50, "completed": 100}.get(status, task.progress)}
+        form = MasterAdminTaskForm(data, instance=task)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        task = form.save()
+        if before != _master_task_snapshot(task):
+            _master_task_record(request, task, "updated", before)
+    return JsonResponse({"ok": True, "message": "Task updated successfully."})
+
+
+@never_cache
+@require_POST
+def master_admin_task_delete(request, pk):
+    import logging
+    import uuid
+    from django.db import transaction
+    from django.db.models.deletion import ProtectedError, RestrictedError
+    from django.http import JsonResponse
+    from .models import Task
+
+    if not _master_admin_allowed(request):
+        return JsonResponse({"ok": False, "message": "Master Admin access required. Sign in again."}, status=403)
+
+    try:
+        with transaction.atomic():
+            task = Task.objects.select_for_update().filter(pk=pk).first()
+            if task is None:
+                return JsonResponse({"ok": False, "message": "Task no longer exists. Refresh the task list."}, status=404)
+            _master_task_record(request, task, "deleted", _master_task_snapshot(task))
+            task.delete()
+    except (ProtectedError, RestrictedError):
+        return JsonResponse({"ok": False, "message": "This task is linked to protected records and cannot be deleted."}, status=409)
+    except Exception:
+        reference = uuid.uuid4().hex[:8]
+        logging.getLogger(__name__).exception("Master Admin task delete failed: task=%s reference=%s", pk, reference)
+        return JsonResponse({"ok": False, "message": f"Task deletion failed. Check the Django terminal traceback (reference {reference})."}, status=500)
+
+    return JsonResponse({"ok": True, "message": "Task deleted successfully.", "id": pk})
+
+
+# ADD once at END of monitoringapp/views.py. Existing TL/TM functions stay unchanged.
+from django import forms
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Q, Count
+from django.db.models.functions import Lower, Trim
+from django.http import JsonResponse, HttpResponseForbidden
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST
+from .models import ProjectAssign, ProjectFile, ProjectImage, User, Team, Department, TeamLeadNotification, MasterAdminProjectAudit
+
+
+def _master_project_people():
+    return User.objects.annotate(project_role=Lower(Trim("job_Position"))).filter(
+        project_role__in=["team lead", "team_lead", "team member", "team_member"]
+    ).select_related("team", "department").order_by("name", "pk")
+
+
+class MasterAdminProjectForm(forms.ModelForm):
+    class Meta:
+        model = ProjectAssign
+        fields = ["team", "department", "assign_to", "assigned_by", "work_name", "work_type",
+            "category", "description", "deadline", "additional_notes", "color_preference",
+            "content_example", "priority", "status"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["assign_to"].queryset = _master_project_people()
+        owner_filter = Q(project_role__in=["team lead", "team_lead"])
+        if self.instance.pk:
+            owner_filter |= Q(pk=self.instance.assigned_by_id)
+        self.fields["assigned_by"].queryset = User.objects.annotate(
+            project_role=Lower(Trim("job_Position"))).filter(owner_filter)
+
+    def clean_work_name(self):
+        value = self.cleaned_data["work_name"].strip()
+        if not value:
+            raise forms.ValidationError("Enter a project name.")
+        return value
+
+    def clean(self):
+        data = super().clean()
+        team, department = data.get("team"), data.get("department")
+        assignee, owner = data.get("assign_to"), data.get("assigned_by")
+        if team and assignee and assignee.team_id != team.pk:
+            self.add_error("assign_to", "Choose someone from the selected team.")
+        if department and assignee and assignee.department_id != department.pk:
+            self.add_error("assign_to", "Choose someone from the selected department.")
+        if team and owner and owner.team_id != team.pk:
+            self.add_error("assigned_by", "Choose a responsible lead from the selected team.")
+        if department and owner and owner.department_id != department.pk:
+            self.add_error("assigned_by", "Choose a responsible lead from the selected department.")
+        return data
+
+
+def _master_project_denied(request):
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    return redirect("master_admin_login") if not request.user.is_authenticated else HttpResponseForbidden("Master Admin access required.")
+
+
+def _master_project_snapshot(project):
+    data = {}
+    for name in MasterAdminProjectForm.Meta.fields:
+        field = project._meta.get_field(name)
+        value = getattr(project, field.attname)
+        data[name] = value.isoformat() if hasattr(value, "isoformat") else value
+    return data
+
+
+def _master_project_audit(request, project, action, before=None):
+    before = before or {}
+    record = MasterAdminProjectAudit.objects.create(actor=request.user,
+        actor_name=(request.user.get_full_name() or request.user.username)[:255],
+        project_number=project.pk, action=action, before=before,
+        after={} if action == "deleted" else _master_project_snapshot(project))
+    recipients = {project.assign_to_id, project.assigned_by_id,
+        before.get("assign_to"), before.get("assigned_by")} - {None}
+    for person in _master_project_people().filter(pk__in=recipients):
+        TeamLeadNotification.objects.create(recipient=person, kind="project",
+            title=f"Project {action}", message=f"Master Admin {record.actor_name} {action} project #{project.pk}: {project.work_name}",
+            url=reverse("teamlead_project_assigning" if person.project_role in {"team lead", "team_lead"} else "teammember_project"))
+
+
+def _master_project_uploads(request):
+    files = request.FILES.getlist("upload_file[]")
+    images = request.FILES.getlist("upload_image[]")
+    if len(files) + len(images) > 10:
+        return None, None, "Upload a maximum of 10 attachments at a time."
+    if any(item.size > 10 * 1024 * 1024 for item in files + images):
+        return None, None, "Each attachment must be 10 MB or smaller."
+    try:
+        for item in images:
+            forms.ImageField().clean(item)
+            item.seek(0)
+    except forms.ValidationError:
+        return None, None, "Choose valid image files."
+    return files, images, ""
+
+
+def _master_project_save_files(project, files, images):
+    for item in files:
+        ProjectFile.objects.create(project=project, file=item)
+    for item in images:
+        ProjectImage.objects.create(project=project, image=item)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_projects(request):
+    if not _master_admin_allowed(request):
+        return _master_project_denied(request)
+    if request.method == "POST":
+        form = MasterAdminProjectForm(request.POST)
+        files, images, error = _master_project_uploads(request)
+        if not form.is_valid() or error:
+            return JsonResponse({"ok": False, "message": error or "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        with transaction.atomic():
+            project = form.save()
+            _master_project_save_files(project, files, images)
+            _master_project_audit(request, project, "created")
+        return JsonResponse({"ok": True, "message": "Project assigned successfully.", "id": project.pk}, status=201)
+    projects = ProjectAssign.objects.select_related("team", "department", "assign_to", "assigned_by").prefetch_related("files", "images")
+    query = request.GET.get("q", "").strip()[:200]
+    if query:
+        projects = projects.filter(Q(work_name__icontains=query) | Q(description__icontains=query)
+            | Q(assign_to__name__icontains=query) | Q(assigned_by__name__icontains=query))
+    team, department = request.GET.get("team", ""), request.GET.get("department", "")
+    if team.isdigit():
+        projects = projects.filter(team_id=int(team))
+    else:
+        team = ""
+    if department.isdigit():
+        projects = projects.filter(department_id=int(department))
+    else:
+        department = ""
+    state = request.GET.get("status", "")
+    if state in dict(ProjectAssign.STATUS_CHOICES):
+        projects = projects.filter(status=state)
+    else:
+        state = ""
+    priority = request.GET.get("priority", "")
+    if priority in dict(ProjectAssign.PRIORITY_CHOICES):
+        projects = projects.filter(priority=priority)
+    else:
+        priority = ""
+    counts = dict(projects.order_by().values_list("status").annotate(total=Count("pk")))
+    today = timezone.localdate()
+    overdue = projects.filter(deadline__lt=today).exclude(status="Completed").count()
+    page = Paginator(projects.order_by("-assigned_date", "-pk"), 20).get_page(request.GET.get("page"))
+    items = list(page.object_list)
+    authors = {}
+    for audit in MasterAdminProjectAudit.objects.filter(action="created", project_number__in=[p.pk for p in items]).order_by("pk"):
+        authors.setdefault(audit.project_number, audit.actor_name)
+    data = []
+    for item in items:
+        item.is_overdue = bool(item.deadline and item.deadline < today and item.status != "Completed")
+        item.recorded_by_name = "Master Admin: " + authors[item.pk] if item.pk in authors else item.assigned_by.name
+        attachments = [{"name": f.file.name.split("/")[-1], "url": f.file.url} for f in item.files.all() if f.file]
+        attachments += [{"name": f.image.name.split("/")[-1], "url": f.image.url} for f in item.images.all() if f.image]
+        for field in [item.upload_file, item.upload_image]:
+            if field:
+                attachments.append({"name": field.name.split("/")[-1], "url": field.url})
+        data.append({"id": item.pk, **_master_project_snapshot(item), "assignee_name": item.assign_to.name,
+            "owner_name": item.assigned_by.name, "team_name": item.team.name, "department_name": item.department.name,
+            "recorded_by": item.recorded_by_name, "attachments": attachments})
+    page.object_list = items
+    params = request.GET.copy()
+    params.pop("page", None)
+    people = list(_master_project_people())
+    return render(request, "master_admin/master_admin_projects.html", {
+        "master_projects_active": True, "page_obj": page, "project_items": data,
+        "query": query, "selected_team": team, "selected_department": department,
+        "selected_status": state, "selected_priority": priority, "filter_params": params.urlencode(),
+        "teams": Team.objects.order_by("name"), "departments": Department.objects.order_by("name"),
+        "people": people, "people_data": [{"id": p.pk, "name": p.name, "team": p.team_id,
+            "department": p.department_id, "role": p.project_role} for p in people],
+        "statuses": ProjectAssign.STATUS_CHOICES, "priorities": ProjectAssign.PRIORITY_CHOICES,
+        "total_projects": sum(counts.values()), "ongoing_projects": counts.get("In Progress", 0),
+        "completed_projects": counts.get("Completed", 0), "overdue_projects": overdue,
+    })
+
+
+@never_cache
+@require_POST
+def master_admin_project_update(request, pk):
+    if not _master_admin_allowed(request):
+        return _master_project_denied(request)
+    with transaction.atomic():
+        project = ProjectAssign.objects.select_for_update().filter(pk=pk).first()
+        if project is None:
+            return JsonResponse({"ok": False, "message": "Project no longer exists."}, status=404)
+        before = _master_project_snapshot(project)
+        data = request.POST
+        if data.get("mode") == "status":
+            status = data.get("status", "")
+            if status not in dict(ProjectAssign.STATUS_CHOICES):
+                return JsonResponse({"ok": False, "message": "Invalid project status."}, status=400)
+            project.status = status
+            project.save(update_fields=["status"])
+            _master_project_audit(request, project, "updated", before)
+            return JsonResponse({"ok": True, "message": "Project status updated successfully."})
+        form = MasterAdminProjectForm(data, instance=project)
+        files, images, error = _master_project_uploads(request)
+        if not form.is_valid() or error:
+            return JsonResponse({"ok": False, "message": error or "Please correct the highlighted fields.",
+                "errors": form.errors.get_json_data()}, status=400)
+        project = form.save()
+        _master_project_save_files(project, files, images)
+        _master_project_audit(request, project, "updated", before)
+    return JsonResponse({"ok": True, "message": "Project updated successfully."})
+
+
+@never_cache
+@require_POST
+def master_admin_project_delete(request, pk):
+    if not _master_admin_allowed(request):
+        return _master_project_denied(request)
+    with transaction.atomic():
+        project = ProjectAssign.objects.select_for_update().filter(pk=pk).first()
+        if project is None:
+            return JsonResponse({"ok": False, "message": "Project no longer exists."}, status=404)
+        _master_project_audit(request, project, "deleted", _master_project_snapshot(project))
+        project.delete()
+    return JsonResponse({"ok": True, "message": "Project deleted successfully."})
+
+
+# ADD once at END of monitoringapp/views.py. Existing TL/TM views stay unchanged.
+from django.contrib.auth import get_user_model
+from django.core.paginator import Paginator
+from django.db import transaction
+from django.db.models import Q, Prefetch
+from django.http import JsonResponse, HttpResponseForbidden, Http404
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST
+from .models import Announcement, AnnouncementRecipient, AnnouncementAuthRecipient, User, AccountsNotification, AdminNotification, TeamLeadNotification
+
+
+def _master_announcement_employees():
+    return User.objects.select_related("team", "department").order_by("name", "pk")
+
+
+def _master_announcement_admins():
+    return get_user_model().objects.filter(is_active=True).filter(Q(is_staff=True) | Q(is_superuser=True)).order_by("username", "pk")
+
+
+def _master_announcement_notify(announcement, *, edited=False):
+    title = ("Announcement updated: " if edited else "New announcement: ") + announcement.title
+    for row in announcement.recipients.select_related("recipient"):
+        user = row.recipient
+        role = (user.job_Position or "").strip().lower().replace("_", " ")
+        key = f"master-announcement:{announcement.pk}:employee:{user.pk}"
+        url = reverse("portal_announcement_detail", args=[announcement.pk])
+        defaults = {"title": title[:180], "message": announcement.message, "url": url,
+            "kind": "announcement", "is_archived": False, "is_read": False}
+        if role in {"team lead", "team member"}:
+            # Inbox pages already receive these shared AnnouncementRecipient rows.
+            url = reverse("teamlead_announcements" if role == "team lead" else "teammember_announcements")
+            if role == "team member":
+                url += "?source=admin" if announcement.is_admin_announcement else "?source=lead"
+            defaults["url"] = url
+            TeamLeadNotification.objects.update_or_create(event_key=key, defaults={"recipient": user, **defaults})
+        elif role in {"accounts", "account", "accounts team"}:
+            AccountsNotification.objects.update_or_create(event_key=key, defaults={"recipient": user, "actor": None, **defaults})
+        else:
+            AdminNotification.objects.update_or_create(event_key=key, defaults={"management_owner": user, "auth_owner": None, **defaults})
+    for row in announcement.auth_recipients.select_related("recipient"):
+        AdminNotification.objects.update_or_create(
+            event_key=f"master-announcement:{announcement.pk}:auth:{row.recipient_id}",
+            defaults={"auth_owner": row.recipient, "management_owner": None, "kind": "announcement",
+                "title": title[:180], "message": announcement.message,
+                "url": reverse("portal_announcement_detail", args=[announcement.pk]), "is_read": False, "is_archived": False})
+
+
+def _master_announcement_denied(request):
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    return redirect("master_admin_login") if not request.user.is_authenticated else HttpResponseForbidden("Master Admin access required.")
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_announcements(request):
+    if not _master_admin_allowed(request):
+        return _master_announcement_denied(request)
+    employees = _master_announcement_employees()
+    admins = _master_announcement_admins().exclude(pk=request.user.pk)
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        if action not in {"create", "update", "delete"}:
+            return JsonResponse({"ok": False, "message": "Invalid action."}, status=400)
+        title = request.POST.get("title", "").strip()
+        message = request.POST.get("message", "").strip()
+        if action != "delete" and (not title or len(title) > 200 or not message):
+            return JsonResponse({"ok": False, "message": "Enter a title (maximum 200 characters) and message."}, status=400)
+        if action == "create":
+            audience = request.POST.get("audience", "all")
+            if audience == "selected":
+                try:
+                    employee_ids = set(map(int, request.POST.getlist("employee_ids")))
+                    auth_ids = set(map(int, request.POST.getlist("auth_ids")))
+                except (TypeError, ValueError):
+                    return JsonResponse({"ok": False, "message": "Select valid recipients."}, status=400)
+                employees = employees.filter(pk__in=employee_ids)
+                admins = admins.filter(pk__in=auth_ids)
+                if employees.count() != len(employee_ids) or admins.count() != len(auth_ids):
+                    return JsonResponse({"ok": False, "message": "A selected recipient is no longer available."}, status=400)
+            elif audience != "all":
+                return JsonResponse({"ok": False, "message": "Invalid audience."}, status=400)
+            employees, admins = list(employees), list(admins)
+            if not employees and not admins:
+                return JsonResponse({"ok": False, "message": "Choose at least one recipient."}, status=400)
+            with transaction.atomic():
+                announcement = Announcement.objects.create(title=title, message=message,
+                    admin_created_by=request.user, is_admin_announcement=True, is_master_admin_announcement=True)
+                AnnouncementRecipient.objects.bulk_create([AnnouncementRecipient(announcement=announcement, recipient=user) for user in employees])
+                AnnouncementAuthRecipient.objects.bulk_create([AnnouncementAuthRecipient(announcement=announcement, recipient=user) for user in admins])
+                _master_announcement_notify(announcement)
+            return JsonResponse({"ok": True, "message": "Announcement sent successfully."}, status=201)
+        try:
+            pk = int(request.POST.get("announcement_id", ""))
+        except (ValueError, TypeError):
+            return JsonResponse({"ok": False, "message": "Invalid announcement ID."}, status=400)
+        with transaction.atomic():
+            announcement = Announcement.objects.select_for_update().filter(pk=pk, is_active=True).first()
+            if announcement is None:
+                return JsonResponse({"ok": False, "message": "Announcement no longer exists."}, status=404)
+            # Superusers may moderate every announcement; original author stays unchanged.
+            if action == "delete":
+                announcement.is_active = False
+                announcement.save(update_fields=["is_active", "updated_at"])
+                prefix = f"master-announcement:{pk}:"
+                for model in [TeamLeadNotification, AccountsNotification, AdminNotification]:
+                    model.objects.filter(event_key__startswith=prefix).update(is_archived=True)
+                return JsonResponse({"ok": True, "message": "Announcement deleted successfully."})
+            announcement.title, announcement.message = title, message
+            announcement.save(update_fields=["title", "message", "updated_at"])
+            _master_announcement_notify(announcement, edited=True)
+        return JsonResponse({"ok": True, "message": "Announcement updated successfully."})
+    all_items = Announcement.objects.filter(is_active=True)
+    source = request.GET.get("source", "master")
+    if source not in {"master", "admin", "lead"}:
+        source = "master"
+    groups = {
+        "master": all_items.filter(is_master_admin_announcement=True),
+        "admin": all_items.filter(is_admin_announcement=True, is_master_admin_announcement=False),
+        "lead": all_items.filter(is_admin_announcement=False),
+    }
+    query = request.GET.get("q", "").strip()[:200]
+    items = groups[source]
+    if query:
+        items = items.filter(Q(title__icontains=query) | Q(message__icontains=query) | Q(created_by__name__icontains=query))
+    items = items.select_related("created_by", "admin_created_by").prefetch_related(
+        Prefetch("recipients", queryset=AnnouncementRecipient.objects.select_related("recipient").order_by("recipient__name", "pk")),
+        Prefetch("auth_recipients", queryset=AnnouncementAuthRecipient.objects.select_related("recipient").order_by("recipient__username", "pk")))
+    page = Paginator(items.order_by("-created_at", "-pk"), 15).get_page(request.GET.get("page"))
+    data = []
+    for item in page:
+        auth = item.admin_created_by
+        author = (auth.get_full_name() or auth.username) if auth else (item.created_by.name if item.created_by else "Not recorded")
+        item.sender_label = ("Master Admin: " if item.is_master_admin_announcement else "Admin: " if item.is_admin_announcement else "Team Lead: ") + author
+        recipients = [{"name": row.recipient.name, "role": row.recipient.job_Position,
+            "read_at": timezone.localtime(row.read_at).strftime("%d %b %Y, %I:%M %p") if row.read_at else None} for row in item.recipients.all()]
+        recipients += [{"name": row.recipient.get_full_name() or row.recipient.username, "role": "Admin",
+            "read_at": timezone.localtime(row.read_at).strftime("%d %b %Y, %I:%M %p") if row.read_at else None} for row in item.auth_recipients.all()]
+        item.recipient_total = len(recipients)
+        item.seen_total = sum(bool(row["read_at"]) for row in recipients)
+        data.append({"id": item.pk, "title": item.title, "message": item.message,
+            "sender": item.sender_label, "created": timezone.localtime(item.created_at).strftime("%d %b %Y, %I:%M %p"),
+            "recipients": recipients, "seen": item.seen_total, "total": item.recipient_total})
+    params = request.GET.copy()
+    params.pop("page", None)
+    params.pop("source", None)
+    return render(request, "master_admin/master_admin_announcements.html", {
+        "master_announcements_active": True, "source": source, "query": query,
+        "master_count": groups["master"].count(), "admin_count": groups["admin"].count(), "lead_count": groups["lead"].count(),
+        "page_obj": page, "announcement_items": data, "employees": employees, "auth_admins": admins,
+        "filter_params": params.urlencode(),
+    })
+
+
+def _portal_announcement_receipt(request, pk):
+    employee_id = request.session.get("user_id")
+    if employee_id:
+        return AnnouncementRecipient.objects.filter(announcement_id=pk, recipient_id=employee_id, announcement__is_active=True).select_related("announcement").first()
+    if request.user.is_authenticated and request.user.is_active:
+        return AnnouncementAuthRecipient.objects.filter(announcement_id=pk, recipient=request.user, announcement__is_active=True).select_related("announcement").first()
+    return None
+
+
+@never_cache
+@require_http_methods(["GET"])
+def portal_announcement_detail(request, pk):
+    # The display is now part of master_admin_announcements.html.
+    # Keep the existing URL/function name so saved notifications still open.
+    from django.template import engines
+
+    receipt = _portal_announcement_receipt(request, pk)
+    if receipt:
+        announcement = receipt.announcement
+    elif _master_admin_allowed(request):
+        announcement = Announcement.objects.filter(pk=pk, is_active=True).first()
+    else:
+        return HttpResponseForbidden("This announcement is not addressed to you.")
+    if announcement is None:
+        raise Http404("Announcement no longer available.")
+
+    detail_base = engines["django"].from_string(
+        '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        '<title>{% block title %}Announcement{% endblock %}</title>'
+        '{% block extra_css %}{% endblock %}</head><body>'
+        '{% block content %}{% endblock %}'
+        '{% block extra_js %}{% endblock %}</body></html>'
+    )
+    return render(request, "master_admin/master_admin_announcements.html", {
+        "announcement": announcement,
+        "can_mark_seen": bool(receipt and receipt.read_at is None),
+        "announcement_detail_mode": True,
+        "announcement_base_template": detail_base,
+    })
+
+
+@never_cache
+@require_POST
+def portal_announcement_seen(request, pk):
+    receipt = _portal_announcement_receipt(request, pk)
+    if receipt is None:
+        return JsonResponse({"ok": False, "message": "This announcement is not addressed to you."}, status=403)
+    type(receipt).objects.filter(pk=receipt.pk, read_at__isnull=True).update(read_at=timezone.now())
+    return JsonResponse({"ok": True})
+
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def admin_announcements(request):
+    owner = _admin_notepad_owner(request)
+    if owner is None:
+        return redirect("admin_login")
+    recipients = MonitoringUser.objects.filter(
+        Q(job_Position__iexact="Team Lead") | Q(job_Position__iexact="Team Member")
+    ).order_by("name", "pk")
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        if action in {"edit_announcement", "delete_announcement"}:
+            try:
+                pk = int(request.POST.get("announcement_id", ""))
+            except (ValueError, TypeError):
+                messages.error(request, "Invalid announcement ID.")
+                return redirect("admin_announcements")
+            announcement = get_object_or_404(Announcement, pk=pk, is_admin_announcement=True, is_master_admin_announcement=False, is_active=True)
+            if action == "delete_announcement":
+                announcement.is_active = False
+                announcement.save(update_fields=["is_active", "updated_at"])
+                messages.success(request, "Announcement deleted successfully.")
+            else:
+                message = request.POST.get("message", "").strip()
+                if not message:
+                    messages.error(request, "Announcement message cannot be empty.")
+                    return redirect("admin_announcements")
+                announcement.message = message
+                announcement.save(update_fields=["message", "updated_at"])
+                messages.success(request, "Announcement updated successfully.")
+            return redirect("admin_announcements")
+        if action != "create_announcement":
+            messages.error(request, "Invalid announcement action.")
+            return redirect("admin_announcements")
+        message = request.POST.get("message", "").strip()
+        if not message:
+            messages.error(request, "Please enter an announcement message.")
+            return redirect("admin_announcements")
+        send_to = request.POST.get("send_to", "team")
+        if send_to == "selected":
+            try:
+                ids = [int(value) for value in request.POST.getlist("recipient_ids")]
+            except (ValueError, TypeError):
+                messages.error(request, "Select valid recipients.")
+                return redirect("admin_announcements")
+            recipients = recipients.filter(pk__in=ids)
+        elif send_to != "team":
+            messages.error(request, "Invalid recipient option.")
+            return redirect("admin_announcements")
+        recipients = list(recipients)
+        if not recipients:
+            messages.error(request, "Select at least one Team Lead or Team Member.")
+            return redirect("admin_announcements")
+        sender = {"admin_created_by": owner["auth_owner"]} if "auth_owner" in owner else {"created_by": owner["management_owner"]}
+        with transaction.atomic():
+            announcement = Announcement.objects.create(
+                title="Admin Announcement", message=message,
+                is_admin_announcement=True, **sender,
+            )
+            AnnouncementRecipient.objects.bulk_create([
+                AnnouncementRecipient(announcement=announcement, recipient=user)
+                for user in recipients
+            ])
+        messages.success(request, "Announcement sent successfully.")
+        return redirect("admin_announcements")
+    response = render(request, "admin_panel/admin_announcements.html", {
+        "announcements": Announcement.objects.filter(is_admin_announcement=True, is_master_admin_announcement=False, is_active=True).prefetch_related("recipients__recipient").order_by("-created_at", "-pk")[:50],
+        "team_members": recipients,
+        "lead_announcements": Announcement.objects.filter(
+            is_admin_announcement=False, is_active=True,
+            created_by__job_Position__iexact="Team Lead",
+        ).select_related("created_by", "created_by__department").order_by("-created_at", "-pk"),
+    })
+
+    if request.method == "GET" and request.GET.get("format") == "json":
+        return JsonResponse({"ok": True, "html": response.content.decode(response.charset)})
+    return response
+
+
+from pathlib import Path
+from types import SimpleNamespace
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
+from django.db import transaction
+from django.http import JsonResponse, HttpResponseForbidden, Http404, FileResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST
+from .models import AdminKnowledge, Knowledge
+
+
+def _master_repository_denied(request):
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    return redirect("master_admin_login") if not request.user.is_authenticated else HttpResponseForbidden("Master Admin access required.")
+
+
+def _master_repository_model(source):
+    if source == "admin":
+        return AdminKnowledge
+    if source == "team":
+        return Knowledge
+    raise Http404("Unknown resource type.")
+
+
+def _master_repository_values(request):
+    title = request.POST.get("title", "").strip()
+    description = request.POST.get("description", "").strip()
+    link = request.POST.get("link", "").strip()
+    file = request.FILES.get("file")
+    error = ""
+    if not title or len(title) > 255:
+        error = "Enter a title with a maximum of 255 characters."
+    elif link:
+        try:
+            URLValidator(schemes=["http", "https"])(link)
+            if len(link) > 200:
+                raise ValidationError("Link is too long.")
+        except ValidationError:
+            error = "Enter a valid HTTP/HTTPS link with a maximum of 200 characters."
+    if file and file.size > 10 * 1024 * 1024:
+        error = "The file must be 10 MB or smaller."
+    return {"title": title, "description": description, "link": link}, file, error
+
+
+def _master_repository_card(request, resource, source):
+    admin = source == "admin"
+    uploader = (resource.auth_owner or resource.management_owner) if admin else resource.user
+    own = bool(admin and resource.auth_owner_id == request.user.pk)
+    category = "mine" if own else "admin" if admin else "lead" if (resource.user.job_Position or "").strip().lower().replace("_", " ") == "team lead" else "member"
+    link = resource.link or ""
+    if link:
+        try:
+            URLValidator(schemes=["http", "https"])(link)
+        except ValidationError:
+            link = ""
+    file = SimpleNamespace(name=resource.file.name,
+        url=reverse("master_admin_repository_file", args=[source, resource.pk])) if resource.file else None
+    return SimpleNamespace(id=resource.pk, card_key=f"{source}-{resource.pk}",
+        title=resource.title, description=resource.description or "", link=link,
+        file=file, created_at=resource.created_at, user=uploader,
+        owner_username=uploader.username if uploader else "Not recorded",
+        source_label="Master Admin" if own else "Admin" if admin else resource.user.job_Position,
+        is_admin_resource=admin, can_manage=True, category=category, resource_source=source,
+        update_url=reverse("master_admin_repository_update", args=[source, resource.pk]))
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_repository(request):
+    if not _master_admin_allowed(request):
+        return _master_repository_denied(request)
+    if request.method == "POST":
+        values, file, error = _master_repository_values(request)
+        if error:
+            return JsonResponse({"ok": False, "message": error}, status=400)
+        with transaction.atomic():
+            resource = AdminKnowledge.objects.create(auth_owner=request.user, file=file, **values)
+        return JsonResponse({"ok": True, "message": "Resource published to Team Leads.", "id": resource.pk}, status=201)
+    admin_items = AdminKnowledge.objects.select_related("auth_owner", "management_owner")
+    team_items = Knowledge.objects.select_related("user", "department")
+    cards = [_master_repository_card(request, item, "admin") for item in admin_items]
+    cards += [_master_repository_card(request, item, "team") for item in team_items]
+    cards.sort(key=lambda item: (item.created_at, item.card_key), reverse=True)
+    return render(request, "master_admin/master_admin_repository.html", {
+        "master_repository_active": True, "knowledge_items": cards,
+        "resource_edit_items": [{"key": item.card_key, "title": item.title,
+            "description": item.description, "link": item.link, "url": item.update_url,
+            "file_name": Path(item.file.name).name if item.file else ""} for item in cards],
+    })
+
+
+@never_cache
+@require_POST
+def master_admin_repository_update(request, source, pk):
+    if not _master_admin_allowed(request):
+        return _master_repository_denied(request)
+    model = _master_repository_model(source)
+    values, file, error = _master_repository_values(request)
+    if error:
+        return JsonResponse({"ok": False, "message": error}, status=400)
+    remove_file = request.POST.get("remove_file") == "1"
+    if remove_file and file:
+        return JsonResponse({"ok": False, "message": "Choose either replacement upload or Remove file."}, status=400)
+    with transaction.atomic():
+        resource = model.objects.select_for_update().filter(pk=pk).first()
+        if resource is None:
+            return JsonResponse({"ok": False, "message": "Resource no longer exists."}, status=404)
+        for name, value in values.items():
+            setattr(resource, name, value)
+        if file:
+            resource.file = file
+        elif remove_file:
+            resource.file = ""
+        # Original owner/department and sharing scope remain unchanged.
+        resource.save()
+    return JsonResponse({"ok": True, "message": "Resource updated successfully."})
+
+
+@never_cache
+@require_POST
+def master_admin_repository_delete(request, source, pk):
+    if not _master_admin_allowed(request):
+        return _master_repository_denied(request)
+    model = _master_repository_model(source)
+    with transaction.atomic():
+        resource = model.objects.select_for_update().filter(pk=pk).first()
+        if resource is None:
+            return JsonResponse({"ok": False, "message": "Resource no longer exists."}, status=404)
+        resource.delete()
+    return JsonResponse({"ok": True, "message": "Resource deleted successfully."})
+
+
+@never_cache
+@require_http_methods(["GET"])
+def master_admin_repository_file(request, source, pk):
+    if not _master_admin_allowed(request):
+        raise Http404("Resource not found.")
+    resource = _master_repository_model(source).objects.filter(pk=pk).first()
+    if resource is None or not resource.file:
+        raise Http404("File not found.")
+    try:
+        stream = resource.file.open("rb")
+    except (FileNotFoundError, OSError):
+        raise Http404("File not found.")
+    return FileResponse(stream, as_attachment=True, filename=Path(resource.file.name).name)
+
+# ADD once at END of monitoringapp/views.py. Requires _master_admin_allowed.
+from datetime import datetime, timedelta
+from urllib.parse import urlsplit
+from types import SimpleNamespace
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.db.models import Q
+from django.http import JsonResponse, HttpResponseForbidden
+from django.shortcuts import redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.dateparse import parse_date, parse_time
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST
+from .models import GoogleMeeting, User, Department, TeamLeadNotification, AccountsNotification, AdminNotification
+
+
+def _master_meet_link(link):
+    try:
+        parsed = urlsplit(link)
+        return bool(len(link) <= 200 and parsed.scheme == "https"
+            and parsed.netloc == "meet.google.com" and parsed.path not in {"", "/"})
+    except (ValueError, TypeError):
+        return False
+
+
+def _master_meet_denied(request):
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    return redirect("master_admin_login") if not request.user.is_authenticated else HttpResponseForbidden("Master Admin access required.")
+
+
+def _master_meet_notify(meeting, edited=False):
+    title = ("Meeting updated: " if edited else "Meeting scheduled: ") + meeting.purpose
+    message = f"{meeting.purpose}\n{meeting.date:%d %b %Y} at {meeting.time:%I:%M %p}\n{meeting.meeting_link}"
+    for user in meeting.participants.all():
+        role = (user.job_Position or "").strip().lower().replace("_", " ")
+        defaults = {"title": title[:180], "message": message, "kind": "meeting", "is_read": False, "is_archived": False}
+        key = f"master-meeting:{meeting.pk}:employee:{user.pk}"
+        if role in {"team lead", "team member"}:
+            defaults["url"] = reverse("teamlead_google_meet" if role == "team lead" else "teammember_google_meet")
+            TeamLeadNotification.objects.update_or_create(event_key=key, defaults={"recipient": user, **defaults})
+        elif role in {"accounts", "account", "accounts team"}:
+            AccountsNotification.objects.update_or_create(event_key=key, defaults={"recipient": user, "actor": None, "url": meeting.meeting_link, **defaults})
+        else:
+            AdminNotification.objects.update_or_create(event_key=key, defaults={"management_owner": user, "auth_owner": None, "url": meeting.meeting_link, **defaults})
+    for user in meeting.auth_participants.all():
+        AdminNotification.objects.update_or_create(event_key=f"master-meeting:{meeting.pk}:auth:{user.pk}",
+            defaults={"management_owner": None, "auth_owner": user, "title": title[:180], "message": message,
+                "kind": "meeting", "url": meeting.meeting_link, "is_read": False, "is_archived": False})
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_google_meet(request):
+    if not _master_admin_allowed(request):
+        return _master_meet_denied(request)
+    eligible = User.objects.select_related("department").order_by("name", "pk")
+    auth_users = get_user_model().objects.filter(is_active=True).filter(Q(is_staff=True) | Q(is_superuser=True)).order_by("username", "pk")
+    def fail(message, status=400):
+        return JsonResponse({"ok": False, "message": message}, status=status)
+    if request.method == "POST":
+        action = request.POST.get("action", "create_meeting")
+        if action not in {"create_meeting", "edit_meeting"}:
+            return fail("Invalid meeting action.")
+        purpose = request.POST.get("purpose", "").strip()
+        if not purpose or len(purpose) > 255:
+            return fail("Enter a meeting purpose with a maximum of 255 characters.")
+        try:
+            date = parse_date(request.POST.get("date", ""))
+            time = parse_time(request.POST.get("time", ""))
+        except (ValueError, TypeError):
+            return fail("Enter a valid date and time.")
+        if date is None or time is None or time.tzinfo:
+            return fail("Enter a valid date and time.")
+        link = request.POST.get("meeting_link", "").strip()
+        if not _master_meet_link(link):
+            return fail("Enter a valid https://meet.google.com/... meeting link.")
+        mode = request.POST.get("participant_type", "all")
+        if mode == "all":
+            employees, admins = list(eligible), list(auth_users)
+        elif mode == "leads":
+            employees, admins = list(eligible.filter(job_Position__iexact="Team Lead")), []
+        elif mode == "department":
+            try:
+                department = int(request.POST.get("department_id", ""))
+            except (TypeError, ValueError):
+                return fail("Choose a valid department.")
+            if not Department.objects.filter(pk=department).exists():
+                return fail("Choose a valid department.")
+            employees, admins = list(eligible.filter(department_id=department)), []
+        elif mode == "selected":
+            try:
+                tokens = set(map(int, request.POST.getlist("participants")))
+            except (TypeError, ValueError):
+                return fail("Choose valid participants.")
+            # Positive IDs refer to employee User; negative tokens refer to Django auth admins.
+            employee_ids = {value for value in tokens if value > 0}
+            auth_ids = {-value for value in tokens if value < 0}
+            employees, admins = list(eligible.filter(pk__in=employee_ids)), list(auth_users.filter(pk__in=auth_ids))
+            if 0 in tokens or len(employees) != len(employee_ids) or len(admins) != len(auth_ids):
+                return fail("A selected participant is no longer available.")
+        else:
+            return fail("Invalid participant selection.")
+        if not employees and not admins:
+            return fail("Choose at least one participant.")
+        scheduled = timezone.make_aware(datetime.combine(date, time), timezone.get_current_timezone())
+        if action == "create_meeting" and scheduled <= timezone.now():
+            return fail("Choose a future meeting date and time.")
+        with transaction.atomic():
+            if action == "edit_meeting":
+                try:
+                    pk = int(request.POST.get("meeting_id", ""))
+                except (TypeError, ValueError):
+                    return fail("Invalid meeting ID.")
+                meeting = GoogleMeeting.objects.select_for_update().filter(pk=pk).first()
+                if meeting is None:
+                    return fail("Meeting no longer exists.", 404)
+                if meeting.meeting_status == "ended":
+                    return fail("An ended meeting cannot be edited.")
+                if (meeting.date != date or meeting.time != time) and scheduled <= timezone.now():
+                    return fail("Choose a future time when rescheduling.")
+            else:
+                meeting = GoogleMeeting(admin_created_by=request.user, is_admin_meeting=True, is_master_admin_meeting=True)
+            # Preserve the original meeting's creator when moderating it.
+            meeting.purpose, meeting.date, meeting.time, meeting.meeting_link = purpose, date, time, link
+            meeting.save()
+            meeting.participants.set(employees)
+            meeting.auth_participants.set(admins)
+            prefix = f"master-meeting:{meeting.pk}:"
+            keys = {f"{prefix}employee:{u.pk}" for u in employees} | {f"{prefix}auth:{u.pk}" for u in admins}
+            for model in [TeamLeadNotification, AccountsNotification, AdminNotification]:
+                model.objects.filter(event_key__startswith=prefix).exclude(event_key__in=keys).update(is_archived=True)
+            _master_meet_notify(meeting, edited=action == "edit_meeting")
+        return JsonResponse({"ok": True, "message": "Meeting updated successfully." if action == "edit_meeting" else "Meeting scheduled successfully.", "id": meeting.pk}, status=200 if action == "edit_meeting" else 201)
+    meetings = list(GoogleMeeting.objects.select_related("created_by", "admin_created_by").prefetch_related("participants", "auth_participants"))
+    now = timezone.now()
+    def priority(meeting):
+        start = meeting.scheduled_datetime
+        if start + timedelta(hours=1) <= now:
+            return (2, -start.timestamp(), -meeting.pk)
+        return (0 if start <= now else 1, start.timestamp(), -meeting.pk)
+    meetings.sort(key=priority)
+    for meeting in meetings:
+        employees, admins = list(meeting.participants.all()), list(meeting.auth_participants.all())
+        meeting.participant_ids = ",".join([str(u.pk) for u in employees] + [str(-u.pk) for u in admins])
+        meeting.participant_names = ", ".join([u.name for u in employees] + [(u.get_full_name() or u.username) + " (Admin)" for u in admins])
+        meeting.participant_total = len(employees) + len(admins)
+    people = list(eligible) + [SimpleNamespace(pk=-u.pk, id=-u.pk, name=(u.get_full_name() or u.username) + " (Admin)", department=None, job_Position="Admin", designation="Admin") for u in auth_users]
+    return render(request, "master_admin/master_admin_google_meet.html", {
+        "master_meet_active": True, "meetings": meetings, "team_members": people,
+        "departments": Department.objects.order_by("name"),
+    })
+
+
+@never_cache
+@require_POST
+def master_admin_google_meet_delete(request, pk):
+    if not _master_admin_allowed(request):
+        return _master_meet_denied(request)
+    with transaction.atomic():
+        meeting = GoogleMeeting.objects.select_for_update().filter(pk=pk).first()
+        if meeting is None:
+            return JsonResponse({"ok": False, "message": "Meeting no longer exists."}, status=404)
+        prefix = f"master-meeting:{meeting.pk}:"
+        for model in [TeamLeadNotification, AccountsNotification, AdminNotification]:
+            model.objects.filter(event_key__startswith=prefix).update(is_archived=True)
+        meeting.delete()
+    return JsonResponse({"ok": True, "message": "Meeting removed from the portal."})
+
+
+
+# REPLACE only these TWO existing functions in monitoringapp/views.py. Do not append duplicates.
+# Admin: Master meetings cannot be edited in regular Admin portal.
+# Accounts: meeting notifications open the validated Google Meet link.
+# Previous announcement notification handling is preserved.
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def admin_google_meet(request):
+    owner = _admin_notepad_owner(request)
+    if owner is None:
+        return redirect("admin_login")
+
+    eligible = User.objects.filter(
+        Q(job_Position__iexact="Team Lead")
+        | Q(job_Position__iexact="Team Member")
+    ).select_related("department").order_by("name", "pk")
+    meetings = GoogleMeeting.objects.filter(is_admin_meeting=True)
+
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    def fail(message):
+        if is_ajax:
+            return JsonResponse({"ok": False, "message": message}, status=400)
+        messages.error(request, message)
+        return redirect("admin_google_meet")
+
+    if request.method == "POST":
+        action = request.POST.get("action", "create_meeting")
+        if action not in {"create_meeting", "edit_meeting"}:
+            return fail("Invalid meeting action.")
+        purpose = request.POST.get("purpose", "").strip()
+        if not purpose or len(purpose) > 255:
+            return fail("Enter a meeting purpose with a maximum of 255 characters.")
+        try:
+            meeting_date = parse_date(request.POST.get("date", ""))
+            meeting_time = parse_time(request.POST.get("time", ""))
+        except (ValueError, TypeError):
+            return fail("Enter a valid meeting date and time.")
+        if meeting_date is None or meeting_time is None or meeting_time.tzinfo:
+            return fail("Enter a valid meeting date and time.")
+        link = request.POST.get("meeting_link", "").strip()
+        try:
+            parsed_link = urlsplit(link)
+            valid_link = (
+                parsed_link.scheme == "https"
+                and parsed_link.netloc == "meet.google.com"
+                and parsed_link.path not in {"", "/"}
+                and len(link) <= 200
+            )
+        except ValueError:
+            valid_link = False
+        if not valid_link:
+            return fail("Enter a valid https://meet.google.com/... meeting link.")
+
+        mode = request.POST.get("participant_type", "all")
+        if mode == "all":
+            participants = eligible
+        elif mode == "leads":
+            participants = eligible.filter(job_Position__iexact="Team Lead")
+        elif mode == "department":
+            try:
+                department_id = int(request.POST.get("department_id", ""))
+            except (ValueError, TypeError):
+                return fail("Choose a valid department.")
+            if not Department.objects.filter(pk=department_id).exists():
+                return fail("Choose a valid department.")
+            participants = eligible.filter(department_id=department_id)
+        elif mode == "selected":
+            try:
+                ids = set(int(value) for value in request.POST.getlist("participants"))
+            except (ValueError, TypeError):
+                return fail("Choose valid participants.")
+            participants = eligible.filter(pk__in=ids)
+            if not ids or participants.count() != len(ids):
+                return fail("Choose valid Team Leads or Team Members.")
+        else:
+            return fail("Invalid participant selection.")
+        participants = list(participants)
+        if not participants:
+            return fail("Select at least one participant.")
+
+        scheduled = timezone.make_aware(
+            datetime.combine(meeting_date, meeting_time),
+            timezone.get_current_timezone(),
+        )
+        if action == "create_meeting" and scheduled <= timezone.now():
+            return fail("Choose a future meeting date and time.")
+        with transaction.atomic():
+            if action == "edit_meeting":
+                try:
+                    meeting_id = int(request.POST.get("meeting_id", ""))
+                except (ValueError, TypeError):
+                    return fail("Invalid meeting ID.")
+                meeting = meetings.select_for_update().filter(pk=meeting_id).first()
+                if meeting is None:
+                    return fail("Meeting no longer exists.")
+                if meeting.is_master_admin_meeting:
+                    return fail("This meeting is managed in the Master Admin portal.")
+                if meeting.meeting_status == "ended":
+                    return fail("An ended meeting cannot be edited.")
+                if (meeting.date != meeting_date or meeting.time != meeting_time) and scheduled <= timezone.now():
+                    return fail("Choose a future time when rescheduling a meeting.")
+            else:
+                sender = (
+                    {"admin_created_by": owner["auth_owner"]}
+                    if "auth_owner" in owner
+                    else {"created_by": owner["management_owner"]}
+                )
+                meeting = GoogleMeeting(is_admin_meeting=True, **sender)
+            meeting.purpose = purpose
+            meeting.date = meeting_date
+            meeting.time = meeting_time
+            meeting.meeting_link = link
+            meeting.save()
+            meeting.participants.set(participants)
+        message = "Meeting updated successfully." if action == "edit_meeting" else "Meeting scheduled successfully."
+        if is_ajax:
+            return JsonResponse({"ok": True, "message": message, "id": meeting.pk}, status=200 if action == "edit_meeting" else 201)
+        messages.success(request, message)
+        return redirect("admin_google_meet")
+
+    now = timezone.now()
+    meeting_list = list(meetings.prefetch_related("participants"))
+    def priority(meeting):
+        start = meeting.scheduled_datetime
+        ended = start + timedelta(hours=1) <= now
+        return (1 if ended else 0, -start.timestamp(), -meeting.pk)
+    meeting_list.sort(key=priority)
+    response = render(request, "admin_panel/admin_google_meet.html", {
+        "meetings": meeting_list,
+        "team_members": eligible,
+        "departments": Department.objects.order_by("name"),
+    })
+
+    if request.GET.get("format") == "json":
+        return JsonResponse({"ok": True, "html": response.content.decode(response.charset)})
+    return response
+
+@never_cache
+@require_POST
+def accounts_notification_action(request, pk):
+    from django.http import JsonResponse
+    from django.urls import reverse
+    from .models import AccountsNotification
+
+    current_user = _accounts_user(request)
+    if current_user is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Accounts access required.",
+        }, status=403 if request.session.get("user_id") else 401)
+
+    item = AccountsNotification.objects.filter(
+        pk=pk,
+        recipient=current_user,
+    ).first()
+
+    if item is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Notification not found.",
+        }, status=404)
+
+    action = request.POST.get("action", "")
+    target_url = ""
+
+    if action in {"read", "open"}:
+        item.is_read = True
+        item.save(update_fields=["is_read"])
+
+        if action == "open":
+            routes = {
+                "income": "accounts_income",
+                "expense": "accounts_expenses",
+                "sale": "accounts_sales",
+                "payment": "accounts_sales",
+                "reminder": "accounts_reminders",
+                "note": "accounts_notepad",
+            }
+            target_url = reverse(routes.get(item.kind, "accounts_notifications"))
+            if item.kind == "announcement":
+                import re
+                match = re.fullmatch(r"/portal/announcements/(\d+)/", item.url or "")
+                if match:
+                    target_url = reverse("portal_announcement_detail", args=[int(match.group(1))])
+            elif item.kind == "meeting":
+                from urllib.parse import urlsplit
+                try:
+                    parsed = urlsplit(item.url or "")
+                    if parsed.scheme == "https" and parsed.netloc == "meet.google.com" and parsed.path not in {"", "/"}:
+                        target_url = item.url
+                except ValueError:
+                    pass
+
+    elif action == "unread":
+        item.is_read = False
+        item.save(update_fields=["is_read"])
+
+    elif action == "archive":
+        item.is_archived = True
+        item.save(update_fields=["is_archived"])
+
+    elif action == "restore":
+        item.is_archived = False
+        item.save(update_fields=["is_archived"])
+
+    else:
+        return JsonResponse({
+            "ok": False,
+            "message": "Invalid notification action.",
+        }, status=400)
+
+    unread_count = AccountsNotification.objects.filter(
+        recipient=current_user,
+        is_archived=False,
+        is_read=False,
+    ).count()
+
+    return JsonResponse({
+        "ok": True,
+        "message": {
+            "read": "Marked as read.",
+            "open": "Notification opened.",
+            "unread": "Marked as unread.",
+            "archive": "Notification archived.",
+            "restore": "Notification restored to inbox.",
+        }[action],
+        "unread_count": unread_count,
+        "url": target_url,
+    })
+
+
+
+
+@never_cache
+@require_GET
+def master_admin_notifications(request):
+    from django.core.paginator import Paginator
+    from django.db.models import Count, Q
+    from django.http import JsonResponse
+    from django.urls import reverse
+    from .models import AdminNotification
+    if not _master_admin_allowed(request):
+        if request.GET.get("format") == "json":
+            return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+        return redirect("master_admin_login")
+    _process_admin_reminders({"auth_owner": request.user})
+    owned = AdminNotification.objects.filter(auth_owner=request.user).exclude(kind__in=["chat", "message", "group_chat"])
+    totals = owned.aggregate(
+        inbox=Count("pk", filter=Q(is_archived=False)),
+        unread=Count("pk", filter=Q(is_read=False, is_archived=False)),
+        archived=Count("pk", filter=Q(is_archived=True)),
+    )
+    folder_counts = {
+        "all": totals["inbox"],
+        "unread": totals["unread"],
+        "archived": totals["archived"],
+    }
+    unread = totals["unread"]
+    latest_notice = owned.filter(is_archived=False).order_by("-pk").values("pk", "title").first()
+    latest_meta = {"latest_id": latest_notice["pk"] if latest_notice else 0, "latest_title": latest_notice["title"] if latest_notice else ""}
+    if request.GET.get("counts") == "1":
+        return JsonResponse({"ok": True, "unread_count": unread, "folder_counts": folder_counts, **latest_meta})
+    tab = request.GET.get("tab", "all")
+    if tab not in {"all", "unread", "archived"}:
+        tab = "all"
+    items = owned.filter(is_archived=tab == "archived")
+    if tab == "unread":
+        items = items.filter(is_read=False)
+    query = request.GET.get("q", "").strip()[:200]
+    if query:
+        items = items.filter(Q(title__icontains=query) | Q(message__icontains=query))
+    kind = request.GET.get("kind", "").strip()[:40]
+    if kind:
+        items = items.filter(kind=kind)
+    page = Paginator(items.order_by("-created_at", "-pk"), 20).get_page(request.GET.get("page"))
+    if request.GET.get("format") == "json":
+        return JsonResponse({"ok": True, "unread_count": unread, "folder_counts": folder_counts, "page": page.number,
+            "pages": page.paginator.num_pages, "total": page.paginator.count,
+            **latest_meta, "items": [{"id": n.pk, "title": n.title, "message": n.message, "kind": n.kind,
+                "created_at": timezone.localtime(n.created_at).strftime("%d %b %Y, %I:%M %p"),
+                "is_read": n.is_read, "is_archived": n.is_archived,
+                "url": n.url if n.url.startswith("/") and not n.url.startswith("//") and "\\" not in n.url else "",
+                "action_url": reverse("master_admin_notification_action", args=[n.pk])} for n in page]})
+    return render(request, "master_admin/master_admin_notifications.html", {"master_notifications_active": True})
+
+
+
+def _master_notice_messages(request):
+    from django.contrib import messages as message_api
+    storage = message_api.get_messages(request)
+    was_used = storage.used
+    values = list(storage)
+    storage.used = was_used
+    return values
+
+
+def _master_operation_notice(view, kind, route, label):
+    from functools import wraps
+    import json
+    import logging
+
+    @wraps(view)
+    def wrapped(request, *args, **kwargs):
+        if request.method != "POST" or not _master_admin_allowed(request):
+            return view(request, *args, **kwargs)
+        old_messages = {id(message) for message in _master_notice_messages(request)}
+        previous_status = None
+        if view.__name__ == "master_admin_edit_user":
+            from .models import User as Employee
+            previous_status = Employee.objects.filter(pk=request.POST.get("id") or None).values_list("status", flat=True).first() if str(request.POST.get("id", "")).isdigit() else None
+        response = view(request, *args, **kwargs)
+        data = None
+        if "application/json" in response.get("Content-Type", ""):
+            try:
+                data = json.loads(response.content)
+            except (ValueError, TypeError, UnicodeDecodeError):
+                return response
+            succeeded = response.status_code < 300 and data.get("ok") is True
+            message = str(data.get("message") or label + " updated successfully.")
+        elif response.status_code in {302, 303}:
+            fresh = [m for m in _master_notice_messages(request) if id(m) not in old_messages]
+            success = [m for m in fresh if m.level == 25]
+            succeeded = bool(success) and not any(m.level >= 40 for m in fresh)
+            message = str(success[-1]) if success else ""
+        else:
+            succeeded = False
+            message = ""
+        if not succeeded:
+            return response
+        from django.db import transaction
+        from django.urls import reverse
+        from .models import AdminNotification
+        detail = message
+        # Include the account status selected in User Management, rather than presence/idle status.
+        status = request.POST.get("edit_status", request.POST.get("status", "")).strip()
+        name = request.POST.get("edit_name", request.POST.get("name", "")).strip()
+        if kind == "user":
+            if name:
+                detail += "\nUser: " + name[:150]
+            if status:
+                detail += "\nAccount status: " + status[:40]
+                if previous_status is not None and str(previous_status) != status:
+                    detail += " (previously " + str(previous_status)[:40] + ")"
+        actor = request.user
+        # Existing recipient notifications remain untouched. This is the acting Master's inbox entry.
+        try:
+            with transaction.atomic():
+                AdminNotification.objects.create(auth_owner=actor, kind=kind, title=message[:180], message=detail, url=reverse(route))
+            if data is not None:
+                data["unread_count"] = AdminNotification.objects.filter(auth_owner=actor, is_read=False, is_archived=False).exclude(kind__in=["chat", "message", "group_chat"]).count()
+                data["notification_saved"] = True
+        except Exception:
+            logging.getLogger(__name__).exception("Master Admin operation succeeded but its notification could not be saved")
+            if data is not None:
+                data["notification_saved"] = False
+        if data is not None:
+            response.content = json.dumps(data)
+        return response
+    wrapped._master_operation_notice = True
+    return wrapped
+
+
+# Only successful mutation views are registered. GETs, validation failures, Chat,
+# notification read/archive actions, and passive activity heartbeats never create entries.
+_MASTER_NOTICE_VIEWS = {
+    "master_admin_usermanagement": ("user", "master_admin_usermanagement", "User"),
+    "master_admin_edit_user": ("user", "master_admin_usermanagement", "User"),
+    "master_admin_delete_user": ("user", "master_admin_usermanagement", "User"),
+    "master_admin_departments": ("department", "master_admin_departments", "Department"),
+    "master_admin_teams": ("team", "master_admin_teams", "Team"),
+    "master_admin_accounts_income": ("income", "master_admin_accounts_income", "Income"),
+    "master_admin_accounts_income_edit": ("income", "master_admin_accounts_income", "Income"),
+    "master_admin_accounts_income_delete": ("income", "master_admin_accounts_income", "Income"),
+    "master_admin_accounts_expenses": ("expense", "master_admin_accounts_expenses", "Expense"),
+    "master_admin_accounts_expense_edit": ("expense", "master_admin_accounts_expenses", "Expense"),
+    "master_admin_accounts_expense_delete": ("expense", "master_admin_accounts_expenses", "Expense"),
+    "master_admin_accounts_sales": ("sale", "master_admin_accounts_sales", "Sale"),
+    "master_admin_accounts_sale_edit": ("sale", "master_admin_accounts_sales", "Sale"),
+    "master_admin_accounts_sale_delete": ("sale", "master_admin_accounts_sales", "Sale"),
+    "master_admin_accounts_sale_payments": ("sale", "master_admin_accounts_sales", "Sale payment"),
+    "master_admin_tasks": ("task", "master_admin_tasks", "Task"),
+    "master_admin_task_update": ("task", "master_admin_tasks", "Task"),
+    "master_admin_task_delete": ("task", "master_admin_tasks", "Task"),
+    "master_admin_projects": ("project", "master_admin_projects", "Project"),
+    "master_admin_project_update": ("project", "master_admin_projects", "Project"),
+    "master_admin_project_delete": ("project", "master_admin_projects", "Project"),
+    "master_admin_announcements": ("announcement", "master_admin_announcements", "Announcement"),
+    "master_admin_repository": ("resource", "master_admin_repository", "Resource"),
+    "master_admin_repository_update": ("resource", "master_admin_repository", "Resource"),
+    "master_admin_repository_delete": ("resource", "master_admin_repository", "Resource"),
+    "master_admin_google_meet": ("meeting", "master_admin_google_meet", "Meeting"),
+    "master_admin_google_meet_delete": ("meeting", "master_admin_google_meet", "Meeting"),
+    "master_admin_reminders": ("reminder", "master_admin_reminders", "Reminder"),
+}
+
+
+def _master_report_notice(sender, instance, created=None, **kwargs):
+    # Report submissions happen on Team Lead/Member pages, so cover them at the model event.
+    if kwargs.get("raw"):
+        return
+    from django.contrib.auth import get_user_model
+    from django.db import transaction
+    from django.urls import reverse
+    from uuid import uuid4
+    import logging
+    from .models import AdminNotification
+    action = "deleted" if created is None else "submitted" if created else "updated"
+    try:
+        who = getattr(instance.user, "name", "") or "Employee"
+    except Exception:
+        who = "Employee"
+    title = f"{sender._meta.verbose_name.title()} {action}"
+    message = f"{who}: report #{instance.pk} {action}."
+    key = "master-report:" + uuid4().hex
+    def publish():
+        try:
+            for account_id in get_user_model().objects.filter(is_active=True, is_superuser=True).values_list("pk", flat=True):
+                AdminNotification.objects.get_or_create(event_key=f"{key}:{account_id}", defaults={"auth_owner_id": account_id, "kind": "report", "title": title[:180], "message": message, "url": reverse("master_admin_reports")})
+        except Exception:
+            logging.getLogger(__name__).exception("Unable to deliver Master Admin report notification")
+    transaction.on_commit(publish)
+
+
+from django.db.models.signals import post_save as _master_notice_post_save, post_delete as _master_notice_post_delete
+from .models import MorningReport as _MasterMorningReport, EveningReport as _MasterEveningReport
+for _notice_report_model in (_MasterMorningReport, _MasterEveningReport):
+    _notice_key = _notice_report_model._meta.label_lower
+    _master_notice_post_save.connect(_master_report_notice, sender=_notice_report_model, dispatch_uid="master-notice-save:" + _notice_key, weak=False)
+    _master_notice_post_delete.connect(_master_report_notice, sender=_notice_report_model, dispatch_uid="master-notice-delete:" + _notice_key, weak=False)
+
+
+@never_cache
+@require_POST
+def master_admin_notification_action(request, pk):
+    from django.http import JsonResponse
+    from .models import AdminNotification
+    if not _master_admin_allowed(request):
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    owned = AdminNotification.objects.filter(auth_owner=request.user)
+    actions = {"read": {"is_read": True}, "unread": {"is_read": False},
+               "archive": {"is_archived": True}, "restore": {"is_archived": False}}
+    action = request.POST.get("action")
+    if action == "read_all":
+        owned.filter(is_archived=False, is_read=False).update(is_read=True)
+    elif action not in actions:
+        return JsonResponse({"ok": False, "message": "Invalid action."}, status=400)
+    elif not owned.filter(pk=pk).update(**actions[action]):
+        return JsonResponse({"ok": False, "message": "Notification not found."}, status=404)
+    return JsonResponse({"ok": True, "message": "Notifications updated.",
+        "unread_count": owned.filter(is_archived=False, is_read=False).count()})
+
+
+# Append to monitoringapp/views.py. Keep existing reminder helpers and Admin view.
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_reminders(request):
+    import calendar
+    from datetime import date, datetime, time
+    from django.db import transaction
+    from django.http import JsonResponse
+    from django.utils import timezone
+    from .models import AdminReminder, AdminNotification
+    owner = {"auth_owner": request.user} if _master_admin_allowed(request) else None
+    ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    if owner is None:
+        if ajax or request.GET.get("format") == "json":
+            return JsonResponse({"ok": False, "message": "Admin access required."}, status=403)
+        return redirect("master_admin_login")
+    reminders = AdminReminder.objects.filter(**owner)
+
+    def failure(message, status=400):
+        if ajax:
+            return JsonResponse({"ok": False, "message": message}, status=status)
+        messages.error(request, message)
+        return redirect("master_admin_reminders")
+
+    def success(message, reminder=None, deleted_id=None):
+        if ajax:
+            return JsonResponse({"ok": True, "message": message, "id": reminder.pk if reminder else deleted_id,
+                                 "item": _admin_reminder_item(reminder) if reminder else None,
+                                 "is_completed": reminder.is_completed if reminder else None,
+                                 "unread_count": AdminNotification.objects.filter(**owner, is_read=False, is_archived=False).count()})
+        messages.success(request, message)
+        return redirect("master_admin_reminders")
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        if action not in {"create", "update", "delete", "complete", "reopen"}:
+            return failure("Invalid reminder action.")
+        with transaction.atomic():
+            reminder = None
+            if action != "create":
+                try:
+                    reminder_id = int(request.POST.get("reminder_id", ""))
+                except (TypeError, ValueError):
+                    return failure("Invalid reminder ID.")
+                reminder = reminders.select_for_update().filter(pk=reminder_id).first()
+                if reminder is None:
+                    return failure("Reminder not found.", 404)
+            if action == "delete":
+                deleted_id = reminder.pk
+                if reminder.notification_id:
+                    AdminNotification.objects.filter(pk=reminder.notification_id, **owner).update(is_archived=True)
+                reminder.delete()
+                return success("Reminder deleted.", deleted_id=deleted_id)
+            if action in {"complete", "reopen"}:
+                reminder.is_completed = action == "complete"
+                reminder.save(update_fields=["is_completed", "updated_at"])
+                if reminder.notification_id and reminder.is_completed:
+                    AdminNotification.objects.filter(pk=reminder.notification_id, **owner).update(is_read=True)
+                # Reopening keeps an already-delivered alert delivered; reschedule to get a new alert.
+                return success("Reminder completed." if reminder.is_completed else "Reminder reopened.", reminder)
+            title = request.POST.get("title", "").strip()
+            description = request.POST.get("description", "").strip()
+            event_at = _admin_reminder_time(request.POST.get("event_at"))
+            remind_at = _admin_reminder_time(request.POST.get("remind_at"))
+            if not title or len(title) > 180:
+                return failure("Enter a title with a maximum of 180 characters.")
+            if event_at is None or remind_at is None:
+                return failure("Enter valid event and reminder dates and times.")
+            if remind_at > event_at:
+                return failure("Reminder must be on or before the event.")
+            changed = reminder is None or reminder.event_at != event_at or reminder.remind_at != remind_at
+            if changed and remind_at <= timezone.now():
+                return failure("Choose a future reminder time.")
+            if reminder is None:
+                reminder = AdminReminder(**owner)
+            elif changed:
+                if reminder.notification_id:
+                    AdminNotification.objects.filter(pk=reminder.notification_id, **owner).update(is_archived=True)
+                reminder.schedule_version += 1
+            if changed:
+                reminder.notified_at = None
+                reminder.notification = None
+                reminder.is_completed = False
+            reminder.title, reminder.description = title, description
+            reminder.event_at, reminder.remind_at = event_at, remind_at
+            reminder.save()
+            return success("Reminder created." if action == "create" else "Reminder updated.", reminder)
+
+    _process_admin_reminders(owner)
+    today = timezone.localdate()
+    try:
+        selected = date.fromisoformat(request.GET.get("month", today.strftime("%Y-%m")) + "-01")
+        next_month = selected.replace(year=selected.year + 1, month=1) if selected.month == 12 else selected.replace(month=selected.month + 1)
+    except (TypeError, ValueError, OverflowError):
+        selected = today.replace(day=1)
+        next_month = selected.replace(year=selected.year + 1, month=1) if selected.month == 12 else selected.replace(month=selected.month + 1)
+    tz = timezone.get_current_timezone()
+    start = timezone.make_aware(datetime.combine(selected, time.min), tz)
+    end = timezone.make_aware(datetime.combine(next_month, time.min), tz)
+    monthly = reminders.filter(event_at__gte=start, event_at__lt=end).order_by("event_at", "id")
+    context = {"master_reminders_active": True, "selected_month": selected.strftime("%Y-%m"), "month_label": selected.strftime("%B %Y"),
+               "calendar_weeks": calendar.Calendar(firstweekday=0).monthdayscalendar(selected.year, selected.month),
+               "calendar_items": [_admin_reminder_item(r) for r in monthly], "today": today.isoformat(), "reminders": monthly}
+    if request.GET.get("format") == "json":
+        return JsonResponse({"ok": True, "items": context["calendar_items"], "selected_month": context["selected_month"],
+                             "month_label": context["month_label"], "calendar_weeks": context["calendar_weeks"], "today": context["today"]})
+    return render(request, "master_admin/master_admin_reminders.html", context)
+
+
+
+# Append these NEW functions to monitoringapp/views.py. Keep Admin/Team Lead views.
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_notepad(request):
+    from django.core.paginator import Paginator
+    from django.db.models import Q
+    from django.http import JsonResponse
+    from django.shortcuts import render, redirect
+    from django.urls import reverse
+    from django.utils import timezone
+    from .models import AdminNotepad, AdminNotification
+    ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    if not _master_admin_allowed(request):
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403) if ajax else redirect("master_admin_login")
+    owned = AdminNotepad.objects.filter(auth_owner=request.user)
+    title, content, error = "", "", ""
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip() or "Untitled"
+        content = request.POST.get("content", "")
+        selected_id = request.POST.get("note_id")
+        note = None
+        if selected_id:
+            try:
+                note = owned.filter(pk=int(selected_id)).first()
+            except (TypeError, ValueError, OverflowError):
+                return JsonResponse({"ok": False, "message": "Invalid note ID."}, status=400)
+            if note is None:
+                return JsonResponse({"ok": False, "message": "Note not found."}, status=404)
+        if len(title) > 255:
+            error = "Title must be 255 characters or fewer."
+        elif not content.strip():
+            error = "Write some content before saving."
+        if error and ajax:
+            return JsonResponse({"ok": False, "message": error}, status=400)
+        if not error:
+            updated = note is not None
+            if note is None:
+                note = AdminNotepad(auth_owner=request.user)
+            note.title, note.content = title, content
+            note.save()
+            message = "Note updated successfully." if updated else "Note created successfully."
+            _create_admin_notification({"auth_owner": request.user}, kind="note", title=message,
+                message="Your personal notepad was updated.", url=reverse("master_admin_notepad"))
+            if ajax:
+                return JsonResponse({"ok": True, "message": message, "id": note.pk,
+                    "title": note.title, "content": note.content,
+                    "updated_at": timezone.localtime(note.updated_at).strftime("%d %b %Y, %I:%M %p"),
+                    "unread_count": AdminNotification.objects.filter(auth_owner=request.user, is_read=False, is_archived=False).count()})
+            messages.success(request, message)
+            return redirect("master_admin_notepad")
+    params = request.GET
+    query = params.get("q", "").strip()[:200]
+    orderings = {"updated": ("-updated_at", "-pk"), "created": ("-created_at", "-pk"), "title": ("title", "pk")}
+    sort = params.get("sort", "updated")
+    if sort not in orderings:
+        sort = "updated"
+    notes = owned.filter(Q(title__icontains=query) | Q(content__icontains=query)) if query else owned
+    page_obj = Paginator(notes.order_by(*orderings[sort]), 4).get_page(params.get("page"))
+    return render(request, "master_admin/master_admin_notepad.html", {
+        "master_notepad_active": True, "note": None, "page_obj": page_obj,
+        "query": query, "sort": sort, "form_title": title, "form_content": content,
+        "note_error": error, "total_notes": owned.count(),
+    }, status=400 if error else 200)
+
+
+@never_cache
+@require_POST
+def master_admin_notepad_delete(request, pk):
+    from django.http import JsonResponse
+    from django.urls import reverse
+    from .models import AdminNotepad, AdminNotification
+    if not _master_admin_allowed(request):
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+    note = AdminNotepad.objects.filter(auth_owner=request.user, pk=pk).first()
+    if note is None:
+        return JsonResponse({"ok": False, "message": "Note not found."}, status=404)
+    note.delete()
+    _create_admin_notification({"auth_owner": request.user}, kind="note", title="Note deleted successfully.",
+        message="A personal note was deleted.", url=reverse("master_admin_notepad"))
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": True, "message": "Note deleted successfully.", "id": pk,
+            "unread_count": AdminNotification.objects.filter(auth_owner=request.user, is_read=False, is_archived=False).count()})
+    messages.success(request, "Note deleted successfully.")
+    return redirect("master_admin_notepad")
+
+
+# Append to monitoringapp/views.py. Keep existing Admin/Team Lead profile functions.
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_profile(request):
+    from io import BytesIO
+    from uuid import uuid4
+    from types import SimpleNamespace
+    from PIL import Image, ImageOps, UnidentifiedImageError
+    from django.contrib.auth import update_session_auth_hash
+    from django.contrib.auth.forms import PasswordChangeForm
+    from django.core.exceptions import ValidationError
+    from django.core.files.base import ContentFile
+    from django.core.validators import validate_email
+    from django.db import transaction
+    from django.http import JsonResponse
+    from django.urls import reverse
+    from .models import MasterAdminProfile, AdminNotification
+    ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    if not _master_admin_allowed(request):
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403) if ajax else redirect("master_admin_login")
+    account = request.user
+    profile, _ = MasterAdminProfile.objects.get_or_create(user=account)
+
+    def fail(message):
+        return JsonResponse({"ok": False, "message": message}, status=400)
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        if action == "change_password":
+            password_form = PasswordChangeForm(account, request.POST)
+            if not password_form.is_valid():
+                errors = [str(error) for values in password_form.errors.values() for error in values]
+                return fail(" ".join(errors))
+            account = password_form.save()
+            update_session_auth_hash(request, account)
+            message = "Password changed successfully."
+        elif action == "edit_profile" and request.FILES.get("profile_image"):
+            upload = request.FILES["profile_image"]
+            if upload.size > 5 * 1024 * 1024:
+                return fail("Choose an image smaller than 5 MB.")
+            try:
+                with Image.open(upload) as source:
+                    if source.format not in {"JPEG", "PNG", "WEBP"} or source.width * source.height > 20000000:
+                        return fail("Choose a JPG, PNG or WebP image up to 20 megapixels.")
+                    source.load()
+                    image = ImageOps.fit(ImageOps.exif_transpose(source).convert("RGB"), (512, 512))
+                    buffer = BytesIO()
+                    image.save(buffer, format="JPEG", quality=90)
+            except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
+                return fail("Choose a valid JPG, PNG or WebP image.")
+            profile.profile_image.save(uuid4().hex + ".jpg", ContentFile(buffer.getvalue()), save=True)
+            message = "Profile photo updated successfully."
+        elif action == "edit_profile":
+            name = request.POST.get("name", "").strip()
+            email = request.POST.get("email", "").strip()
+            phone = request.POST.get("phone", "").strip()
+            if not name or len(name) > 150:
+                return fail("Enter a name with a maximum of 150 characters.")
+            if len(phone) > 30:
+                return fail("Phone must be 30 characters or fewer.")
+            try:
+                validate_email(email)
+            except ValidationError:
+                return fail("Enter a valid email address.")
+            if len(email) > account._meta.get_field("email").max_length:
+                return fail("Email address is too long.")
+            account.first_name, _, account.last_name = name.partition(" ")
+            account.email = email
+            profile.phone = phone
+            with transaction.atomic():
+                account.save(update_fields=["first_name", "last_name", "email"])
+                profile.save(update_fields=["phone"])
+            message = "Profile updated successfully."
+        else:
+            return fail("Invalid profile action.")
+        _create_admin_notification({"auth_owner": account}, kind="profile", title=message,
+            message="Your Master Admin account was updated.", url=reverse("master_admin_profile"))
+        if ajax:
+            return JsonResponse({"ok": True, "success": True, "message": message,
+                "image_url": profile.profile_image.url if profile.profile_image else "",
+                "unread_count": AdminNotification.objects.filter(auth_owner=account, is_read=False, is_archived=False).count()})
+        messages.success(request, message)
+        return redirect("master_admin_profile")
+    display_user = SimpleNamespace(name=account.get_full_name() or account.username,
+        username=account.username, email=account.email, phone=profile.phone,
+        profile_image=profile.profile_image, joined=account.date_joined,
+        account_status="Active" if account.is_active else "Inactive")
+    return render(request, "master_admin/master_admin_profile.html", {
+        "user": display_user, "master_profile_active": True,
+    })
+
+
+# Append these NEW functions to monitoringapp/views.py. Keep all existing chat views.
+
+def _master_chat_user(request):
+    from .master_chat_identity import master_chat_user
+    return master_chat_user(request.user, create=True, touch=True)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_chat(request):
+    current_user = _master_chat_user(request)
+    if current_user is None:
+        return redirect("master_admin_login")
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "create_group":
+            return _member_chat_create_group(
+                request,
+                current_user,
+                group_view_name="master_admin_group_chat",
+            )
+
+        return _member_chat_error("Invalid action.")
+
+    context = _member_chat_context(current_user)
+    context["user_role"] = "master_admin"
+
+    context["master_chat_active"] = True
+    return render(
+        request,
+        "master_admin/master_admin_chat.html",
+        context,
+    )
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_chat_room(request, user_id):
+    from .member_chat_actions import chat_action
+
+    current_user = _master_chat_user(request)
+    if current_user is None:
+        return redirect("master_admin_login")
+
+    other_user = get_object_or_404(
+        User,
+        pk=user_id,
+    )
+
+    if current_user.pk == other_user.pk:
+        return redirect("master_admin_chat")
+
+    # Preserve existing conversations in either user ordering.
+    room = (
+        Conversation.objects.filter(
+            Q(user1=current_user, user2=other_user)
+            | Q(user1=other_user, user2=current_user)
+        )
+        .order_by("pk")
+        .first()
+    )
+
+    if room is None:
+        first, second = sorted(
+            [current_user, other_user],
+            key=lambda person: person.pk,
+        )
+
+        room, _ = Conversation.objects.get_or_create(
+            user1=first,
+            user2=second,
+        )
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "create_group":
+            return _member_chat_create_group(
+                request,
+                current_user,
+                group_view_name="master_admin_group_chat",
+            )
+
+        return chat_action(
+            request,
+            current_user,
+            room,
+            group=False,
+        )
+
+    messages_qs = (
+        room.messages
+        .exclude(hidden_for=current_user)
+        .select_related("sender")
+        .order_by("created_at", "pk")
+    )
+
+    # Used by the chat UI to reconcile messages without refreshing.
+    if request.GET.get("messages") == "1":
+        return JsonResponse({
+            "ok": True,
+            "items": [
+                _member_chat_payload(message)
+                for message in messages_qs
+            ],
+        })
+
+    context = _member_chat_context(current_user)
+
+    context.update({
+        "user_role": "master_admin",
+        "room": room,
+        "other_user": other_user,
+        "messages": messages_qs,
+    })
+
+    context["master_chat_active"] = True
+    return render(
+        request,
+        "master_admin/master_admin_chat_room.html",
+        context,
+    )
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def master_admin_group_chat(request, group_id):
+    import logging
+
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+
+    from .chat_receipts import broadcast_chat_activity    
+    from .member_chat_actions import chat_action
+
+    current_user = _master_chat_user(request)
+    if current_user is None:
+        return redirect("master_admin_login")
+    group = get_object_or_404(Group, pk=group_id)
+
+    membership = get_object_or_404(
+        GroupMember,
+        group=group,
+        user=current_user,
+    )
+
+    can_manage = (
+        group.created_by_id == current_user.pk
+        or membership.role == "admin"
+    )
+
+    def member_state():
+        current_membership = GroupMember.objects.filter(
+            group=group,
+            user=current_user,
+        ).first()
+
+        permitted = bool(
+            current_membership
+            and (
+                group.created_by_id == current_user.pk
+                or current_membership.role == "admin"
+            )
+        )
+
+        entries = list(
+            GroupMember.objects.filter(group=group)
+            .select_related("user")
+            .order_by("user__name", "pk")
+        )
+
+        available_users = []
+
+        if permitted:
+            available_users = [
+                {
+                    "id": person.pk,
+                    "name": person.name,
+                }
+                for person in User.objects.exclude(
+                    group_memberships__group=group
+                ).order_by("name", "pk")
+            ]
+
+        return {
+            "ok": True,
+            "can_manage": permitted,
+            "count": len(entries),
+            "members": [
+                {
+                    "id": entry.user_id,
+                    "name": entry.user.name,
+                    "role": entry.role,
+                    "is_creator": (
+                        entry.user_id == group.created_by_id
+                    ),
+                    "is_self": (
+                        entry.user_id == current_user.pk
+                    ),
+                    "profile": (
+                        entry.user.profile_image.url
+                        if entry.user.profile_image
+                        else None
+                    ),
+                }
+                for entry in entries
+            ],
+            "all_users": available_users,
+        }
+
+    def notify_members():
+        layer = get_channel_layer()
+
+        if layer:
+            try:
+                async_to_sync(layer.group_send)(
+                    f"group_{group.pk}",
+                    {"type": "chat_change"},
+                )
+            except Exception:
+                logging.getLogger(__name__).exception(
+                    "Group membership update delivery failed."
+                )
+
+        async_to_sync(broadcast_chat_activity)(
+            True,
+            group.pk,
+        )
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+
+        if action == "create_group":
+            return _member_chat_create_group(
+                request,
+                current_user,
+                group_view_name="master_admin_group_chat",
+            )
+
+        if action in {
+            "edit_message",
+            "delete_for_me",
+            "delete_for_everyone",
+            "clear_chat",
+        }:
+            return chat_action(
+                request,
+                current_user,
+                group,
+                group=True,
+            )
+
+        if action not in {
+            "add_member",
+            "remove_member",
+            "make_admin",
+            "remove_admin",
+        }:
+            return _member_chat_error("Invalid action.")
+
+        if not can_manage:
+            return _member_chat_error(
+                "Only the group creator or an admin "
+                "can manage members.",
+                403,
+            )
+
+        try:
+            target_id = int(
+                request.POST.get("user_id", "")
+            )
+        except (ValueError, TypeError):
+            return _member_chat_error(
+                "Select a valid member."
+            )
+
+        with transaction.atomic():
+            # Serialize membership changes for this group.
+            locked_group = (
+                Group.objects.select_for_update()
+                .get(pk=group.pk)
+            )
+
+            membership = get_object_or_404(
+                GroupMember,
+                group=group,
+                user=current_user,
+            )
+
+            if (
+                locked_group.created_by_id != current_user.pk
+                and membership.role != "admin"
+            ):
+                return _member_chat_error(
+                    "You no longer have permission "
+                    "to manage this group.",
+                    403,
+                )
+
+            if action == "add_member":
+                target_user = get_object_or_404(
+                    User,
+                    pk=target_id,
+                )
+
+                _, created = (
+                    GroupMember.objects.get_or_create(
+                        group=group,
+                        user=target_user,
+                    )
+                )
+
+                notice = (
+                    f"{target_user.name} added to the group."
+                    if created
+                    else f"{target_user.name} is already a member."
+                )
+
+            else:
+                target = get_object_or_404(
+                    GroupMember.objects.select_related("user"),
+                    group=group,
+                    user_id=target_id,
+                )
+
+                if target_id == locked_group.created_by_id:
+                    return _member_chat_error(
+                        "The group creator cannot be "
+                        "removed or demoted."
+                    )
+
+                if target_id == current_user.pk:
+                    return _member_chat_error(
+                        "You cannot remove yourself or "
+                        "change your own admin role here."
+                    )
+
+                if action == "remove_member":
+                    member_count = (
+                        GroupMember.objects.filter(
+                            group=group
+                        ).count()
+                    )
+
+                    if member_count <= 2:
+                        return _member_chat_error(
+                            "Keep at least two people "
+                            "in the group."
+                        )
+
+                    name = target.user.name
+                    target.delete()
+
+                    notice = (
+                        f"{name} removed from the group."
+                    )
+
+                else:
+                    target.role = (
+                        "admin"
+                        if action == "make_admin"
+                        else "member"
+                    )
+
+                    target.save(update_fields=["role"])
+
+                    notice = (
+                        f"{target.user.name} is now an admin."
+                        if action == "make_admin"
+                        else (
+                            "Admin access removed for "
+                            f"{target.user.name}."
+                        )
+                    )
+
+            transaction.on_commit(notify_members)
+
+        return JsonResponse({
+            **member_state(),
+            "message": notice,
+        })
+
+    if request.GET.get("members") == "1":
+        return JsonResponse(member_state())
+
+    messages_qs = (
+        GroupMessage.objects.filter(group=group)
+        .exclude(hidden_for=current_user)
+        .select_related("sender")
+        .order_by("timestamp", "pk")
+    )
+
+    if request.GET.get("messages") == "1":
+        return JsonResponse({
+            "ok": True,
+            "items": [
+                _member_chat_payload(message, True)
+                for message in messages_qs
+            ],
+        })
+
+    context = _member_chat_context(current_user)
+
+    context.update({
+        "user_role": "master_admin",
+        "group": group,
+        "messages": messages_qs,
+        "members": (
+            GroupMember.objects.filter(group=group)
+            .select_related("user")
+            .order_by("user__name", "pk")
+        ),
+        "all_users": (
+            User.objects.exclude(
+                group_memberships__group=group
+            ).order_by("name", "pk")
+        ),
+        "can_manage_group": can_manage,
+    })
+
+    context["master_chat_active"] = True
+    return render(
+        request,
+        "master_admin/master_admin_group_chat.html",
+        context,
+    )
+
+
+@never_cache
+@require_GET
+def master_admin_chat_meta(request):
+    from .chat_receipts import chat_meta
+
+    if not _master_admin_allowed(request):
+        return JsonResponse({
+            "ok": False,
+            "message": "Master Admin access required.",
+        }, status=403)
+
+    current_user = _master_chat_user(request)
+    if current_user is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Master Admin chat identity is unavailable.",
+        }, status=401)
+
+    return chat_meta(request, actor=current_user)
+
+
+@never_cache
+@require_POST
+def master_admin_chat_read(request):
+    from .chat_receipts import chat_mark_read
+
+    if not _master_admin_allowed(request):
+        return JsonResponse({
+            "ok": False,
+            "message": "Master Admin access required.",
+        }, status=403)
+
+    current_user = _master_chat_user(request)
+    if current_user is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Master Admin chat identity is unavailable.",
+        }, status=401)
+
+    return chat_mark_read(request, actor=current_user)
+
+
+
+for _notice_view_name, _notice_config in _MASTER_NOTICE_VIEWS.items():
+    _notice_original = globals()[_notice_view_name]
+    if not getattr(_notice_original, "_master_operation_notice", False):
+        globals()[_notice_view_name] = _master_operation_notice(_notice_original, *_notice_config)
+# Notepad/profile already create the Master's own inbox entry in the supplied views.

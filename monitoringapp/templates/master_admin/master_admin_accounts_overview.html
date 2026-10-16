@@ -3,14 +3,68 @@
 {% block page_heading %}ACCOUNTS MANAGEMENT{% endblock %}
 {% block page_description %}Review the financial ledgers and manage income, expenses and sales.{% endblock %}
 {% block finance_content %}
-<form method="get" style="display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:20px"><label>Period<select class="accounts-input" name="period"><option value="monthly" {% if period == 'monthly' %}selected{% endif %}>Monthly</option><option value="weekly" {% if period == 'weekly' %}selected{% endif %}>Weekly</option><option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom</option></select></label><label>Anchor date<input class="accounts-input" type="date" name="date" value="{{ anchor|date:'Y-m-d' }}"></label><label>From<input class="accounts-input" type="date" name="start" value="{{ from_date }}"></label><label>To<input class="accounts-input" type="date" name="end" value="{{ to_date }}"></label><button class="income-button" type="submit">Apply</button></form>
+<div id="financeOverview">
+<form method="get" class="finance-overview-filter"><label>Period<select class="accounts-input" name="period"><option value="monthly" {% if period == 'monthly' %}selected{% endif %}>Monthly</option><option value="weekly" {% if period == 'weekly' %}selected{% endif %}>Weekly</option><option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom</option></select></label><label>Anchor date<input class="accounts-input" type="date" name="date" value="{{ anchor|date:'Y-m-d' }}"></label><label>From<input class="accounts-input" type="date" name="start" value="{{ from_date }}"></label><label>To<input class="accounts-input" type="date" name="end" value="{{ to_date }}"></label><button class="income-button" type="submit">Apply</button></form>
 <p class="accounts-muted">{{ range_start|date:'d M Y' }} – {{ range_end|date:'d M Y' }}</p><p id="masterFinanceStatus" role="status" style="color:#f1aaba">{{ filter_error }}</p>
-<div class="income-summary-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin:20px 0"><article class="accounts-stat"><h3>Income</h3><p class="accounts-stat-value" data-total="income">₹{{ data.income|floatformat:2 }}</p></article><article class="accounts-stat"><h3>Expenses</h3><p class="accounts-stat-value" data-total="expense">₹{{ data.expense|floatformat:2 }}</p></article><article class="accounts-stat"><h3>Net recorded income</h3><p class="accounts-stat-value" data-total="net">₹{{ data.net|floatformat:2 }}</p></article><article class="accounts-stat"><h3>Sales</h3><p class="accounts-stat-value" data-total="sales">₹{{ data.sales|floatformat:2 }}</p></article></div>
+<div class="finance-overview-stats"><article class="accounts-stat"><h3>Income</h3><p class="accounts-stat-value" data-total="income">₹{{ data.income|floatformat:2 }}</p></article><article class="accounts-stat"><h3>Expenses</h3><p class="accounts-stat-value" data-total="expense">₹{{ data.expense|floatformat:2 }}</p></article><article class="accounts-stat"><h3>Net recorded income</h3><p class="accounts-stat-value" data-total="net">₹{{ data.net|floatformat:2 }}</p></article><article class="accounts-stat"><h3>Sales</h3><p class="accounts-stat-value" data-total="sales">₹{{ data.sales|floatformat:2 }}</p></article></div>
 <p class="accounts-muted">Net recorded income = Income − Expenses. Sales are shown separately to avoid counting the same receipt twice.</p><p class="accounts-muted">Sales received: <strong data-total="received">₹{{ data.received|floatformat:2 }}</strong> · Outstanding: <strong data-total="balance">₹{{ data.balance|floatformat:2 }}</strong></p>
 <section class="accounts-panel" style="margin-top:24px"><h2>Master Admin Accounts Activity</h2><p class="accounts-muted">Latest 30 Master Admin changes across all dates.</p><div class="accounts-table-scroll"><table class="accounts-table"><thead><tr><th>Time</th><th>Master Admin</th><th>Section</th><th>Entry</th><th>Action</th></tr></thead><tbody id="masterFinanceAudit">{% for item in data.audit %}<tr><td>{{ item.time }}</td><td>{{ item.actor }}</td><td>{{ item.kind }}</td><td>#{{ item.entry }}</td><td>{{ item.action }}</td></tr>{% empty %}<tr><td colspan="5">No Master Admin accounts changes yet.</td></tr>{% endfor %}</tbody></table></div></section>
+</div>
 {% endblock %}
 {% block extra_js %}{{ block.super }}
 <script>
-(()=>{let timer,loading=false;const number=new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});function schedule(){clearTimeout(timer);if(!document.hidden)timer=setTimeout(refresh,15000);}async function refresh(){if(loading)return;loading=true;try{const url=new URL(location.href);url.searchParams.set('format','json');const response=await fetch(url,{credentials:'same-origin',signal:AbortSignal.timeout(10000)});const data=await response.json();if(!response.ok||!data.ok)throw Error(data.message||'Live updates paused.');for(const node of document.querySelectorAll('[data-total]'))node.textContent='₹'+number.format(Number(data[node.dataset.total]));const rows=document.createDocumentFragment();for(const item of data.audit){const row=document.createElement('tr');for(const text of [item.time,item.actor,item.kind,'#'+item.entry,item.action]){const cell=document.createElement('td');cell.textContent=text;row.append(cell);}rows.append(row);}if(!data.audit.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=5;cell.textContent='No Master Admin accounts changes yet.';row.append(cell);rows.append(row);}document.getElementById('masterFinanceAudit').replaceChildren(rows);document.getElementById('masterFinanceStatus').textContent='';}catch(error){document.getElementById('masterFinanceStatus').textContent=error.message+' Retrying automatically.';}finally{loading=false;schedule();}}document.addEventListener('visibilitychange',()=>{clearTimeout(timer);if(!document.hidden)refresh();});window.addEventListener('online',refresh);window.addEventListener('pagehide',()=>clearTimeout(timer));schedule();})();
+(() => {
+ const root=document.getElementById('financeOverview');if(!root)return;
+ const number=new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+ let timer=null,controller=null,sequence=0,paused=false,expired=false,auditSignature=null;
+ let appliedUrl=new URL(location.href);appliedUrl.searchParams.delete('format');
+ const status=message=>{document.getElementById('masterFinanceStatus').textContent=message;};
+ const schedule=()=>{clearTimeout(timer);if(!document.hidden&&!paused&&!expired)timer=setTimeout(()=>refresh(),15000);};
+ function render(data){
+  if(!Array.isArray(data.audit))throw Error('Invalid overview response.');
+  const values=Array.from(root.querySelectorAll('[data-total]')).map(node=>{const raw=data[node.dataset.total];const value=raw===null||raw===undefined||raw===''?NaN:Number(raw);if(!Number.isFinite(value))throw Error('Invalid overview total.');return[node,'₹'+number.format(value)];});
+  values.forEach(([node,value])=>{node.textContent=value;});
+  const signature=JSON.stringify(data.audit);if(signature===auditSignature)return;
+  const body=document.getElementById('masterFinanceAudit'),scroll=body.closest('.accounts-table-scroll');
+  const left=scroll.scrollLeft,top=scroll.scrollTop,rows=document.createDocumentFragment();
+  for(const item of data.audit){const row=document.createElement('tr');for(const text of [item.time,item.actor,item.kind,'#'+item.entry,item.action]){const cell=document.createElement('td');cell.textContent=String(text??'');row.append(cell);}rows.append(row);}
+  if(!data.audit.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=5;cell.textContent='No Master Admin accounts changes yet.';row.append(cell);rows.append(row);}
+  body.replaceChildren(rows);scroll.scrollLeft=left;scroll.scrollTop=top;auditSignature=signature;
+ }
+ async function refresh(target=appliedUrl,filtering=false,updateHistory=true){
+  if(paused||expired||document.hidden||(!filtering&&controller))return;
+  controller?.abort();const current=new AbortController();controller=current;const token=++sequence;
+  const timeout=setTimeout(()=>current.abort(),12000),url=new URL(target);
+  if(!filtering)url.searchParams.set('format','json');
+  try{
+   const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:current.signal});
+   if(token!==sequence||current.signal.aborted||paused||document.hidden)return;
+   if(response.redirected||response.status===401||response.status===403){expired=true;throw Error('Your session or access has changed. Sign in again to continue.');}
+   if(!response.ok)throw Error('Unable to update the overview.');
+   if(filtering){
+    const doc=new DOMParser().parseFromString(await response.text(),'text/html'),next=doc.getElementById('financeOverview');
+    if(!next)throw Error('Unable to load the filtered overview.');
+    if(token!==sequence||current.signal.aborted||paused||document.hidden)return;
+    root.replaceChildren(...Array.from(next.childNodes));appliedUrl=new URL(target);if(updateHistory)history.pushState({},'',appliedUrl);auditSignature=null;
+    window.lucide?.createIcons();return;
+   }
+   const data=await response.json();
+   if(token!==sequence||current.signal.aborted||paused||document.hidden)return;
+   if(!data.ok)throw Error(data.message||'Live updates paused.');render(data);status('');
+  }catch(error){if(token===sequence&&!paused&&!document.hidden&&error.name!=='AbortError')status(expired?error.message:error.message+' Retrying automatically.');}
+  finally{clearTimeout(timeout);if(controller===current)controller=null;schedule();}
+ }
+ root.addEventListener('submit',event=>{
+  const form=event.target.closest('.finance-overview-filter');if(!form)return;event.preventDefault();
+  const target=new URL(location.pathname,location.origin);for(const [key,value]of new FormData(form))if(value)target.searchParams.set(key,value);
+  refresh(target,true);
+ });
+ document.addEventListener('visibilitychange',()=>{clearTimeout(timer);if(document.hidden){++sequence;controller?.abort();controller=null;}else refresh();});
+ window.addEventListener('online',()=>refresh());
+ window.addEventListener('pagehide',()=>{paused=true;++sequence;clearTimeout(timer);controller?.abort();controller=null;});
+ window.addEventListener('pageshow',()=>{paused=false;schedule();});
+ window.addEventListener('popstate',()=>{const target=new URL(location.href);target.searchParams.delete('format');refresh(target,true,false);});
+ schedule();
+})();
 </script>
 {% endblock %}

@@ -1,0 +1,398 @@
+{% extends 'master_admin/base.html' %}
+{% block title %}Notifications - Master Admin{% endblock %}
+{% block page_class %}master-notifications-page{% endblock %}
+{% block extra_css %}<style>body.master-notifications-page *,body.master-notifications-page *::before,body.master-notifications-page *::after{ box-sizing: border-box; }
+body.master-notifications-page .notification-main{ margin-left: 290px; padding: 24px; min-width: 0; }
+body.master-notifications-page .notification-shell{
+            max-width: 1250px; margin: 0 auto; padding: 26px;
+            border: 1px solid rgba(255,255,255,.1); border-radius: 24px;
+            background: linear-gradient(145deg, rgba(17,16,24,.96), rgba(8,9,14,.98));
+            box-shadow: 0 25px 70px rgba(0,0,0,.25);
+        }
+body.master-notifications-page .notification-header{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 18px; margin-bottom: 23px; }
+body.master-notifications-page .notification-eyebrow{ display: block; margin-bottom: 8px; color: #a78bfa; font-size: 10px; font-weight: 750; letter-spacing: .12em; }
+body.master-notifications-page .notification-header h1{ margin: 0; font-size: 25px; font-weight: 750; }
+body.master-notifications-page .notification-header p{ margin: 8px 0 0; color: #a1a1aa; font-size: 12px; }
+body.master-notifications-page .notification-header-actions{ display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+body.master-notifications-page .notification-unread-count{ padding: 7px 11px; border-radius: 20px; color: #d8c7ff; background: rgba(139,92,246,.12); border: 1px solid rgba(167,139,250,.22); font-size: 11px; font-weight: 650; }
+body.master-notifications-page .notification-clear,body.master-notifications-page .notification-open{
+            display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+            min-height: 36px; padding: 0 12px; border-radius: 9px;
+            border: 1px solid rgba(167,139,250,.35); background: rgba(139,92,246,.1);
+            color: #e4d7ff; font: inherit; font-size: 11px; font-weight: 650; cursor: pointer;
+        }
+body.master-notifications-page .notification-clear:hover,body.master-notifications-page .notification-open:hover{ background: rgba(139,92,246,.22); border-color: #a78bfa; }
+body.master-notifications-page .notification-clear svg,body.master-notifications-page .notification-open svg{ width: 14px; height: 14px; }
+body.master-notifications-page .notification-header form,body.master-notifications-page .notification-table form{ margin: 0; }
+body.master-notifications-page .notification-table-scroll{
+            max-height: min(580px, 65vh); overflow: auto; overscroll-behavior: contain;
+            border: 1px solid rgba(255,255,255,.09); border-radius: 14px;
+            background: #101017; scrollbar-width: thin; scrollbar-color: #7650bc transparent;
+        }
+body.master-notifications-page .notification-table-scroll::-webkit-scrollbar{ width: 7px; height: 7px; }
+body.master-notifications-page .notification-table-scroll::-webkit-scrollbar-thumb{ background: #7650bc; border-radius: 20px; }
+body.master-notifications-page .notification-table{ width: 100%; min-width: 660px; border-collapse: separate; border-spacing: 0; }
+body.master-notifications-page .notification-table th{ position: sticky; top: 0; z-index: 2; padding: 15px 18px; background: #1b1822; border-bottom: 1px solid rgba(255,255,255,.1); color: #aaa2b6; font-size: 10px; font-weight: 750; letter-spacing: .07em; text-align: left; text-transform: uppercase; }
+body.master-notifications-page .notification-table td{ padding: 18px; border-bottom: 1px solid rgba(255,255,255,.065); vertical-align: middle; }
+body.master-notifications-page .notification-table tr:last-child td{ border-bottom: 0; }
+body.master-notifications-page .notification-row.unread{ background: rgba(139,92,246,.065); }
+body.master-notifications-page .notification-row:hover{ background: rgba(139,92,246,.1); }
+body.master-notifications-page .notification-detail{ display: flex; align-items: flex-start; gap: 12px; }
+body.master-notifications-page .notification-icon{ flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: rgba(139,92,246,.13); color: #bca0fa; }
+body.master-notifications-page .notification-icon svg{ width: 17px; height: 17px; }
+body.master-notifications-page .notification-content{ min-width: 0; max-width: 620px; overflow-wrap: anywhere; }
+body.master-notifications-page .notification-content strong{ display: block; color: #f1eafa; font-size: 13px; font-weight: 650; line-height: 1.5; }
+body.master-notifications-page .notification-content p{ margin: 5px 0 0; color: #a8a0b3; font-size: 12px; line-height: 1.65; white-space: pre-line; }
+body.master-notifications-page .notification-date{ min-width: 125px; white-space: nowrap; color: #b5adbf; font-size: 11px; line-height: 1.7; }
+body.master-notifications-page .notification-date span{ display: block; color: #85808f; font-size: 10px; }
+body.master-notifications-page .notification-status{ display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid rgba(255,255,255,.1); border-radius: 20px; color: #a1a1aa; font-size: 10px; white-space: nowrap; }
+body.master-notifications-page .notification-status.is-unread{ color: #c4b5fd; border-color: rgba(167,139,250,.3); }
+body.master-notifications-page .notification-status.is-unread::before{ content: ''; width: 5px; height: 5px; background: #a78bfa; border-radius: 50%; }
+body.master-notifications-page .notification-action{ width: 95px; }
+body.master-notifications-page .notification-empty{ padding: 65px 20px; text-align: center; }
+body.master-notifications-page .notification-empty-icon{ display: grid; place-items: center; width: 52px; height: 52px; margin: 0 auto 16px; border-radius: 15px; background: rgba(139,92,246,.1); color: #a78bfa; }
+body.master-notifications-page .notification-empty h2{ margin: 0 0 8px; font-size: 16px; }
+body.master-notifications-page .notification-empty p{ margin: 0; color: #9991a5; font-size: 12px; line-height: 1.7; }
+body.master-notifications-page button:focus-visible,body.master-notifications-page a:focus-visible,body.master-notifications-page .notification-table-scroll:focus-visible{ outline: 2px solid #c4b5fd; outline-offset: 3px; }
+body.master-notifications-page .notification-toolbar{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+body.master-notifications-page .notification-search{ display:flex; align-items:center; gap:9px; flex:1; min-width:200px; padding:0 12px; border:1px solid #34303f; border-radius:10px; background:#111018; }
+body.master-notifications-page .notification-search svg{ width:16px; color:#a69ab8; }
+body.master-notifications-page .notification-search input{ width:100%; height:42px; border:0; outline:none; background:transparent; color:#eee8f8; font:inherit; font-size:12px; }
+body.master-notifications-page .notification-filter{ height:42px; padding:0 12px; border:1px solid #34303f; border-radius:10px; background:#111018; color:#ddd4ea; font:inherit; font-size:12px; color-scheme:dark; }
+body.master-notifications-page .notification-tabs{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+body.master-notifications-page .notification-tab{ border:1px solid transparent; border-radius:8px; background:transparent; color:#a69ab8; padding:9px 12px; font:inherit; font-size:12px; cursor:pointer; }
+body.master-notifications-page .notification-tab[aria-pressed="true"]{ color:#dfd0ff; background:rgba(139,92,246,.15); border-color:rgba(139,92,246,.3); }
+body.master-notifications-page .notification-tab span{ margin-left:6px; font-size:10px; opacity:.8; }
+body.master-notifications-page .notification-actions{ display:flex; align-items:center; gap:6px; }
+body.master-notifications-page .notification-action{ width:180px; }
+body.master-notifications-page .notification-icon-button{ display:grid; place-items:center; width:32px; height:34px; border:1px solid #37303f; border-radius:8px; background:transparent; color:#b9abc9; cursor:pointer; }
+body.master-notifications-page .notification-icon-button:hover{ background:#292033; color:#e3d1ff; }
+body.master-notifications-page .notification-icon-button svg{ width:15px; height:15px; }
+body.master-notifications-page .notification-footer{ margin:14px 0 0; color:#90869e; font-size:11px; }
+body.master-notifications-page .notification-row[hidden],body.master-notifications-page [hidden]{ display:none !important; }
+body.master-notifications-page input:focus-visible,body.master-notifications-page select:focus-visible{ outline:2px solid #c4b5fd; outline-offset:3px; }
+@media (max-width: 1024px){body.master-notifications-page .notification-main{ margin-left: 275px; padding: 18px; }
+body.master-notifications-page .notification-shell{ padding: 20px; }}
+@media (max-width: 768px){body.master-notifications-page .notification-main{ margin-left: 0; padding: 76px 12px 20px; }
+body.master-notifications-page .notification-shell{ padding: 18px; border-radius: 18px; }
+body.master-notifications-page .notification-header h1{ font-size: 22px; }
+body.master-notifications-page .notification-header-actions{ width: 100%; justify-content: space-between; }
+body.master-notifications-page .notification-table-scroll{ max-height: 60vh; }}
+body.master-notifications-page .notification-category{
+    position: relative;
+    width: 190px;
+    flex-shrink: 0;
+}
+body.master-notifications-page .notification-category summary{
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 14px;
+    border: 1px solid #393044;
+    border-radius: 10px;
+    background: #15111d;
+    color: #e7def3;
+    font-size: 12px;
+    cursor: pointer;
+    list-style: none;
+}
+body.master-notifications-page .notification-category summary::-webkit-details-marker{
+    display: none;
+}
+body.master-notifications-page .notification-category summary svg{
+    width: 15px;
+    height: 15px;
+    color: #bda5e6;
+    transition: transform .2s;
+}
+body.master-notifications-page .notification-category details[open] summary{
+    border-color: #9370cd;
+}
+body.master-notifications-page .notification-category details[open] summary svg{
+    transform: rotate(180deg);
+}
+body.master-notifications-page .category-menu{
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 20;
+    width: 220px;
+    max-width: calc(100vw - 48px);
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 6px;
+    border: 1px solid #443450;
+    border-radius: 13px;
+    background: #19131f;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, .4);
+    scrollbar-width: thin;
+    scrollbar-color: #7650bc transparent;
+}
+body.master-notifications-page .category-menu button{
+    display: block;
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #bfb2cf;
+    text-align: left;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+body.master-notifications-page .category-menu button:hover,body.master-notifications-page .category-menu button:focus-visible{
+    background: #30213e;
+    color: #f2eaff;
+}
+body.master-notifications-page .category-menu button.selected{
+    background: #3a2650;
+    color: #e1c9ff;
+    font-weight: 600;
+}
+body.master-notifications-page .notification-main{
+    position: fixed;
+    inset: 0 0 0 275px;
+    margin: 0;
+    min-width: 0;
+    padding: 18px 20px;
+    overflow: hidden;
+}
+body.master-notifications-page .notification-shell{
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 16px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 28px;
+    background: linear-gradient(145deg, rgba(17,16,24,.94), rgba(8,9,14,.96));
+    border: 1px solid rgba(255,255,255,.10);
+    box-shadow: 0 25px 80px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.035);
+    backdrop-filter: blur(25px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(151,112,235,.65) transparent;
+}
+body.master-notifications-page .notification-header{
+              position: relative;
+
+              min-height: 168px;
+
+              display: flex;
+              align-items: center;
+
+              padding: 30px 32px;
+
+              border-radius: 25px;
+
+              overflow: hidden;
+
+              background:
+                  linear-gradient(
+                      110deg,
+                      rgba(44, 32, 55, 0.62),
+                      rgba(18, 23, 31, 0.72),
+                      rgba(30, 31, 59, 0.62)
+                  );
+
+              border: 1px solid rgba(255, 255, 255, 0.10);
+
+              box-shadow:
+                  inset 0 1px 0 rgba(255, 255, 255, 0.04);
+          }
+body.master-notifications-page .notification-header::before{
+              content: "";
+
+              position: absolute;
+
+              width: 260px;
+              height: 260px;
+
+              right: -100px;
+              top: -130px;
+
+              background: rgba(99, 102, 241, 0.13);
+
+              filter: blur(80px);
+
+              pointer-events: none;
+          }
+body.master-notifications-page .notification-header-inner{
+              position: relative;
+              z-index: 2;
+
+              width: 100%;
+
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+
+              gap: 25px;
+          }
+body.master-notifications-page .notification-eyebrow{
+              margin-bottom: 15px;
+
+              color: #a78bfa;
+
+              font-size: 10px;
+              font-weight: 800;
+
+              letter-spacing: 3px;
+          }
+body.master-notifications-page .notification-header h1{
+              margin: 0;
+
+              font-size: clamp(34px, 4vw, 52px);
+
+              line-height: 1;
+              font-weight: 900;
+
+              letter-spacing: -2px;
+
+              background:
+                  linear-gradient(
+                      90deg,
+                      #ffffff 0%,
+                      #c4b5fd 45%,
+                      #67c8ff 100%
+                  );
+
+              -webkit-background-clip: text;
+              background-clip: text;
+
+              -webkit-text-fill-color: transparent;
+          }
+body.master-notifications-page .notification-header p{
+              margin: 18px 0 0;
+
+              color: #96939e;
+
+              font-size: 14px;
+          }
+body.master-notifications-page .notification-header{ margin-bottom: 26px; }
+body.master-notifications-page .notification-eyebrow{ display: block; }
+body.master-notifications-page .notification-header-actions{ justify-content: flex-end; flex-shrink: 0; gap: 10px; }
+body.master-notifications-page .notification-unread-count{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 13px;
+    color: #ddd0ff;
+    background: rgba(139,92,246,.12);
+    border: 1px solid rgba(167,139,250,.22);
+}
+body.master-notifications-page .notification-unread-count i,body.master-notifications-page .notification-unread-count svg{ width: 14px; height: 14px; }
+body.master-notifications-page .notification-toolbar{ gap: 12px; }
+body.master-notifications-page .notification-search,body.master-notifications-page .notification-category summary{
+    background: rgba(16,16,23,.85);
+    border-color: rgba(255,255,255,.12);
+    border-radius: 12px;
+}
+body.master-notifications-page .notification-tabs{
+    width: fit-content;
+    padding: 5px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(21,19,29,.65);
+}
+body.master-notifications-page .notification-table-scroll{
+    max-height: min(580px, 56vh);
+    border-radius: 18px;
+    border-color: rgba(255,255,255,.09);
+    background: rgba(16,16,23,.75);
+}
+body.master-notifications-page .notification-table th{ background: #1b1824; padding: 16px 18px; }
+body.master-notifications-page .notification-actions{ justify-content: flex-start; gap: 7px; }
+body.master-notifications-page .notification-icon-button{ height: 34px; width: 34px; }
+body.master-notifications-page .notification-footer{ padding: 2px 4px; }
+@media (max-width: 1100px){body.master-notifications-page .notification-header-inner{ flex-wrap: wrap; gap: 20px; }
+body.master-notifications-page .notification-header-actions{ justify-content: flex-start; }}
+@media (max-width: 768px){body.master-notifications-page .notification-main{ inset: 0; margin: 0; padding: 74px 12px 12px; }
+body.master-notifications-page .notification-shell{ padding: 12px; border-radius: 22px; }
+body.master-notifications-page .notification-header{ padding: 24px 20px; min-height: 158px; border-radius: 18px; }
+body.master-notifications-page .notification-header h1{ font-size: clamp(28px, 7vw, 38px); letter-spacing: -1px; }
+body.master-notifications-page .notification-header p{ font-size: 12px; line-height: 1.65; margin-top: 12px; }
+body.master-notifications-page .notification-eyebrow{ font-size: 9px; letter-spacing: 2px; margin-bottom: 12px; }
+body.master-notifications-page .notification-header-actions{ width: auto; }
+body.master-notifications-page .notification-search{ width: 100%; flex-basis: 100%; min-width: 0; }
+body.master-notifications-page .notification-category{ width: 100%; }
+body.master-notifications-page .category-menu{ left: 0; right: auto; width: 100%; }
+body.master-notifications-page .notification-table-scroll{ max-height: 52vh; }}
+/* The Master Admin base already positions the sidebar and main content. */
+body.master-notifications-page #adminMain{overflow:hidden}
+body.master-notifications-page #adminMain>.notification-main{position:relative;inset:auto;margin:0;padding:8px 8px 30px!important;width:100%;height:100%;min-width:0;overflow:hidden}
+body.master-notifications-page .notification-shell{height:100%;width:100%;max-width:none;overflow:auto;padding:16px;border-radius:24px}
+body.master-notifications-page #mnCount{display:inline-flex;align-items:center;gap:7px}body.master-notifications-page #mnCount svg{width:14px;height:14px}
+body.master-notifications-page #mnSearch{display:flex;flex:1 1 300px;min-width:0;gap:9px;margin:0}body.master-notifications-page #mnSearch .notification-search{min-width:0}
+body.master-notifications-page .notification-table{min-width:820px;table-layout:fixed}body.master-notifications-page .notification-table th:nth-child(1){width:52%}body.master-notifications-page .notification-table th:nth-child(2){width:150px}body.master-notifications-page .notification-table th:nth-child(3){width:100px}body.master-notifications-page .notification-table th:nth-child(4){width:185px}
+body.master-notifications-page .notification-table td{overflow-wrap:anywhere}body.master-notifications-page .notification-content{max-width:none}body.master-notifications-page .notification-action{width:185px}
+body.master-notifications-page .notification-tabs .notification-tab.active{color:#dfd0ff;background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.3)}
+body.master-notifications-page .mn-foot{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;margin-top:16px;font-size:11px;color:#90869e}body.master-notifications-page #mnPage{margin-right:auto}
+body.master-notifications-page .mn-dialog{max-width:540px;width:calc(100% - 28px);max-height:85dvh;overflow:auto;margin:auto;padding:24px;border:1px solid #a78bfa47;border-radius:17px;background:linear-gradient(145deg,#211b2d,#111118);color:#eee6fa}body.master-notifications-page .mn-dialog::backdrop{background:#0c081459;backdrop-filter:blur(2px)}body.master-notifications-page .mn-dialog h2{font-size:20px;line-height:1.5;margin:0;overflow-wrap:anywhere}body.master-notifications-page .mn-dialog p{font-size:13px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere;max-height:55dvh;overflow:auto;color:#b4a7c4;margin:17px 0}body.master-notifications-page .mn-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+body.master-notifications-page button:disabled{opacity:.45;cursor:not-allowed}body.master-notifications-page #mnError{font-size:12px;color:#efa6b2;line-height:1.7}body.master-notifications-page .notification-table-scroll{scrollbar-gutter:stable}
+@media(max-width:768px){body.master-notifications-page #adminMain>.notification-main{padding:4px 0 16px!important}body.master-notifications-page .notification-shell{padding:12px}body.master-notifications-page #mnSearch{flex-basis:100%}body.master-notifications-page .notification-header-inner{flex-wrap:wrap}}
+
+/* Match the supplied Master Admin dashboard outer container. */
+body.master-notifications-page #adminMain{min-height:0;overflow:hidden}
+body.master-notifications-page #adminMain>#masterNotifications.notification-main{position:relative;inset:auto;margin:0;box-sizing:border-box;height:100%;min-height:0;min-width:0;padding:16px;overflow:auto;overflow-x:hidden;border-radius:28px;background:linear-gradient(145deg,rgba(17,16,24,.94),rgba(8,9,14,.96));border:1px solid rgba(255,255,255,.10);box-shadow:0 25px 80px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.035);scrollbar-width:thin;scrollbar-color:rgba(151,112,235,.65) transparent;overscroll-behavior:contain;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff;padding:16px!important;width:100%;max-width:none}
+body.master-notifications-page #masterNotifications>.notification-shell{position:static;display:block;width:100%;height:auto;min-height:0;max-width:none;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;overflow:visible}
+body.master-notifications-page #masterNotifications .notification-header{margin-bottom:28px}
+body.master-notifications-page #masterNotifications .notification-table-scroll{max-height:min(580px,56vh)}
+@media(max-width:768px){body.master-notifications-page #adminMain>#masterNotifications.notification-main{padding:13px!important;border-radius:20px}body.master-notifications-page #masterNotifications>.notification-shell{padding:0;border:0;border-radius:0}body.master-notifications-page #masterNotifications .notification-header{margin-bottom:24px}}
+@media(max-width:360px){body.master-notifications-page #adminMain>#masterNotifications.notification-main{padding:10px!important}}
+
+
+body.master-notifications-page #mnSearch .notification-reset{flex-shrink:0;min-height:42px;background:transparent;color:#b8acc9;border-color:#ffffff1f;gap:6px}body.master-notifications-page #mnSearch .notification-reset:hover{background:#a78bfa10;color:#eee8ff;border-color:#a78bfa40}
+@media(max-width:480px){body.master-notifications-page #mnSearch{flex-wrap:wrap}body.master-notifications-page #mnSearch .notification-search{flex:1 1 100%}body.master-notifications-page #mnSearch>.notification-open{flex:1 1 0;min-height:40px}}
+
+body.master-notifications-page :is(.notification-header-inner,.notification-header-actions,.mn-foot){flex-wrap:wrap}
+body.master-notifications-page :is(.notification-header-inner>div,.notification-search input,.notification-content){min-width:0}
+body.master-notifications-page .notification-table-scroll{-webkit-overflow-scrolling:touch}
+body.master-notifications-page .category-menu{max-height:min(380px,55dvh);overflow:auto;overscroll-behavior:contain}
+body.master-notifications-page .mn-dialog{max-height:calc(100dvh - 28px)}
+@media(max-width:768px){body.master-notifications-page #mnQuery{font-size:16px}}
+</style>{% endblock %}
+{% block content %}
+<section class="dashboard-box notification-main" id="masterNotifications" data-feed="{% url 'master_admin_notifications' %}" data-all="{% url 'master_admin_notification_action' 0 %}">
+<div class="notification-shell"><header class="notification-header"><div class="notification-header-inner"><div><span class="notification-eyebrow">CYBEXEL MASTER ADMIN PANEL</span><h1>NOTIFICATIONS</h1><p>Updates from your teams and accounts workspace.</p></div><div class="notification-header-actions"><span class="notification-unread-count"><i data-lucide="bell" aria-hidden="true"></i><span id="mnCount">Loading…</span></span><button type="button" class="notification-clear" id="mnReadAll"><i data-lucide="check-check" aria-hidden="true"></i>Mark all as read</button></div></div></header>
+<div class="notification-toolbar"><form id="mnSearch"><label class="notification-search"><i data-lucide="search" aria-hidden="true"></i><input id="mnQuery" type="search" maxlength="200" placeholder="Search notifications…" aria-label="Search notifications"></label><button type="submit" class="notification-open">Search</button><button type="button" class="notification-open notification-reset" id="mnReset"><i data-lucide="rotate-ccw" aria-hidden="true"></i>Reset</button></form><div class="notification-category"><details id="mnCategory"><summary><span id="mnCategoryLabel">All categories</span><i data-lucide="chevron-down" aria-hidden="true"></i></summary><div class="category-menu" role="group" aria-label="Categories"><button type="button" data-kind="" class="selected">All categories</button><button type="button" data-kind="user">User Management</button><button type="button" data-kind="department">Departments</button><button type="button" data-kind="team">Teams</button><button type="button" data-kind="income">Income</button><button type="button" data-kind="expense">Expenses</button><button type="button" data-kind="sale">Sales / Payments</button><button type="button" data-kind="profile">Profile</button><button type="button" data-kind="report">Reports</button><button type="button" data-kind="announcement">Announcements</button><button type="button" data-kind="project">Projects</button><button type="button" data-kind="schedule">Schedules</button><button type="button" data-kind="task">Tasks</button><button type="button" data-kind="note">Notes</button><button type="button" data-kind="resource">Resources</button><button type="button" data-kind="reminder">Reminders</button><button type="button" data-kind="meeting">Meetings</button></div></details></div></div><div class="notification-tabs" role="group" aria-label="Notification folders"><button type="button" class="notification-tab active" data-tab="all" aria-pressed="true">Inbox <span data-folder-count="all" aria-label="Inbox count">…</span></button><button type="button" class="notification-tab" data-tab="unread" aria-pressed="false">Unread <span data-folder-count="unread" aria-label="Unread count">…</span></button><button type="button" class="notification-tab" data-tab="archived" aria-pressed="false">Archived <span data-folder-count="archived" aria-label="Archived count">…</span></button></div>
+<p id="mnError" role="status"></p><div class="notification-table-scroll" tabindex="0" role="region" aria-label="Notifications table"><table class="notification-table"><thead><tr><th>Notification</th><th>Received</th><th>Status</th><th>Actions</th></tr></thead><tbody id="mnRows"></tbody></table></div>
+<div class="mn-foot"><span id="mnPage"></span><button class="notification-open" id="mnPrevious">Previous</button><button class="notification-open" id="mnNext">Next</button></div>
+</div>{% csrf_token %}</section>
+<dialog class="mn-dialog" id="mnDialog" aria-labelledby="mnTitle"><h2 id="mnTitle"></h2><p id="mnMessage"></p><div class="mn-actions"><a class="notification-open" id="mnLink">Go to page</a><button class="notification-open" id="mnClose" type="button">Close</button></div></dialog>
+{% endblock %}
+{% block extra_js %}<script>document.addEventListener('DOMContentLoaded',()=>{
+ const root=document.getElementById('masterNotifications'),rows=document.getElementById('mnRows'),error=document.getElementById('mnError'),dialog=document.getElementById('mnDialog'),dropdown=document.getElementById('mnCategory');
+ let kind='',tab='all',page=1,pages=1,query='',busy=false,pending=null,sequence=0,paused=false,expired=false,items=new Map(),returnFocus=null;
+ const icons=()=>window.lucide?.createIcons();
+ function toast(message,type='success'){const host=document.getElementById('toastContainer')||document.getElementById('toast-container');if(host)(dialog.open?dialog:document.body).appendChild(host);if(typeof window.showToast==='function'){try{window.showToast(message,type);return;}catch(_){}}const node=document.createElement('div');node.className='mn-fallback-toast';node.textContent=message;node.setAttribute('role',type==='error'?'alert':'status');node.style.cssText='position:fixed;right:16px;bottom:20px;z-index:100001;max-width:calc(100vw - 32px);padding:14px 18px;background:#241b30;color:#fff;border:1px solid #8161a5;border-radius:12px';(dialog.open?dialog:document.body).appendChild(node);setTimeout(()=>node.remove(),5000);}
+ function counts(data){document.getElementById('mnCount').textContent=data.unread_count+' unread';window.dispatchEvent(new CustomEvent('master-notifications-count',{detail:data.unread_count}));if(Number.isInteger(data.latest_id))window.dispatchEvent(new CustomEvent('master-notification-latest',{detail:{id:data.latest_id,title:data.latest_title}}));if(data.folder_counts)for(const key of ['all','unread','archived']){const el=root.querySelector('[data-folder-count="'+key+'"]');if(el)el.textContent=String(data.folder_counts[key]||0);}}
+ const icon=name=>{const i=document.createElement('i');i.dataset.lucide=name;i.setAttribute('aria-hidden','true');return i;};
+ const button=(text,action,id)=>{const b=document.createElement('button');b.type='button';b.className=action==='view'?'notification-open':'notification-icon-button';if(action==='view')b.append(document.createTextNode(text));b.append(icon({view:'arrow-up-right',read:'mail-check',unread:'mail',archive:'archive',restore:'archive-restore'}[action]||'bell'));b.title=text;b.setAttribute('aria-label',text);b.dataset.action=action;b.dataset.id=id;return b;};
+ function render(data){const fingerprint=JSON.stringify(data.items);if(rows.dataset.snapshot===fingerprint)return;const scroller=root.querySelector('.notification-table-scroll'),top=scroller.scrollTop,left=scroller.scrollLeft,active=rows.contains(document.activeElement)?document.activeElement.closest('[data-action]'):null,id=active?.dataset.id,action=active?.dataset.action;
+  items=new Map(data.items.map(n=>[String(n.id),n]));rows.replaceChildren();
+  for(const n of data.items){const tr=document.createElement('tr');tr.className='notification-row'+(!n.is_read?' unread':'');const detail=document.createElement('td'),title=document.createElement('strong'),message=document.createElement('p');title.textContent=n.title;message.textContent=n.message;const content=document.createElement('div');content.className='notification-content';content.append(title,message);const wrap=document.createElement('div');wrap.className='notification-detail';const badge=document.createElement('span');badge.className='notification-icon';badge.setAttribute('aria-hidden','true');badge.append(icon({user:'users',department:'building-2',team:'users-round',income:'arrow-down-left',expense:'arrow-up-right',sale:'receipt-text',profile:'circle-user-round',report:'file-text',announcement:'megaphone',project:'clipboard-list',schedule:'clock',task:'list-checks',note:'notebook-pen',resource:'book-open',reminder:'calendar-clock',meeting:'video'}[n.kind]||'bell'));wrap.append(badge,content);detail.append(wrap);const date=document.createElement('td');date.className='notification-date';date.textContent=n.created_at||'';const status=document.createElement('td'),state=document.createElement('span');state.className='notification-status'+(!n.is_read&&!n.is_archived?' is-unread':'');state.textContent=n.is_archived?'Archived':n.is_read?'Read':'Unread';status.append(state);const actions=document.createElement('td'),group=document.createElement('div');actions.className='notification-action';group.className='notification-actions';group.append(button('View','view',n.id),button(n.is_read?'Mark unread':'Mark read',n.is_read?'unread':'read',n.id),button(n.is_archived?'Restore':'Archive',n.is_archived?'restore':'archive',n.id));actions.append(group);tr.append(detail,date,status,actions);rows.append(tr);}
+  if(!data.items.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=4;td.className='notification-empty';td.textContent='No matching notifications. Try another search, category or folder.';tr.append(td);rows.append(tr);}
+  rows.dataset.snapshot=fingerprint;icons();scroller.scrollTop=top;scroller.scrollLeft=left;
+  if(id)Array.from(rows.querySelectorAll('[data-action]')).find(b=>b.dataset.id===id&&b.dataset.action===action)?.focus({preventScroll:true});
+ }
+ async function load(force=false){if(paused||expired||busy||document.hidden||(pending&&!force))return false;pending?.abort();const request=new AbortController();pending=request;const token=++sequence,timeout=setTimeout(()=>request.abort(),12000);
+  try{const url=new URL(root.dataset.feed,location.origin);url.search=new URLSearchParams({format:'json',tab,page,q:query,kind});const response=await fetch(url,{credentials:'same-origin',cache:'no-store',headers:{'X-Requested-With':'XMLHttpRequest'},signal:request.signal});if(token!==sequence||request.signal.aborted||paused)return false;if(response.redirected||response.status===401||response.status===403){expired=true;throw Error('Your session or access has changed. Sign in again.');}if(!response.ok)throw Error('Could not load notifications.');const data=await response.json();if(!data.ok||!Array.isArray(data.items))throw Error('Invalid notification response.');if(token!==sequence||request.signal.aborted||paused||document.hidden||busy)return false;page=data.page;pages=data.pages;counts(data);render(data);document.getElementById('mnPage').textContent='Page '+page+' of '+pages+' · '+data.total+' items';document.getElementById('mnPrevious').disabled=page<=1;document.getElementById('mnNext').disabled=page>=pages;error.textContent='';return true;
+  }catch(e){if(e.name!=='AbortError'&&token===sequence){error.textContent=e.message;if(force||expired)toast(e.message,'error');}return false;}finally{clearTimeout(timeout);if(pending===request)pending=null;}}
+ async function act(url,action,silent=false){if(busy)return false;busy=true;++sequence;pending?.abort();pending=null;try{const target=new URL(url,location.href);if(target.origin!==location.origin)throw Error('Invalid action URL.');const r=await fetch(target,{method:'POST',credentials:'same-origin',headers:{'X-CSRFToken':root.querySelector('[name=csrfmiddlewaretoken]').value,'X-Requested-With':'XMLHttpRequest'},body:new URLSearchParams({action}),signal:AbortSignal.timeout(15000)});if(!(r.headers.get('content-type')||'').includes('application/json'))throw Error('Check your login and try again.');const d=await r.json();if(!r.ok||!d.ok)throw Error(d.message||'Update failed.');window.dispatchEvent(new CustomEvent('master-notifications-count',{detail:d.unread_count}));if(!silent)toast(d.message||'Notification updated.');return true;}catch(e){error.textContent=e.message;toast(e.message,'error');return false;}finally{busy=false;}}
+ rows.addEventListener('click',async e=>{const b=e.target.closest('[data-action]');if(!b||busy)return;const n=items.get(b.dataset.id);if(!n)return;b.disabled=true;try{if(b.dataset.action==='view'){returnFocus=b;document.getElementById('mnTitle').textContent=n.title;document.getElementById('mnMessage').textContent=n.message;const link=document.getElementById('mnLink');let target=null;try{const parsed=new URL(n.url,location.href);if(n.url&&parsed.origin===location.origin&&['http:','https:'].includes(parsed.protocol))target=parsed;}catch(_){}link.hidden=!target;if(target)link.href=target.href;else link.removeAttribute('href');dialog.showModal();if(!n.is_read)await act(n.action_url,'read',true);}else await act(n.action_url,b.dataset.action);await load(true);}finally{b.disabled=false;}});
+ document.getElementById('mnClose').onclick=()=>{if(!busy)dialog.close();};dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault();});dialog.addEventListener('close',()=>{const host=document.getElementById('toastContainer')||document.getElementById('toast-container');if(host&&dialog.contains(host))document.body.appendChild(host);dialog.querySelectorAll('.mn-fallback-toast').forEach(node=>document.body.appendChild(node));if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});});
+ document.getElementById('mnReadAll').onclick=async()=>{if(busy)return;const b=document.getElementById('mnReadAll');b.disabled=true;try{await act(root.dataset.all,'read_all');await load(true);}finally{b.disabled=false;}};
+ function navigate(){if(busy)return;page=1;root.querySelector('.notification-table-scroll').scrollTop=0;load(true);}
+ root.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{if(busy)return;tab=b.dataset.tab;root.querySelectorAll('[data-tab]').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',String(x===b));});navigate();});
+ document.getElementById('mnSearch').onsubmit=e=>{e.preventDefault();query=document.getElementById('mnQuery').value.trim();navigate();};
+ document.getElementById('mnReset').onclick=()=>{if(busy)return;query='';kind='';document.getElementById('mnQuery').value='';document.getElementById('mnCategoryLabel').textContent='All categories';dropdown.querySelectorAll('[data-kind]').forEach(b=>b.classList.toggle('selected',b.dataset.kind===''));dropdown.open=false;navigate();document.getElementById('mnQuery').focus();};
+ dropdown.querySelectorAll('[data-kind]').forEach(b=>b.onclick=()=>{if(busy)return;kind=b.dataset.kind;document.getElementById('mnCategoryLabel').textContent=b.textContent;dropdown.querySelectorAll('[data-kind]').forEach(x=>x.classList.toggle('selected',x===b));dropdown.open=false;navigate();});
+ for(const [id,step] of [['mnPrevious',-1],['mnNext',1]])document.getElementById(id).onclick=()=>{if(!busy&&page+step>=1&&page+step<=pages){page+=step;load(true);}};
+ document.addEventListener('click',e=>{if(!dropdown.contains(e.target))dropdown.open=false;});dropdown.addEventListener('keydown',e=>{if(e.key==='Escape'){dropdown.open=false;dropdown.querySelector('summary').focus();}});
+ icons();load();setInterval(()=>load(),15000);window.addEventListener('online',()=>load());document.addEventListener('visibilitychange',()=>{if(document.hidden){++sequence;pending?.abort();pending=null;}else load();});window.addEventListener('pagehide',()=>{paused=true;++sequence;pending?.abort();pending=null;});window.addEventListener('pageshow',()=>{paused=false;load();});
+});</script>{% endblock %}

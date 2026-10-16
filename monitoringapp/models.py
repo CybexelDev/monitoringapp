@@ -71,6 +71,7 @@ class Announcement(models.Model):
         null=True, blank=True, related_name="portal_announcements",
     )
     is_admin_announcement = models.BooleanField(default=False)
+    is_master_admin_announcement = models.BooleanField(default=False, db_index=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
@@ -592,6 +593,11 @@ class GoogleMeeting(models.Model):
         related_name="admin_google_meetings", null=True, blank=True,
     )
     is_admin_meeting = models.BooleanField(default=False)
+    is_master_admin_meeting = models.BooleanField(default=False, db_index=True)
+    auth_participants = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, blank=True, related_name="invited_portal_meetings",
+    )
+
 
     date = models.DateField()
     time = models.TimeField()
@@ -1214,6 +1220,8 @@ class AccountsNotification(models.Model):
             ("sale", "Sale"),
             ("payment", "Payment"),
             ("reminder", "Reminder"),
+            ("announcement", "Announcement"),
+            ("meeting", "Meeting"),
         ],
         db_index=True,
     )
@@ -1458,3 +1466,63 @@ class MasterAdminAccountsAudit(models.Model):
     class Meta:
         ordering = ["-created_at", "-pk"]
         indexes = [models.Index(fields=["kind", "entry_number"], name="master_accounts_audit_idx")]
+class MasterAdminTaskAudit(models.Model):
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="master_task_actions")
+    actor_name = models.CharField(max_length=255)
+    task_number = models.PositiveBigIntegerField(db_index=True)
+    action = models.CharField(max_length=10, choices=[("created", "Created"), ("updated", "Updated"), ("deleted", "Deleted")])
+    before = models.JSONField(default=dict)
+    after = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+
+# APPEND to monitoringapp/models.py. Existing ProjectAssign stays unchanged.
+class MasterAdminProjectAudit(models.Model):
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="master_project_actions")
+    actor_name = models.CharField(max_length=255)
+    project_number = models.PositiveBigIntegerField(db_index=True)
+    action = models.CharField(max_length=10, choices=[("created", "Created"), ("updated", "Updated"), ("deleted", "Deleted")])
+    before = models.JSONField(default=dict)
+    after = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+
+
+class AnnouncementAuthRecipient(models.Model):
+    announcement = models.ForeignKey("Announcement", on_delete=models.CASCADE,
+        related_name="auth_recipients")
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name="portal_announcement_receipts")
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["announcement", "recipient"],
+            name="unique_announcement_auth_recipient")]
+
+
+# Append to monitoringapp/models.py. Do not replace existing models.
+class MasterAdminProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name="master_admin_profile")
+    phone = models.CharField(max_length=30, blank=True)
+    profile_image = models.ImageField(upload_to="master_admin_profiles/", blank=True)
+
+    def __str__(self):
+        return str(self.user)
+
+
+
+class MasterAdminChatIdentity(models.Model):
+    account = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name="master_chat_identity")
+    chat_user = models.OneToOneField(User, on_delete=models.CASCADE,
+        related_name="master_chat_identity")
+
+    def __str__(self):
+        return str(self.account)

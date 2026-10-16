@@ -3,14 +3,145 @@
 {% block page_class %}master-departments-page{% endblock %}
 {% block extra_css %}
 <style>
-.master-org{padding:26px;min-width:0;color:#ece4f7}.org-heading,.org-toolbar,.org-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.org-heading{margin-bottom:24px}.org-eyebrow{font-size:10px;letter-spacing:.16em;color:#b59be4;margin:0 0 10px}.master-org h1{font-size:clamp(23px,3vw,30px);margin:0 0 10px}.org-muted{color:#ada0bd;font-size:13px;line-height:1.6;margin:0}.org-panel{border:1px solid #a78bfa30;border-radius:14px;background:#8b5cf609;overflow:hidden}.org-toolbar{padding:18px;border-bottom:1px solid #a78bfa25}.org-search{position:relative;flex:1;max-width:340px;min-width:160px}.org-search svg{position:absolute;left:12px;top:12px;width:17px;height:17px;color:#ad97c8}.org-search input,.org-field input{width:100%;background:#ffffff06;border:1px solid #a78bfa38;border-radius:9px;padding:11px 12px;color:#eee5fc;font:inherit;box-sizing:border-box;outline:none}.org-search input{padding-left:38px}.org-search input:focus,.org-field input:focus{border-color:#b499e4;box-shadow:0 0 0 3px #8b5cf617}.org-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border:1px solid #a78bfa40;border-radius:9px;background:#8b5cf622;color:#e9ddfa;font:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}.org-btn svg{width:15px;height:15px}.org-btn:hover{background:#8b5cf635}.org-btn:disabled{opacity:.5;cursor:wait}.org-btn-danger{color:#f2a9bb;border-color:#e98aa940;background:#e98aa910}.org-scroll{overflow-x:auto;max-height:65vh;overflow-y:auto}.org-table{width:100%;border-collapse:collapse;min-width:650px;font-size:13px;text-align:left}.org-table th{padding:14px 18px;color:#b3a1c9;font-size:11px;font-weight:600;position:sticky;top:0;background:#281e39;z-index:1}.org-table td{padding:16px 18px;border-top:1px solid #a78bfa15;vertical-align:middle}.org-table th:nth-child(3),.org-table td:nth-child(3){text-align:center;width:100px}.org-table th:last-child,.org-table td:last-child{width:155px;text-align:right}.org-table td:first-child{font-weight:600;overflow-wrap:anywhere}.org-table td:nth-child(2){max-width:450px}.org-tags{display:flex;gap:6px;flex-wrap:wrap}.org-tag{padding:5px 8px;border-radius:6px;background:#a78bfa12;color:#cbb9e0;font-size:11px;overflow-wrap:anywhere}.org-row-actions{display:flex;justify-content:flex-end;gap:6px}.org-row-actions .org-btn{padding:8px}.org-table .org-empty{text-align:center;font-weight:400;padding:36px;color:#ac9cbf}.org-count{font-size:12px;color:#b2a0c7}.org-dialog{width:min(540px,calc(100% - 28px));box-sizing:border-box;border:1px solid #a78bfa45;border-radius:16px;background:#2c203c;color:#eee5fc;padding:22px;max-height:85dvh;overflow:auto;box-shadow:0 22px 65px #0006}.org-dialog::backdrop{background:#100a1d70;backdrop-filter:blur(2px)}.org-dialog h2{font-size:19px;margin:0}.org-dialog-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:10px}.org-field{margin-bottom:18px}.org-field label{display:block;font-size:12px;color:#c7b6dc;margin-bottom:8px}.org-designation-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}.org-designation-row input[type=text]{min-width:0;flex:1}.org-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}.org-error{color:#efabb9;font-size:13px;line-height:1.5;margin:12px 0}.org-error:empty{display:none}.org-toast{position:fixed;bottom:22px;right:22px;z-index:99999;background:#3a2850;color:#eee5fc;padding:13px 18px;border:1px solid #b299d5;border-radius:10px;max-width:min(360px,85vw);font-size:13px}.org-refresh-error{color:#efabb9;font-size:12px;padding:0 18px}.org-refresh-error:empty{display:none}
+.master-org{padding:26px;min-width:0;color:#ece4f7}.org-heading,.org-toolbar,.org-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.org-heading{margin-bottom:24px}.org-eyebrow{font-size:10px;letter-spacing:.16em;color:#b59be4;margin:0 0 10px}.org-muted{color:#ada0bd;font-size:13px;line-height:1.6;margin:0}.org-panel{border:1px solid #a78bfa30;border-radius:14px;background:#8b5cf609;overflow:hidden}.org-toolbar{padding:18px;border-bottom:1px solid #a78bfa25}.org-search{position:relative;flex:1;max-width:340px;min-width:160px}.org-search svg{position:absolute;left:12px;top:12px;width:17px;height:17px;color:#ad97c8}.org-search input,.org-field input{width:100%;background:#ffffff06;border:1px solid #a78bfa38;border-radius:9px;padding:11px 12px;color:#eee5fc;font:inherit;box-sizing:border-box;outline:none}.org-search input{padding-left:38px}.org-search input:focus,.org-field input:focus{border-color:#b499e4;box-shadow:0 0 0 3px #8b5cf617}.org-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border:1px solid #a78bfa40;border-radius:9px;background:#8b5cf622;color:#e9ddfa;font:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}.org-btn svg{width:15px;height:15px}.org-btn:hover{background:#8b5cf635}.org-btn:disabled{opacity:.5;cursor:wait}.org-btn-danger{color:#f2a9bb;border-color:#e98aa940;background:#e98aa910}.org-scroll{overflow-x:auto;max-height:65vh;overflow-y:auto}.org-table{width:100%;border-collapse:collapse;min-width:650px;font-size:13px;text-align:left}.org-table th{padding:14px 18px;color:#b3a1c9;font-size:11px;font-weight:600;position:sticky;top:0;background:#281e39;z-index:1}.org-table td{padding:16px 18px;border-top:1px solid #a78bfa15;vertical-align:middle}.org-table th:nth-child(3),.org-table td:nth-child(3){text-align:center;width:100px}.org-table th:last-child,.org-table td:last-child{width:155px;text-align:right}.org-table td:first-child{font-weight:600;overflow-wrap:anywhere}.org-table td:nth-child(2){max-width:450px}.org-tags{display:flex;gap:6px;flex-wrap:wrap}.org-tag{padding:5px 8px;border-radius:6px;background:#a78bfa12;color:#cbb9e0;font-size:11px;overflow-wrap:anywhere}.org-row-actions{display:flex;justify-content:flex-end;gap:6px}.org-row-actions .org-btn{padding:8px}.org-table .org-empty{text-align:center;font-weight:400;padding:36px;color:#ac9cbf}.org-count{font-size:12px;color:#b2a0c7}.org-dialog{width:min(540px,calc(100% - 28px));box-sizing:border-box;border:1px solid #a78bfa45;border-radius:16px;background:#2c203c;color:#eee5fc;padding:22px;max-height:85dvh;overflow:auto;box-shadow:0 22px 65px #0006}.org-dialog::backdrop{background:#100a1d70;backdrop-filter:blur(2px)}.org-dialog h2{font-size:19px;margin:0}.org-dialog-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:10px}.org-field{margin-bottom:18px}.org-field label{display:block;font-size:12px;color:#c7b6dc;margin-bottom:8px}.org-designation-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}.org-designation-row input[type=text]{min-width:0;flex:1}.org-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}.org-error{color:#efabb9;font-size:13px;line-height:1.5;margin:12px 0}.org-error:empty{display:none}.org-toast{position:fixed;bottom:22px;right:22px;z-index:99999;background:#3a2850;color:#eee5fc;padding:13px 18px;border:1px solid #b299d5;border-radius:10px;max-width:min(360px,85vw);font-size:13px}.org-refresh-error{color:#efabb9;font-size:12px;padding:0 18px}.org-refresh-error:empty{display:none}
 @media(max-width:600px){.master-org{padding:18px 12px}.org-heading{align-items:flex-start}.org-search{max-width:none}.org-toolbar{padding:14px}.org-dialog{padding:18px}.org-table td,.org-table th{padding:12px}.org-dialog .org-foot .org-btn{flex:1}}
+
+/* Shared visual language with Admin User Management. */
+body.master-departments-page #adminMain>.master-org{box-sizing:border-box;height:100%;min-height:0;min-width:0;padding:16px;overflow-y:auto;overflow-x:hidden;border-radius:28px;background:linear-gradient(145deg,rgba(17,16,24,.94),rgba(8,9,14,.96));border:1px solid rgba(255,255,255,.10);box-shadow:0 25px 80px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.035);scrollbar-width:thin;scrollbar-color:rgba(151,112,235,.65) transparent;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.master-departments-page .master-org *, .master-departments-page .org-dialog *{box-sizing:border-box}
+.master-departments-page .org-heading{position:relative;display:flex;align-items:center;min-height:0;padding:23px 28px;margin-bottom:28px;border-radius:25px;background:linear-gradient(110deg,rgba(44,32,55,.62),rgba(18,23,31,.72),rgba(30,31,59,.62));border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden}
+.master-departments-page .org-heading:before{content:"";position:absolute;width:260px;height:260px;right:-100px;top:-130px;background:rgba(99,102,241,.13);filter:blur(80px);pointer-events:none}
+.master-departments-page .org-heading>div{position:relative;min-width:0}
+.master-departments-page .org-eyebrow{margin:0 0 11px;font-size:10px;line-height:1.5;font-weight:800;letter-spacing:3px;color:#a78bfa}
+
+.master-departments-page .org-heading .org-muted{margin-top:12px;color:#96939e;font-size:13px}
+.master-departments-page .org-directory-heading{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:22px}
+.master-departments-page .org-directory-heading>div{min-width:0}
+.master-departments-page .org-directory-heading span{display:block;margin-bottom:5px;font-size:9px;color:#8d7df2;font-weight:800;letter-spacing:.18em}
+.master-departments-page .org-directory-heading h2{margin:0;font-size:21px;color:#fff;font-weight:750}
+.master-departments-page .org-heading-line{height:1px;flex:1;min-width:20px;background:linear-gradient(90deg,rgba(255,255,255,.10),transparent)}
+.master-departments-page .org-panel{padding:24px;border:1px solid rgba(255,255,255,.075);border-radius:22px;background:linear-gradient(145deg,rgba(28,30,43,.76),rgba(16,18,28,.66));box-shadow:0 15px 35px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.035)}
+.master-departments-page .org-toolbar{padding:17px;margin-bottom:20px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:17px}
+.master-departments-page .org-search{max-width:420px}
+.master-departments-page .org-search input,.master-departments-page .org-field input{min-height:42px;background:rgba(255,255,255,.035);border-color:rgba(255,255,255,.08);border-radius:12px;color:#fff;font-size:12px}
+.master-departments-page .org-search input{padding-left:39px}
+.master-departments-page .org-search svg{color:#9d8cff}
+.master-departments-page .org-count{font-size:11px;color:#a89cff}
+.master-departments-page .org-btn{border-radius:10px;font-size:11px;min-height:36px;background:rgba(126,96,230,.13);border-color:rgba(126,96,230,.20);color:#c4b5fd}
+.master-departments-page #orgAdd{min-height:42px;padding:0 16px;border-radius:12px;background:linear-gradient(135deg,rgba(117,89,220,.24),rgba(82,66,170,.16));border-color:rgba(139,112,255,.28);color:#dcd7ff;font-size:12px;font-weight:700}
+.master-departments-page .org-btn-danger{background:rgba(255,70,85,.07);color:#ff8994;border-color:rgba(255,80,95,.15)}
+.master-departments-page .org-btn-danger:hover{background:rgba(255,70,85,.14)}
+.master-departments-page .org-scroll{max-height:440px;overflow:auto;border:1px solid rgba(255,255,255,.06);border-radius:15px;background:rgba(0,0,0,.10);scrollbar-width:thin;scrollbar-color:#74559b transparent;overscroll-behavior:contain}
+.master-departments-page .org-table{border-collapse:separate;border-spacing:0;min-width:680px;font-size:11px}
+.master-departments-page .org-table th{padding:13px 15px;background:#21192b;color:rgba(255,255,255,.50);font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.065)}
+.master-departments-page .org-table td{padding:15px;color:rgba(255,255,255,.65);border-top:0;border-bottom:1px solid rgba(255,255,255,.045);line-height:1.6}
+.master-departments-page .org-table td:first-child{min-width:170px;color:#fff}
+.master-departments-page .org-table td:nth-child(2){min-width:250px}
+.master-departments-page .org-table tr:last-child td{border-bottom:0}
+.master-departments-page .org-table tbody tr:hover{background:rgba(255,255,255,.025)}
+.master-departments-page .org-tag{font-size:10px;border-radius:6px;background:rgba(126,96,230,.13);color:#c4b5fd;border:1px solid rgba(126,96,230,.15)}
+.master-departments-page .org-row-actions{flex-wrap:nowrap}
+.master-departments-page .org-row-actions .org-btn{width:34px;min-height:34px;padding:7px;border-radius:9px}
+.master-departments-page .org-row-actions .org-btn:not(.org-btn-danger){background:rgba(68,119,210,.10);border-color:rgba(90,140,255,.17);color:#8cb8ff}
+.master-departments-page .org-dialog{width:min(580px,calc(100% - 32px));padding:25px;border-radius:24px;background:linear-gradient(145deg,#241b30,#14121d);border:1px solid rgba(255,255,255,.09);max-height:calc(100dvh - 40px);scrollbar-width:thin;scrollbar-color:#7c3aed transparent;overscroll-behavior:contain}
+.master-departments-page .org-dialog::backdrop{background:rgba(8,7,11,.3);backdrop-filter:blur(3px)}
+.master-departments-page .org-dialog h2{font-size:18px;font-weight:800;color:#fff}
+.master-departments-page .org-dialog .org-muted{font-size:11px;color:#aaa6b2}
+.master-departments-page .org-field label{font-size:10px;font-weight:700;letter-spacing:.05em;color:rgba(255,255,255,.62)}
+.master-departments-page #orgSave{background:linear-gradient(135deg,rgba(119,88,220,.75),rgba(56,102,184,.72));border-color:rgba(144,120,255,.25);color:#fff;font-weight:750}
+.master-departments-page .org-btn:focus-visible,.master-departments-page .org-search input:focus-visible{outline:2px solid #a78bfa;outline-offset:3px}
+body.master-departments-page:has(.org-dialog[open]) #masterOrg{overflow:hidden!important}
+@media(max-width:768px){body.master-departments-page #adminMain>.master-org{padding:14px!important;border-radius:20px}.master-departments-page .org-heading{padding:20px;border-radius:20px}.master-departments-page .org-panel{padding:17px}.master-departments-page .org-dialog{padding:18px;max-height:calc(100dvh - 24px)}.master-departments-page .org-field input,.master-departments-page .org-search input{font-size:16px}.master-departments-page .org-table th,.master-departments-page .org-table td{padding:12px}}
+@media(max-width:480px){.master-departments-page .org-heading{padding:18px 16px}.master-departments-page .org-eyebrow{font-size:9px;letter-spacing:2px}.master-departments-page .org-directory-heading{gap:14px}.master-departments-page .org-directory-heading h2{font-size:19px}.master-departments-page .org-heading-line{display:none}.master-departments-page #orgAdd{width:100%}.master-departments-page .org-panel{padding:13px}.master-departments-page .org-toolbar{padding:13px}.master-departments-page .org-search{min-width:0;width:100%;flex-basis:100%}.master-departments-page .org-dialog{width:calc(100% - 20px);padding:16px}.master-departments-page .org-foot{flex-wrap:wrap}}
+
+
+.master-departments-page .master-org>.dashboard-header{margin-bottom:28px}
+
+/* Compact search toolbar using the existing workspace palette. */
+.master-departments-page .org-toolbar { align-items: flex-end; padding: 16px 18px; gap: 16px; background: rgba(13,13,21,.42); }
+.master-departments-page .org-search-group { flex: 1 1 320px; min-width: 0; max-width: 620px; }
+.master-departments-page .org-search-label { display: block; margin-bottom: 9px; color: #c6bfd4; font-size: 11px; font-weight: 650; }
+.master-departments-page .org-search-controls { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.master-departments-page .org-search { display: block; flex: 1 1 auto; min-width: 0; max-width: none; }
+.master-departments-page .org-search input { min-height: 44px; padding: 11px 36px 11px 42px; border-radius: 11px; background: #171620; border-color: rgba(167,139,250,.18); font-size: 13px; }
+.master-departments-page .org-search input::placeholder { color: #8f879e; opacity: 1; }
+.master-departments-page .org-search svg { top: 50%; left: 14px; transform: translateY(-50%); pointer-events: none; }
+.master-departments-page .org-reset { flex-shrink: 0; min-height: 44px; padding: 0 13px; border-color: rgba(167,139,250,.18); background: rgba(167,139,250,.07); }
+.master-departments-page .org-reset:disabled { cursor: default; opacity: .4; }
+.master-departments-page .org-count { flex: 0 0 auto; padding-bottom: 13px; white-space: nowrap; color: #b7a8cc; }
+.master-departments-page .org-panel,.master-departments-page .org-scroll { min-width: 0; max-width: 100%; }
+.master-departments-page .org-scroll { scrollbar-gutter: stable; -webkit-overflow-scrolling: touch; }
+.master-departments-page .org-table { display: table; }
+.master-departments-page .org-table thead { display: table-header-group; }
+.master-departments-page .org-table tbody { display: table-row-group; }
+.master-departments-page .org-table tr { display: table-row; }
+.master-departments-page .org-table th,.master-departments-page .org-table td { display: table-cell; }
+.master-departments-page .master-org>.dashboard-header h1 { width: fit-content; max-width: 100%; background: linear-gradient(90deg,#fff 0%,#c4b5fd 45%,#67c8ff 100%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.master-departments-page .dashboard-header-content { flex-wrap: wrap; }
+.master-departments-page .dashboard-header-content>div:first-child { min-width: 0; flex: 1 1 250px; }
+.master-departments-page .org-dialog { color-scheme: dark; background: linear-gradient(115deg,#201b2c,#14151f 58%,#1c1d32); scrollbar-color: #8972b1 #191722; }
+.master-departments-page .org-dialog input { min-width: 0; }
+@media(max-width:768px) {
+ .master-departments-page .org-search input { font-size: 16px; }
+ .master-departments-page .master-org>.dashboard-header { padding: 22px 20px; min-height: auto; }
+ .master-departments-page .master-org>.dashboard-header h1 { font-size: clamp(28px,6vw,38px); }
+ .master-departments-page .org-scroll { max-height: min(440px,60dvh); }
+}
+@media(max-width:600px) {
+ .master-departments-page .org-toolbar { gap: 10px; padding: 14px; }
+ .master-departments-page .org-search-group { max-width: none; flex-basis: 100%; }
+ .master-departments-page .org-count { padding-bottom: 0; }
+ .master-departments-page .org-search { width: auto; flex-basis: auto; }
+}
+@media(max-width:360px) {
+ .master-departments-page .org-reset span { display: none; }
+ .master-departments-page .org-reset { width: 42px; padding: 0; }
+}
+
+
+/* Match User Management: charcoal surfaces with restrained purple accents. */
+.master-departments-page .org-panel {
+ background: linear-gradient(145deg,rgba(27,26,34,.90),rgba(16,16,22,.92));
+ border-color: rgba(255,255,255,.09);
+ box-shadow: 0 20px 50px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.035);
+}
+.master-departments-page .org-toolbar { background: rgba(255,255,255,.025); border-color: rgba(255,255,255,.06); }
+.master-departments-page .org-search input { background: #16161b; border-color: rgba(255,255,255,.075); color: #efedf3; }
+.master-departments-page .org-search input::placeholder { color: #85838c; }
+.master-departments-page .org-search-label { color: #c2c0c8; }
+.master-departments-page .org-count { color: #b8a4e5; }
+.master-departments-page .org-scroll { background: rgba(0,0,0,.10); border-color: rgba(255,255,255,.06); scrollbar-color: #8972b1 transparent; }
+.master-departments-page .org-table { background: transparent; }
+.master-departments-page .org-table thead,
+.master-departments-page .org-table th { background: #21192b; color: rgba(255,255,255,.50); border-color: rgba(255,255,255,.065); }
+.master-departments-page .org-table td { border-bottom-color: rgba(255,255,255,.045); color: rgba(255,255,255,.65); }
+.master-departments-page .org-table td:first-child { color: #f0edf5; }
+.master-departments-page .org-table tbody tr:hover { background: rgba(255,255,255,.025); }
+.master-departments-page .org-tag { background: rgba(167,139,250,.07); border-color: rgba(167,139,250,.10); color: #c5b9da; }
 </style>
 {% endblock %}
 {% block content %}
 <section class="master-org" id="masterOrg" data-url="{% url 'master_admin_departments' %}">
- <header class="org-heading"><div><p class="org-eyebrow">CYBEXEL MASTER ADMIN</p><h1>Departments &amp; Designations</h1><p class="org-muted">Manage departments and the designations available to employees.</p></div><button type="button" class="org-btn" id="orgAdd"><i data-lucide="plus" aria-hidden="true"></i>Add Department</button></header>
- <div class="org-panel"><div class="org-toolbar"><label class="org-search"><i data-lucide="search" aria-hidden="true"></i><input type="search" id="orgSearch" placeholder="Search departments or designations" aria-label="Search departments or designations"></label><span class="org-count" id="orgCount"></span></div>
+ <section class="dashboard-header">
+            <div class="dashboard-header-content">
+                <div>
+                    <div class="dashboard-eyebrow">CYBEXEL MASTER ADMIN PANEL</div>
+                    <h1>DEPARTMENTS</h1>
+                    <p>Manage departments and the designations available to employees.</p>
+                </div>
+
+                <div class="system-status">
+                    <span class="status-dot"></span>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </section>
+<div class="org-directory-heading"><div><span>ORGANIZATION DIRECTORY</span><h2>Departments &amp; Designations</h2></div><div class="org-heading-line" aria-hidden="true"></div><button type="button" class="org-btn" id="orgAdd"><i data-lucide="plus" aria-hidden="true"></i>Add Department</button></div>
+ <div class="org-panel"><div class="org-toolbar">
+ <div class="org-search-group"><label class="org-search-label" for="orgSearch">Find a department</label>
+ <div class="org-search-controls"><div class="org-search"><i data-lucide="search" aria-hidden="true"></i><input type="search" id="orgSearch" placeholder="Department or designation…" autocomplete="off" aria-controls="orgRows"></div>
+ <button type="button" class="org-btn org-reset" id="orgReset" disabled><i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Reset</span></button></div></div>
+ <span class="org-count" id="orgCount" role="status" aria-live="polite"></span></div>
  <p class="org-refresh-error" id="orgRefreshError" role="status"></p>
  <div class="org-scroll"><table class="org-table"><thead><tr><th scope="col">Department</th><th scope="col">Designations</th><th scope="col">Employees</th><th scope="col">Actions</th></tr></thead><tbody id="orgRows"><tr><td colspan="4" class="org-empty">Loading departments…</td></tr></tbody></table></div></div>
 </section>
@@ -31,14 +162,17 @@
 (() => {
 'use strict';
 const $ = id => document.getElementById(id), endpoint=$('masterOrg').dataset.url;
+let pagePaused=false, sessionExpired=false;
 let items=JSON.parse($('orgInitialData').textContent), busy=false, timer, loading=false, lastFocus=null, feedController=null, feedSequence=0;
 const editor=$('orgEditor'), deletion=$('orgDelete');
 const icons=()=>window.lucide?.createIcons();
 function toast(message,type='success'){
  if(typeof window.showToast==='function'){window.showToast(message,type);return;}
- const node=document.createElement('div');node.className='org-toast';node.setAttribute('role',type==='error'?'alert':'status');node.textContent=message;document.body.append(node);setTimeout(()=>node.remove(),6000);
+ const node=document.createElement('div');node.className='org-toast';node.setAttribute('role',type==='error'?'alert':'status');node.textContent=message;(editor.open?editor:deletion.open?deletion:document.body).append(node);setTimeout(()=>node.remove(),6000);
 }
 function render(){
+ const scroll=document.querySelector('.org-scroll'), left=scroll.scrollLeft, top=scroll.scrollTop;
+ const active=document.activeElement, focused=active?.closest?.('#orgRows [data-action]');
  const query=$('orgSearch').value.trim().toLocaleLowerCase();
  const visible=items.filter(item=>[item.name,...item.designations.map(value=>value.name)].some(value=>value.toLocaleLowerCase().includes(query)));
  const fragment=document.createDocumentFragment();
@@ -58,7 +192,10 @@ function render(){
   tr.children[3].append(actions);fragment.append(tr);
  }
  if(!visible.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=4;td.className='org-empty';td.textContent=query?'No matching departments.':'No departments yet. Add your first department.';tr.append(td);fragment.append(tr);}
- $('orgRows').replaceChildren(fragment);$('orgCount').textContent=visible.length+' of '+items.length+' departments';icons();
+ $('orgRows').replaceChildren(fragment);scroll.scrollLeft=left;scroll.scrollTop=top;
+ if(focused)Array.from($('orgRows').querySelectorAll('[data-action]')).find(button=>button.dataset.id===focused.dataset.id&&button.dataset.action===focused.dataset.action)?.focus({preventScroll:true});
+ $('orgReset').disabled=!$('orgSearch').value;
+ $('orgCount').textContent=visible.length+' of '+items.length+' departments';icons();
 }
 function addDesignation(id='',name=''){
  const row=document.createElement('div');row.className='org-designation-row';
@@ -67,12 +204,14 @@ function addDesignation(id='',name=''){
  const remove=document.createElement('button');remove.type='button';remove.className='org-btn';remove.textContent='×';remove.setAttribute('aria-label','Remove designation');remove.addEventListener('click',()=>{if(busy)return;if($('orgDesignationRows').children.length>1)row.remove();else input.value='';});
  row.append(key,input,remove);$('orgDesignationRows').append(row);return input;
 }
-function open(dialog){lastFocus=document.activeElement;dialog.showModal();document.body.style.overflow='hidden';}
+const toastContainer=document.getElementById('toastContainer')||document.getElementById('toast-container');
+const toastParent=toastContainer?.parentNode;
+function open(dialog){lastFocus=document.activeElement;dialog.showModal();if(toastContainer)dialog.append(toastContainer);document.body.style.overflow='hidden';}
 function close(dialog){if(busy)return;dialog.close();}
 for(const dialog of [editor,deletion]){
  document.body.append(dialog);
  dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
- dialog.addEventListener('close',()=>{document.body.style.overflow='';if(lastFocus?.isConnected)lastFocus.focus();else $('orgAdd').focus();});
+ dialog.addEventListener('close',()=>{if(toastContainer&&toastParent)toastParent.append(toastContainer);document.body.style.overflow='';if(lastFocus?.isConnected)lastFocus.focus();else $('orgAdd').focus();});
 }
 function edit(item){
  $('orgForm').reset();$('orgFormError').textContent='';$('orgDepartmentId').value=item?.id||'';$('orgName').value=item?.name||'';$('orgAction').name=item?'edit_department':'add_department';$('orgEditorTitle').textContent=item?'Edit Department':'Add Department';$('orgSave').textContent=item?'Save changes':'Create department';$('orgDesignationRows').replaceChildren();
@@ -81,7 +220,8 @@ function edit(item){
 }
 $('orgAdd').addEventListener('click',()=>{if(!busy)edit(null);});
 $('orgAddDesignation').addEventListener('click',()=>{if(!busy)addDesignation().focus();});
-$('orgSearch').addEventListener('input',render);
+$('orgSearch').addEventListener('input',()=>{render();document.querySelector('.org-scroll').scrollTop=0;});
+$('orgReset').addEventListener('click',()=>{$('orgSearch').value='';render();document.querySelector('.org-scroll').scrollTop=0;$('orgSearch').focus();});
 document.addEventListener('click',event=>{
  const closeButton=event.target.closest('[data-close]');if(closeButton){close($(closeButton.dataset.close));return;}
  const button=event.target.closest('#orgRows [data-action]');if(!button||busy)return;
@@ -89,16 +229,23 @@ document.addEventListener('click',event=>{
  if(button.dataset.action==='edit')edit(item);
  else{$('orgDeleteId').value=item.id;$('orgDeleteError').textContent='';$('orgDeleteText').textContent='Delete “'+item.name+'” and its designations? Departments used by employees or other records cannot be deleted.';open(deletion);}
 });
-async function feed(){
+async function feed(background=false){
+ if(pagePaused||sessionExpired||document.hidden)return;
  feedController?.abort();const controller=new AbortController();feedController=controller;const sequence=++feedSequence;const timeout=setTimeout(()=>controller.abort(),10000);
- let response;try{response=await fetch(endpoint+'?format=json',{credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:controller.signal});}finally{clearTimeout(timeout);}
- if(sequence!==feedSequence)return;
- if(!response.ok)throw Error('Unable to update departments. Check your login.');
- const result=await response.json();if(!result.ok||!Array.isArray(result.items))throw Error(result.message||'Unable to update departments.');
- if(sequence!==feedSequence)return;items=result.items;render();$('orgRefreshError').textContent='';
+ try{
+  const target=new URL(endpoint,window.location.origin);target.searchParams.set('format','json');
+  const response=await fetch(target,{credentials:'same-origin',cache:'no-store',headers:{'X-Requested-With':'XMLHttpRequest'},signal:controller.signal});
+  if(sequence!==feedSequence)return;
+  if(response.status===401||response.status===403||response.redirected){sessionExpired=true;clearTimeout(timer);throw Error('Your session or access has changed. Sign in again to continue.');}
+  if(!response.ok)throw Error('Unable to update departments. Retrying automatically.');
+  const result=await response.json();if(!result.ok||!Array.isArray(result.items))throw Error(result.message||'Unable to update departments.');
+  if(sequence!==feedSequence||controller.signal.aborted||pagePaused||document.hidden||(background&&(busy||editor.open||deletion.open)))return;
+  if(JSON.stringify(items)!==JSON.stringify(result.items)){items=result.items;render();}
+  $('orgRefreshError').textContent='';
+ }finally{clearTimeout(timeout);if(feedController===controller)feedController=null;}
 }
-function schedule(){clearTimeout(timer);if(!document.hidden)timer=setTimeout(poll,15000);}
-async function poll(){if(!busy&&!loading&&!editor.open&&!deletion.open){loading=true;try{await feed();}catch(error){if(error.name!=='AbortError')$('orgRefreshError').textContent='Live updates paused. Retrying automatically.';}finally{loading=false;}}schedule();}
+function schedule(){clearTimeout(timer);if(!document.hidden&&!pagePaused&&!sessionExpired)timer=setTimeout(poll,15000);}
+async function poll(){if(!document.hidden&&!pagePaused&&!sessionExpired&&!busy&&!loading&&!feedController&&!editor.open&&!deletion.open){loading=true;try{await feed(true);}catch(error){if(error.name!=='AbortError')$('orgRefreshError').textContent=sessionExpired?error.message:'Live updates paused. Retrying automatically.';}finally{loading=false;}}schedule();}
 for(const form of [$('orgForm'),$('orgDeleteForm')])form.addEventListener('submit',async event=>{
  event.preventDefault();if(busy)return;feedController?.abort();++feedSequence;
  const dialog=form=== $('orgForm')?editor:deletion,errorNode=form=== $('orgForm')?$('orgFormError'):$('orgDeleteError');
@@ -113,8 +260,8 @@ for(const form of [$('orgForm'),$('orgDeleteForm')])form.addEventListener('submi
  }catch(error){if(saved){$('orgRefreshError').textContent='Saved. List updates will retry automatically.';}else{errorNode.textContent=error.name==='TimeoutError'?'Request timed out. Check the list before retrying.':error.message;toast(errorNode.textContent,'error');}}
  finally{enabled.forEach(control=>control.disabled=false);busy=false;schedule();}
 });
-document.addEventListener('visibilitychange',()=>{clearTimeout(timer);if(!document.hidden)poll();});
-window.addEventListener('online',poll);window.addEventListener('pagehide',()=>{clearTimeout(timer);feedController?.abort();});window.addEventListener('pageshow',schedule);
+document.addEventListener('visibilitychange',()=>{clearTimeout(timer);if(document.hidden){feedController?.abort();++feedSequence;}else poll();});
+window.addEventListener('online',poll);window.addEventListener('pagehide',()=>{pagePaused=true;++feedSequence;clearTimeout(timer);feedController?.abort();});window.addEventListener('pageshow',()=>{pagePaused=false;schedule();});
 render();schedule();
 })();
 </script>

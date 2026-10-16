@@ -1,108 +1,218 @@
 {% extends 'master_admin/base.html' %}
+
 {% block title %}Master Admin Dashboard - Cybexel{% endblock %}
+
 {% block page_class %}master-dashboard-page{% endblock %}
-{% block extra_css %}
-<style>
-.master-dashboard-page .master-dashboard{padding:26px;min-width:0}
-.master-dashboard-page .master-header{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:26px;flex-wrap:wrap}
-.master-dashboard-page .master-eyebrow{color:#b59be4;font-size:10px;letter-spacing:.17em;font-weight:700;margin:0 0 10px}
-.master-dashboard-page h1{color:#f2eaff;font-size:clamp(22px,3vw,30px);margin:0 0 10px}
-.master-dashboard-page .master-description{color:#aaa0b8;font-size:13px;line-height:1.6;margin:0}
-.master-dashboard-page .master-access{display:flex;align-items:center;gap:8px;border:1px solid #a78bfa38;background:#8b5cf611;padding:10px 13px;border-radius:10px;color:#d0b9f3;font-size:12px}
-.master-dashboard-page .master-access svg{width:17px;height:17px}
-.master-dashboard-page .master-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}
-.master-dashboard-page .master-card{min-width:0;padding:19px;border:1px solid #a78bfa2e;border-radius:13px;background:linear-gradient(135deg,#8b5cf617,#8b5cf606)}
-.master-dashboard-page .master-card span{color:#bcb0cd;font-size:12px;display:block}
-.master-dashboard-page .master-card strong{display:block;color:#eee5fc;font-size:30px;font-weight:650;margin:12px 0 8px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.master-dashboard-page .master-card small{color:#9789aa;font-size:11px;line-height:1.5}
-.master-dashboard-page .master-panel{border:1px solid #a78bfa2e;border-radius:14px;padding:20px;margin-bottom:22px;scroll-margin-top:20px}
-.master-dashboard-page .master-panel h2{margin:0 0 8px;font-size:17px;color:#e8ddf6}
-.master-dashboard-page .master-panel-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
-.master-dashboard-page .master-finance{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:12px}
-.master-dashboard-page .master-finance strong{font-size:24px}
-.master-dashboard-page .master-table-scroll{max-height:420px;overflow:auto;border:1px solid #a78bfa24;border-radius:10px;scrollbar-width:thin;scrollbar-color:#74559b transparent}
-.master-dashboard-page .master-table{border-collapse:collapse;width:100%;min-width:760px;color:#c7bed3;font-size:13px}
-.master-dashboard-page .master-table th{position:sticky;top:0;z-index:1;background:#241c30;color:#b2a3c3;font-size:11px;font-weight:600}
-.master-dashboard-page .master-table th,.master-dashboard-page .master-table td{padding:14px 16px;text-align:left;vertical-align:middle;border-bottom:1px solid #a78bfa1a}
+
+{% block extra_css %}<style>
+
+/* Team Lead dashboard visual language; scoped to this page. */
+body.master-dashboard-page #adminMain{min-height:0;overflow:hidden}
+body.master-dashboard-page #adminMain>.master-dashboard{box-sizing:border-box;height:100%;min-height:0;min-width:0;padding:16px;overflow:auto;overflow-x:hidden;border-radius:28px;background:linear-gradient(145deg,rgba(17,16,24,.94),rgba(8,9,14,.96));border:1px solid rgba(255,255,255,.10);box-shadow:0 25px 80px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.035);scrollbar-width:thin;scrollbar-color:rgba(151,112,235,.65) transparent;overscroll-behavior:contain;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#fff}
+.master-dashboard-page .master-dashboard *{box-sizing:border-box}
+.master-dashboard-page .master-header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:23px 28px;margin-bottom:28px;border-radius:25px;background:linear-gradient(110deg,rgba(44,32,55,.62),rgba(18,23,31,.72),rgba(30,31,59,.62));border:1px solid rgba(255,255,255,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden}
+.master-dashboard-page .master-header:before{content:"";position:absolute;width:260px;height:260px;right:-100px;top:-130px;background:rgba(99,102,241,.13);filter:blur(80px);pointer-events:none}
+.master-dashboard-page .master-header>div{position:relative;min-width:0}
+.master-dashboard-page .master-header>div:first-child{flex:1}
+.master-dashboard-page .master-eyebrow{margin:0 0 11px;color:#a78bfa;font-size:10px;font-weight:800;letter-spacing:3px;line-height:1.5}
+
+.master-dashboard-page .master-description{margin:0;color:#85818d;font-size:12px;line-height:1.7}
+.master-dashboard-page .master-header .master-description{margin-top:12px;color:#96939e;font-size:13px}
+.master-dashboard-page .master-access{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;padding:10px 15px;border-radius:30px;color:#c4b5fd;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.22);font-size:11px;font-weight:600;white-space:nowrap}
+.master-dashboard-page svg{width:17px;height:17px;flex-shrink:0}
+.master-dashboard-page .master-section-heading{display:flex;align-items:center;gap:22px;margin:0 2px 20px}
+.master-dashboard-page .master-section-heading>div:first-child{flex-shrink:0}
+.master-dashboard-page .master-section-eyebrow{display:block;margin-bottom:7px;color:#a78bfa;font-size:9px;letter-spacing:2px;font-weight:800}
+.master-dashboard-page .master-section-heading h2{margin:0;color:#fff;font-size:21px;font-weight:750;letter-spacing:-.4px}
+.master-dashboard-page .master-heading-line{height:1px;flex:1;background:linear-gradient(90deg,rgba(139,92,246,.28),transparent)}
+.master-dashboard-page .master-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:0 0 22px}
+.master-dashboard-page .master-card{position:relative;display:flex;flex-direction:column;min-width:0;min-height:142px;padding:21px;border-radius:20px;background:linear-gradient(145deg,rgba(27,26,34,.90),rgba(16,16,22,.92));border:1px solid rgba(255,255,255,.09);box-shadow:0 20px 50px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.035);overflow:hidden;transition:transform .22s ease,border-color .22s ease}
+.master-dashboard-page .master-card:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(139,92,246,.055),transparent 45%)}
+.master-dashboard-page .master-card>*{position:relative}
+.master-dashboard-page .master-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:26px}
+.master-dashboard-page .master-card-top>span:first-child{color:#8f8c96;font-size:9px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;line-height:1.6}
+.master-dashboard-page .master-card-icon{display:grid;place-items:center;width:27px;height:27px;flex-shrink:0;border-radius:8px;color:#c4b5fd;background:rgba(139,92,246,.08)}
+.master-dashboard-page .master-card-icon svg{width:15px;height:15px}
+.master-dashboard-page .master-card strong{display:block;margin:14px 0 8px;font-size:29px;font-weight:850;line-height:1.15;color:#fff;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.master-dashboard-page [data-count="users"]{color:#f0a7dc}
+.master-dashboard-page [data-count="active"]{color:#68e69b}
+.master-dashboard-page [data-count="inactive"]{color:#ff8d99}
+.master-dashboard-page .master-card small{display:block;margin-top:auto;color:#85818d;font-size:10px;line-height:1.6}
+.master-dashboard-page .master-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 26px}
+.master-dashboard-page .master-meta a{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:8px 12px;border-radius:10px;background:rgba(139,92,246,.055);border:1px solid rgba(255,255,255,.09);color:#aaa6b2;text-decoration:none;font-size:11px}
+.master-dashboard-page .master-meta b{color:#c4b5fd;font-variant-numeric:tabular-nums}
+.master-dashboard-page .master-panel{min-width:0;margin-bottom:22px;padding:23px;border-radius:20px;background:linear-gradient(145deg,rgba(27,26,34,.90),rgba(16,16,22,.92));border:1px solid rgba(255,255,255,.09);box-shadow:0 20px 50px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.035);scroll-margin-top:16px}
+.master-dashboard-page .master-panel-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:20px}
+.master-dashboard-page .master-panel-heading>div{min-width:0}
+.master-dashboard-page .master-panel h2{margin:0 0 6px;color:#fff;font-size:18px;font-weight:750;letter-spacing:-.3px}
+.master-dashboard-page .master-manage{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:9px 14px;border-radius:11px;background:rgba(139,92,246,.10);border:1px solid rgba(154,122,255,.26);color:#c4b5fd;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap}
+.master-dashboard-page .master-manage svg{width:15px;height:15px}
+.master-dashboard-page .master-manage:hover,.master-dashboard-page .master-meta a:hover{background:rgba(139,92,246,.17);border-color:rgba(139,92,246,.35)}
+.master-dashboard-page .master-manage:focus-visible,.master-dashboard-page .master-meta a:focus-visible,.master-dashboard-page .master-table-scroll:focus-visible{outline:2px solid #a78bfa;outline-offset:3px}
+.master-dashboard-page .master-finance{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:14px}
+.master-dashboard-page .master-finance .master-card{min-height:140px;background:rgba(5,5,9,.27);box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+.master-dashboard-page .master-finance strong{font-size:clamp(20px,2vw,27px);line-height:1.4;letter-spacing:-.4px}
+.master-dashboard-page .master-finance [data-finance]{display:inline;color:inherit;font-size:inherit}
+.master-dashboard-page .master-table-scroll{width:100%;max-height:420px;overflow:auto;border-radius:15px;border:1px solid rgba(255,255,255,.07);background:rgba(5,5,9,.27);scrollbar-width:thin;scrollbar-color:rgba(139,92,246,.65) transparent;overscroll-behavior:contain}
+.master-dashboard-page .master-table{width:100%;min-width:760px;border-collapse:separate;border-spacing:0}
+.master-dashboard-page .master-table th,.master-dashboard-page .master-table td{text-align:left;vertical-align:middle;line-height:1.6}
+.master-dashboard-page .master-table th{position:sticky;top:0;z-index:1;height:45px;padding:0 15px;background:#211d29;color:#85818d;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.07)}
+.master-dashboard-page .master-table td{padding:12px 15px;color:#dedbe2;font-size:11px;border-bottom:1px solid rgba(255,255,255,.055)}
+.master-dashboard-page .master-table th:first-child,.master-dashboard-page .master-table td:first-child{min-width:125px;white-space:nowrap}
+.master-dashboard-page .master-table td:nth-child(2){min-width:165px;color:#fff;overflow-wrap:anywhere}
+.master-dashboard-page .master-table td:nth-child(4),.master-dashboard-page .master-table td:nth-child(5){min-width:130px;overflow-wrap:anywhere}
 .master-dashboard-page .master-table tr:last-child td{border-bottom:0}
-.master-dashboard-page .master-table td:nth-child(2){color:#eee5fc}
-.master-dashboard-page .master-role{display:inline-block;border-radius:6px;padding:5px 9px;background:#8b5cf615;color:#c4b5fd;font-size:11px;white-space:nowrap}
-.master-dashboard-page .master-meta{color:#a699b7;font-size:12px;line-height:1.7;display:flex;gap:18px;flex-wrap:wrap;margin:0 0 22px}
-.master-dashboard-page .master-live{color:#a699b7;font-size:11px;margin:0;line-height:1.6}
-@media(max-width:1100px){.master-dashboard-page .master-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.master-dashboard-page .master-finance{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:640px){.master-dashboard-page .master-dashboard{padding:16px}.master-dashboard-page .master-grid{gap:10px}.master-dashboard-page .master-card{padding:14px}.master-dashboard-page .master-card strong{font-size:25px}.master-dashboard-page .master-panel{padding:14px}.master-dashboard-page .master-finance{grid-template-columns:1fr}}
-@media(max-width:360px){.master-dashboard-page .master-grid{grid-template-columns:1fr}}
-</style>
+.master-dashboard-page .master-table tbody tr:hover{background:rgba(139,92,246,.045)}
+.master-dashboard-page .master-role{display:inline-block;padding:4px 8px;border-radius:6px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.17);color:#c4b5fd;font-size:10px;white-space:nowrap}
+.master-dashboard-page .master-live{display:flex;align-items:center;gap:8px;margin:5px 2px 0;color:#85818d;font-size:10px;line-height:1.7}
+.master-dashboard-page .master-live:before{content:"";width:6px;height:6px;flex-shrink:0;border-radius:50%;background:#9c85c9}
+.master-dashboard-page .master-live[data-state="retry"]:before{background:#d3a766}
+.master-dashboard-page .master-live[data-state="expired"]:before{background:#d98194}
+@media(hover:hover){.master-dashboard-page .master-card:hover{transform:translateY(-2px);border-color:rgba(139,92,246,.25)}}
+@media(max-width:1200px){.master-dashboard-page .master-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.master-dashboard-page .master-finance{grid-template-columns:repeat(3,minmax(0,1fr))}.master-dashboard-page .master-header{padding:22px}}
+@media(max-width:768px){body.master-dashboard-page #adminMain>.master-dashboard{padding:13px!important;border-radius:20px}.master-dashboard-page .master-header{padding:20px;gap:14px;flex-direction:column;align-items:flex-start;border-radius:20px;margin-bottom:24px}.master-dashboard-page .master-header .master-description{font-size:12px}.master-dashboard-page .master-grid{gap:12px}.master-dashboard-page .master-card{padding:18px;min-height:130px}.master-dashboard-page .master-panel{padding:18px}.master-dashboard-page .master-finance{grid-template-columns:1fr}.master-dashboard-page .master-finance .master-card{min-height:130px}.master-dashboard-page .master-table-scroll{max-height:360px}.master-dashboard-page .master-section-heading h2{font-size:19px}}
+@media(max-width:480px){.master-dashboard-page .master-header{padding:18px 16px}.master-dashboard-page .master-eyebrow{font-size:9px;letter-spacing:2px}.master-dashboard-page .master-card{padding:15px;min-height:132px}.master-dashboard-page .master-card strong{font-size:27px}.master-dashboard-page .master-card-top>span:first-child{font-size:9px;letter-spacing:.8px}.master-dashboard-page .master-card-icon{width:24px;height:24px}.master-dashboard-page .master-panel{padding:15px}.master-dashboard-page .master-panel-heading{align-items:flex-start;gap:12px}.master-dashboard-page .master-manage{width:100%}.master-dashboard-page .master-meta a{flex:1;justify-content:center}.master-dashboard-page .master-section-heading{gap:12px}}
+@media(max-width:360px){body.master-dashboard-page #adminMain>.master-dashboard{padding:10px!important}.master-dashboard-page .master-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.master-dashboard-page .master-card{transition:none}.master-dashboard-page .master-card:hover{transform:none}}
+
+
+/* Match Team Lead counter accents with the card value specificity. */
+.master-dashboard-page .master-card strong[data-count="users"]{color:#f0a7dc}
+.master-dashboard-page .master-card strong[data-count="active"]{color:#68e69b}
+.master-dashboard-page .master-card strong[data-count="inactive"]{color:#ff8d99}
+.master-dashboard-page .master-card strong[data-count="master_admins"]{color:#c4b5fd}
+.master-dashboard-page .master-dashboard>.dashboard-header h1{width:fit-content;max-width:100%;background:linear-gradient(90deg,#ffffff 0%,#c4b5fd 45%,#67c8ff 100%);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+
+.master-dashboard-page .master-dashboard>.dashboard-header{margin-bottom:28px}
+
+/* Responsive rules target the header actually rendered on this page. */
+.master-dashboard-page .master-dashboard>.dashboard-header .dashboard-header-content{min-width:0;gap:22px}
+.master-dashboard-page .master-dashboard>.dashboard-header .dashboard-header-content>div:first-child{flex:1;min-width:0}
+.master-dashboard-page .master-dashboard>.dashboard-header h1{max-width:100%;overflow-wrap:anywhere;line-height:1.12}
+.master-dashboard-page .master-section-heading>div:first-child{min-width:0;flex-shrink:1}
+.master-dashboard-page .master-card-top>span:first-child{min-width:0;overflow-wrap:anywhere}
+.master-dashboard-page .master-table-scroll{max-width:100%;scrollbar-gutter:stable}
+.master-dashboard-page .master-table{display:table}.master-dashboard-page .master-table thead{display:table-header-group}.master-dashboard-page .master-table tbody{display:table-row-group}.master-dashboard-page .master-table tr{display:table-row}.master-dashboard-page .master-table th,.master-dashboard-page .master-table td{display:table-cell}
+@media(max-width:1100px){.master-dashboard-page .master-dashboard>.dashboard-header .dashboard-header-content{flex-wrap:wrap;gap:17px}.master-dashboard-page .master-dashboard>.dashboard-header .system-status{flex-shrink:0}}
+@media(max-width:768px){.master-dashboard-page .master-dashboard>.dashboard-header{padding:22px 20px;border-radius:20px;margin-bottom:24px;min-height:auto}.master-dashboard-page .master-dashboard>.dashboard-header .dashboard-header-content{align-items:flex-start;flex-direction:column;gap:16px}.master-dashboard-page .master-dashboard>.dashboard-header h1{font-size:clamp(26px,6vw,38px);letter-spacing:-1px}.master-dashboard-page .master-dashboard>.dashboard-header p{font-size:12px;line-height:1.7}.master-dashboard-page .master-meta a{min-width:0}}
+@media(max-width:480px){.master-dashboard-page .master-dashboard>.dashboard-header{padding:20px 16px}.master-dashboard-page .master-dashboard>.dashboard-header .dashboard-eyebrow{font-size:9px;letter-spacing:1.8px}.master-dashboard-page .master-panel-heading>div{width:100%}.master-dashboard-page .master-section-heading h2{line-height:1.4}.master-dashboard-page .master-meta a{flex:1 1 120px}}
+
+</style>{% endblock %}
+
+{% block content %}<div class="dashboard-box master-dashboard" id="masterDashboard">
+
+<section class="dashboard-header">
+            <div class="dashboard-header-content">
+                <div>
+                    <div class="dashboard-eyebrow">CYBEXEL MASTER ADMIN PANEL</div>
+                    <h1>MASTER ADMIN DASHBOARD</h1>
+                    <p>Your people, teams and Accounts overview in one workspace.</p>
+                </div>
+
+                <div class="system-status">
+                    <span class="status-dot"></span>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </section>
+
+<div class="master-section-heading"><div><span class="master-section-eyebrow">WORKSPACE OVERVIEW</span><h2>People &amp; Teams</h2></div><div class="master-heading-line" aria-hidden="true"></div></div>
+
+<section class="master-grid" aria-label="Workforce counts"><article class="master-card"><div class="master-card-top"><span>Total portal users</span><span class="master-card-icon"><i data-lucide="users-round" aria-hidden="true"></i></span></div><strong data-count="users">{{ counts.users }}</strong><small>All employee portal roles</small></article>
+
+<article class="master-card"><div class="master-card-top"><span>Admins</span><span class="master-card-icon"><i data-lucide="shield" aria-hidden="true"></i></span></div><strong data-count="admins">{{ counts.admins }}</strong><small>Management users</small></article>
+
+<article class="master-card"><div class="master-card-top"><span>Team Leads</span><span class="master-card-icon"><i data-lucide="user-cog" aria-hidden="true"></i></span></div><strong data-count="leads">{{ counts.leads }}</strong><small>Leadership team</small></article>
+
+<article class="master-card"><div class="master-card-top"><span>Team Members</span><span class="master-card-icon"><i data-lucide="users" aria-hidden="true"></i></span></div><strong data-count="members">{{ counts.members }}</strong><small>Team workforce</small></article>
+
+<article class="master-card"><div class="master-card-top"><span>Accounts team</span><span class="master-card-icon"><i data-lucide="wallet" aria-hidden="true"></i></span></div><strong data-count="accounts">{{ counts.accounts }}</strong><small>Accounts portal users</small></article>
+
+<article class="master-card"><div class="master-card-top"><span>Active</span><span class="master-card-icon"><i data-lucide="activity" aria-hidden="true"></i></span></div><strong data-count="active">{{ counts.active }}</strong><small>Activity within ten minutes</small></article>
+
+<article class="master-card"><div class="master-card-top"><span>Inactive</span><span class="master-card-icon"><i data-lucide="circle-pause" aria-hidden="true"></i></span></div><strong data-count="inactive">{{ counts.inactive }}</strong><small>No recent active session</small></article>
+
+<article class="master-card"><div class="master-card-top"><span>Master Admins</span><span class="master-card-icon"><i data-lucide="shield-check" aria-hidden="true"></i></span></div><strong data-count="master_admins">{{ counts.master_admins }}</strong><small>Active Django superusers</small></article></section>
+
+<div class="master-meta"><a href="{% url 'master_admin_departments' %}"><i data-lucide="building-2" aria-hidden="true"></i>Departments <b data-count="departments">{{ counts.departments }}</b></a><a href="{% url 'master_admin_teams' %}"><i data-lucide="users-round" aria-hidden="true"></i>Teams <b data-count="teams">{{ counts.teams }}</b></a></div>
+
+<section class="master-panel" id="finance"><div class="master-panel-heading"><div><h2>Accounts overview</h2><p class="master-description" data-month>{{ month_label }}</p></div><a class="master-manage" href="{% url 'master_admin_accounts_overview' %}"><i data-lucide="wallet" aria-hidden="true"></i>Manage Accounts</a></div><div class="master-grid master-finance"><article class="master-card"><div class="master-card-top"><span>Recorded income</span><span class="master-card-icon"><i data-lucide="arrow-down-left" aria-hidden="true"></i></span></div><strong>₹<span data-finance="income">{{ financial.income }}</span></strong><small>Income entries for this month</small></article>
+
+<article class="master-card"><div class="master-card-top"><span>Recorded expenses</span><span class="master-card-icon"><i data-lucide="arrow-up-right" aria-hidden="true"></i></span></div><strong>₹<span data-finance="expenses">{{ financial.expenses }}</span></strong><small>Expense entries for this month</small></article>
+
+<article class="master-card"><div class="master-card-top"><span>Sales value</span><span class="master-card-icon"><i data-lucide="receipt-text" aria-hidden="true"></i></span></div><strong>₹<span data-finance="sales">{{ financial.sales }}</span></strong><small>Includes unpaid sales amounts</small></article></div><p class="master-description">Separate monthly ledger totals. Sales value includes unpaid amounts.</p></section>
+
+<section class="master-panel" id="workforce"><div class="master-panel-heading"><div><h2>Recently added users</h2><p class="master-description">Latest ten employee portal registrations, across all roles.</p></div><a class="master-manage" href="{% url 'master_admin_usermanagement' %}"><i data-lucide="user-cog" aria-hidden="true"></i>Manage Users</a></div>
+
+<div class="master-table-scroll" tabindex="0" role="region" aria-label="Recent users; scroll horizontally for more columns"><table class="master-table"><thead><tr><th scope="col">Employee ID</th><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Department</th><th scope="col">Team</th></tr></thead><tbody id="masterRecentUsers">{% for item in recent_users %}<tr><td>{{ item.employee_id }}</td><td>{{ item.name }}</td><td><span class="master-role">{{ item.role }}</span></td><td>{{ item.department }}</td><td>{{ item.team }}</td></tr>{% empty %}<tr><td colspan="5">No users yet.</td></tr>{% endfor %}</tbody></table></div></section>
+
+<p class="master-live" id="masterLiveStatus" role="status" aria-live="polite" data-state="live">Updated {{ updated_at }}</p></div>
+
+{{ dashboard_data|json_script:"masterDashboardData" }}
+
 {% endblock %}
-{% block content %}
-<div class="dashboard-box master-dashboard">
-  <header class="master-header"><div><p class="master-eyebrow">CYBEXEL WORKSPACE</p><h1>MASTER ADMIN DASHBOARD</h1><p class="master-description">A shared overview of your people and Accounts records.</p></div><div class="master-access"><i data-lucide="shield-check" aria-hidden="true"></i>Master Admin</div></header>
-  <section class="master-grid" aria-label="Workforce counts">
-    <article class="master-card"><span>Total portal users</span><strong data-count="users">{{ counts.users }}</strong><small>All employee portal roles</small></article>
-    <article class="master-card"><span>Admins</span><strong data-count="admins">{{ counts.admins }}</strong><small>Management users</small></article>
-    <article class="master-card"><span>Team Leads</span><strong data-count="leads">{{ counts.leads }}</strong><small>Leadership team</small></article>
-    <article class="master-card"><span>Team Members</span><strong data-count="members">{{ counts.members }}</strong><small>Team workforce</small></article>
-    <article class="master-card"><span>Accounts team</span><strong data-count="accounts">{{ counts.accounts }}</strong><small>Accounts portal users</small></article>
-    <article class="master-card"><span>Active</span><strong data-count="active">{{ counts.active }}</strong><small>Activity within ten minutes</small></article>
-    <article class="master-card"><span>Inactive</span><strong data-count="inactive">{{ counts.inactive }}</strong><small>No recent activity</small></article>
-    <article class="master-card"><span>Master Admins</span><strong data-count="master_admins">{{ counts.master_admins }}</strong><small>Active Django superusers</small></article>
-  </section>
-  <p class="master-meta"><span>Departments: <b data-count="departments">{{ counts.departments }}</b></span><span>Teams: <b data-count="teams">{{ counts.teams }}</b></span></p>
-  <section class="master-panel" id="finance"><div class="master-panel-heading"><div><h2>Accounts overview</h2><p class="master-description" data-month>{{ month_label }}</p></div></div>
-    <div class="master-grid master-finance">
-      <article class="master-card"><span>Recorded income</span><strong>₹<span data-finance="income" style="display:inline;color:inherit;font-size:inherit">{{ financial.income }}</span></strong><small>Income entries for this month</small></article>
-      <article class="master-card"><span>Recorded expenses</span><strong>₹<span data-finance="expenses" style="display:inline;color:inherit;font-size:inherit">{{ financial.expenses }}</span></strong><small>Expense entries for this month</small></article>
-      <article class="master-card"><span>Sales value</span><strong>₹<span data-finance="sales" style="display:inline;color:inherit;font-size:inherit">{{ financial.sales }}</span></strong><small>Sales entries for this month</small></article>
-    </div><p class="master-description">These are separate ledger totals. Sales value represents recorded sales, including unpaid amounts.</p>
-  </section>
-  <section class="master-panel" id="workforce"><div class="master-panel-heading"><div><h2>Recently added users</h2><p class="master-description">Latest ten employee portal registrations, across all roles.</p></div></div>
-    <div class="master-table-scroll" tabindex="0" aria-label="Recent users; scroll to view more columns"><table class="master-table"><thead><tr><th scope="col">Employee ID</th><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Department</th><th scope="col">Team</th></tr></thead><tbody id="masterRecentUsers">{% for item in recent_users %}<tr><td>{{ item.employee_id }}</td><td>{{ item.name }}</td><td><span class="master-role">{{ item.role }}</span></td><td>{{ item.department }}</td><td>{{ item.team }}</td></tr>{% empty %}<tr><td colspan="5">No users yet.</td></tr>{% endfor %}</tbody></table></div>
-  </section>
-  <p class="master-live" id="masterLiveStatus" role="status">Updated {{ updated_at }}</p>
-</div>
-{% endblock %}
-{% block extra_js %}
-<script>
-(() => {
- const endpoint = "{% url 'master_admin_dashboard' %}?format=json";
- const status = document.getElementById('masterLiveStatus');
- let timer, pending, stopped = false, signature = null;
- function schedule(delay = 15000) { clearTimeout(timer); if (!stopped && !document.hidden) timer = setTimeout(refresh, delay); }
- async function refresh() {
-  if (stopped || document.hidden || pending) return;
-  const controller = new AbortController(); pending = controller;
-  const timeout = setTimeout(() => controller.abort(), 10000);
-  try {
-   const response = await fetch(endpoint,{credentials:'same-origin',cache:'no-store',signal:controller.signal});
-   if (response.status === 403) { stopped = true; status.textContent = 'Session access unavailable. Sign in again.'; return; }
-   if (!response.ok) throw new Error('Unable to update');
-   const data = await response.json();
-   if (!data.ok || stopped) return;
-   document.querySelectorAll('[data-count]').forEach(el=>{el.textContent = data.counts[el.dataset.count] ?? '0';});
-   document.querySelectorAll('[data-finance]').forEach(el=>{el.textContent = data.financial[el.dataset.finance] ?? '0.00';});
-   document.querySelector('[data-month]').textContent = data.month_label;
-   const next = JSON.stringify(data.recent_users);
-   if (signature !== next) {
-    const rows = data.recent_users.map(item=>{
-     const row=document.createElement('tr');
-     for (const key of ['employee_id','name','role','department','team']) {
-      const cell=document.createElement('td');
-      if(key==='role'){const badge=document.createElement('span');badge.className='master-role';badge.textContent=item[key];cell.append(badge);}else cell.textContent=item[key];
-      row.append(cell);
-     } return row;
-    });
-    if(!rows.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=5;cell.textContent='No users yet.';row.append(cell);rows.push(row);}
-    document.getElementById('masterRecentUsers').replaceChildren(...rows);signature=next;
+
+{% block extra_js %}<script>(() => {
+
+ const endpoint="{% url 'master_admin_dashboard' %}?format=json",root=document.getElementById('masterDashboard'),status=document.getElementById('masterLiveStatus');
+
+ if(!root||!status||root.dataset.liveInitialized==='true')return;
+ root.dataset.liveInitialized='true';
+ const initial=JSON.parse(document.getElementById('masterDashboardData').textContent);
+
+ let signature=JSON.stringify(initial.recent_users),timer,pending=null,stopped=false,failures=0;
+
+ const money=new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+ function setText(node,text){const value=String(text);if(node&&node.textContent!==value)node.textContent=value;}
+
+ function paintFinance(data){root.querySelectorAll('[data-finance]').forEach(el=>{const value=data[el.dataset.finance];setText(el,Number.isFinite(Number(value))?money.format(Number(value)):'0.00');});}
+
+ paintFinance(initial.financial);
+
+ function schedule(delay=15000){clearTimeout(timer);if(!stopped&&!document.hidden)timer=setTimeout(refresh,delay);}
+
+ async function refresh(){
+
+  if(stopped||document.hidden||pending)return;
+
+  clearTimeout(timer);const controller=new AbortController();pending=controller;const timeout=setTimeout(()=>controller.abort(),10000);
+
+  try{
+
+   const response=await fetch(endpoint,{credentials:'same-origin',cache:'no-store',signal:controller.signal,headers:{'X-Requested-With':'XMLHttpRequest'}});
+
+   if(response.redirected||response.status===401||response.status===403){stopped=true;status.dataset.state='expired';setText(status,'Session access unavailable. Sign in again.');return;}
+
+   if(!response.ok)throw Error('Update unavailable');const data=await response.json();if(!data.ok||!data.counts||!data.financial||!Array.isArray(data.recent_users))throw Error('Invalid update');if(stopped||document.hidden)return;
+
+   root.querySelectorAll('[data-count]').forEach(el=>setText(el,data.counts[el.dataset.count]??0));paintFinance(data.financial);setText(root.querySelector('[data-month]'),data.month_label);
+
+   const next=JSON.stringify(data.recent_users);
+
+   if(next!==signature){const scroller=root.querySelector('.master-table-scroll'),top=scroller?.scrollTop||0,left=scroller?.scrollLeft||0;const rows=data.recent_users.map(item=>{const row=document.createElement('tr');for(const key of ['employee_id','name','role','department','team']){const cell=document.createElement('td');if(key==='role'){const badge=document.createElement('span');badge.className='master-role';badge.textContent=item[key]??'';cell.append(badge);}else cell.textContent=item[key]??'';row.append(cell);}return row;});
+
+    if(!rows.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=5;cell.textContent='No users yet.';row.append(cell);rows.push(row);}document.getElementById('masterRecentUsers').replaceChildren(...rows);if(scroller){scroller.scrollTop=top;scroller.scrollLeft=left;}signature=next;
+
    }
-   status.textContent = 'Updated ' + data.updated_at;
-  } catch (_) { if (!stopped && !document.hidden) status.textContent = 'Live update unavailable. Retrying automatically.'; }
-  finally { clearTimeout(timeout); if(pending===controller)pending=null; schedule(); }
+
+   failures=0;status.dataset.state='live';setText(status,'Updated '+data.updated_at);
+
+  }catch(error){if(!stopped&&!document.hidden){failures++;status.dataset.state='retry';setText(status,'Live update unavailable. Your last data is retained; retrying automatically.');}}
+
+  finally{clearTimeout(timeout);if(pending===controller)pending=null;schedule(Math.min(60000,15000*Math.pow(2,Math.min(failures,2))));}
+
  }
+
  document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);pending?.abort();}else refresh();});
- window.addEventListener('online',refresh);
+
+ window.addEventListener('online',()=>{failures=0;refresh();});
+
  window.addEventListener('pagehide',()=>{stopped=true;clearTimeout(timer);pending?.abort();});
- window.addEventListener('pageshow',()=>{stopped=false;schedule();});
- schedule();
-})();
-</script>
-{% endblock %}
+
+ window.addEventListener('pageshow',()=>{stopped=false;schedule(1000);});
+
+ window.lucide?.createIcons();schedule(1000);
+
+})();</script>{% endblock %}

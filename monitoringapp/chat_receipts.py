@@ -28,30 +28,24 @@ logger = logging.getLogger(__name__)
 
 
 def _user(request):
+    # Master Admin uses Django auth plus an explicit shared-chat identity.
+    # Never interpret its auth user PK as a monitoringapp.User PK.
+    route_name = getattr(getattr(request, "resolver_match", None), "url_name", None)
+    if route_name in {"master_admin_chat_meta", "master_admin_chat_read"}:
+        from .master_chat_identity import master_chat_user
+        return master_chat_user(getattr(request, "user", None))
+
     position = (
         str(request.session.get("position", ""))
-        .strip()
-        .lower()
-        .replace(" ", "_")
+        .strip().lower().replace(" ", "_")
     )
-
-    if position not in {
-        "team_member",
-        "team_lead",
-        "management",
-    }:
+    if position not in {"team_member", "team_lead", "management"}:
         return None
-
-    users = User.objects.filter(
-        pk=request.session.get("user_id")
-    )
-
+    users = User.objects.filter(pk=request.session.get("user_id"))
     if position == "management":
-        users = users.filter(
-            job_Position__iexact="Management"
-        )
-
+        users = users.filter(job_Position__iexact="Management")
     return users.first()
+
 
 def _target(user, kind, target_id, lock=False):
     if kind == "personal":
@@ -115,8 +109,10 @@ def _receipts(user, target, kind):
 
 @never_cache
 @require_GET
-def chat_meta(request):
-    user = _user(request)
+def chat_meta(request, *, actor=None):
+    # actor is supplied only by an authenticated server-side Master wrapper.
+    # URL/query/body parameters never select the receipt identity.
+    user = actor if actor is not None else _user(request)
     if user is None:
         return JsonResponse({"ok": False, "message": "Please sign in again."}, status=401)
     personal_states = dict(ChatReadState.objects.filter(user=user, conversation__isnull=False).values_list("conversation_id", "last_read_id"))
@@ -158,8 +154,10 @@ def chat_meta(request):
 
 @never_cache
 @require_POST
-def chat_mark_read(request):
-    user = _user(request)
+def chat_mark_read(request, *, actor=None):
+    # actor is supplied only by an authenticated server-side Master wrapper.
+    # URL/query/body parameters never select the receipt identity.
+    user = actor if actor is not None else _user(request)
     if user is None:
         return JsonResponse({"ok": False, "message": "Please sign in again."}, status=401)
     try:

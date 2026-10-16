@@ -1,0 +1,224 @@
+{% extends 'master_admin/base.html' %}
+{% block title %}Master Admin — Tasks{% endblock %}
+{% block page_class %}master-tasks-page{% endblock %}
+{% block extra_css %}
+<style>
+.master-tasks-page .mt{--mt-line:rgba(171,140,244,.17);--mt-muted:#aaa3bb;--mt-accent:#b794f4;color:#f4f0fc;min-width:0;padding:24px}
+.mt *{box-sizing:border-box}.mt h1,.mt h2,.mt p{margin:0}.mt .eyebrow{font-size:11px;color:var(--mt-accent);letter-spacing:.13em;font-weight:700;margin-bottom:8px}.mt .subtitle{color:var(--mt-muted);font-size:13px;margin-top:8px}
+.mt .top,.mt .list-head,.mt .row-foot,.mt .pagination{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.mt .top{margin-bottom:24px}.mt button,.mt input,.mt select,.mt textarea{font:inherit}.mt button,.mt .page-link{cursor:pointer}.mt .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--mt-line);border-radius:9px;padding:10px 15px;background:rgba(139,92,246,.08);color:#efe9ff;font-weight:600;font-size:13px;text-decoration:none}.mt .primary{background:linear-gradient(110deg,#7545ba,#6541a4);border-color:rgba(181,146,255,.4)}.mt button:disabled{opacity:.55;cursor:wait}.mt svg{width:17px;height:17px}.mt :focus-visible{outline:2px solid #b794f4;outline-offset:3px}
+.mt .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px}.mt .stat{padding:17px 20px;border:1px solid var(--mt-line);border-radius:12px;background:rgba(255,255,255,.035)}.mt .stat span{font-size:12px;color:var(--mt-muted)}.mt .stat strong{display:block;font-size:25px;margin-top:8px}
+.mt .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:6px;border:1px solid var(--mt-line);background:rgba(255,255,255,.035);border-radius:15px;margin-bottom:18px}.mt .tabs a{display:flex;justify-content:center;align-items:center;gap:8px;min-height:46px;padding:9px;border:1px solid transparent;border-radius:10px;text-decoration:none;color:var(--mt-muted);font-size:13px;font-weight:700;text-align:center}.mt .tabs a[aria-current]{color:#fff;border-color:rgba(181,146,255,.28);background:linear-gradient(110deg,rgba(116,68,200,.34),rgba(81,68,167,.24))}
+.mt .filters{display:grid;grid-template-columns:minmax(180px,2fr) 1fr 1fr auto;gap:10px;margin-bottom:20px}.mt .search{position:relative}.mt .search svg{position:absolute;left:12px;top:13px;color:var(--mt-muted)}.mt input,.mt textarea,.mt select{width:100%;padding:10px 12px;border:1px solid var(--mt-line);border-radius:8px;background:#231b35;color:#f4f0fc;min-width:0;font-size:13px}.mt .search input{padding-left:38px}.mt select option{background:#231b35;color:#f4f0fc}.mt .list-head{margin-bottom:12px}.mt .list-head h2{font-size:15px}.mt .small{font-size:12px;color:var(--mt-muted)}
+.mt .task-list{display:grid;gap:10px}.mt .task-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 20px;border:1px solid var(--mt-line);border-radius:12px;background:rgba(255,255,255,.035)}.mt .task-main{min-width:0;flex:1}.mt .task-title{font-size:15px;font-weight:700;overflow-wrap:anywhere;margin-bottom:7px}.mt .task-desc{color:var(--mt-muted);font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.mt .meta{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--mt-muted);margin-top:11px}.mt .task-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.mt .status{font-size:11px;font-weight:700;padding:6px 9px;border-radius:6px;background:rgba(148,163,184,.12);color:#cbd5e1}.mt .status.in_progress{background:rgba(245,190,70,.13);color:#efc56b}.mt .status.completed{background:rgba(83,185,141,.13);color:#83d3ab}.mt .task-actions select{width:125px;font-size:11px;padding:7px}.mt .icon{display:inline-flex;align-items:center;justify-content:center;width:31px;height:31px;padding:0;border:1px solid var(--mt-line);background:rgba(139,92,246,.07);border-radius:7px;color:#d4c0fa}.mt .danger{color:#ef9ca6}.mt .pagination{margin-top:18px}.mt .empty{text-align:center;padding:40px;border:1px dashed var(--mt-line);border-radius:12px;color:var(--mt-muted)}
+.mt dialog{position:fixed;max-width:540px;width:calc(100% - 28px);max-height:85dvh;margin:auto;padding:0;border:1px solid #65517e;border-radius:15px;color:#f4f0fc;background:#251c35;box-shadow:0 20px 70px #0005;overflow:auto}.mt dialog::backdrop{background:rgba(12,8,20,.35);backdrop-filter:blur(2px)}.mt dialog .dialog-inner{padding:24px}.mt .dialog-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}.mt .dialog-head h2{font-size:19px}.mt .field{margin-bottom:15px}.mt label{display:block;font-size:12px;margin-bottom:7px;color:#d1c5e4}.mt .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mt .dialog-footer{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}.mt .error{color:#ffacb6;font-size:12px;white-space:pre-wrap;margin-top:6px}.mt .view-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;color:#d9cee7;font-size:13px}.mt #mtFeedback{position:fixed;bottom:24px;right:24px;max-width:calc(100vw - 40px);padding:13px 18px;border:1px solid #8161a5;border-radius:10px;background:#322244;color:#fff;z-index:99999;font-size:13px}.mt [hidden]{display:none!important}
+@media(max-width:850px){.mt .filters{grid-template-columns:1fr 1fr}.mt .search{grid-column:1/-1}.mt .task-row{align-items:flex-start;flex-direction:column;gap:13px}.mt .task-actions{width:100%}.mt .stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.master-tasks-page .mt{padding:12px}.mt .tabs a{font-size:11px;gap:5px;padding:8px 3px}.mt .tabs svg{display:none}.mt .task-row{padding:15px}.mt .form-grid{grid-template-columns:1fr}.mt .stat{padding:14px}.mt .top{gap:14px}}
+
+/* Master Admin tasks, aligned with User Management. */
+body.master-tasks-page #adminMain>.mt{box-sizing:border-box;height:100%;min-height:0;min-width:0;padding:16px;overflow-y:auto;overflow-x:hidden;border-radius:28px;background:linear-gradient(145deg,rgba(17,16,24,.94),rgba(8,9,14,.96));border:1px solid rgba(255,255,255,.10);scrollbar-width:thin;scrollbar-color:rgba(151,112,235,.65) transparent;overscroll-behavior:contain;--mt-line:rgba(255,255,255,.09);--mt-muted:#96939e;--mt-accent:#a78bfa}
+body.master-tasks-page .mt>.dashboard-header{margin-bottom:28px}
+body.master-tasks-page .mt .dashboard-header p{margin:18px 0 0;color:#96939e;font-size:14px;line-height:1.6}
+body.master-tasks-page .mt .dashboard-header h1{margin:0;letter-spacing:-2px}
+.master-tasks-page .mt-directory-heading{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:22px}
+.master-tasks-page .mt-directory-heading span{display:block;margin-bottom:5px;color:#8d7df2;font-size:9px;font-weight:800;letter-spacing:.18em}
+.master-tasks-page .mt-directory-heading h2{margin:0;font-size:21px;font-weight:750;color:#fff}
+.master-tasks-page .mt-heading-line{height:1px;flex:1;min-width:20px;background:linear-gradient(90deg,rgba(255,255,255,.10),transparent)}
+.master-tasks-page .mt .btn{min-height:40px;border-radius:11px;font-size:11px;color:#c4b5fd;background:rgba(126,96,230,.13);border-color:rgba(126,96,230,.20)}
+.master-tasks-page .mt .btn.primary{background:linear-gradient(135deg,rgba(117,89,220,.24),rgba(82,66,170,.16));border-color:rgba(139,112,255,.28);color:#dcd7ff}
+.master-tasks-page .mt #mtAdd{min-height:42px;font-size:12px;padding:0 16px;border-radius:12px}
+.master-tasks-page .mt .filters{display:grid;grid-template-columns:minmax(200px,2fr) minmax(130px,1fr) minmax(130px,1fr) auto;gap:12px;padding:18px;border-radius:17px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025);align-items:center}
+.master-tasks-page .mt :is(input,select,textarea){min-height:42px;padding:11px 13px;background:rgba(7,7,11,.60);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:#fff;font-size:12px;line-height:1.5}
+.master-tasks-page .mt .search{min-width:0;grid-column:auto}
+.master-tasks-page .mt .search input{padding-left:39px}
+.master-tasks-page .mt .search svg{top:50%;transform:translateY(-50%);color:#9d8cff;width:16px;height:16px}
+.master-tasks-page .mt select option{background:#171924}
+.master-tasks-page .mt .stats{gap:16px;margin-bottom:24px}
+.master-tasks-page .mt .stat{padding:21px;border-radius:20px;background:linear-gradient(145deg,rgba(28,30,43,.76),rgba(16,18,28,.66));border-color:rgba(255,255,255,.075);min-height:120px}
+.master-tasks-page .mt .stat span{color:#8f8c96;font-size:9px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase}
+.master-tasks-page .mt .stat strong{font-size:29px;margin-top:16px;line-height:1.2;font-variant-numeric:tabular-nums}
+.master-tasks-page .mt .stat:nth-child(1) strong{color:#c4b5fd}
+.master-tasks-page .mt .stat:nth-child(2) strong{color:#ff8d99}
+.master-tasks-page .mt .stat:nth-child(3) strong{color:#efc56b}
+.master-tasks-page .mt .stat:nth-child(4) strong{color:#68e69b}
+.master-tasks-page .mt .tabs a{min-height:43px;font-size:12px}
+.master-tasks-page .mt .list-head{margin:22px 2px 15px}
+.master-tasks-page .mt .list-head h2{font-size:18px;color:#fff}
+.master-tasks-page .mt .task-list{max-height:540px;overflow:auto;gap:12px;padding:2px 6px 6px 2px;scrollbar-width:thin;scrollbar-color:#74559b transparent;overscroll-behavior:contain}
+.master-tasks-page .mt .task-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:20px;padding:20px;border-radius:18px;background:linear-gradient(145deg,rgba(28,30,43,.76),rgba(16,18,28,.66));border-color:rgba(255,255,255,.075)}
+.master-tasks-page .mt .task-title{margin:0 0 7px;font-size:14px;color:#fff;line-height:1.5}
+.master-tasks-page .mt .task-desc{font-size:11px;line-height:1.7;margin:0;color:#96939e}
+.master-tasks-page .mt .meta{margin-top:12px;column-gap:14px;row-gap:7px;font-size:10px;line-height:1.6}
+.master-tasks-page .mt .task-actions{display:grid;grid-template-columns:34px 34px 34px;gap:8px;justify-content:end;align-items:center;min-width:0}
+.master-tasks-page .mt .task-actions .status{grid-column:1 / -1;justify-self:stretch;text-align:center;min-height:29px;padding:6px 9px;border:1px solid rgba(148,163,184,.18);font-size:10px;border-radius:7px;line-height:1.5}
+.master-tasks-page .mt .task-actions .status.in_progress{border-color:rgba(245,190,70,.24)}
+.master-tasks-page .mt .task-actions .status.completed{border-color:rgba(83,185,141,.24)}
+.master-tasks-page .mt .task-actions select{grid-column:1 / -1;width:100%;min-height:34px;padding:6px 9px;font-size:10px;border-radius:9px}
+.master-tasks-page .mt .icon{width:34px;height:34px;border-radius:9px;flex-shrink:0}
+.master-tasks-page .mt .icon[data-action=view]{background:rgba(126,96,230,.13);color:#c4b5fd;border-color:rgba(126,96,230,.20)}
+.master-tasks-page .mt .icon[data-action=edit]{background:rgba(68,119,210,.10);color:#8cb8ff;border-color:rgba(90,140,255,.17)}
+.master-tasks-page .mt .icon[data-action=delete],.master-tasks-page .mt .btn.danger{background:rgba(255,70,85,.07);color:#ff8994;border-color:rgba(255,80,95,.15)}
+.master-tasks-page .mt dialog{max-width:600px;max-height:calc(100dvh - 40px);border-radius:24px;background:linear-gradient(145deg,#241b30,#14121d);border-color:rgba(255,255,255,.09);scrollbar-width:thin;scrollbar-color:#7c3aed transparent;overscroll-behavior:contain}
+.master-tasks-page .mt dialog::backdrop{background:rgba(8,7,11,.3);backdrop-filter:blur(3px)}
+.master-tasks-page .mt .dialog-head h2{font-size:18px}
+.master-tasks-page .mt label{font-size:10px;font-weight:700;color:rgba(255,255,255,.62);letter-spacing:.04em}
+.master-tasks-page .mt .pagination>div{display:flex;gap:8px;flex-wrap:wrap}
+body.master-tasks-page:has(dialog[open]) #masterTaskRoot,body.master-tasks-page:has(dialog[open]) .task-list{overflow:hidden!important}
+@media(max-width:1100px){.master-tasks-page .mt .filters{grid-template-columns:repeat(2,minmax(0,1fr))}.master-tasks-page .mt .search{grid-column:1 / -1}.master-tasks-page .mt .stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:768px){body.master-tasks-page #adminMain>.mt{padding:13px!important;border-radius:20px}.master-tasks-page .mt .filters{padding:15px}.master-tasks-page .mt .stat{padding:17px}.master-tasks-page .mt .task-row{padding:17px;gap:14px}.master-tasks-page .mt .task-list{max-height:480px}.master-tasks-page .mt :is(input,select,textarea){font-size:16px}.master-tasks-page .mt .task-actions select{font-size:14px}.master-tasks-page .mt .dashboard-header p{font-size:12px}}
+@media(max-width:520px){.master-tasks-page .mt-directory-heading{gap:14px}.master-tasks-page .mt-heading-line{display:none}.master-tasks-page .mt #mtAdd{width:100%}.master-tasks-page .mt .filters{grid-template-columns:1fr}.master-tasks-page .mt .search{grid-column:auto}.master-tasks-page .mt .task-row{grid-template-columns:1fr}.master-tasks-page .mt .task-actions{width:100%;display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px}.master-tasks-page .mt .task-actions .status{flex:1 1 120px;min-width:0}.master-tasks-page .mt .task-actions select{flex:1 1 130px;width:auto;min-width:0}.master-tasks-page .mt .tabs svg{display:block;width:14px;height:14px}.master-tasks-page .mt .tabs a{font-size:11px;gap:5px}.master-tasks-page .mt .form-grid{grid-template-columns:1fr}.master-tasks-page .mt .dialog-inner{padding:18px}.master-tasks-page .mt .stat strong{font-size:27px}.master-tasks-page .mt .dashboard-header h1{letter-spacing:-1px}}
+@media(prefers-reduced-motion:reduce){.master-tasks-page .mt *{scroll-behavior:auto}}
+
+
+/* Responsive safeguards while retaining the current task design. */
+.master-tasks-page .mt :is(.dashboard-header-content,.dialog-footer){flex-wrap:wrap}
+.master-tasks-page .mt :is(.dashboard-header-content>div,.field,.stat,.task-actions,.tabs a){min-width:0}
+.master-tasks-page .mt :is(.meta span,.error,.small){overflow-wrap:anywhere}
+.master-tasks-page .mt .tabs a{flex-wrap:wrap}
+.master-tasks-page .mt .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.master-tasks-page .mt .task-list{scrollbar-gutter:stable;-webkit-overflow-scrolling:touch}
+.master-tasks-page .mt textarea{resize:vertical;max-width:100%}
+@media(max-width:520px){.master-tasks-page .mt .form-grid{grid-template-columns:1fr}.master-tasks-page .mt dialog{max-height:calc(100dvh - 24px)}.master-tasks-page .mt .task-actions select{font-size:16px}}
+@media(max-width:360px){.master-tasks-page .mt .stats{grid-template-columns:1fr}.master-tasks-page .mt .tabs{gap:3px;padding:4px}}
+</style>
+{% endblock %}
+{% block content %}
+<section class="dashboard-box mt" id="masterTaskRoot" data-list-url="{% url 'master_admin_tasks' %}">
+<section class="dashboard-header">
+            <div class="dashboard-header-content">
+                <div>
+                    <div class="dashboard-eyebrow">CYBEXEL MASTER ADMIN PANEL</div>
+                    <h1>TASK MANAGEMENT</h1>
+                    <p>Manage tasks across team leads and team members.</p>
+                </div>
+
+                <div class="system-status">
+                    <span class="status-dot"></span>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </section>
+<div class="mt-directory-heading"><div><span>WORKSPACE TASKS</span><h2>Task Management</h2></div><div class="mt-heading-line" aria-hidden="true"></div><button class="btn primary" type="button" id="mtAdd"><i data-lucide="clipboard-plus" aria-hidden="true"></i>Assign Task</button></div>
+<form id="mtFilters" class="filters" method="get"><input type="hidden" name="tab" value="{{ task_tab }}"><div class="search"><i data-lucide="search" aria-hidden="true"></i><input name="q" value="{{ query }}" placeholder="Search tasks or people…" aria-label="Search tasks"></div><select name="team" aria-label="Team"><option value="">All teams</option>{% for team in teams %}<option value="{{ team.pk }}" {% if selected_team == team.pk|stringformat:'s' %}selected{% endif %}>{{ team.name }}</option>{% endfor %}</select><select name="status" aria-label="Task status"><option value="">All statuses</option><option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option><option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>In Progress</option><option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option></select><button class="btn" type="submit">Apply filters</button></form>
+<div id="mtResults">
+<div class="stats"><div class="stat"><span>Total tasks</span><strong>{{ total_tasks }}</strong></div><div class="stat"><span>Pending</span><strong>{{ pending_tasks }}</strong></div><div class="stat"><span>In progress</span><strong>{{ in_progress_tasks }}</strong></div><div class="stat"><span>Completed</span><strong>{{ completed_tasks }}</strong></div></div>
+<nav class="tabs" aria-label="Task assignee"><a href="?{{ filter_params }}&amp;tab=all" {% if task_tab == 'all' %}aria-current="page"{% endif %}><i data-lucide="list-checks" aria-hidden="true"></i>All Tasks</a><a href="?{{ filter_params }}&amp;tab=leads" {% if task_tab == 'leads' %}aria-current="page"{% endif %}><i data-lucide="user-round" aria-hidden="true"></i>Team Leads</a><a href="?{{ filter_params }}&amp;tab=members" {% if task_tab == 'members' %}aria-current="page"{% endif %}><i data-lucide="users-round" aria-hidden="true"></i>Team Members</a></nav>
+<div class="list-head"><h2>Task listing</h2><span class="small">{{ page_obj.paginator.count }} tasks · newest first</span></div>
+<div class="task-list" tabindex="0" role="region" aria-label="Task listing">{% for task in page_obj %}<article class="task-row" data-id="{{ task.pk }}" data-update="{% url 'master_admin_task_update' task.pk %}" data-delete="{% url 'master_admin_task_delete' task.pk %}"><div class="task-main"><h3 class="task-title">{{ task.title }}</h3><p class="task-desc">{{ task.description|default:'No description' }}</p><div class="meta"><span>Assigned to: {{ task.assigned_to.name }}</span><span>{{ task.assigned_to.team.name|default:'No team' }}</span><span>By: {{ task.creator_label }}</span><span>{{ task.created_at|date:'d M Y, h:i A' }}</span></div></div><div class="task-actions"><span class="status {{ task.status }}">{{ task.get_status_display }} · {{ task.progress }}%</span><select class="mtStatus" aria-label="Status for {{ task.title }}"><option value="pending" {% if task.status == 'pending' %}selected{% endif %}>Pending</option><option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option><option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option></select><button type="button" class="icon" data-action="view" aria-label="View task"><i data-lucide="eye" aria-hidden="true"></i></button><button type="button" class="icon" data-action="edit" aria-label="Edit task"><i data-lucide="pencil" aria-hidden="true"></i></button><button type="button" class="icon danger" data-action="delete" aria-label="Delete task"><i data-lucide="trash-2" aria-hidden="true"></i></button></div></article>{% empty %}<div class="empty">No tasks match these filters.</div>{% endfor %}</div>
+<div class="pagination"><span class="small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_previous %}<a class="btn page-link" href="?{{ filter_params }}&amp;tab={{ task_tab }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}{% if page_obj.has_next %}<a class="btn page-link" href="?{{ filter_params }}&amp;tab={{ task_tab }}&amp;page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></div>
+{{ task_items|json_script:'mtTaskData' }}
+</div>
+<dialog id="mtEditDialog" aria-labelledby="mtEditHeading"><div class="dialog-inner"><div class="dialog-head"><h2 id="mtEditHeading">Assign Task</h2><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><form id="mtEditor" method="post" action="{% url 'master_admin_tasks' %}">{% csrf_token %}<div class="field"><label for="mtTitle">Task title</label><input id="mtTitle" name="title" maxlength="255" required></div><div class="field"><label for="mtDescription">Description</label><textarea id="mtDescription" name="description" rows="4"></textarea></div><div class="field"><label for="mtAssignee">Assign to</label><select id="mtAssignee" name="assigned_to" required><option value="">Choose team lead or member</option>{% for person in people %}<option value="{{ person.pk }}">{{ person.name }} — {{ person.job_Position }} · {{ person.team.name|default:'No team' }}</option>{% endfor %}</select></div><div class="form-grid"><div class="field"><label for="mtState">Status</label><select name="status" id="mtState"><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="completed">Completed</option></select></div><div class="field"><label for="mtProgress">Progress %</label><input id="mtProgress" name="progress" type="number" min="0" max="100" value="0" required></div></div><div id="mtErrors" class="error" role="alert"></div><div class="dialog-footer"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit" id="mtSave">Save task</button></div></form></div></dialog>
+<dialog id="mtViewDialog" aria-labelledby="mtViewHeading"><div class="dialog-inner"><div class="dialog-head"><h2 id="mtViewHeading">Task details</h2><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><div id="mtViewBody" class="view-text"></div></div></dialog>
+<dialog id="mtDeleteDialog" aria-labelledby="mtDeleteHeading"><div class="dialog-inner"><div class="dialog-head"><h2 id="mtDeleteHeading">Delete task?</h2><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><p id="mtDeleteText" class="view-text"></p><p class="small" style="margin-top:10px">This removes the task from the assignee’s task list.</p><div class="error" id="mtDeleteError" role="alert"></div><div class="dialog-footer"><button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn danger" id="mtConfirmDelete">Delete task</button></div></div></dialog>
+<div id="mtFeedback" role="status" hidden></div>
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+(() => {
+ const root=document.getElementById('masterTaskRoot'); if(!root)return;
+ const results=document.getElementById('mtResults'), filters=document.getElementById('mtFilters'), editor=document.getElementById('mtEditor');
+ const edit=document.getElementById('mtEditDialog'), view=document.getElementById('mtViewDialog'), del=document.getElementById('mtDeleteDialog');
+ const errors=document.getElementById('mtErrors'), save=document.getElementById('mtSave'), confirm=document.getElementById('mtConfirmDelete');
+ const csrf=editor.querySelector('[name=csrfmiddlewaretoken]').value;
+ let current=new URL(location.href), busy=false, polling=false, deleting=null, timer, latest=0;
+ let pending=null,pagePaused=false,sessionExpired=false,listSignature='',returnFocus=null;
+ const items=()=>JSON.parse(document.getElementById('mtTaskData').textContent);
+ const icons=()=>{if(window.lucide)window.lucide.createIcons();};
+ let toastTimer;
+ const toast=(message,type='success')=>{
+  const host=(document.getElementById('toastContainer')||document.getElementById('toast-container'));
+  const active=[edit,view,del].find(dialog=>dialog.open);
+  // Native dialogs occupy the top layer; put feedback in that layer too.
+  if(host){(active||document.body).append(host);}
+  if(typeof window.showToast==='function'){try{window.showToast(message,type);return;}catch(_){}}
+  const el=document.getElementById('mtFeedback');
+  (active||document.body).append(el);el.textContent=message;el.hidden=false;
+  el.setAttribute('role',type==='error'?'alert':'status');
+  el.style.cssText='position:fixed;right:20px;bottom:20px;z-index:99999;max-width:calc(100vw - 40px);padding:14px 18px;border:1px solid '+(type==='error'?'#b76678':'#8161a5')+';border-radius:12px;background:#241b30;color:#fff;font:12px/1.6 system-ui';
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{el.hidden=true;},5000);
+ };
+ [edit,view,del].forEach(dialog=>dialog.addEventListener('close',()=>{
+  const host=(document.getElementById('toastContainer')||document.getElementById('toast-container'));if(host&&dialog.contains(host))document.body.append(host);
+  const feedback=document.getElementById('mtFeedback');if(dialog.contains(feedback))document.body.append(feedback);
+ }));
+ const anyOpen=()=>edit.open||view.open||del.open;
+ let savedOverflow='';
+ function show(dialog){returnFocus=document.activeElement;savedOverflow=document.getElementById('adminMain').style.overflow;document.getElementById('adminMain').style.overflow='hidden';dialog.showModal();}
+ [edit,view,del].forEach(d=>{d.addEventListener('close',()=>{document.getElementById('adminMain').style.overflow=savedOverflow;if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});else document.getElementById('mtAdd').focus({preventScroll:true});});d.addEventListener('cancel',e=>{if(busy)e.preventDefault();});});
+ async function refresh(url=current,navigate=false){
+  if(pagePaused||sessionExpired||document.hidden||busy||anyOpen())return false;
+  pending?.abort();const controller=new AbortController();pending=controller;
+  const version=++latest,target=new URL(url,location.href),timeout=setTimeout(()=>controller.abort(),12000);
+  try{
+   const response=await fetch(target,{credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},cache:'no-store',signal:controller.signal});
+   if(version!==latest||controller.signal.aborted||pagePaused)return false;
+   if(response.redirected||response.status===401||response.status===403){sessionExpired=true;toast('Your session or access has changed. Sign in again to continue.','error');return false;}
+   if(!response.ok)throw new Error('Unable to refresh tasks.');
+   const doc=new DOMParser().parseFromString(await response.text(),'text/html'),next=doc.getElementById('mtResults');
+   if(!next)throw new Error('Task list unavailable. Check your login.');
+   if(version!==latest||controller.signal.aborted||pagePaused||document.hidden||busy||anyOpen())return false;
+   if(listSignature!==next.innerHTML){
+    const list=results.querySelector('.task-list'),top=list?.scrollTop||0,left=list?.scrollLeft||0;
+    const active=document.activeElement,focused=results.contains(active)?active.closest('[data-action],.mtStatus'):null;
+    const id=focused?.closest('[data-id]')?.dataset.id,action=focused?.dataset.action,status=focused?.matches('.mtStatus');
+    listSignature=next.innerHTML;results.replaceChildren(...Array.from(next.childNodes));
+    const replacement=results.querySelector('.task-list');if(replacement){replacement.scrollTop=top;replacement.scrollLeft=left;}
+    if(id)Array.from(results.querySelectorAll(status?'.mtStatus':'[data-action]')).find(button=>button.closest('[data-id]')?.dataset.id===id&&(status||button.dataset.action===action))?.focus({preventScroll:true});
+    icons();
+   }
+   const incoming=doc.getElementById('mtAssignee'),select=document.getElementById('mtAssignee');
+   if(incoming&&select&&incoming.innerHTML!==select.innerHTML){const previous=select.value;select.replaceChildren(...Array.from(incoming.childNodes));select.value=previous;}
+   if(navigate){current=target;history.pushState({},'',current);filters.elements.namedItem('tab').value=current.searchParams.get('tab')||'all';}
+   return true;
+  }finally{clearTimeout(timeout);if(pending===controller)pending=null;}
+ }
+ async function post(url,data){
+  pending?.abort();++latest;
+  if(!data.has('csrfmiddlewaretoken'))data.set('csrfmiddlewaretoken',csrf);
+  let response;
+  try{response=await fetch(url,{method:'POST',body:data,credentials:'same-origin',cache:'no-store',headers:{'X-CSRFToken':csrf,'X-Requested-With':'XMLHttpRequest','Accept':'application/json'},signal:AbortSignal.timeout(20000)});}
+  catch(error){throw new Error(error.name==='TimeoutError'?'The request timed out. Check the task list before retrying.':'Connection interrupted. Check the task list before retrying.');}
+  const text=await response.text();let result=null;
+  try{result=JSON.parse(text);}catch{}
+  if(response.redirected)throw new Error('Your session changed. Sign in to Master Admin again.');
+  if(!result){
+   if(response.status===403)throw new Error('Access or CSRF verification failed. Reload this page and sign in again if needed.');
+   if(response.status===404)throw new Error('The task or action URL was not found. Refresh the task list.');
+   if(response.status>=500)throw new Error('Server error while saving the task (HTTP '+response.status+'). Check the Django terminal traceback.');
+   throw new Error('The server returned an unexpected response (HTTP '+response.status+').');
+  }
+  if(!response.ok||result.ok!==true){
+   const detail=Object.entries(result.errors||{}).map(([field,entries])=>field+': '+entries.map(x=>x.message).join(' ')).join('\n');
+   throw new Error(detail||result.message||'Unable to save the task.');
+  }
+  return result;
+ }
+ function setup(item,row){if(busy||anyOpen())return;editor.reset();errors.textContent='';editor.setAttribute('action',row?row.dataset.update:root.dataset.listUrl);document.getElementById('mtEditHeading').textContent=item?'Edit Task':'Assign Task';save.textContent=item?'Save changes':'Assign task';if(item)for(const key of ['title','description','assigned_to','status','progress'])editor.elements.namedItem(key).value=item[key];show(edit);}
+ document.getElementById('mtAdd').addEventListener('click',()=>setup(null,null));
+ root.addEventListener('click',async e=>{
+  const close=e.target.closest('[data-close]');if(close&&!busy){close.closest('dialog').close();return;}
+  const link=e.target.closest('.tabs a,.page-link');if(link){if(busy||anyOpen()||e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();try{await refresh(new URL(link.href),true);}catch(err){toast(err.message,'error');}return;}
+  const button=e.target.closest('[data-action]');if(!button||busy)return;
+  const row=button.closest('[data-id]'), item=items().find(i=>String(i.id)===row.dataset.id);if(!item)return;
+  if(button.dataset.action==='edit')setup(item,row);
+  if(button.dataset.action==='view'){document.getElementById('mtViewBody').textContent=item.title+'\n\n'+(item.description||'No description')+'\n\nAssigned to: '+item.assignee+'\nTeam: '+item.team+'\nCreated by: '+item.creator+'\nStatus: '+item.status.replaceAll('_',' ')+' · '+item.progress+'%';show(view);}
+  if(button.dataset.action==='delete'){deleting=row.dataset.delete;document.getElementById('mtDeleteText').textContent=item.title;document.getElementById('mtDeleteError').textContent='';show(del);}
+ });
+ editor.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;++latest;save.disabled=true;errors.textContent='';let result;try{result=await post(editor.getAttribute('action'),new FormData(editor));edit.close();toast(result.message);}catch(err){errors.textContent=err.message;toast(err.message,'error');}finally{busy=false;save.disabled=false;}if(result)try{await refresh();}catch(err){toast('Saved successfully. '+err.message,'warning');}});
+ confirm.addEventListener('click',async()=>{if(busy||!deleting)return;busy=true;++latest;confirm.disabled=true;let result;try{result=await post(deleting,new FormData());del.close();toast(result.message);}catch(err){document.getElementById('mtDeleteError').textContent=err.message;toast(err.message,'error');}finally{busy=false;confirm.disabled=false;}if(result)try{await refresh();}catch(err){toast('Deleted successfully. '+err.message,'warning');}});
+ results.addEventListener('change',async e=>{if(!e.target.matches('.mtStatus'))return;const select=e.target,row=select.closest('[data-id]');if(busy){select.value=items().find(i=>String(i.id)===row.dataset.id).status;return;}busy=true;++latest;select.disabled=true;const original=items().find(i=>String(i.id)===row.dataset.id).status;let result;try{const data=new FormData();data.set('mode','status');data.set('status',select.value);result=await post(row.dataset.update,data);toast(result.message);}catch(err){select.value=original;toast(err.message,'error');}finally{busy=false;select.disabled=false;}if(result)try{await refresh();}catch(err){toast('Status saved. '+err.message,'warning');}});
+ document.getElementById('mtState').addEventListener('change',e=>{document.getElementById('mtProgress').value={pending:0,in_progress:50,completed:100}[e.target.value];});
+ filters.addEventListener('submit',async e=>{e.preventDefault();if(busy||anyOpen())return;const url=new URL(root.dataset.listUrl,location.origin);for(const [key,value] of new FormData(filters))if(value)url.searchParams.set(key,value);try{await refresh(url,true);}catch(err){toast(err.message,'error');}});
+ window.addEventListener('popstate',async()=>{current=new URL(location.href);for(const key of ['tab','q','team','status'])filters.elements.namedItem(key).value=current.searchParams.get(key)||(key==='tab'?'all':'');try{await refresh();}catch(err){toast(err.message,'error');}});
+ async function poll(){if(pagePaused||sessionExpired||pending||document.hidden||anyOpen()||busy||polling)return;polling=true;try{await refresh();}catch{}finally{polling=false;}}
+ setInterval(poll,20000);window.addEventListener('online',poll);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){++latest;pending?.abort();pending=null;}else poll();});
+ window.addEventListener('pagehide',()=>{pagePaused=true;++latest;pending?.abort();pending=null;});
+ window.addEventListener('pageshow',()=>{pagePaused=false;poll();});
+ let validationToast=false;
+ editor.addEventListener('invalid',event=>{if(validationToast)return;validationToast=true;toast(event.target.validationMessage||'Check the task fields.','warning');setTimeout(()=>{validationToast=false;},0);},true);
+ icons();
+})();
+</script>
+{% endblock %}

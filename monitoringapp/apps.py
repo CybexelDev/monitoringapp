@@ -7,3 +7,4 @@ class MonitoringappConfig(AppConfig):
 
     def ready(self):
         from . import notification_signals
+        from . import master_admin_notification_signals
