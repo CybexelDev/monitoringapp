@@ -3505,7 +3505,8 @@ document.addEventListener('keydown', function (event) {
 
                     <!-- DELETE -->
 
-                    <form
+                    {% if task.created_by_id == team_lead.id %}
+<form
                         method="POST"
                         action="{% url 'delete_task_teamlead' task.id %}"
                         class="task-delete-form"
@@ -3527,6 +3528,7 @@ document.addEventListener('keydown', function (event) {
                         </button>
 
                     </form>
+{% endif %}
 
                 </div>
 
@@ -3726,7 +3728,8 @@ document.addEventListener('keydown', function (event) {
                     </form>
 
 
-                    <form
+                    {% if task.created_by_id == team_lead.id %}
+<form
                         method="POST"
                         action="{% url 'delete_task_teamlead' task.id %}"
                         class="task-delete-form"
@@ -3748,6 +3751,7 @@ document.addEventListener('keydown', function (event) {
                         </button>
 
                     </form>
+{% endif %}
 
                 </div>
 
