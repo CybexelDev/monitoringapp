@@ -3893,6 +3893,7 @@
                     </div>
 
 
+                    <div id="tlMeetResults">
                     {% if meetings %}
 
                         <div class="meeting-table-wrap" tabindex="0" role="region" aria-label="Meetings table; scroll horizontally to see all columns">
@@ -4111,6 +4112,7 @@
                         </div>
 
                     {% endif %}
+                    </div>
 
                 </div>
 
@@ -4825,8 +4827,8 @@ if (createMeetingBtn && meetingModal) {
             meetingId.value =
                 "";
 
-            createMeetingForm.action =
-                "{% url 'teamlead_google_meet' %}";
+            createMeetingForm.setAttribute("action",
+                "{% url 'teamlead_google_meet' %}");
 
 
             meetingModalTitle.textContent =
@@ -4888,10 +4890,12 @@ if (createMeetingBtn && meetingModal) {
    EDIT MEETING
 ===================================================== */
 
+window.bindTLMeetEdit = function(){
 document
     .querySelectorAll(".edit-meeting-btn")
     .forEach(function (button) {
 
+        if(button.dataset.liveBound)return;button.dataset.liveBound='1';
         button.addEventListener(
             "click",
             function () {
@@ -4927,8 +4931,8 @@ document
                 meetingId.value =
                     id;
 
-                createMeetingForm.action =
-                    "{% url 'teamlead_google_meet' %}";
+                createMeetingForm.setAttribute("action",
+                    "{% url 'teamlead_google_meet' %}");
 
 
                 /* -----------------------------------------
@@ -5069,9 +5073,12 @@ document
     });
 
 
-            /* CLOSE MODAL */
+            
+};window.bindTLMeetEdit();
+/* CLOSE MODAL */
 
             function closeMeetingModalFunction() {
+ if(window.tlMeetBusy)return;
                 if (meetingModal) {
                     meetingModal.classList.remove("show");
                 }
@@ -5748,6 +5755,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function checkMeetingTimes() {
 
+        if(document.hidden)return;
         const meetingRows = document.querySelectorAll(
             ".meeting-row"
         );
@@ -6007,6 +6015,7 @@ if (editButton) {
     /*
      * Run immediately
      */
+    window.checkTLMeetingTimes=checkMeetingTimes;
     checkMeetingTimes();
 
 
@@ -6061,11 +6070,13 @@ document.addEventListener("DOMContentLoaded", function () {
        OPEN VIEW
        ===================================================== */
 
-    document
+    window.bindTLMeetView = function(){
+document
         .querySelectorAll(".view-meeting-btn")
         .forEach(function (button) {
 
-            button.addEventListener(
+            if(button.dataset.liveBound)return;button.dataset.liveBound='1';
+        button.addEventListener(
                 "click",
                 function () {
 
@@ -6124,7 +6135,9 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
 
-    /* =====================================================
+    
+};window.bindTLMeetView();
+/* =====================================================
        CLOSE VIEW POPUP
        ===================================================== */
 
@@ -6359,6 +6372,56 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
 
 </div>
+<div id="tlMeetMessages" hidden>{% for message in messages %}<span data-level="{{ message.level }}">{{ message }}</span>{% endfor %}</div>
+<div id="tlMeetFeedback" role="status" aria-live="polite"></div>
 {% include "components/toast_notification.html" %}
+<style>
+#meetingModal .meeting-modal-box,#viewMeetingModal .view-meeting-card{background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),rgba(12,11,20,.98);border:1px solid rgba(255,255,255,.13);border-radius:18px;box-shadow:0 20px 45px rgba(0,0,0,.45);max-height:calc(100dvh - 24px);max-width:calc(100vw - 24px);display:flex;flex-direction:column;overflow:hidden;}
+#meetingModal .meeting-modal-header,#viewMeetingModal .view-meeting-header{background:transparent;flex-shrink:0;}
+#createMeetingForm,.view-meeting-body{min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(139,92,246,.5) transparent;}
+#meetingModal .meeting-input-wrap input,#viewMeetingModal .view-field input,#viewMeetingModal .view-field textarea{background:#0c0b13;border:1px solid rgba(255,255,255,.13);color:#eeebf5;font-size:14px;}
+.meeting-modal-title,.view-meeting-title-wrap{min-width:0;}.meeting-modal-header h2,.view-meeting-header h3{overflow-wrap:anywhere;}
+.meeting-modal-close,.view-meeting-close{flex-shrink:0;}
+.meeting-modal-footer,.view-meeting-footer{flex-wrap:wrap;gap:10px;flex-shrink:0;}
+#tlMeetFeedback{position:fixed;right:16px;bottom:20px;z-index:200000;max-width:min(420px,calc(100vw - 32px));}
+#tlMeetFeedback>div{background:#211a30;color:#f5f3ff;border:1px solid #73608e;padding:14px 18px;border-radius:12px;margin-top:8px;overflow-wrap:anywhere;box-shadow:0 8px 30px #0006;}
+#tlMeetFeedback>.error{border-color:#df526a;}
+@media(max-width:640px){.meeting-form-grid,.view-field-row{grid-template-columns:1fr!important;}#createMeetingForm,.view-meeting-body{padding:16px;}#meetingModal .meeting-input-wrap input,#viewMeetingModal .view-field input,#viewMeetingModal .view-field textarea{font-size:16px;}.meeting-modal-header,.view-meeting-header{padding:16px;} .meeting-table-wrap{max-width:100%;overflow:auto;}}
+</style><script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const form=document.getElementById('createMeetingForm'),modal=document.getElementById('meetingModal');
+ let busy=false,pending=null,stopped=false,serial=0;
+ const url=form.getAttribute('action');
+ function toast(text,error=false){const n=document.createElement('div');n.textContent=text;n.className=error?'error':'success';document.getElementById('tlMeetFeedback').append(n);setTimeout(()=>n.remove(),5500);}
+ function sync(page){const old=document.getElementById('tlMeetResults'),fresh=page.getElementById('tlMeetResults');if(!fresh)throw Error('Session expired or unexpected response. Reload and sign in again.');const wrap=old.querySelector('.meeting-table-wrap'),top=wrap?.scrollTop||0,left=wrap?.scrollLeft||0;old.innerHTML=fresh.innerHTML;const tbody=old.querySelector('tbody');if(tbody){[...tbody.querySelectorAll('.meeting-row')].sort((a,b)=>((b.dataset.meetingDate||'')+'T'+(b.dataset.meetingTime||'00:00:00')).localeCompare((a.dataset.meetingDate||'')+'T'+(a.dataset.meetingTime||'00:00:00'))||Number(b.dataset.meetingId)-Number(a.dataset.meetingId)).forEach(row=>tbody.append(row));}const next=old.querySelector('.meeting-table-wrap');if(next){next.scrollTop=top;next.scrollLeft=left;}window.bindTLMeetEdit?.();window.bindTLMeetView?.();window.checkTLMeetingTimes?.();window.lucide?.createIcons();}
+ async function refresh(){if(stopped||busy||pending||document.hidden||document.querySelector('.meeting-modal.show,.view-meeting-modal.show')||document.activeElement?.closest('#tlMeetResults'))return;const c=new AbortController(),id=++serial;pending=c;const t=setTimeout(()=>c.abort(),12000);try{const r=await fetch(url,{signal:c.signal,cache:'no-store',credentials:'same-origin'});if(r.status===401||r.status===403){stopped=true;return;}if(!r.ok)return;const page=new DOMParser().parseFromString(await r.text(),'text/html');if(!page.getElementById('tlMeetResults')){stopped=true;return;}if(id===serial&&!busy)sync(page);}catch(e){}finally{clearTimeout(t);if(pending===c)pending=null;}}
+ form.addEventListener('submit',async e=>{e.preventDefault();if(busy||!form.reportValidity())return;if(document.getElementById('selectedParticipants')?.checked&&!form.querySelector('.member-checkbox:checked')){toast('Select at least one team member.',true);return;}
+ const data=new FormData(form),states=[...form.querySelectorAll('button,input,select,textarea')].map(n=>[n,n.disabled]);busy=true;window.tlMeetBusy=true;serial++;pending?.abort();pending=null;states.forEach(([n])=>n.disabled=true);form.setAttribute('aria-busy','true');const c=new AbortController(),timer=setTimeout(()=>c.abort(),30000);
+ try{const r=await fetch(url,{method:'POST',body:data,credentials:'same-origin',headers:{'X-CSRFToken':data.get('csrfmiddlewaretoken')||''},signal:c.signal});const page=new DOMParser().parseFromString(await r.text(),'text/html');const msgs=[...page.querySelectorAll('#tlMeetMessages [data-level]')],err=msgs.find(n=>+n.dataset.level>=40),ok=msgs.find(n=>+n.dataset.level===25);if(err)throw Error(err.textContent.trim());if(!r.ok||!ok)throw Error('Save could not be confirmed. Check the meeting list before retrying.');sync(page);modal.classList.remove('show');document.body.style.overflow='';form.reset();toast(ok.textContent.trim());}catch(e){toast(e.name==='AbortError'?'Request timed out. Check the meeting list before retrying; it may have saved.':e.message,true);}finally{clearTimeout(timer);busy=false;window.tlMeetBusy=false;states.forEach(([n,state])=>n.disabled=state);form.removeAttribute('aria-busy');}
+ });
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});window.addEventListener('pagehide',()=>{stopped=true;serial++;pending?.abort();});window.addEventListener('pageshow',e=>{if(e.persisted){stopped=false;refresh();}});setInterval(refresh,15000);
+});
+</script>
+<style>
+/* Keep the shared theme within a compact, centered dialog. */
+#viewMeetingModal .view-meeting-card {
+ width: min(560px, 100%);
+ max-width: 560px;
+ margin-inline: auto;
+ box-sizing: border-box;
+}
+#meetingModal .meeting-modal-box {
+ width: min(680px, 100%);
+ max-width: 680px;
+ margin-inline: auto;
+ box-sizing: border-box;
+}
+@media (max-width: 740px) {
+ #viewMeetingModal .view-meeting-card,
+ #meetingModal .meeting-modal-box {
+  max-width: calc(100vw - 24px);
+ }
+}
+</style>
 </body>
 </html>

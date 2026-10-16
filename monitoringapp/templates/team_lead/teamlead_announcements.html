@@ -2207,10 +2207,30 @@ body .announcement-tab-panel[hidden] {display:none!important;}
 #adminAnnouncementViewMessage {white-space:pre-wrap;overflow-wrap:anywhere;color:#d4cddd;font-size:14px;line-height:1.7;margin:0;}
 </style>
 
+<style>
+/* Responsive containment: retain the existing palette and announcement layout. */
+body.tl-announcements-page :is(.main-area,.dashboard-box,.dashboard-content,.create-card,.history-card,.announcement-body,.announcement-tab-panel){min-width:0;box-sizing:border-box;max-width:100%}
+body.tl-announcements-page .glass-sidebar{box-sizing:border-box;min-height:0}
+body.tl-announcements-page .sidebar-nav{min-height:0;overflow-y:auto;overflow-x:hidden}
+body.tl-announcements-page :is(.sidebar-profile,.sidebar-bottom){flex-shrink:0}
+body.tl-announcements-page .announcement-message{overflow-wrap:anywhere;word-break:normal}
+body.tl-announcements-page :is(.announcement-title-row,.announcement-footer,.history-top){flex-wrap:wrap;gap:10px}
+body.tl-announcements-page .announcement-actions{flex-shrink:0}
+body.tl-announcements-page .seen-modal{box-sizing:border-box;padding:12px}
+body.tl-announcements-page .seen-modal-card{min-height:0;max-width:100%;max-height:calc(100dvh - 24px)}
+body.tl-announcements-page .seen-modal-body{min-height:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+body.tl-announcements-page .announcement-list{max-height:min(65dvh,600px);overflow-y:auto;overscroll-behavior:contain}
+body.tl-announcements-page :is(input,textarea,select,button){box-sizing:border-box;max-width:100%}
+body.tl-announcements-page .seen-member-details{min-width:0}
+#tlAnnouncementFeedback{position:fixed;right:16px;bottom:16px;max-width:min(380px,calc(100vw - 32px));z-index:100001;padding:12px 16px;border-radius:12px;background:#241c35;color:#fff;box-shadow:0 8px 30px #0005}
+#tlAnnouncementFeedback[hidden]{display:none!important}
+@media(max-width:768px){body.tl-announcements-page .main-area{height:100dvh;padding:10px}body.tl-announcements-page .dashboard-box{height:100%;padding:12px}body.tl-announcements-page .glass-sidebar{max-width:calc(100vw - 20px)}body.tl-announcements-page :is(input,textarea,select){font-size:16px}body.tl-announcements-page .dashboard-header h1{font-size:clamp(22px,6vw,32px);overflow-wrap:anywhere}}
+@media(max-width:480px){body.tl-announcements-page .announcement-item{gap:10px;padding:14px}body.tl-announcements-page .create-card{padding:14px}body.tl-announcements-page .announcement-title{overflow-wrap:anywhere}body.tl-announcements-page .seen-modal-header{padding:16px}body.tl-announcements-page .member-seen-badge{white-space:normal;text-align:center}body.tl-announcements-page .seen-member-name{max-width:none;overflow-wrap:anywhere}}
+</style>
 </head>
 
 
-<body>
+<body class="tl-announcements-page">
 
 
     <!-- =========================================================
@@ -2534,7 +2554,7 @@ body .announcement-tab-panel[hidden] {display:none!important;}
                      HISTORY
                 ================================================== -->
 
-                <div class="history-card">
+                <div class="history-card" id="tlOwnHistory">
 
 
                     <div class="history-top">
@@ -2878,6 +2898,7 @@ body .announcement-tab-panel[hidden] {display:none!important;}
     </div>
 </div>
 
+<div id="tlSeenModals">
     {% for announcement in announcements %}
     {% if announcement.recipients.all %}
     <div class="seen-modal" id="seen-modal-{{ announcement.id }}" role="dialog" aria-modal="true"
@@ -2988,6 +3009,7 @@ body .announcement-tab-panel[hidden] {display:none!important;}
     </div>
     {% endif %}
     {% endfor %}
+</div>
 
     <!-- =========================================================
          JAVASCRIPT
@@ -3120,6 +3142,7 @@ body .announcement-tab-panel[hidden] {display:none!important;}
             modal.querySelector('.seen-modal-close').focus();
         }
         function closeSeenModal() {
+    if (window.tlAnnouncementBusy) return false;
             if (!activeSeenModal) return;
             activeSeenModal.classList.remove('open');
             activeSeenModal.setAttribute('aria-hidden', 'true');
@@ -3137,6 +3160,7 @@ body .announcement-tab-panel[hidden] {display:none!important;}
         ========================================================= */
 
         function openAnnouncementEdit(id) {
+    if (window.tlAnnouncementBusy) return false;
 
 
             const viewBox =
@@ -3195,6 +3219,7 @@ body .announcement-tab-panel[hidden] {display:none!important;}
         ========================================================= */
 
         function closeAnnouncementEdit(id) {
+    if (window.tlAnnouncementBusy) return false;
 
 
             const viewBox =
@@ -3235,6 +3260,7 @@ body .announcement-tab-panel[hidden] {display:none!important;}
 let pendingDeleteAnnouncementForm = null;
 
 function confirmDeleteAnnouncement(form) {
+    if (window.tlAnnouncementBusy) return false;
     pendingDeleteAnnouncementForm = form;
     const modal = document.getElementById("deleteAnnouncementModal");
     modal.classList.add("open");
@@ -3245,6 +3271,7 @@ function confirmDeleteAnnouncement(form) {
 }
 
 function closeDeleteAnnouncementModal() {
+    if (window.tlAnnouncementBusy) return false;
     const modal = document.getElementById("deleteAnnouncementModal");
     modal.classList.remove("open");
     modal.setAttribute("aria-hidden", "true");
@@ -3254,7 +3281,7 @@ function closeDeleteAnnouncementModal() {
 
 function submitDeleteAnnouncement() {
     if (pendingDeleteAnnouncementForm) {
-        pendingDeleteAnnouncementForm.submit();
+        window.tlSubmitAnnouncement?.(pendingDeleteAnnouncementForm);
     }
 }
 
@@ -3263,95 +3290,190 @@ document.addEventListener("keydown", function (event) {
 });
     </script>
 
+<div id="tlAnnouncementMessages" hidden>{% for notice in messages %}{% if notice.level %}<span data-level="{{ notice.level }}" data-type="{{ notice.tags|default:'info' }}">{{ notice }}</span>{% endif %}{% endfor %}</div>
+<div id="tlAnnouncementFeedback" role="status" hidden></div>
 {% include "components/toast_notification.html" %}
 <div class="seen-modal" id="adminAnnouncementViewModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="adminAnnouncementViewTitle">
 <div class="seen-modal-card"><div class="seen-modal-header"><div><span class="seen-modal-eyebrow">ADMIN ANNOUNCEMENT</span><h3 id="adminAnnouncementViewTitle"></h3><p id="adminAnnouncementViewDate"></p></div><button type="button" class="seen-modal-close" id="adminAnnouncementViewClose" aria-label="Close announcement"><i data-lucide="x" aria-hidden="true"></i></button></div><div class="seen-modal-body"><p id="adminAnnouncementViewMessage"></p></div></div></div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
- const modal = document.getElementById('adminAnnouncementViewModal');
- const close = document.getElementById('adminAnnouncementViewClose');
- const panel = document.getElementById('adminAnnouncementPanel');
- let trigger = null, previousOverflow = '', polling = false, mutations = 0;
- const marking = new Set();
- async function markSeen(card) {
-  const id = card.dataset.announcementId;
-  const label = card.querySelector('.admin-read-label');
-  if (label.classList.contains('is-seen') || marking.has(id)) return;
-  marking.add(id); mutations++;
-  try {
-   const response = await fetch(card.dataset.seenUrl, {method:'POST',credentials:'same-origin',body:new FormData(card.querySelector('form')),headers:{'X-Requested-With':'XMLHttpRequest'}});
-   if (!response.ok) throw new Error('Unable to mark announcement as seen.');
-   const data = await response.json();
-   if (!data.ok) throw new Error(data.message || 'Unable to mark announcement as seen.');
-   label.textContent = 'Seen'; label.classList.add('is-seen'); mutations++;
-  } catch(error) {if (window.showToast) window.showToast(error.message,'error');}
-  finally {marking.delete(id);}
- }
- function openView(card, button) {
-  trigger = button; previousOverflow = document.body.style.overflow;
-  document.getElementById('adminAnnouncementViewTitle').textContent = card.querySelector('.announcement-title').textContent;
-  document.getElementById('adminAnnouncementViewMessage').textContent = card.querySelector('template').content.textContent;
-  document.getElementById('adminAnnouncementViewDate').textContent = card.querySelector('.announcement-meta').textContent;
-  modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
-  document.body.style.overflow = 'hidden'; close.focus();
- }
- function closeView() {
-  if (!modal.classList.contains('open')) return;
-  modal.classList.remove('open'); modal.setAttribute('aria-hidden','true');
-  document.body.style.overflow = previousOverflow; trigger?.focus();
- }
- panel.addEventListener('click', event => {
-  const card = event.target.closest('.admin-announcement-card');
-  if (!card) return;
-  markSeen(card);
-  const button = event.target.closest('.admin-announcement-view');
-  if (button) openView(card,button);
- });
- panel.addEventListener('keydown',event => {
-  if (event.target.matches('.admin-announcement-card') && ['Enter',' '].includes(event.key)) {
-   event.preventDefault(); markSeen(event.target);
+  'use strict';
+  const panel = document.getElementById('adminAnnouncementPanel');
+  const modal = document.getElementById('adminAnnouncementViewModal');
+  const close = document.getElementById('adminAnnouncementViewClose');
+  if (!panel || !modal) return;
+  let pending = null, sequence = 0, paused = false, expired = false, busy = false;
+  let trigger = null, viewId = null, previousOverflow = '', toastTimer;
+  const marking = new Set();
+  const active = () => !paused && !expired && !document.hidden;
+  const editing = () => [...document.querySelectorAll('.announcement-edit-box')].some(node => node.style.display === 'block');
+  const toast = (text, type = 'info') => {
+    try { if (typeof window.showToast === 'function') { window.showToast(text, type); return; } } catch (_) {}
+    const host = document.getElementById('tlAnnouncementFeedback');
+    if (host) { clearTimeout(toastTimer); host.textContent = text; host.hidden = false; toastTimer = setTimeout(() => { host.hidden = true; }, 6000); }
+  };
+  function invalidate() { ++sequence; pending?.abort(); pending = null; }
+  async function request(url, options = {}) {
+    const controller = options.controller || new AbortController();
+    const timeout = setTimeout(() => controller.abort(), options.method === 'POST' ? 25000 : 12000);
+    try {
+      const response = await fetch(url, {...options, controller: undefined, credentials:'same-origin', cache:'no-store', signal:controller.signal});
+      if (response.status === 401 || response.status === 403) expired = true;
+      const payload = await response.text();
+      return {ok:response.ok,status:response.status,redirected:response.redirected,headers:response.headers,
+        text:async()=>payload,json:async()=>JSON.parse(payload)};
+    } finally { clearTimeout(timeout); }
   }
- });
- close.addEventListener('click',closeView);
- modal.addEventListener('click',event => {if (event.target === modal) closeView();});
- document.addEventListener('keydown',event => {
-  if (!modal.classList.contains('open')) return;
-  if (event.key === 'Escape') {event.preventDefault();closeView();}
-  if (event.key === 'Tab') {event.preventDefault();close.focus();}
- });
- document.addEventListener('wheel',event => {
-  if (modal.classList.contains('open') && !event.target.closest('#adminAnnouncementViewModal .seen-modal-body')) event.preventDefault();
- },{passive:false});
- async function refreshAnnouncements() {
-  if (polling || document.hidden || marking.size || modal.classList.contains('open')) return;
-  polling = true; const version = mutations;
-  const url = new URL(window.location.href); url.searchParams.set('format','json');
-  try {
-   const response = await fetch(url,{credentials:'same-origin',cache:'no-store',headers:{'X-Requested-With':'XMLHttpRequest'},signal:AbortSignal.timeout(8000)});
-   if (!response.ok || !(response.headers.get('content-type') || '').includes('application/json')) return;
-   const data = await response.json(); if (!data.ok || version !== mutations || marking.size || modal.classList.contains('open')) return;
-   const fresh = new DOMParser().parseFromString(data.html,'text/html');
-   const next = fresh.getElementById('adminAnnouncementPanel'); if (!next) return;
-   const signature = node => [...node.querySelectorAll('.admin-announcement-card')].map(card => [card.dataset.announcementId,card.textContent.trim(),card.querySelector('template').content.textContent]);
-   if (JSON.stringify(signature(panel)) !== JSON.stringify(signature(next))) {
-    const list = panel.querySelector('.announcement-list'), scroll = list?.scrollTop || 0;
-    const focused = document.activeElement.closest?.('.admin-announcement-card');
-    const focusId = focused?.dataset.announcementId;
-    panel.innerHTML = next.innerHTML;
-    if (panel.querySelector('.announcement-list')) panel.querySelector('.announcement-list').scrollTop = scroll;
-    if (focusId) [...panel.querySelectorAll('.admin-announcement-card')].find(card => card.dataset.announcementId === focusId)?.focus({preventScroll:true});
-    window.lucide?.createIcons();
-   }
-   const badge = document.querySelector('#adminAnnouncementTab .announcement-tab-count');
-   if (badge) badge.textContent = next.querySelectorAll('.admin-announcement-card').length;
-  } catch(error) { /* Retry on the next interval after a connection failure. */ }
-  finally {polling = false;}
- }
- setInterval(refreshAnnouncements,10000);
- document.addEventListener('visibilitychange',() => {if (!document.hidden) refreshAnnouncements();});
- document.getElementById('adminAnnouncementTab').addEventListener('click',refreshAnnouncements);
+  function signature(node) {
+    const copy = node.cloneNode(true);
+    copy.querySelectorAll('[name="csrfmiddlewaretoken"]').forEach(input => input.removeAttribute('value'));
+    copy.querySelectorAll('svg[data-lucide],i[data-lucide]').forEach(svg => {
+      const icon = document.createElement('i'); icon.dataset.lucide = svg.dataset.lucide; svg.replaceWith(icon);
+    });
+    return copy.innerHTML;
+  }
+  function replaceContent(current, next) {
+    if (!current || !next || signature(current) === signature(next)) return false;
+    const list = current.querySelector('.announcement-list') || current;
+    const top = list.scrollTop, left = list.scrollLeft;
+    const card = current.contains(document.activeElement) ? document.activeElement?.closest?.('article[id],article[data-announcement-id]') : null;
+    const id = card?.id, adminId = card?.dataset.announcementId;
+    const viewFocused = document.activeElement?.classList?.contains('admin-announcement-view');
+    current.innerHTML = next.innerHTML;
+    const newList = current.querySelector('.announcement-list') || current;
+    newList.scrollTop = top; newList.scrollLeft = left;
+    const restored = id ? document.getElementById(id) : [...current.querySelectorAll('[data-announcement-id]')].find(row => row.dataset.announcementId === adminId);
+    if (restored) (viewFocused ? restored.querySelector('.admin-announcement-view') : restored)?.focus({preventScroll:true});
+    return true;
+  }
+  function fillView(card) {
+    for(const [id, value] of [
+      ['adminAnnouncementViewTitle',card.querySelector('.announcement-title').textContent],
+      ['adminAnnouncementViewMessage',card.querySelector('template').content.textContent],
+      ['adminAnnouncementViewDate',card.querySelector('.announcement-meta').textContent]
+    ]){const target=document.getElementById(id);if(target.textContent!==value)target.textContent=value;}
+  }
+  function apply(page) {
+    let changed = false;
+    // Keep the create form and open inline edits intact.
+    if (!editing() && !document.querySelector('.seen-modal.open')) changed = replaceContent(document.getElementById('tlOwnHistory'),page.getElementById('tlOwnHistory')) || changed;
+    changed = replaceContent(panel,page.getElementById('adminAnnouncementPanel')) || changed;
+    const holder = document.getElementById('tlSeenModals'), nextHolder = page.getElementById('tlSeenModals');
+    if (holder && nextHolder) {
+      const open = holder.querySelector('.seen-modal.open');
+      if (open) {
+        const next = page.getElementById(open.id);
+        if (next) changed = replaceContent(open.querySelector('.seen-modal-body'),next.querySelector('.seen-modal-body')) || changed;
+        else window.closeSeenModal?.();
+      } else changed = replaceContent(holder,nextHolder) || changed;
+    }
+    for (const id of ['myAnnouncementTab','adminAnnouncementTab']) {
+      const current = document.querySelector('#'+id+' .announcement-tab-count');
+      const next = page.querySelector('#'+id+' .announcement-tab-count');
+      if (current && next) current.textContent = next.textContent;
+    }
+    if (viewId && modal.classList.contains('open')) {
+      const card = [...panel.querySelectorAll('.admin-announcement-card')].find(item => item.dataset.announcementId === viewId);
+      if (card) { const top = modal.querySelector('.seen-modal-body').scrollTop; fillView(card); modal.querySelector('.seen-modal-body').scrollTop = top; }
+      else closeView();
+    }
+    if (changed) window.lucide?.createIcons();
+  }
+  async function refresh() {
+    if (!active() || pending || busy || marking.size || document.getElementById('deleteAnnouncementModal')?.classList.contains('open')) return;
+    const controller = new AbortController(); pending = controller;
+    const token = ++sequence;
+    try {
+      const url = new URL(location.href); url.searchParams.set('format','json');
+      const response = await request(url,{controller,headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}});
+      if (expired || !response.ok || response.redirected) return;
+      const data = await response.json();
+      if (!data.ok || typeof data.html !== 'string' || token !== sequence || controller.signal.aborted || !active() || busy || marking.size) return;
+      const page = new DOMParser().parseFromString(data.html,'text/html');
+      if (page.getElementById('adminAnnouncementPanel')) apply(page);
+    } catch (_) { /* Visible-page polling recovers temporary connection failures. */ }
+    finally { if (pending === controller) pending = null; }
+  }
+  async function markSeen(card) {
+    const id = card.dataset.announcementId, label = card.querySelector('.admin-read-label');
+    if (!active() || busy || !label || label.classList.contains('is-seen') || marking.has(id)) return;
+    marking.add(id); invalidate();
+    try {
+      const response = await request(card.dataset.seenUrl,{method:'POST',body:new FormData(card.querySelector('form')),headers:{'X-Requested-With':'XMLHttpRequest'}});
+      if (!response.ok) throw new Error('Unable to mark announcement as seen.');
+      const data = await response.json(); if (!data.ok) throw new Error(data.message || 'Unable to mark announcement as seen.');
+      label.textContent = 'Seen'; label.classList.add('is-seen');
+    } catch (error) { toast(error.message,'error'); }
+    finally { marking.delete(id); refresh(); }
+  }
+  function openView(card, button) {
+    trigger = button; viewId = card.dataset.announcementId; previousOverflow = document.body.style.overflow;
+    fillView(card); modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; close.focus();
+  }
+  function closeView() {
+    if (!modal.classList.contains('open')) return;
+    modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); document.body.style.overflow=previousOverflow;
+    if (trigger?.isConnected) trigger.focus();
+    else [...panel.querySelectorAll('.admin-announcement-card')].find(item => item.dataset.announcementId === viewId)?.querySelector('.admin-announcement-view')?.focus();
+    viewId=null; trigger=null;
+  }
+  panel.addEventListener('pointerdown',event => { const card=event.target.closest('.admin-announcement-card'); if(card && (event.button === undefined || event.button === 0))markSeen(card); });
+  panel.addEventListener('click',event => { const card=event.target.closest('.admin-announcement-card'); if(!card)return; markSeen(card); const button=event.target.closest('.admin-announcement-view'); if(button)openView(card,button); });
+  panel.addEventListener('keydown',event => { if(event.target.matches('.admin-announcement-card') && ['Enter',' '].includes(event.key)){event.preventDefault();markSeen(event.target);} });
+  close.addEventListener('click',closeView);
+  modal.addEventListener('click',event => {if(event.target===modal)closeView();});
+  document.addEventListener('keydown',event => {
+    const open = document.querySelector('.seen-modal.open'); if(!open)return;
+    if(event.key==='Escape' && open===modal){event.preventDefault();closeView();}
+    if(event.key==='Tab'){
+      const controls=[...open.querySelectorAll('button:not(:disabled),a[href],input:not([type="hidden"]),textarea,[tabindex="0"]')].filter(node=>node.getClientRects().length);
+      const first=controls[0],last=controls.at(-1);if(!first)return;
+      if(!open.contains(document.activeElement)||event.shiftKey&&document.activeElement===first||!event.shiftKey&&document.activeElement===last){event.preventDefault();(event.shiftKey?last:first).focus();}
+    }
+  });
+  window.tlSubmitAnnouncement = async form => {
+    if(busy || !form?.reportValidity())return;
+    const body=new FormData(form), action=body.get('action');
+    if(action==='create_announcement' && body.get('send_to')==='selected' && !body.getAll('recipient_ids').length){toast('Select at least one team member.','error');return;}
+    const url=new URL(form.getAttribute('action')||location.href,location.href); if(url.origin!==location.origin)return;
+    busy=true;window.tlAnnouncementBusy=true;invalidate();const oldInert=form.inert;form.inert=true;form.setAttribute('aria-busy','true');
+    let success=false,page=null;
+    try{
+      const response=await request(url,{method:'POST',body,headers:{'Accept':'text/html, application/json'}});
+      if(!response.ok)throw new Error(expired?'Session expired or access denied.':'Announcement could not be saved.');
+      if((response.headers.get('content-type')||'').includes('application/json')){
+        const data=await response.json();if(!data.ok)throw new Error(data.message||'Announcement could not be saved.');success=true;toast(data.message||'Changes saved.','success');
+      }else{
+        page=new DOMParser().parseFromString(await response.text(),'text/html');if(!page.getElementById('adminAnnouncementPanel'))throw new Error('Session expired or unexpected response.');
+        const alerts=[...page.querySelectorAll('#tlAnnouncementMessages [data-level]')];
+        const error=alerts.find(item=>Number(item.dataset.level)>=40);if(error)throw new Error(error.textContent.trim());
+        success=alerts.some(item=>Number(item.dataset.level)===25);
+        alerts.forEach(item=>toast(item.textContent.trim(),item.dataset.type||'info'));
+        if(!success)toast('Server responded. Verify the saved change before submitting again.','info');
+      }
+    }catch(error){toast(error.name==='AbortError'?'Save was not confirmed. Check the saved announcement before retrying.':error.message,'error');}
+    finally{form.inert=oldInert;form.removeAttribute('aria-busy');busy=false;window.tlAnnouncementBusy=false;}
+    if(success){
+      if(action==='create_announcement'){form.reset();window.toggleAnnouncementRecipients?.();}
+      if(action==='edit_announcement')window.closeAnnouncementEdit?.(body.get('announcement_id'));
+      if(action==='delete_announcement')window.closeDeleteAnnouncementModal?.();
+      if(page)apply(page);await refresh();
+    }
+  };
+  document.addEventListener('submit',event=>{
+    const form=event.target;if(!(form instanceof HTMLFormElement)||event.defaultPrevented)return;
+    if(!form.matches('.create-card,.announcement-edit-box form'))return;
+    event.preventDefault();window.tlSubmitAnnouncement(form);
+  });
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)invalidate();else refresh();});
+  window.addEventListener('online',refresh);window.addEventListener('focus',refresh);
+  window.addEventListener('pagehide',()=>{paused=true;invalidate();});window.addEventListener('pageshow',()=>{paused=false;refresh();});
+  document.getElementById('adminAnnouncementTab')?.addEventListener('click',refresh);
+  document.getElementById('myAnnouncementTab')?.addEventListener('click',refresh);
+  setInterval(refresh,10000);refresh();
 });
+
 </script>
 
 

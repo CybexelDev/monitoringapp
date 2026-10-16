@@ -1089,7 +1089,7 @@
 
                 <form
                     method="POST"
-                    class="profile-form"
+                    class="profile-form" action="{% url 'teamlead_profile' %}"
                 >
 
                     {% csrf_token %}
@@ -1101,7 +1101,8 @@
                     >
 
 
-                    <div class="profile-form-grid">
+                    <input type="hidden" name="work_location" value="{{ user.work_location|default_if_none:'' }}">
+<div class="profile-form-grid">
 
 
                         <!-- Full Name -->
@@ -1206,181 +1207,39 @@
 
 
 <script>
-
-document.addEventListener("DOMContentLoaded", function () {
-
-    /* ---------------------------------------------------------
-       SIDEBAR
-    --------------------------------------------------------- */
-
-    const sidebar =
-        document.getElementById("sidebar");
-
-    const menuButtons =
-        document.querySelectorAll(".menu-toggle");
-
-
-    menuButtons.forEach(function(button) {
-
-        button.addEventListener("click", function() {
-
-            sidebar.classList.toggle("open");
-
-        });
-
-    });
-
-
-    /* ---------------------------------------------------------
-       LUCIDE ICONS
-    --------------------------------------------------------- */
-
-    if (window.lucide) {
-
-        lucide.createIcons();
-
-    }
-
-
-    /* ---------------------------------------------------------
-       PROFILE IMAGE
-    --------------------------------------------------------- */
-
-    const profileContainer =
-        document.getElementById("profile-container");
-
-    const profileDisplay =
-        document.getElementById("profile-display");
-
-    const profileInput =
-        document.getElementById("profile-input");
-
-
-    if (
-        profileContainer &&
-        profileInput &&
-        profileDisplay
-    ) {
-
-        profileContainer.addEventListener(
-            "click",
-            function () {
-
-                profileInput.click();
-
-            }
-        );
-
-
-        profileInput.addEventListener(
-            "change",
-            function () {
-
-                const file =
-                    profileInput.files[0];
-
-                if (!file) {
-                    return;
-                }
-
-
-                /* Instant preview */
-
-                const reader =
-                    new FileReader();
-
-
-                reader.onload =
-                    function(event) {
-
-                        profileDisplay.src =
-                            event.target.result;
-
-                    };
-
-
-                reader.readAsDataURL(file);
-
-
-                /* AJAX upload */
-
-                const formData =
-                    new FormData();
-
-
-                formData.append(
-                    "profile_image",
-                    file
-                );
-
-
-                formData.append(
-                    "action",
-                    "edit_profile"
-                );
-
-
-                formData.append(
-                    "csrfmiddlewaretoken",
-                    "{{ csrf_token }}"
-                );
-
-
-                fetch(
-                    "{% url 'teamlead_profile' %}",
-                    {
-                        method: "POST",
-                        body: formData,
-                        headers: {
-                            "X-Requested-With":
-                                "XMLHttpRequest"
-                        }
-                    }
-                )
-
-                .then(function(response) {
-
-                    return response.json();
-
-                })
-
-                .then(function(data) {
-
-                    if (data.success) {
-
-                        profileDisplay.src =
-                            data.image_url;
-                            window.showToast("Profile photo updated successfully.", "success");
-
-                    } else {
-                        window.showToast(
-    data.error || "Failed to update image.",
-    "error"
-);
-
-                    }
-
-                })
-
-                .catch(function(error) {
-
-                    console.error(
-                        "Profile image upload error:",
-                        error
-                    );
-                    window.showToast("Profile photo upload failed. Please try again.", "error");
-
-                });
-
-            }
-        );
-
-    }
-
+document.addEventListener('DOMContentLoaded',()=>{
+ const form=document.querySelector('.profile-form'),input=document.getElementById('profile-input'),photo=document.getElementById('profile-display'),container=document.getElementById('profile-container');
+ const url=form.getAttribute('action');let busy=false,dirty=false,pending=null,stopped=false,seq=0;
+ const toast=(message,error=false)=>{if(typeof window.showToast==='function'){window.showToast(message,error?'error':'success');return;}const n=document.createElement('div');n.textContent=message;n.className='profile-live-toast';n.setAttribute('role','status');document.body.append(n);setTimeout(()=>n.remove(),5500);};
+ document.querySelectorAll('.menu-toggle').forEach(b=>b.addEventListener('click',()=>document.getElementById('sidebar')?.classList.toggle('open')));
+ window.lucide?.createIcons();
+ function setPhoto(src){photo.src=src;document.querySelectorAll('#sidebar img').forEach(n=>{if(n.alt?.toLowerCase().includes('profile'))n.src=src;});}
+ function apply(page,fields=false){if(!page.querySelector('.profile-form'))throw Error('Session expired or unexpected response. Please sign in again.');for(const selector of ['.profile-info-grid']){const old=document.querySelector(selector),fresh=page.querySelector(selector);if(old&&fresh)old.innerHTML=fresh.innerHTML;}
+ const freshPhoto=page.getElementById('profile-display');if(freshPhoto)setPhoto(freshPhoto.getAttribute('src'));
+ if(fields)form.querySelectorAll('input:not([type="file"])').forEach(n=>{const fresh=[...page.querySelectorAll('.profile-form input')].find(f=>f.name===n.name);if(fresh)n.value=fresh.value;});window.lucide?.createIcons();}
+ async function refresh(){if(stopped||busy||dirty||pending||document.hidden||form.contains(document.activeElement))return;const c=new AbortController(),id=++seq;pending=c;const t=setTimeout(()=>c.abort(),12000);try{const r=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:c.signal});if(r.status===401||r.status===403){stopped=true;return;}if(!r.ok)return;const p=new DOMParser().parseFromString(await r.text(),'text/html');if(!p.querySelector('.profile-form')){stopped=true;return;}if(id===seq&&!busy&&!dirty)apply(p,true);}catch(e){}finally{clearTimeout(t);if(pending===c)pending=null;}}
+ form.addEventListener('input',()=>dirty=true);
+ async function save(data,imageOnly=false){if(busy)return;busy=true;seq++;pending?.abort();pending=null;const states=[...form.querySelectorAll('input,button'),input].map(n=>[n,n.disabled]);states.forEach(([n])=>n.disabled=true);form.setAttribute('aria-busy','true');const c=new AbortController(),t=setTimeout(()=>c.abort(),30000);
+ try{const r=await fetch(url,{method:'POST',body:data,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':data.get('csrfmiddlewaretoken')||''},signal:c.signal});
+ if(imageOnly){const result=await r.json();if(!r.ok||!result.success||!result.image_url)throw Error(result.error||'Unable to update photo.');setPhoto(result.image_url);toast('Profile photo updated successfully.');}
+ else{const page=new DOMParser().parseFromString(await r.text(),'text/html'),msgs=[...page.querySelectorAll('#profileServerMessages [data-level]')],error=msgs.find(n=>+n.dataset.level>=40),ok=msgs.find(n=>+n.dataset.level===25);if(error)throw Error(error.textContent.trim());if(!r.ok||!ok)throw Error('Save could not be confirmed. Check your profile before retrying.');apply(page,true);dirty=false;toast(ok.textContent.trim());}
+ }catch(e){toast(e.name==='AbortError'?'Request timed out. Check your profile before retrying; it may have saved.':e.message,true);}finally{clearTimeout(t);busy=false;states.forEach(([n,state])=>n.disabled=state);form.removeAttribute('aria-busy');if(imageOnly)input.value='';}}
+ form.addEventListener('submit',e=>{e.preventDefault();if(form.reportValidity())save(new FormData(form));});
+ container.setAttribute('role','button');container.setAttribute('tabindex','0');container.setAttribute('aria-label','Change profile photo');container.addEventListener('click',e=>{if(e.target!==input&&!busy)input.click();});container.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(!busy)input.click();}});
+ input.addEventListener('change',()=>{const file=input.files[0];if(!file||busy)return;if(file.type&&!file.type.startsWith('image/')){toast('Choose an image file.',true);input.value='';return;}const data=new FormData();data.append('profile_image',file);data.append('action','edit_profile');data.append('csrfmiddlewaretoken',form.querySelector('[name="csrfmiddlewaretoken"]').value);save(data,true);});
+ setInterval(refresh,15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});window.addEventListener('pagehide',()=>{stopped=true;seq++;pending?.abort();});window.addEventListener('pageshow',e=>{if(e.persisted){stopped=false;refresh();}});
 });
-
 </script>
 
+<div id="profileServerMessages" hidden>{% for message in messages %}<span data-level="{{ message.level }}">{{ message }}</span>{% endfor %}</div>
 {% include "components/toast_notification.html" %}
-</body>
+<style>
+.profile-main-card,.profile-edit-card,.profile-info-grid,.profile-form-grid,.profile-form-group{min-width:0;box-sizing:border-box;}
+.profile-info-value{overflow-wrap:anywhere;word-break:normal;}
+.profile-form-input{max-width:100%;box-sizing:border-box;}
+#profile-container:focus-visible{outline:2px solid #a78bfa;outline-offset:4px;}
+#profile-input{display:none;}
+.profile-live-toast{position:fixed;bottom:18px;right:18px;max-width:calc(100vw - 36px);background:#211a30;border:1px solid #73608e;color:#fff;border-radius:12px;padding:14px 18px;z-index:200000;}
+@media(max-width:768px){.profile-main-card,.profile-edit-card{width:100%;}.profile-info-grid,.profile-form-grid{grid-template-columns:minmax(0,1fr);}.profile-form-input{font-size:16px;min-height:44px;}.profile-save-button{min-height:44px;}}
+</style></body>
 </html>

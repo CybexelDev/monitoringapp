@@ -194,6 +194,26 @@
 #memberChatPage .lead-contact-search #memberChatSearch:focus{border-color:#a783ce;background:#17111f;}
 #memberChatPage .lead-search-field:focus-within .lead-search-icon{color:#d0b6ee;}
 </style>
+<style>
+/* Keep the existing theme; constrain chat to the available viewport. */
+.lead-chat-layout{height:var(--lead-chat-height,100dvh);}
+#memberChatPage .chat-conversation-header{flex-shrink:0;}
+#memberChatPage .conversation-name,#memberChatPage .conversation-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#memberChatPage .conversation-user,#memberChatPage .chat-user-info{min-width:0;}
+#memberChatPage .message-row{min-width:0;max-width:100%;}
+#memberChatPage .message-bubble{max-width:85%;overflow-wrap:anywhere;}
+#memberChatPage .chat-composer{padding-bottom:max(10px,env(safe-area-inset-bottom));}
+#groupModal{padding:14px;overflow:auto;}
+#groupModal .chat-modal-card{width:min(520px,100%);max-height:calc(var(--lead-chat-height,100dvh) - 28px);min-width:0;overscroll-behavior:contain;}
+.member-action-dialog{max-height:calc(var(--lead-chat-height,100dvh) - 28px);overscroll-behavior:contain;}
+.member-action-dialog footer{flex-wrap:wrap;}
+@media(max-width:768px){
+ #memberChatPage input,#groupModal input,.member-action-dialog textarea{font-size:16px;}
+ #memberChatPage .chat-composer input{flex:1;width:0;min-height:44px;}
+ #memberChatPage .send-button{min-height:44px;}
+ #memberChatPage .chat-conversation-header{gap:8px;}
+}
+</style>
 </head>
 <body class="chat-page">
   <button class="menu-toggle mobile-menu-button lead-chat-menu" type="button" aria-label="Open navigation"><i data-lucide="menu"></i></button>
@@ -813,6 +833,16 @@
   {% include 'components/toast_notification.html' %}
   <script src="{% static 'js/admin.js' %}"></script>
   <script>
+async function chatRequest(url,options={}) {
+ const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),options.method==='POST'?30000:12000);
+ try { const response=await fetch(url,{...options,signal:controller.signal});
+  const blob=await response.blob();
+  const copy=new Response(blob,{status:response.status,statusText:response.statusText,headers:response.headers});
+  Object.defineProperty(copy,'redirected',{value:response.redirected});Object.defineProperty(copy,'url',{value:response.url});return copy;
+ } finally {clearTimeout(timer);}
+}
+</script>
+<script>
 (() => {
  'use strict';
  const root = document.getElementById('memberChatPage');
@@ -849,13 +879,13 @@
  async function operation(form){
   if(busy)return;busy=true;const button=form.querySelector('[type=submit]');if(button)button.disabled=true;
   try {
-   const response=await fetch(form.getAttribute('action')||location.href,{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
+   const response=await chatRequest(form.getAttribute('action')||location.href,{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
    if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Check your login and try again.');
    const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.message||'Could not complete this action.');
    busy=false;toast(data.message,'success');
    if(data.url){const url=new URL(data.url,location.href);if(url.origin!==location.origin)throw new Error('Invalid chat link.');closeModal();location.assign(url);}
    else {
-    const response=await fetch(location.href,{credentials:'same-origin',cache:'no-store'});if(!response.ok)throw new Error('Saved, but could not refresh the members list.');
+    const response=await chatRequest(location.href,{credentials:'same-origin',cache:'no-store'});if(!response.ok)throw new Error('Saved, but could not refresh the members list.');
     const doc=new DOMParser().parseFromString(await response.text(),'text/html');const fresh=doc.getElementById('groupSettings');const old=document.getElementById('groupSettings');if(!fresh||!old)throw new Error('Saved. Reopen this chat to see the updated members.');
     fresh.classList.remove('hidden');old.replaceWith(fresh);document.getElementById('closeGroupSettings')?.addEventListener('click',()=>fresh.classList.add('hidden'));
     const count=doc.querySelector('.group-conversation .conversation-sub');if(count)root.querySelector('.group-conversation .conversation-sub').textContent=count.textContent;icons();
@@ -943,7 +973,7 @@
   event.preventDefault();if(actionBusy)return;if(activeAction==='edit_message'&&!canEditMessage(activeRow)){refreshEditWindow();return;}actionBusy=true;const buttons=actionDialog.querySelectorAll('button');buttons.forEach(button=>button.disabled=true);
   const form=new FormData();form.set('action',activeAction);if(activeRow)form.set('message_id',activeRow.dataset.messageId);if(activeAction==='edit_message')form.set('message',actionDialog.querySelector('textarea').value);
   const token=root.querySelector('[name=csrfmiddlewaretoken]')?.value;if(token)form.set('csrfmiddlewaretoken',token);
-  try{const url=new URL(location.href);url.searchParams.delete('messages');const response=await fetch(url,{method:'POST',body:form,credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}});if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Check your login and try again.');const data=await response.json();updateServerClock(data.server_now);if(data.code==='edit_window_expired'&&activeRow){activeRow.dataset.editExpired='true';refreshEditWindow();}if(!response.ok||!data.ok)throw new Error(data.message||'Could not save this change.');historyEpoch++;historyAgain=true;actionBusy=false;actionDialog.close();toast(data.message,'success');syncHistory();}
+  try{const url=new URL(location.href);url.searchParams.delete('messages');const response=await chatRequest(url,{method:'POST',body:form,credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}});if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Check your login and try again.');const data=await response.json();updateServerClock(data.server_now);if(data.code==='edit_window_expired'&&activeRow){activeRow.dataset.editExpired='true';refreshEditWindow();}if(!response.ok||!data.ok)throw new Error(data.message||'Could not save this change.');historyEpoch++;historyAgain=true;actionBusy=false;actionDialog.close();toast(data.message,'success');syncHistory();}
   catch(error){actionDialog.querySelector('.member-action-error').textContent=error.message;toast(error.message,'error');}
   finally{actionBusy=false;buttons.forEach(button=>button.disabled=false);refreshEditWindow();}
  });
@@ -1019,17 +1049,17 @@
   if((atBottom&&!document.hidden)||mine)messages.scrollTop=messages.scrollHeight;
  }
  async function syncHistory(){
-  if(!messages||document.hidden)return;if(historyBusy){historyAgain=true;return;}historyBusy=true;const epoch=historyEpoch;
-  try{const url=new URL(location.href);url.searchParams.set('messages','1');const response=await fetch(url,{credentials:'same-origin',cache:'no-store',headers:{'Accept':'application/json'}});if(response.ok&&(response.headers.get('content-type')||'').includes('application/json')){const data=await response.json();updateServerClock(data.server_now||response.headers.get('Date'));if(epoch!==historyEpoch){historyAgain=true;return;}if(data.ok&&Array.isArray(data.items)){const atBottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<90;const visible=new Set(data.items.map(item=>String(item.message_id)));messages.querySelectorAll('[data-message-id]').forEach(row=>{if(!visible.has(row.dataset.messageId)){ids.delete(row.dataset.messageId);unseenRows.delete(row);row.remove();}});data.items.forEach(item=>renderMessage(item));[...messages.querySelectorAll('[data-message-id]')].sort((a,b)=>new Date(a.dataset.messageAt)-new Date(b.dataset.messageAt)||Number(a.dataset.messageId)-Number(b.dataset.messageId)).forEach(row=>messages.append(row));refreshJumpButton();decorateMessages();if(atBottom)messages.scrollTop=messages.scrollHeight;}}}catch(_){}finally{historyBusy=false;if(historyAgain){historyAgain=false;queueMicrotask(syncHistory);}}
+  if(closed||!messages||document.hidden)return;if(historyBusy){historyAgain=true;return;}historyBusy=true;const epoch=historyEpoch;
+  try{const url=new URL(location.href);url.searchParams.set('messages','1');const response=await chatRequest(url,{credentials:'same-origin',cache:'no-store',headers:{'Accept':'application/json'}});if(response.ok&&(response.headers.get('content-type')||'').includes('application/json')){const data=await response.json();updateServerClock(data.server_now||response.headers.get('Date'));if(closed||epoch!==historyEpoch){historyAgain=true;return;}if(data.ok&&Array.isArray(data.items)){const atBottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<90;const visible=new Set(data.items.map(item=>String(item.message_id)));messages.querySelectorAll('[data-message-id]').forEach(row=>{if(!visible.has(row.dataset.messageId)){ids.delete(row.dataset.messageId);unseenRows.delete(row);row.remove();}});data.items.forEach(item=>renderMessage(item));[...messages.querySelectorAll('[data-message-id]')].sort((a,b)=>new Date(a.dataset.messageAt)-new Date(b.dataset.messageAt)||Number(a.dataset.messageId)-Number(b.dataset.messageId)).forEach(row=>messages.append(row));refreshJumpButton();decorateMessages();if(atBottom)messages.scrollTop=messages.scrollHeight;}}}catch(_){}finally{historyBusy=false;if(historyAgain){historyAgain=false;queueMicrotask(syncHistory);}}
  }
  function status(text,connected){if(connection){connection.textContent=text;connection.dataset.connected=String(connected);}if(send)send.disabled=!connected||!!pending;}
  function restorePending(){if(!pending)return;clearTimeout(pending.timer);if(input&&!input.value)input.value=pending.text;pending=null;if(input)input.disabled=false;if(send)send.disabled=!socket||socket.readyState!==WebSocket.OPEN;toast('Connection interrupted. Check the chat before resending; the message may already be saved.','warning');}
  function connect(){
-  if(closed||!root.dataset.socketPath)return;
+  if(closed||!root.dataset.socketPath||socket?.readyState===WebSocket.OPEN||socket?.readyState===WebSocket.CONNECTING)return;clearTimeout(reconnectTimer);
   status('Connecting…',false);const scheme=location.protocol==='https:'?'wss':'ws';socket=new WebSocket(`${scheme}://${location.host}${root.dataset.socketPath}`);
   socket.onopen=()=>{retry=0;status('Connected',true);syncHistory();};
   socket.onmessage=event=>{let data;try{data=JSON.parse(event.data);}catch{return;}if(data.action==='sync_messages'){historyEpoch++;syncHistory();return;}if(data.error){restorePending();toast(data.error,'error');return;}historyEpoch++;renderMessage(data,true);if(pending&&data.client_id===pending.id&&Number(data.sender_id)===currentId){clearTimeout(pending.timer);pending=null;if(input)input.disabled=false;if(send)send.disabled=false;input?.focus();}};
-  socket.onclose=event=>{status(event.code===4403?'Access denied':'Reconnecting…',false);restorePending();if(!closed&&event.code!==4403)reconnectTimer=setTimeout(connect,Math.min(1000*2**retry++,15000));};
+  socket.onclose=event=>{status(event.code===4403?'Access denied':'Reconnecting…',false);restorePending();if(!closed&&![4401,4403].includes(event.code))reconnectTimer=setTimeout(connect,Math.min(1000*2**retry++,15000));};
   socket.onerror=()=>status('Connection unavailable',false);
  }
  function sendMessage(event){event?.preventDefault();if(!input)return;const text=input.value.trim();if(!text)return;if(text.length>10000){toast('Use 10,000 characters or fewer.','warning');return;}if(!socket||socket.readyState!==WebSocket.OPEN){toast('Chat is reconnecting. Your message is kept; try again when connected.','warning');return;}if(pending){toast('Waiting for the previous message to be confirmed.','info');return;}
@@ -1038,7 +1068,9 @@
   try{socket.send(JSON.stringify({message:text,sender_id:currentId,client_id:clientId}));input.value='';input.focus();}catch{restorePending();}
  }
  if(input){if(mode==='group')document.getElementById('chat-form').addEventListener('submit',sendMessage);else send?.addEventListener('click',sendMessage);input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing)sendMessage(event);});}
- window.addEventListener('pagehide',()=>{closed=true;clearTimeout(reconnectTimer);if(pending)clearTimeout(pending.timer);socket?.close();});
+ window.addEventListener('pagehide',()=>{closed=true;historyEpoch++;clearTimeout(reconnectTimer);if(pending){clearTimeout(pending.timer);if(input&&!input.value)input.value=pending.text;pending=null;if(input)input.disabled=false;}if(socket){socket.onclose=null;socket.close();socket=null;}});
+ window.addEventListener('pageshow',event=>{if(event.persisted){closed=false;connect();syncHistory();}});
+ window.addEventListener('online',()=>{connect();syncHistory();});
  document.addEventListener('visibilitychange',()=>{refreshEditWindow();if(!document.hidden)syncHistory();});
  if(messages){messages.scrollTop=messages.scrollHeight;connect();setInterval(syncHistory,15000);}icons();
 })();
@@ -1079,7 +1111,7 @@
                 ? "Inactive"
                 : "Checking status";
 
-        dots.filter(
+        [...root.querySelectorAll(".user-status-dot[data-user-id]")].filter(
             dot => dot.dataset.userId === userId
         ).forEach(dot => {
             dot.style.setProperty(
@@ -1133,14 +1165,14 @@
         busy = true;
 
         try {
-            await Promise.all(userIds.map(async userId => {
+            await Promise.all([...new Set([...root.querySelectorAll(".user-status-dot[data-user-id]")].map(dot=>dot.dataset.userId).filter(id=>/^\d+$/.test(id)))].map(async userId => {
                 try {
                     const url = statusUrl.replace(
                         /\/0\/$/,
                         `/${userId}/`
                     );
 
-                    const response = await fetch(url, {
+                    const response = await chatRequest(url, {
                         credentials: "same-origin",
                         cache: "no-store"
                     });
@@ -1177,6 +1209,41 @@
     document.addEventListener("visibilitychange", () => {
         if (!document.hidden) syncStatus();
     });
+})();
+</script>
+<script>
+(() => {
+ const root=document.getElementById('memberChatPage');if(!root)return;
+ let pending=null,paused=false,generation=0;
+ const viewport=()=>{if(innerWidth<=768)document.documentElement.style.setProperty('--lead-chat-height',`${window.visualViewport?.height||innerHeight}px`);else document.documentElement.style.removeProperty('--lead-chat-height');};
+ window.visualViewport?.addEventListener('resize',viewport);window.addEventListener('resize',viewport);viewport();
+ async function syncContacts(){
+  if(paused||document.hidden||pending||!root.isConnected||document.querySelector('dialog[open]')||!document.getElementById('groupModal')?.classList.contains('hidden'))return;
+  const scroller=root.querySelector('.chat-list-scroll');if(scroller?.contains(document.activeElement))return;
+  const controller=new AbortController();pending=controller;const epoch=generation;const timeout=setTimeout(()=>controller.abort(),12000);
+  try{
+   const url=new URL(location.href);url.searchParams.delete('messages');url.searchParams.delete('members');
+   const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:controller.signal,headers:{Accept:'text/html'}});
+   if(!response.ok||response.redirected)return;
+   const doc=new DOMParser().parseFromString(await response.text(),'text/html');if(paused||epoch!==generation)return;
+   const scroll=scroller?.scrollTop||0;
+   for(const [selector,rowSelector,key] of [['#user-list','.chat-user-row','peerId'],['.chat-group-list','.chat-group-row','groupId']]){
+    const old=root.querySelector(selector),fresh=doc.querySelector('#memberChatPage '+selector);if(!old||!fresh)continue;
+    const incoming=[...fresh.querySelectorAll(rowSelector)];const keys=new Set(incoming.map(row=>row.dataset[key]));
+    old.querySelectorAll(rowSelector).forEach(row=>{if(!keys.has(row.dataset[key]))row.remove();});
+    incoming.forEach(row=>{const existing=[...old.querySelectorAll(rowSelector)].find(el=>el.dataset[key]===row.dataset[key]);if(!existing){old.append(row);if(new URL(row.href,location.href).pathname===location.pathname){row.classList.add('mc-selected');row.setAttribute('aria-current','page');}}});
+    if(incoming.length){[...old.children].filter(el=>!el.matches(rowSelector)).forEach(el=>el.remove());}
+    const count=old.closest('.chat-section')?.querySelector('.chat-count');if(count)count.textContent=String(incoming.length);
+   }
+   document.getElementById('memberChatSearch')?.dispatchEvent(new Event('input'));
+   if(scroller)scroller.scrollTop=scroll;window.lucide?.createIcons();
+  }catch(_){}finally{clearTimeout(timeout);if(pending===controller)pending=null;}
+ }
+ setInterval(syncContacts,20000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncContacts();});
+ window.addEventListener('online',syncContacts);
+ window.addEventListener('pagehide',()=>{paused=true;generation++;pending?.abort();});
+ window.addEventListener('pageshow',()=>{paused=false;syncContacts();});
 })();
 </script>
 </body>

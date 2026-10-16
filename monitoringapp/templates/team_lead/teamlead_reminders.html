@@ -1179,7 +1179,8 @@ body.modal-open .reminder-main{overflow:hidden}
         </form>
     </dialog>
     {{ calendar_items|json_script:"reminderData" }}
-    {% include "components/toast_notification.html" %}
+    <div id="reminderServerMessages" hidden>{% for message in messages %}<span data-level="{{ message.level }}">{{ message }}</span>{% endfor %}</div>
+{% include "components/toast_notification.html" %}
     <style>
         @media (max-width: 600px) {
             #toastContainer { top: auto; bottom: 16px; right: 16px; left: 16px; }
@@ -1225,7 +1226,7 @@ body.modal-open .reminder-main{overflow:hidden}
                 if (container) dialog.appendChild(container);
                 document.body.classList.add('modal-open');
             }
-            [editDialog, deleteDialog].forEach(dialog => { dialog.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => dialog.close())); dialog.addEventListener('close', () => {
+            [editDialog, deleteDialog].forEach(dialog => { dialog.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { if(!busy) dialog.close(); })); dialog.addEventListener('close', () => {
                     const container = document.getElementById('toastContainer');
                     if (container) document.body.appendChild(container);
                     document.body.classList.remove('modal-open');
@@ -1299,8 +1300,58 @@ body.modal-open .reminder-main{overflow:hidden}
                 window.showToast(event.target.validationMessage || 'Check the reminder fields.', 'warning');
                 setTimeout(() => { validationToastPending = false; }, 0);
             }, true);
+
+            let busy=false, pending=null, stopped=false, sequence=0;
+            const endpoint=form.getAttribute('action');
+            function notify(message,type='success') {
+                if(typeof window.showToast==='function'){window.showToast(message,type);return;}
+                const n=node('div','reminder-live-toast',message);n.setAttribute('role','status');
+                (editDialog.open?editDialog:deleteDialog.open?deleteDialog:document.body).append(n);setTimeout(()=>n.remove(),5500);
+            }
+            if(typeof window.showToast!=='function')window.showToast=(message,type)=>{
+                const n=node('div','reminder-live-toast',message);n.setAttribute('role','status');(editDialog.open?editDialog:deleteDialog.open?deleteDialog:document.body).append(n);setTimeout(()=>n.remove(),5500);
+            };
+            function applyPage(page) {
+                const data=page.getElementById('reminderData');if(!data)throw Error('Session expired or unexpected response. Please sign in again.');
+                const fresh=JSON.parse(data.textContent);if(!Array.isArray(fresh))throw Error('Invalid reminder data.');
+                const top=list.scrollTop;items.splice(0,items.length,...fresh);render();list.scrollTop=top;icons();
+            }
+            async function reloadItems(force=false){
+                if(stopped||pending||(!force&&(busy||document.hidden||editDialog.open||deleteDialog.open||document.activeElement?.closest('#reminderList'))))return;
+                const c=new AbortController(),id=++sequence;pending=c;const t=setTimeout(()=>c.abort(),12000);
+                try{const url=new URL(endpoint,location.href);url.searchParams.set('month',month);const r=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:c.signal});if(!r.ok)throw Error('Unable to refresh reminders.');const page=new DOMParser().parseFromString(await r.text(),'text/html');if(!page.getElementById('reminderData')){stopped=true;throw Error('Please sign in again.');}if(id===sequence)applyPage(page);}catch(e){if(force)notify('Saved, but the list could not refresh. Please reload the page.','warning');}finally{clearTimeout(t);if(pending===c)pending=null;}
+            }
+            [editDialog,deleteDialog].forEach(d=>d.addEventListener('cancel',e=>{if(busy)e.preventDefault();}));
+            document.addEventListener('submit',async e=>{
+                const f=e.target;if(!(f===form||deleteDialog.contains(f)||list.contains(f)))return;
+                e.preventDefault();e.stopImmediatePropagation();if(busy||!f.reportValidity())return;
+                if(f===form){const start=new Date(eventAt.value),remind=new Date(remindAt.value);let error='';if(!eventAt.value||!remindAt.value||isNaN(start)||isNaN(remind))error='Select valid event and reminder dates and times.';else if(remind>start)error='Reminder must be on or before the event.';else if(remind<=new Date())error='Choose a future reminder time.';const notice=document.getElementById('pickerError');notice.textContent=error;notice.hidden=!error;if(error){notify(error,'warning');return;}}
+                const data=new FormData(f),action=data.get('action');busy=true;sequence++;pending?.abort();pending=null;
+                const states=[...f.querySelectorAll('button,input,select,textarea')].map(n=>[n,n.disabled]);states.forEach(([n])=>n.disabled=true);f.setAttribute('aria-busy','true');const c=new AbortController(),timer=setTimeout(()=>c.abort(),30000);
+                try{
+                    const r=await fetch(f.getAttribute('action')||endpoint,{method:'POST',body:data,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':data.get('csrfmiddlewaretoken')||''},signal:c.signal});let message='';
+                    if((r.headers.get('content-type')||'').includes('application/json')){const result=await r.json();if(!r.ok||!result.ok)throw Error(result.message||'Unable to save reminder.');message=result.message||'Reminder updated.';}
+                    else{const page=new DOMParser().parseFromString(await r.text(),'text/html'),msgs=[...page.querySelectorAll('#reminderServerMessages [data-level]')],error=msgs.find(n=>+n.dataset.level>=40),ok=msgs.find(n=>+n.dataset.level===25);if(error)throw Error(error.textContent.trim());if(!r.ok||!ok||!page.getElementById('reminderData'))throw Error('Save could not be confirmed. Check your reminders before retrying.');message=ok.textContent.trim();}
+                    if(editDialog.open)editDialog.close();if(deleteDialog.open)deleteDialog.close();notify(message);await reloadItems(true);
+                }catch(error){notify(error.name==='AbortError'?'Request timed out. Check your reminders before retrying; it may have saved.':error.message,'error');}
+                finally{clearTimeout(timer);busy=false;states.forEach(([n,value])=>n.disabled=value);f.removeAttribute('aria-busy');}
+            },true);
+            setInterval(()=>reloadItems(),15000);
+            document.addEventListener('visibilitychange',()=>{if(!document.hidden)reloadItems();});
+            window.addEventListener('pagehide',()=>{stopped=true;sequence++;pending?.abort();});window.addEventListener('pageshow',e=>{if(e.persisted){stopped=false;reloadItems();}});
             render(); icons();
         })();
     </script>
-</body>
+<style>
+#editDialog,#deleteDialog{background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),rgba(12,11,20,.98);border:1px solid rgba(255,255,255,.13);border-radius:18px;box-shadow:0 20px 45px rgba(0,0,0,.45);color:#eeebf5;width:min(560px,calc(100vw - 24px));max-width:560px;max-height:calc(100dvh - 24px);padding:22px;box-sizing:border-box;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(139,92,246,.5) transparent;}
+#deleteDialog{max-width:420px;}
+#editDialog .reminder-field input,#editDialog .reminder-field textarea,#editDialog .reminder-field select,#editDialog .picker-trigger{background:#0c0b13;border:1px solid rgba(255,255,255,.13);color:#eeebf5;border-radius:12px;font-size:14px;}
+#editDialog .reminder-field select option{background:#171321;color:#eeebf5;}
+#editDialog .dialog-header{background:transparent;gap:12px;}
+#editDialog .dialog-header h2{font-size:20px;}
+#editDialog .dialog-footer,#deleteDialog .dialog-footer{flex-wrap:wrap;gap:10px;}
+.reminder-live-toast{position:fixed;bottom:18px;right:18px;max-width:calc(100vw - 36px);padding:14px 18px;background:#211a30;border:1px solid #73608e;border-radius:12px;color:white;z-index:200000;}
+.reminder-card h3,.reminder-card p{overflow-wrap:anywhere;}
+@media(max-width:600px){#editDialog,#deleteDialog{padding:16px;}#editDialog .reminder-field input,#editDialog .reminder-field textarea,#editDialog .reminder-field select,#editDialog .picker-trigger{font-size:16px;}#editDialog .datetime-buttons{flex-wrap:wrap;}.reminder-card-actions{flex-wrap:wrap;}}
+</style></body>
 </html>

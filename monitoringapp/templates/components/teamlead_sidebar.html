@@ -959,17 +959,21 @@ html { background: #08070b; color-scheme: dark; }
 
         <a
 
-            href="{% url 'teamlead_chat' %}"
+            href="{% url 'teamlead_chat' %}" id="teamleadChatLink" data-chat-meta-url="{% url 'chat_meta' %}" data-chat-updates-path="/ws/member/chat-updates/"
 
             class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_chat' %}active{% endif %}">
 
-            <span class="sidebar-icon">
-
-                <i data-lucide="messages-square" aria-hidden="true"></i>
-
-            </span>
-
-            <span>Chat</span>
+<span class="sidebar-icon sidebar-notification-icon">
+    <i data-lucide="messages-square" aria-hidden="true"></i>
+    <span
+        id="teamleadChatBadge"
+        class="sidebar-notification-badge"
+        hidden
+        aria-live="polite"
+        aria-atomic="true"
+    ></span>
+</span>
+<span>Chat</span>
 
         </a>
 
@@ -1598,3 +1602,139 @@ html { background: #08070b; color-scheme: dark; }
   pointer-events: none;
 }
 </style>
+<style>
+#teamleadChatBadge {
+    border: none;
+    box-shadow: none;
+}
+
+#teamleadChatBadge[hidden] {
+    display: none !important;
+}
+#sidebar .sidebar-nav{min-height:0;overflow-y:auto;overscroll-behavior:contain;}
+@media (max-width: 768px) {
+    #sidebar {
+        max-height: 100dvh;
+    }
+}
+
+</style>
+<script>
+(() => {
+  'use strict';
+  function startTeamleadChatBadge() {
+    const link = document.getElementById('teamleadChatLink');
+    const badge = document.getElementById('teamleadChatBadge');
+    if (!link || !badge || window.teamleadSidebarChatBadgeReady) return;
+    window.teamleadSidebarChatBadgeReady = true;
+    let pending = null, socket = null, paused = false, stopped = false;
+    let socketDenied = false, sequence = 0, again = false, debounce, retry;
+    const active = () => !paused && !stopped && !document.hidden && link.isConnected;
+
+    function update(count) {
+      badge.hidden = count === 0;
+      const text = count > 99 ? '99+' : String(count);
+      if (badge.textContent !== text) badge.textContent = text;
+      badge.setAttribute('aria-label', count + ' unread chats');
+      link.setAttribute('aria-label', 'Chat, ' + count + ' unread chats');
+      link.title = count ? count + ' unread chats' : 'Chat';
+    }
+
+    function unreadChatCount(data) {
+      if (!Array.isArray(data.personal) || !Array.isArray(data.groups)) return null;
+      let total = 0;
+      for (const items of [data.personal, data.groups]) {
+        for (const item of items) {
+          const count = Number(item.unread);
+          if (!Number.isSafeInteger(count) || count < 0) return null;
+          if (count > 0) total += 1; // Count each unread conversation once, regardless of its messages.
+          if (!Number.isSafeInteger(total)) return null;
+        }
+      }
+      return total;
+    }
+
+    function queue() {
+      if (!active()) return;
+      clearTimeout(debounce);
+      debounce = setTimeout(poll, 100);
+    }
+
+    async function poll() {
+      if (!active()) return;
+      if (pending) { again = true; return; }
+      const controller = new AbortController();
+      pending = controller;
+      const token = ++sequence;
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      try {
+        // No target_id: count unread personal/group conversations, once per chat.
+        const response = await fetch(link.dataset.chatMetaUrl, {
+          credentials: 'same-origin', cache: 'no-store',
+          headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+          signal: controller.signal
+        });
+        if (token !== sequence || controller.signal.aborted || !active()) return;
+        if (response.redirected || response.status === 401 || response.status === 403) {
+          stopped = true; update(0); socket?.close(); return;
+        }
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!data.ok || token !== sequence || controller.signal.aborted || !active()) return;
+        const total = unreadChatCount(data);
+        if (total !== null) update(total);
+      } catch (_) {
+        // Keep the last confirmed count; polling can recover a temporary outage.
+      } finally {
+        clearTimeout(timeout);
+        if (pending === controller) pending = null;
+        if (again) { again = false; queue(); }
+      }
+    }
+
+    function connect() {
+      if (!active() || socketDenied || socket?.readyState === 0 || socket?.readyState === 1) return;
+      clearTimeout(retry);
+      try {
+        const url = new URL(link.dataset.chatUpdatesPath, location.href);
+        url.protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const current = new WebSocket(url);
+        socket = current;
+        current.onopen = queue;
+        current.onmessage = event => {
+          if (socket !== current) return;
+          try { if (JSON.parse(event.data).action === 'sync_chat_meta') queue(); } catch (_) {}
+        };
+        current.onclose = event => {
+          if (socket !== current) return;
+          socket = null;
+          if (event.code === 4401 || event.code === 4403) socketDenied = true;
+          // Socket denial does not stop HTTP unread polling.
+          if (active() && !socketDenied) retry = setTimeout(connect, 3000);
+        };
+      } catch (_) { if (active()) retry = setTimeout(connect, 3000); }
+    }
+
+    function suspend() {
+      ++sequence; again = false;
+      clearTimeout(debounce); clearTimeout(retry);
+      pending?.abort(); pending = null;
+      const old = socket; socket = null; old?.close();
+    }
+    function resume() { if (active()) { connect(); queue(); } }
+    document.addEventListener('visibilitychange', () => document.hidden ? suspend() : resume());
+    window.addEventListener('focus', resume);
+    window.addEventListener('online', resume);
+    window.addEventListener('pagehide', () => { paused = true; suspend(); });
+    window.addEventListener('pageshow', () => { paused = false; resume(); });
+    const timer = setInterval(() => {
+      if (!link.isConnected) { clearInterval(timer); stopped = true; suspend(); return; }
+      if (active()) { connect(); poll(); }
+    }, 15000);
+    update(0); poll(); connect();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startTeamleadChatBadge, {once: true});
+  else startTeamleadChatBadge();
+})();
+
+</script>

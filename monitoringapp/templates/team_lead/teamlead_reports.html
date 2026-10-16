@@ -1575,9 +1575,31 @@
         .report-section-details[hidden] { display: none; }
 
     </style>
+<style>
+/* Preserve the report theme; constrain content and scroll inside tables. */
+body.tl-reports-page :is(.main-area,.dashboard-box,.dashboard-content,.report-toolbar,.report-section,.report-card,.filter-area){min-width:0;box-sizing:border-box;max-width:100%}
+body.tl-reports-page .glass-sidebar{box-sizing:border-box;min-height:0}
+body.tl-reports-page .sidebar-nav{min-height:0;overflow-y:auto;overflow-x:hidden}
+body.tl-reports-page :is(.sidebar-profile,.sidebar-bottom){flex-shrink:0}
+body.tl-reports-page .dashboard-header-content,body.tl-reports-page .report-role-tabs,body.tl-reports-page .report-actions,body.tl-reports-page .filter-area{flex-wrap:wrap;gap:10px}
+body.tl-reports-page .table-wrapper{max-height:min(56dvh,480px);overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+body.tl-reports-page .report-table{min-width:840px}
+body.tl-reports-page .report-table thead th{position:sticky;top:0;z-index:2;background:#181321}
+body.tl-reports-page .report-text{overflow-wrap:anywhere;word-break:normal}
+body.tl-reports-page .report-view-modal{padding:12px;box-sizing:border-box}
+body.tl-reports-page .report-view-panel{box-sizing:border-box;width:min(850px,100%);max-height:calc(100dvh - 24px);overflow:hidden;display:flex;flex-direction:column}
+body.tl-reports-page .report-view-header{flex-shrink:0}
+body.tl-reports-page .report-section-details{min-height:0;max-height:calc(100dvh - 130px);overflow:auto;overscroll-behavior:contain}
+body.tl-reports-page .report-detail-top{flex-wrap:wrap}
+body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:border-box}
+#tlReportFeedback{position:fixed;right:16px;bottom:16px;max-width:min(380px,calc(100vw - 32px));z-index:100001;padding:12px 16px;border-radius:12px;background:#241c35;color:#fff;box-shadow:0 8px 30px #0005}
+#tlReportFeedback[hidden]{display:none!important}
+@media(max-width:768px){body.tl-reports-page .main-area{height:100dvh;padding:10px}body.tl-reports-page .dashboard-box{height:100%;padding:12px}body.tl-reports-page .glass-sidebar{max-width:calc(100vw - 20px)}body.tl-reports-page .dashboard-header h1{font-size:clamp(22px,6vw,32px)}body.tl-reports-page .report-role-tab{flex:1 1 180px;justify-content:center}body.tl-reports-page .filter-area{width:100%}body.tl-reports-page .report-date-picker{flex:1 1 180px;min-width:0}body.tl-reports-page .filter-area input{font-size:16px}}
+@media(max-width:420px){body.tl-reports-page .report-actions{width:100%}body.tl-reports-page .report-actions .glass-button{flex:1 1 130px;justify-content:center}body.tl-reports-page .report-view-header{padding:14px;gap:10px}body.tl-reports-page .report-view-header h2{font-size:18px}}
+</style>
 </head>
 
-<body>
+<body class="tl-reports-page">
 
 <button class="menu-toggle mobile-menu-button" type="button" aria-label="Open menu">☰</button>
 
@@ -1606,7 +1628,7 @@
             </div>
         </section>
 
-        <section class="dashboard-content">
+        <section class="dashboard-content" id="tlReportContent">
 
             <nav class="report-role-tabs" aria-label="Report owner">
                 <a href="{% url 'teamlead_reports' %}?tab=my{% if show_all %}&amp;all=1{% elif filter_date %}&amp;date={{ filter_date|date:'Y-m-d' }}{% endif %}"
@@ -1653,7 +1675,7 @@
                             type="hidden"
                             id="report-date"
                             name="date"
-                            value="{{ filter_date|default_if_none:'' }}"
+                            value="{{ filter_date|date:'Y-m-d'|default:'' }}"
                         >
 
                         <button
@@ -1750,6 +1772,7 @@
 
             </div>
 
+<div id="tlReportDay">
 {% if not show_all %}
 <div style="margin:18px 0; padding:14px 18px;
             border:1px solid rgba(167,139,250,.25);
@@ -1776,7 +1799,8 @@
         {% endif %}
     {% endif %}
 </div>
-{% endif %}            
+{% endif %}
+</div>
 
             <div class="report-section">
 
@@ -1808,7 +1832,7 @@
                                 </tr>
                             </thead>
 
-                            <tbody>
+                            <tbody id="tlMorningRows">
 
                                 {% for report in morning_reports %}
                                 <tr>
@@ -1898,7 +1922,7 @@
                                 </tr>
                             </thead>
 
-                            <tbody>
+                            <tbody id="tlEveningRows">
 
                                 {% for report in evening_reports %}
                                 <tr>
@@ -1992,7 +2016,7 @@ document.addEventListener("DOMContentLoaded", function () {
    TEAM REPORTS CUSTOM DATE PICKER
    Same behavior/UI as Project Assigning
 ========================================================= */
-document.addEventListener("DOMContentLoaded", function () {
+window.initTeamReportDatePickers = function (root = document) {
     const monthFormatter = new Intl.DateTimeFormat("en-US", {
         month: "long",
         year: "numeric"
@@ -2033,7 +2057,9 @@ document.addEventListener("DOMContentLoaded", function () {
         );
     }
 
-    document.querySelectorAll(".report-date-picker[data-date-picker]").forEach(function (picker) {
+    root.querySelectorAll(".report-date-picker[data-date-picker]").forEach(function (picker) {
+        if (picker.dataset.initialized) return;
+        picker.dataset.initialized = "true";
         const hiddenInput = picker.querySelector('input[type="hidden"]');
         const toggle = picker.querySelector("[data-date-toggle]");
         const display = picker.querySelector("[data-date-display]");
@@ -2283,6 +2309,8 @@ document.addEventListener("DOMContentLoaded", function () {
      * Close only when clicking outside the date-picker.
      * Calendar buttons stop propagation, so they remain clickable.
      */
+    if (!window.tlReportCalendarOutsideBound) {
+    window.tlReportCalendarOutsideBound = true;
     document.addEventListener("click", function (event) {
         document.querySelectorAll(".report-date-picker.open").forEach(function (picker) {
             if (!picker.contains(event.target)) {
@@ -2297,10 +2325,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    }
     if (window.lucide) {
         lucide.createIcons();
     }
-});
+};
+document.addEventListener("DOMContentLoaded", () => window.initTeamReportDatePickers());
 </script>
 
 
@@ -2340,10 +2370,13 @@ document.addEventListener("DOMContentLoaded", function () {
     function closeReports() {
         modal.hidden = true;
         document.body.classList.remove("report-view-open");
-        if (previousFocus) previousFocus.focus();
+        if (previousFocus?.isConnected) previousFocus.focus();
+        else document.querySelector('.report-section-view')?.focus();
     }
-    document.querySelectorAll(".report-section-view").forEach(function (button) {
-        button.addEventListener("click", function () {
+    window.tlCloseReports = closeReports;
+    document.addEventListener("click", function (event) {
+            const button = event.target.closest(".report-section-view");
+            if (!button) return;
             previousFocus = button;
             const isMorning = button.dataset.reportSection === "morning";
             document.getElementById("reportSectionTitle").textContent = isMorning ? "Morning Reports" : "Evening Reports";
@@ -2352,13 +2385,127 @@ document.addEventListener("DOMContentLoaded", function () {
             modal.hidden = false;
             document.body.classList.add("report-view-open");
             closeButton.focus();
-        });
     });
     closeButton.addEventListener("click", closeReports);
     modal.addEventListener("click", function (event) { if (event.target === modal) closeReports(); });
-    document.addEventListener("keydown", function (event) { if (event.key === "Escape" && !modal.hidden) closeReports(); });
+    document.addEventListener("keydown", function (event) {
+        if (modal.hidden) return;
+        if (event.key === "Escape") closeReports();
+        if (event.key === "Tab") { event.preventDefault(); closeButton.focus(); }
+    });
 });
 </script>
+<div id="tlReportMessages" hidden>{% for notice in messages %}{% if notice.level %}<span data-level="{{ notice.level }}" data-type="{{ notice.tags|default:'info' }}">{{ notice }}</span>{% endif %}{% endfor %}</div>
+<div id="tlReportFeedback" hidden role="status"></div>
 {% include "components/toast_notification.html" %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  'use strict';
+  const content = document.getElementById('tlReportContent');
+  if (!content || window.tlReportsLiveInstalled) return;
+  window.tlReportsLiveInstalled = true;
+  let currentUrl = new URL(location.href); currentUrl.searchParams.delete('export');
+  let pending = null, sequence = 0, paused = false, expired = false, exporting = false, toastTimer;
+  const active = () => !paused && !expired && !document.hidden;
+  const toast = (text, type = 'info') => {
+    try { if (typeof window.showToast === 'function') { window.showToast(text, type); return; } } catch (_) {}
+    const host = document.getElementById('tlReportFeedback');
+    if (host) { clearTimeout(toastTimer); host.textContent = text; host.hidden = false; toastTimer = setTimeout(() => { host.hidden = true; }, 6000); }
+  };
+  const signature = node => node.innerHTML;
+  function updateRegion(id, page) {
+    const current = document.getElementById(id), next = page.getElementById(id);
+    if (!current || !next || signature(current) === signature(next)) return;
+    const scroller = current.closest('.table-wrapper') || current;
+    const top = scroller.scrollTop, left = scroller.scrollLeft;
+    current.innerHTML = next.innerHTML;
+    scroller.scrollTop = top; scroller.scrollLeft = left;
+  }
+  function invalidate() { ++sequence; pending?.abort(); pending = null; }
+  async function load(url = currentUrl, navigation = false, push = true) {
+    if (!active()) return;
+    if (!navigation && (pending || document.querySelector('.report-date-picker.open'))) return;
+    if (navigation) { invalidate(); window.tlCloseReports?.(); }
+    const wanted = new URL(url, location.href); wanted.searchParams.delete('export');
+    if (wanted.origin !== location.origin || wanted.pathname !== location.pathname) return;
+    const controller = new AbortController(); pending = controller;
+    const token = ++sequence, timeout = setTimeout(() => controller.abort(), 12000);
+    try {
+      const response = await fetch(wanted, {credentials:'same-origin', cache:'no-store', headers:{'Accept':'text/html'}, signal:controller.signal});
+      if (response.status === 401 || response.status === 403 || response.redirected && new URL(response.url).pathname !== location.pathname) {
+        expired = true; if (navigation) toast('Session expired. Please sign in again.','error'); return;
+      }
+      if (!response.ok) throw new Error('Reports could not update. Please try again.');
+      const page = new DOMParser().parseFromString(await response.text(),'text/html');
+      if (token !== sequence || controller.signal.aborted || !active()) return;
+      const next = page.getElementById('tlReportContent');
+      if (!next) { expired = true; throw new Error('Unexpected response. Please check your login.'); }
+      if (navigation) {
+        const box = document.querySelector('.dashboard-box'), top = box?.scrollTop || 0;
+        content.innerHTML = next.innerHTML;
+        window.initTeamReportDatePickers?.(content);
+        currentUrl = response.url ? new URL(response.url) : wanted; currentUrl.searchParams.delete('export');
+        if (push) history.pushState(history.state,'',currentUrl);
+        if (box) box.scrollTop = top;
+        content.querySelector('.report-role-tab.is-active')?.focus({preventScroll:true});
+        const messages = [...page.querySelectorAll('#tlReportMessages [data-level]')];
+        if (messages.length) messages.forEach(item => toast(item.textContent.trim(), item.dataset.type || 'info'));
+        window.lucide?.createIcons();
+      } else {
+        ['tlMorningRows','tlEveningRows','tlReportDay'].forEach(id => updateRegion(id,page));
+      }
+      // Open View dialogs keep their scroll position and receive fresh reports.
+      ['morningReportDetails','eveningReportDetails'].forEach(id => updateRegion(id,page));
+    } catch (error) {
+      if (navigation && error.name !== 'AbortError') toast(error.message,'error');
+    } finally { clearTimeout(timeout); if (pending === controller) pending = null; }
+  }
+  async function exportExcel(url, link) {
+    if (exporting) return;
+    exporting = true; link.setAttribute('aria-disabled','true'); link.setAttribute('aria-busy','true');
+    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 30000);
+    try {
+      const response = await fetch(url,{credentials:'same-origin',cache:'no-store',signal:controller.signal});
+      if (!response.ok || response.redirected) throw new Error('Excel could not download. Check your login and try again.');
+      const type = response.headers.get('content-type') || '';
+      if (!/spreadsheetml|application\/zip|octet-stream/i.test(type)) throw new Error('The server did not return an Excel file.');
+      const blob = await response.blob();
+      const magic = new Uint8Array(await blob.slice(0,4).arrayBuffer());
+      if (magic[0] !== 80 || magic[1] !== 75) throw new Error('The Excel file response is invalid.');
+      const disposition = response.headers.get('content-disposition') || '';
+      const filename = (disposition.match(/filename="?([^";]+)"?/i)?.[1] || 'team_reports.xlsx').replace(/[\\/\x00-\x1f]/g,'_');
+      const objectUrl = URL.createObjectURL(blob), download = document.createElement('a');
+      download.href = objectUrl; download.download = filename; document.body.append(download); download.click(); download.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl),30000);
+      toast('Excel download started.','success');
+    } catch (error) { toast(error.name === 'AbortError' ? 'Excel download timed out. Please try again.' : error.message,'error'); }
+    finally { clearTimeout(timeout); exporting = false; link.removeAttribute('aria-disabled'); link.removeAttribute('aria-busy'); }
+  }
+  document.addEventListener('click', event => {
+    if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    const link = event.target.closest('#tlReportContent .report-role-tab,#tlReportContent .report-toolbar a[href]');
+    if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+    const url = new URL(link.href,location.href);
+    if (url.origin !== location.origin || url.pathname !== location.pathname) return;
+    event.preventDefault();
+    if (url.searchParams.has('export')) exportExcel(url,link); else load(url,true);
+  });
+  document.addEventListener('submit', event => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || !form.matches('#tlReportContent .filter-area') || event.defaultPrevented) return;
+    event.preventDefault();
+    const url = new URL(location.pathname,location.origin);
+    for (const [name,value] of new FormData(form)) if (String(value).trim()) url.searchParams.set(name,value);
+    load(url,true);
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) invalidate(); else load(); });
+  window.addEventListener('online', () => load()); window.addEventListener('focus', () => load());
+  window.addEventListener('popstate', () => { currentUrl = new URL(location.href); load(currentUrl,true,false); });
+  window.addEventListener('pagehide', () => { paused = true; invalidate(); });
+  window.addEventListener('pageshow', event => { paused = false; if (event.persisted) { currentUrl = new URL(location.href); load(currentUrl,true,false); } else load(); });
+  setInterval(() => load(),15000); load();
+});
+
+</script>
 </body>
 </html>

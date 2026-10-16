@@ -410,6 +410,7 @@ html, body { height: 100%; overflow: hidden; }
                 <button type="button" class="notification-tab" data-folder="unread" aria-pressed="false">Unread <span></span></button>
                 <button type="button" class="notification-tab" data-folder="archived" aria-pressed="false">Archived <span></span></button>
             </div>
+            <div id="notificationLiveResults">
             {% if items %}
             <div class="notification-table-scroll" tabindex="0" role="region" aria-label="Notifications table">
                 <table class="notification-table">
@@ -441,18 +442,20 @@ html, body { height: 100%; overflow: hidden; }
             {% else %}
             <div class="notification-empty"><span class="notification-empty-icon"><i data-lucide="bell" aria-hidden="true"></i></span><h2>No notifications yet</h2><p>Your team updates will appear here.</p></div>
             {% endif %}
+            </div>
             <div id="notificationNoMatch" class="notification-empty" hidden><h2>No matching notifications</h2><p>Try another search, category or folder.</p></div>
             <p id="notificationResultCount" class="notification-footer" aria-live="polite"></p>
         </section>
     </main>
+    <div id="notificationFeedback" role="status" aria-live="polite"></div>
     <script>
     (() => {
         if (window.lucide) lucide.createIcons();
-        const rows = Array.from(document.querySelectorAll('.notification-row'));
+        let rows = Array.from(document.querySelectorAll('.notification-row'));
         const tabs = Array.from(document.querySelectorAll('.notification-tab'));
         const search = document.getElementById('notificationSearch');
         const kind = document.getElementById('notificationKind');
-        const scroll = document.querySelector('.notification-table-scroll');
+        let scroll = document.querySelector('.notification-table-scroll');
         let folder = 'inbox';
         const inFolder = (row, name) => name === 'archived' ? row.dataset.archived === 'true' : row.dataset.archived !== 'true' && (name !== 'unread' || row.dataset.read === 'false');
         function filterRows() {
@@ -474,6 +477,28 @@ html, body { height: 100%; overflow: hidden; }
         tabs.forEach(tab => tab.addEventListener('click', () => { folder = tab.dataset.folder; filterRows(); if (scroll) scroll.scrollTop = 0; }));
         search.addEventListener('input', filterRows);
         kind.addEventListener('change', filterRows);
+
+        let pending=null,busy=false,stopped=false,generation=0;
+        const pageURL=location.href;
+        function notify(message,error=false){const n=document.createElement('div');n.textContent=message;n.className=error?'error':'';document.getElementById('notificationFeedback').append(n);setTimeout(()=>n.remove(),5500);}
+        function apply(page){
+            const fresh=page.getElementById('notificationLiveResults');if(!fresh)throw Error('Session expired or unexpected response. Please sign in again.');
+            const top=scroll?.scrollTop||0,left=scroll?.scrollLeft||0;document.getElementById('notificationLiveResults').innerHTML=fresh.innerHTML;
+            const header=page.querySelector('.notification-header-actions');if(header)document.querySelector('.notification-header-actions').innerHTML=header.innerHTML;
+            rows=Array.from(document.querySelectorAll('.notification-row'));scroll=document.querySelector('.notification-table-scroll');filterRows();if(scroll){scroll.scrollTop=top;scroll.scrollLeft=left;}window.lucide?.createIcons();
+        }
+        async function refresh(){if(stopped||busy||pending||document.hidden||document.getElementById('categoryDropdown').open||document.activeElement?.closest('#notificationLiveResults'))return;const c=new AbortController(),id=++generation;pending=c;const timer=setTimeout(()=>c.abort(),12000);
+            try{const r=await fetch(pageURL,{credentials:'same-origin',cache:'no-store',signal:c.signal});if(r.status===401||r.status===403){stopped=true;return;}if(!r.ok)return;const page=new DOMParser().parseFromString(await r.text(),'text/html');if(!page.getElementById('notificationLiveResults')){stopped=true;return;}if(id===generation&&!busy)apply(page);}catch(e){}finally{clearTimeout(timer);if(pending===c)pending=null;}}
+        document.addEventListener('submit',async e=>{
+            const form=e.target;if(!form.matches('.notification-header-actions form,.notification-actions form'))return;
+            const action=form.querySelector('[name="action"]')?.value;
+            if(!action&&form.closest('.notification-actions'))return; // View retains the existing destination navigation.
+            e.preventDefault();if(busy)return;const data=new FormData(form);busy=true;generation++;pending?.abort();pending=null;
+            const buttons=[...form.querySelectorAll('button')],states=buttons.map(n=>[n,n.disabled]);buttons.forEach(n=>n.disabled=true);const c=new AbortController(),timer=setTimeout(()=>c.abort(),30000);
+            try{const r=await fetch(form.getAttribute('action'),{method:'POST',body:data,credentials:'same-origin',headers:{'X-CSRFToken':data.get('csrfmiddlewaretoken')||''},signal:c.signal});const page=new DOMParser().parseFromString(await r.text(),'text/html');if(!r.ok||!r.redirected||!page.getElementById('notificationLiveResults'))throw Error('Update could not be confirmed. Please reload and check your notifications.');apply(page);notify(({mark_read:'Marked as read.',mark_unread:'Marked as unread.',archive:'Notification archived.',restore:'Notification restored.'})[action]||'All notifications marked as read.');}
+            catch(error){notify(error.name==='AbortError'?'Request timed out. Check notifications before retrying.':error.message,true);}finally{clearTimeout(timer);busy=false;states.forEach(([n,state])=>n.disabled=state);}
+        });
+        setInterval(refresh,15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});window.addEventListener('pagehide',()=>{stopped=true;generation++;pending?.abort();});window.addEventListener('pageshow',e=>{if(e.persisted){stopped=false;refresh();}});
         filterRows();
     })();
     </script>
@@ -509,5 +534,16 @@ html, body { height: 100%; overflow: hidden; }
     });
 })();
 </script>
-</body>
+<style>
+.notification-category summary{min-height:44px;background:#0c0b13;border:1px solid rgba(255,255,255,.13);font-size:14px;}
+#categoryDropdown .category-menu{background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),rgba(12,11,20,.98);border:1px solid rgba(255,255,255,.13);box-shadow:0 20px 45px rgba(0,0,0,.45);border-radius:12px;padding:6px;max-height:min(360px,50dvh);overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(139,92,246,.5) transparent;z-index:1000;}
+#categoryDropdown .category-menu button{font-size:14px;min-height:40px;padding:9px 12px;color:#e6e1ed;background:transparent;border-radius:8px;text-align:left;width:100%;}
+#categoryDropdown .category-menu button:hover,#categoryDropdown .category-menu button:focus-visible{background:rgba(139,92,246,.12);outline:1px solid rgba(167,139,250,.35);}
+#categoryDropdown .category-menu button.selected{background:rgba(139,92,246,.18);color:#ede9fe;font-weight:500;}
+.notification-toolbar{position:relative;z-index:5;}.notification-table-scroll{overflow:auto;max-width:100%;}.notification-tabs{flex-wrap:wrap;}.notification-content{overflow-wrap:anywhere;}
+#notificationFeedback{position:fixed;bottom:20px;right:16px;max-width:min(420px,calc(100vw - 32px));z-index:200000;}
+#notificationFeedback>div{padding:14px 18px;border:1px solid #73608e;background:#211a30;color:#f5f3ff;border-radius:12px;margin-top:8px;box-shadow:0 8px 30px #0006;overflow-wrap:anywhere;}
+#notificationFeedback>.error{border-color:#df526a;}
+@media(max-width:768px){#categoryDropdown summary,#categoryDropdown .category-menu button,.notification-search input{font-size:16px;}.notification-header-actions{flex-wrap:wrap;max-width:100%;}.notification-clear{white-space:normal;}}
+</style></body>
 </html>

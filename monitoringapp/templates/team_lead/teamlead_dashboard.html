@@ -4380,12 +4380,66 @@
 @media (prefers-reduced-motion: reduce) { .report-entry-submit { transition: none; } }
 
 </style>
+
+<style>
+/* Layout safeguards only: keep the existing purple theme. */
+body.tl-dashboard-page .main-area,body.tl-dashboard-page .dashboard-box,body.tl-dashboard-page .dashboard-content,body.tl-dashboard-page .tl-content,body.tl-dashboard-page .tl-panel{min-width:0;box-sizing:border-box}
+body.tl-dashboard-page .glass-sidebar{box-sizing:border-box;min-height:0}
+body.tl-dashboard-page .sidebar-nav{min-height:0;overflow-y:auto;overflow-x:hidden}
+body.tl-dashboard-page .sidebar-profile,body.tl-dashboard-page .sidebar-bottom{flex-shrink:0}
+body.tl-dashboard-page .dashboard-header-content,body.tl-dashboard-page .report-schedule-header,body.tl-dashboard-page .employee-filter-header{flex-wrap:wrap;gap:12px}
+body.tl-dashboard-page .dashboard-header-content>div,body.tl-dashboard-page .employee-filter-field{min-width:0}
+body.tl-dashboard-page :is(input,select,textarea,button){box-sizing:border-box;max-width:100%}
+body.tl-dashboard-page .tl-stat-value,body.tl-dashboard-page .report-current-time{overflow-wrap:anywhere}
+body.tl-dashboard-page .team-members-table-wrap{max-height:480px;overflow:auto;-webkit-overflow-scrolling:touch}
+body.tl-dashboard-page .team-members-table thead th{position:sticky;top:0;z-index:2;background:#181321}
+body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-modal-box{max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);box-sizing:border-box}
+#tlLiveFeedback{position:fixed;right:16px;bottom:16px;max-width:min(380px,calc(100vw - 32px));padding:12px 16px;border-radius:12px;background:#241c35;color:#fff;z-index:100001;box-shadow:0 8px 30px #0005}
+#tlLiveFeedback[hidden]{display:none!important}
+@media(max-width:768px){body.tl-dashboard-page .main-area{height:100dvh;padding:10px}body.tl-dashboard-page .dashboard-box{height:100%;padding:12px}body.tl-dashboard-page .dashboard-header{padding:24px 16px}body.tl-dashboard-page .dashboard-header h1{font-size:clamp(22px,6vw,32px);overflow-wrap:anywhere}body.tl-dashboard-page .tl-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}body.tl-dashboard-page :is(input,select,textarea){font-size:16px}body.tl-dashboard-page .glass-sidebar{max-width:calc(100vw - 20px)}body.tl-dashboard-page .report-modal-content{margin:12px auto}body.tl-dashboard-page .team-members-table-wrap{max-height:60dvh}}
+@media(max-width:420px){body.tl-dashboard-page .current-report-windows,body.tl-dashboard-page .tl-stats-grid{grid-template-columns:minmax(0,1fr)}body.tl-dashboard-page .report-schedule-header>button{width:100%}body.tl-dashboard-page .dashboard-box{padding:10px}body.tl-dashboard-page .tl-panel{padding:14px}}
+</style>
+<style>
+/* Shared purple control treatment for create and edit. */
+.tl-dashboard-select { position:relative; width:100%; min-width:0; }
+.tl-dashboard-native { position:absolute!important; width:1px!important; height:1px!important; margin:0!important; padding:0!important; opacity:0!important; pointer-events:none; clip-path:inset(50%); }
+.tl-dashboard-select-button { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:46px; padding:11px 14px; border:1px solid rgba(167,139,250,.28); border-radius:12px; color:#f1eaff; background:linear-gradient(135deg,#21192f,#17131f); font:inherit; font-size:13px; text-align:left; cursor:pointer; transition:border-color .18s,box-shadow .18s,background .18s; }
+.tl-dashboard-select-button > span:first-child { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tl-dashboard-select-button:hover { border-color:#9b77dc; background:linear-gradient(135deg,#2c2040,#1d172a); }
+.tl-dashboard-select-button:focus-visible,.tl-dashboard-select-button[aria-expanded="true"] { outline:none; border-color:#a78bfa; box-shadow:0 0 0 3px rgba(139,92,246,.16); }
+.tl-dashboard-select-button[aria-invalid="true"] { border-color:#fb7185; }
+.tl-dashboard-select-button.is-placeholder { color:#b3a5c9; }
+.tl-dashboard-select-button:disabled { opacity:.5; cursor:not-allowed; }
+.tl-dashboard-select-arrow { color:#c4b5fd; font-size:20px; line-height:1; flex-shrink:0; transition:transform .18s; }
+.tl-dashboard-select-button[aria-expanded="true"] .tl-dashboard-select-arrow { transform:rotate(180deg); }
+.tl-dashboard-options { position:fixed; z-index:100010; box-sizing:border-box; padding:6px; overflow-y:auto; overscroll-behavior:contain; background:#21192f; border:1px solid rgba(167,139,250,.5); border-radius:12px; box-shadow:0 18px 45px rgba(0,0,0,.45); scrollbar-width:thin; scrollbar-color:#8b5cf6 #21192f; }
+.tl-dashboard-options[hidden] { display:none!important; }
+.tl-dashboard-option { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:40px; padding:10px 12px; border-radius:8px; color:#e9e0f7; font-family:inherit; font-size:14px; line-height:1.45; overflow-wrap:anywhere; cursor:pointer; }
+.tl-dashboard-option:hover,.tl-dashboard-option.is-focused { background:rgba(139,92,246,.22); color:#fff; }
+.tl-dashboard-option[aria-selected="true"] { color:#e2ceff; background:rgba(139,92,246,.28); font-weight:600; }
+.tl-dashboard-option[aria-disabled="true"] { opacity:.4; cursor:not-allowed; }
+
+/* Keep existing filter and edit field sizes; only the select UI changes. */
+#filterForm .custom-select::after { display:none; }
+#filterForm .tl-dashboard-select-button { height:44px; min-height:44px; background:#0b0b12; border:1px solid rgba(255,255,255,.12); color:#eeeaf5; font-size:13px; padding:0 14px; }
+#teamMemberEditModal .tl-dashboard-select-button { height:38px; min-height:38px; background:rgba(31,31,43,.72); border:1px solid rgba(255,255,255,.09); border-radius:10px; font-size:11px; color:#eeeaf5; padding:0 12px; }
+#filterForm .tl-dashboard-select-button:hover,#teamMemberEditModal .tl-dashboard-select-button:hover { border-color:rgba(167,139,250,.5); }
+#filterForm .tl-dashboard-select-button:focus-visible,#teamMemberEditModal .tl-dashboard-select-button:focus-visible,
+#filterForm .tl-dashboard-select-button[aria-expanded="true"],#teamMemberEditModal .tl-dashboard-select-button[aria-expanded="true"] { border-color:#a78bfa; box-shadow:0 0 0 3px rgba(139,92,246,.12); outline:none; }
+.tl-dashboard-select-button .tl-dashboard-select-arrow { display:block; width:8px; height:8px; flex:0 0 8px; padding:0; margin:-4px 3px 0 0; border-right:1.8px solid #c4b5fd; border-bottom:1.8px solid #c4b5fd; transform:rotate(45deg); font-size:0; line-height:0; }
+.tl-dashboard-select-button[aria-expanded="true"] .tl-dashboard-select-arrow { transform:rotate(225deg); margin-top:4px; }
+.tl-dashboard-options { background:#15101e; }
+.tl-dashboard-select,.employee-filter-field { min-width:0; }
+@media(max-width:640px) { #filterForm .tl-dashboard-select-button,#teamMemberEditModal .tl-dashboard-select-button { font-size:16px; height:44px; min-height:44px; } .tl-dashboard-option { min-height:44px; font-size:15px; } }
+
+</style>
 </head>
-  <body>
+  <body class="tl-dashboard-page">
+  <div id="tlServerMessages" hidden>{% for notice in messages %}{% if notice.level %}<span data-level="{{ notice.level }}" data-type="{{ notice.tags|default:'info' }}">{{ notice }}</span>{% endif %}{% endfor %}</div>
   {% include "components/teamlead_sidebar.html" %}
   <main class="main-area"><div class="dashboard-box"><section class="dashboard-header"><div class="dashboard-header-content"><div><div class="dashboard-eyebrow">CYBEXEL TEAM LEAD PANEL</div><h1>TEAM LEAD DASHBOARD</h1><p>Manage your team, reports and daily activities from one place.</p></div><div class="system-status"><span class="status-dot"></span><span>System Online</span></div></div></section><section class="dashboard-content"><div class="section-heading"><div><span class="section-eyebrow">TEAM OVERVIEW</span><h2>Team Management</h2></div><div class="heading-line"></div></div><div class="tl-content">
     
-    <div class="tl-stats-grid">
+    <div class="tl-stats-grid" id="tlLiveStats">
       <div class=" tl-stat-card ">
         <h3 class="tl-stat-label">Total Users</h3>
         <p class="tl-stat-value tl-pink">{{ total_users }}</p>
@@ -4440,7 +4494,7 @@
 
 
   <!-- Current Day Schedule -->
-  <div class="current-report-windows">
+  <div class="current-report-windows" id="tlLiveWindows">
 
     <!-- Morning -->
     <!-- <div class="current-report-card">
@@ -4919,7 +4973,7 @@
 
 
   <!-- 🌅 Submit Morning Report -->
-  <div class="tl-panel">
+  <div class="tl-panel" id="tlMorningEntry">
     <h2 class="report-entry-heading"><span class="report-entry-icon"><i data-lucide="sunrise" aria-hidden="true"></i></span>Submit Morning Report</h2>
     {% if morning_allowed %}
       <form method="POST" class="space-y-3">
@@ -4959,7 +5013,7 @@
   </div>
 
   <!-- 🌇 Submit Evening Report -->
-  <div class="tl-panel">
+  <div class="tl-panel" id="tlEveningEntry">
     <h2 class="report-entry-heading"><span class="report-entry-icon"><i data-lucide="moon-star" aria-hidden="true"></i></span>Submit Evening Report</h2>
     {% if evening_allowed %}
       <form method="POST" class="space-y-3">
@@ -4998,7 +5052,7 @@
   </div>
 
   <!-- 📊 Submitted Reports -->
-  <div class="tl-panel">
+  <div class="tl-panel" id="tlLiveReports">
     <div class="dashboard-table-heading">
       <h2 class="text-lg font-semibold text-white">Your Reports (Last 24 Hrs)</h2>
       <a href="{% url 'teamlead_reports' %}" class="dashboard-manage-button">
@@ -5037,7 +5091,7 @@
   
 
 <!-- Own and assigned tasks currently in progress. -->
-<section class="tl-panel dashboard-report-tasks" aria-labelledby="ongoingTasksHeading">
+<section id="tlLiveTasks" class="tl-panel dashboard-report-tasks" aria-labelledby="ongoingTasksHeading">
     <div class="dashboard-report-tasks-heading">
         <h2 id="ongoingTasksHeading" class="text-lg font-semibold text-white">
             In Progress Tasks <span class="dashboard-report-task-count">({{ ongoing_tasks|length }})</span>
@@ -5440,36 +5494,7 @@
     }
   </style>
 
-  <!-- ⚡ AJAX Filtering -->
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const filterForm = document.getElementById("filterForm");
-    const tableBody = document.getElementById("teamTableBody");
-
-    filterForm.querySelectorAll("input, select").forEach((el) => {
-      el.addEventListener("input", applyFilters);
-      el.addEventListener("change", applyFilters);
-    });
-
-    function applyFilters() {
-      const formData = new FormData(filterForm);
-      const params = new URLSearchParams(formData).toString();
-
-      fetch(`?${params}`, {
-        headers: { "X-Requested-With": "XMLHttpRequest" },
-      })
-        .then((res) => res.text())
-        .then((html) => {
-          const parser = new DOMParser();
-          const newBody = parser
-            .parseFromString(html, "text/html")
-            .querySelector("#teamTableBody");
-          if (newBody) tableBody.innerHTML = newBody.innerHTML;
-        })
-        .catch((err) => console.error("AJAX Filter Error:", err));
-    }
-  });
-  </script>
+<!-- Dashboard filtering and live updates are handled by the controller below. -->
 
 
 
@@ -5519,9 +5544,11 @@ function openReportScheduleModal() {
     if (page) page.style.overflow = 'hidden';
     const closeButton = modal.querySelector('.report-modal-close');
     if (closeButton) closeButton.focus();
+    window.tlRefreshScheduleMonth?.();
 }
 
 function closeReportScheduleModal() {
+    if (window.tlDashboardMutationBusy) return;
     const modal = document.getElementById('reportScheduleModal');
     if (!modal || !modal.classList.contains('open')) return;
     modal.classList.remove('open');
@@ -5580,6 +5607,8 @@ let teamEditPreviousScroll = null;
 let teamEditTrigger = null;
 
 function closeTeamMemberEditModal() {
+    if (window.tlDashboardMutationBusy) return;
+    window.closeTLDashboardSelects?.();
     const modal = document.getElementById("teamMemberEditModal");
     if (!modal || !modal.classList.contains("active")) return;
     modal.classList.remove("active");
@@ -5598,6 +5627,9 @@ function closeTeamMemberEditModal() {
 
 document.addEventListener("keydown", function (event) {
     const modal = document.getElementById("teamMemberEditModal");
+    if (event.key === "Escape" && window.tlDashboardSelectOpen) {
+        event.preventDefault(); event.stopImmediatePropagation(); window.closeTLDashboardSelects?.(); return;
+    }
     if (event.key === "Escape" && modal?.classList.contains("active")) {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -5779,6 +5811,7 @@ if (imagePreview) {
         document.documentElement.style.overflow = "hidden";
         if (page) page.style.overflow = "hidden";
     }
+    window.initTLDashboardSelects?.();
     modal.classList.add("active");
     modal.setAttribute("aria-hidden", "false");
     const closeButton = modal.querySelector(".team-edit-close-btn");
@@ -6077,54 +6110,7 @@ document.addEventListener("click", function(event) {
     </div>
 
 </div>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
 
-    const resetButton =
-        document.getElementById("resetEmployeeFilters");
-
-    const filterForm =
-        document.getElementById("filterForm");
-
-    if (resetButton && filterForm) {
-
-        resetButton.addEventListener("click", function () {
-
-            filterForm
-                .querySelector('input[name="search"]')
-                .value = "";
-
-            filterForm
-                .querySelector('select[name="department"]')
-                .value = "";
-
-            filterForm
-                .querySelector('select[name="team"]')
-                .value = "";
-
-            filterForm
-                .querySelector('select[name="position"]')
-                .value = "";
-
-            /*
-             * Trigger existing AJAX filtering
-             */
-            filterForm
-                .querySelector('input[name="search"]')
-                .dispatchEvent(
-                    new Event("input", { bubbles: true })
-                );
-
-            if (window.lucide) {
-                lucide.createIcons();
-            }
-
-        });
-
-    }
-
-});
-</script>
   <script>
 /* =========================================================
    TEAM REPORTS CUSTOM DATE PICKER
@@ -6665,6 +6651,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Fetch the selected month's saved schedule without navigating the dashboard.
     const monthForm = modal.querySelector(".schedule-month-form");
+    if (!monthForm) return;
     const monthInput = monthForm.querySelector('input[name="month"]');
     const monthStatus = monthForm.querySelector(".schedule-month-status");
     const scheduleList = modal.querySelector(".compact-schedule-list");
@@ -6682,17 +6669,20 @@ document.addEventListener("DOMContentLoaded", function () {
         if (sundayButton) sundayButton.disabled = loading;
     }
 
-    async function loadScheduleMonth() {
+    async function loadScheduleMonth(force = false) {
+        if (window.tlDashboardMutationBusy) return;
         const wantedMonth = monthInput.value;
         const number = ++requestNumber;
         if (controller) controller.abort();
-        if (wantedMonth === loadedMonth) {
+        if (!force && wantedMonth === loadedMonth) {
             setLoading(false);
             monthStatus.hidden = true;
             return;
         }
         controller = new AbortController();
         closePicker();
+        const localController = controller;
+        const loadTimeout = setTimeout(() => localController.abort(), 12000);
         setLoading(true);
         monthStatus.hidden = false;
         monthStatus.textContent = "Loading…";
@@ -6704,9 +6694,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const response = await fetch(url, {
                 credentials: "same-origin", cache: "no-store", signal: controller.signal
             });
-            if (!response.ok) throw new Error("Could not load month");
+            if (!response.ok || response.redirected && new URL(response.url).pathname !== location.pathname) throw new Error("Could not load month");
             const page = new DOMParser().parseFromString(await response.text(), "text/html");
-            if (number !== requestNumber) return;
+            if (number !== requestNumber || window.tlDashboardMutationBusy) return;
             const nextModal = page.querySelector("#reportScheduleModal");
             const nextList = nextModal?.querySelector(".compact-schedule-list");
             const nextHeading = nextModal?.querySelector(".schedule-month-heading");
@@ -6730,10 +6720,12 @@ document.addEventListener("DOMContentLoaded", function () {
             monthStatus.textContent = "Month could not load. Please select it again.";
             monthStatus.classList.add("is-error");
         } finally {
+            clearTimeout(loadTimeout);
             if (number === requestNumber) setLoading(false);
         }
     }
-    monthInput.addEventListener("change", loadScheduleMonth);
+    window.tlRefreshScheduleMonth = () => loadScheduleMonth(true);
+    monthInput.addEventListener("change", () => loadScheduleMonth());
     monthForm.addEventListener("submit", event => {
         event.preventDefault();
         loadScheduleMonth();
@@ -6752,5 +6744,397 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 </script>
-</body>
+<div id="tlLiveFeedback" role="status" hidden></div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  'use strict';
+  const filters = document.getElementById('filterForm');
+  const box = document.querySelector('.dashboard-box');
+  if (!filters || !box || window.tlDashboardLiveInstalled) return;
+  window.tlDashboardLiveInstalled = true;
+  let pending = null, sequence = 0, paused = false, expired = false, mutation = false, filterTimer;
+  const dirty = new WeakSet();
+  const ids = ['tlLiveStats', 'tlLiveWindows', 'tlMorningEntry', 'tlEveningEntry', 'tlLiveReports', 'tlLiveTasks', 'teamTableBody'];
+  const entries = new Set(['tlMorningEntry', 'tlEveningEntry']);
+  const active = () => !paused && !expired && !document.hidden;
+  const modalOpen = () => window.tlDashboardSelectOpen || document.querySelector('#reportScheduleModal.open,#teamMemberEditModal.active,dialog[open],.report-date-picker.open');
+  let toastTimer;
+  function toast(message, type = 'info') {
+    try { if (typeof window.showToast === 'function') { window.showToast(message, type); return; } } catch (_) {}
+    const host = document.getElementById('tlLiveFeedback');
+    if (host) { clearTimeout(toastTimer); host.textContent = message; host.hidden = false; toastTimer = setTimeout(() => { host.hidden = true; }, 6000); }
+  }
+  function urlForFilters() {
+    const url = new URL(location.href);
+    ['search', 'department', 'team', 'position'].forEach(name => url.searchParams.delete(name));
+    for (const [name, value] of new FormData(filters)) if (String(value).trim()) url.searchParams.set(name, value);
+    return url;
+  }
+  function stopRefresh() {
+    ++sequence; pending?.abort(); pending = null;
+  }
+  function fingerprint(node) {
+    const copy = node.cloneNode(true);
+    copy.querySelectorAll('[name="csrfmiddlewaretoken"]').forEach(input => input.removeAttribute('value'));
+    copy.querySelectorAll('svg[data-lucide],i[data-lucide]').forEach(svg => {
+      const icon = document.createElement('i'); icon.dataset.lucide = svg.dataset.lucide; svg.replaceWith(icon);
+    });
+    return copy.innerHTML;
+  }
+  function applyPage(page, forceEntry = null, onlyEntry = false) {
+    const focusedMember = document.activeElement?.dataset?.memberId;
+    const scroll = [...document.querySelectorAll('.dashboard-box,.submitted-reports-scroll,.team-members-table-wrap')]
+      .map(node => ({node, id: node.closest('[id]')?.id, cls: node.className, top: node.scrollTop, left: node.scrollLeft}));
+    let changed = false;
+    for (const id of ids) {
+      if (onlyEntry && id !== forceEntry) continue;
+      const current = document.getElementById(id), incoming = page.getElementById(id);
+      if (!current || !incoming) continue;
+      if (id !== 'teamTableBody' && id !== forceEntry && current.contains(document.activeElement)) continue;
+      const form = current.querySelector('form');
+      if (entries.has(id) && id !== forceEntry && form && dirty.has(form)) continue;
+      if (fingerprint(current) === fingerprint(incoming)) continue;
+      current.innerHTML = incoming.innerHTML;
+      changed = true;
+    }
+    for (const saved of scroll) {
+      let node = saved.node;
+      if (!node.isConnected && saved.id) {
+        const section = document.getElementById(saved.id);
+        node = section && [...section.querySelectorAll('[class]')].find(item => item.className === saved.cls);
+      }
+      if (node) { node.scrollTop = saved.top; node.scrollLeft = saved.left; }
+    }
+    // Filter choices can change without losing the user's selected filter.
+    for (const select of filters.querySelectorAll('select[name]')) {
+      if (select === document.activeElement) continue;
+      const incoming = page.querySelector('#filterForm select[name="' + select.name + '"]');
+      if (!incoming) continue;
+      const value = select.value;
+      if (select.innerHTML !== incoming.innerHTML) {
+        const oldOption = [...select.options].find(option => option.value === value)?.cloneNode(true);
+        select.innerHTML = incoming.innerHTML;
+        if (value && ![...select.options].some(option => option.value === value) && oldOption) select.append(oldOption);
+        select.value = value;
+      }
+    }
+    if (changed && focusedMember) {
+      const button = [...document.querySelectorAll('#teamTableBody [data-member-id]')].find(item => item.dataset.memberId === focusedMember);
+      button?.focus({preventScroll: true});
+    }
+    window.initTLDashboardSelects?.();
+    if (changed) window.lucide?.createIcons();
+  }
+  async function refresh(userAction = false) {
+    if (!active() || mutation || modalOpen()) return;
+    if (pending) { if (!userAction) return; stopRefresh(); }
+    const controller = new AbortController(); pending = controller;
+    const token = ++sequence, timeout = setTimeout(() => controller.abort(), 12000);
+    try {
+      const response = await fetch(urlForFilters(), {credentials: 'same-origin', cache: 'no-store', headers: {'Accept': 'text/html'}, signal: controller.signal});
+      if ([401,403].includes(response.status) || response.redirected && new URL(response.url).pathname !== location.pathname) { expired = true; return; }
+      if (!response.ok) throw new Error('Dashboard could not update.');
+      const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+      if (token !== sequence || controller.signal.aborted || !active() || mutation || modalOpen()) return;
+      if (!page.getElementById('teamTableBody')) { expired = true; return; }
+      applyPage(page);
+      if (userAction) history.replaceState(history.state, '', urlForFilters());
+    } catch (error) {
+      if (userAction && error.name !== 'AbortError') toast(error.message, 'error');
+    } finally { clearTimeout(timeout); if (pending === controller) pending = null; }
+  }
+  function scheduleFilter() {
+    stopRefresh(); clearTimeout(filterTimer);
+    filterTimer = setTimeout(() => refresh(true), 250);
+  }
+  filters.addEventListener('input', scheduleFilter);
+  filters.addEventListener('change', scheduleFilter);
+  filters.addEventListener('submit', event => { event.preventDefault(); clearTimeout(filterTimer); refresh(true); });
+  document.getElementById('resetEmployeeFilters')?.addEventListener('click', () => {
+    filters.querySelectorAll('input:not([type="hidden"]),select').forEach(input => { input.value = ''; });
+    window.initTLDashboardSelects?.();
+    scheduleFilter();
+  });
+  document.addEventListener('input', event => { if (event.target.form && event.target.form !== filters) dirty.add(event.target.form); });
+  document.addEventListener('change', event => { if (event.target.form && event.target.form !== filters) dirty.add(event.target.form); });
+
+  // Preserve Django validation and report-window checks; fetch existing POST endpoints.
+  document.addEventListener('submit', async event => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || event.defaultPrevented || form.method.toLowerCase() !== 'post') return;
+    if (!form.closest('#reportScheduleModal,#tlMorningEntry,#tlEveningEntry,#teamMemberEditModal')) return;
+    event.preventDefault();
+    if (mutation) return;
+    if (!form.reportValidity()) return;
+    const body = new FormData(form);
+    if (event.submitter?.name) body.set(event.submitter.name, event.submitter.value);
+    const action = new URL(form.getAttribute('action') || location.href, location.href);
+    if (action.origin !== location.origin) { toast('Invalid form destination.', 'error'); return; }
+    const entryId = form.closest('#tlMorningEntry,#tlEveningEntry')?.id;
+    mutation = true; window.tlDashboardMutationBusy = true; stopRefresh();
+    const oldInert = form.inert; form.inert = true;
+    form.setAttribute('aria-busy', 'true');
+    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 25000);
+    let success = false, page = null;
+    try {
+      const response = await fetch(action, {method: 'POST', body, credentials: 'same-origin', headers: {'Accept': 'text/html, application/json'}, signal: controller.signal});
+      if ([401,403].includes(response.status)) throw new Error('Access denied or session expired. Check your login.');
+      const json = (response.headers.get('content-type') || '').includes('application/json');
+      if (json) {
+        const data = await response.json();
+        if (!response.ok || data.ok !== true) throw new Error(data.message || 'Please correct the form and try again.');
+        success = true; toast(data.message || 'Changes saved.', 'success');
+      } else {
+        page = new DOMParser().parseFromString(await response.text(), 'text/html');
+        if (!response.ok) throw new Error('The server could not save this change.');
+        if (!page.getElementById('teamTableBody')) throw new Error('Session expired or unexpected response. Check your login.');
+        const notices = [...page.querySelectorAll('#tlServerMessages [data-level],#toast-django-messages [data-type]')];
+        const unique = new Map(notices.map(item => [item.textContent.trim(), {text:item.textContent.trim(), type:item.dataset.type || 'info', level:Number(item.dataset.level || 0)}]));
+        const alerts = [...unique.values()];
+        const error = alerts.find(item => item.level >= 40 || /error|danger/.test(item.type));
+        if (error) throw new Error(error.text);
+        success = alerts.some(item => item.level === 25 || /success/.test(item.type));
+        alerts.forEach(item => toast(item.text, item.type));
+        if (!success) toast('Server responded. Verify the saved change before submitting again.', 'info');
+      }
+      if (success) { dirty.delete(form); if (entryId) form.reset(); }
+    } catch (error) {
+      toast(error.name === 'AbortError' ? 'Save was not confirmed. Check the saved data before retrying.' : error.message, 'error');
+    } finally {
+      clearTimeout(timeout); form.inert = oldInert; form.removeAttribute('aria-busy');
+      mutation = false; window.tlDashboardMutationBusy = false;
+    }
+    if (success) {
+      if (form.closest('#reportScheduleModal')) window.closeReportScheduleModal?.();
+      if (form.closest('#teamMemberEditModal')) window.closeTeamMemberEditModal?.();
+      if (page && entryId) applyPage(page, entryId, true);
+      await refresh();
+    }
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopRefresh(); else refresh(); });
+  window.addEventListener('online', () => refresh());
+  window.addEventListener('focus', () => refresh());
+  window.addEventListener('pagehide', () => { paused = true; clearTimeout(filterTimer); stopRefresh(); });
+  window.addEventListener('pageshow', () => { paused = false; refresh(); });
+  setInterval(() => refresh(), 15000);
+  refresh();
+});
+
+</script>
+<script>
+/* Themed selects retain their original fields and submitted values. */
+(() => {
+  let opened = null, serial = 0;
+  const close = () => {
+    if (!opened) return;
+    opened.list.hidden = true;
+    opened.button.setAttribute('aria-expanded','false');
+    opened.button.removeAttribute('aria-activedescendant');
+    opened = null; window.tlDashboardSelectOpen = false;
+  };
+  window.closeTLDashboardSelects = close;
+  const position = () => {
+    if (!opened) return;
+    const r = opened.button.getBoundingClientRect(), list = opened.list;
+    if (!opened.button.isConnected || r.bottom < 0 || r.top > innerHeight) { close(); return; }
+    const below = innerHeight - r.bottom - 12, above = r.top - 12;
+    const up = below < 180 && above > below;
+    list.style.width = Math.min(r.width,innerWidth - 24) + 'px';
+    list.style.left = Math.max(12,Math.min(r.left,innerWidth-r.width-12)) + 'px';
+    list.style.maxHeight = Math.max(60,Math.min(260,up ? above : below)) + 'px';
+    list.style.top = up ? 'auto' : r.bottom + 6 + 'px';
+    list.style.bottom = up ? innerHeight-r.top+6 + 'px' : 'auto';
+  };
+  window.initTLDashboardSelects = (root = document) => {
+    root.querySelectorAll('#filterForm select[name="team"], #filterForm select[name="department"], #teamMemberEditModal select').forEach(select => {
+      if (select.dataset.themed) { select.dispatchEvent(new Event('tl-dashboard-select-sync')); return; }
+      select.dataset.themed = '1';
+      const wrapper = document.createElement('div'); wrapper.className = 'tl-dashboard-select';
+      select.before(wrapper); wrapper.append(select);
+      select.classList.add('tl-dashboard-native'); select.tabIndex = -1;
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'tl-dashboard-select-button';
+      const caption = document.createElement('span');
+      const arrow = document.createElement('span'); arrow.className = 'tl-dashboard-select-arrow'; arrow.setAttribute('aria-hidden','true'); arrow.textContent = '';
+      button.append(caption,arrow); wrapper.append(button);
+      const list = document.createElement('div'); list.className = 'tl-dashboard-options'; list.id = 'tlDashboardOptions'+(++serial); list.hidden = true;
+      list.setAttribute('role','listbox'); document.body.append(list);
+      const label = select.closest('.team-edit-field,.employee-filter-field')?.querySelector('label');
+      const name = label?.textContent.trim() || (select.name === 'team' ? 'Team' : select.name === 'department' ? 'Department' : 'Choose an option');
+      button.setAttribute('aria-haspopup','listbox'); button.setAttribute('aria-expanded','false'); button.setAttribute('aria-controls',list.id);
+      list.setAttribute('aria-label',name);
+      let active = select.selectedIndex, items = [], prefix = '', prefixTimer;
+      function sync() {
+        const selected = select.options[select.selectedIndex];
+        caption.textContent = selected?.textContent.trim() || 'Select an option';
+        button.disabled = select.disabled;
+        button.classList.toggle('is-placeholder',!select.value);
+        button.setAttribute('aria-label',name+': '+caption.textContent);
+        if (select.validity.valid) button.removeAttribute('aria-invalid');
+      }
+      function highlight(index) {
+        active = index;
+        items.forEach((item,i) => item.classList.toggle('is-focused',i===active));
+        if (items[active]) { button.setAttribute('aria-activedescendant',items[active].id); items[active].scrollIntoView({block:'nearest'}); }
+      }
+      function choose(index) {
+        if (!select.options[index] || select.options[index].disabled) return;
+        select.selectedIndex = index; select.dispatchEvent(new Event('input',{bubbles:true})); select.dispatchEvent(new Event('change',{bubbles:true}));
+        sync(); close(); button.focus({preventScroll:true});
+      }
+      function open() {
+        close();
+        // Old options portals are cleaned up when refreshed edit modals replace selects.
+        document.querySelectorAll('.tl-dashboard-options').forEach(portal => { if (portal !== list && !document.querySelector('[aria-controls="'+portal.id+'"]')) portal.remove(); });
+        list.replaceChildren();
+        items = [...select.options].map((option,index) => {
+          const item = document.createElement('div'); item.className = 'tl-dashboard-option'; item.id = list.id+'Option'+index;
+          item.setAttribute('role','option'); item.setAttribute('aria-selected',String(option.selected)); item.setAttribute('aria-disabled',String(option.disabled));
+          const text = document.createElement('span'); text.textContent = option.textContent.trim(); item.append(text);
+          if (option.selected) { const check = document.createElement('span'); check.textContent = '✓'; check.setAttribute('aria-hidden','true'); item.append(check); }
+          item.addEventListener('pointerdown',event => event.preventDefault());
+          item.addEventListener('click',() => choose(index)); list.append(item); return item;
+        });
+        opened = {button,list}; window.tlDashboardSelectOpen = true; list.hidden = false; button.setAttribute('aria-expanded','true'); position();
+        active = select.selectedIndex;
+        if (active < 0 || select.options[active]?.disabled) active = [...select.options].findIndex(option => !option.disabled);
+        highlight(active);
+      }
+      button.addEventListener('click',() => opened?.button === button ? close() : open());
+      button.addEventListener('keydown',event => {
+        if (event.key === 'Escape') { if(opened?.button === button) { event.preventDefault(); event.stopPropagation(); close(); } return; }
+        if (event.key === 'Tab') { close(); return; }
+        if (['ArrowDown','ArrowUp','Home','End'].includes(event.key)) {
+          event.preventDefault(); if(opened?.button !== button) { open(); return; }
+          const enabled = [...select.options].map((option,index) => option.disabled ? -1 : index).filter(index => index>=0);
+          let at = enabled.indexOf(active);
+          if (event.key === 'Home') at=0; else if(event.key === 'End') at=enabled.length-1; else at=Math.max(0,Math.min(enabled.length-1,at+(event.key==='ArrowDown'?1:-1)));
+          highlight(enabled[at]);
+        } else if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault(); if(opened?.button === button) choose(active); else open();
+        } else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          event.preventDefault(); if(opened?.button !== button) open();
+          clearTimeout(prefixTimer); prefix+=event.key.toLowerCase(); prefixTimer=setTimeout(()=>prefix='',700);
+          const index=[...select.options].findIndex(option=>!option.disabled && option.textContent.trim().toLowerCase().startsWith(prefix));
+          if(index>=0) highlight(index);
+        }
+      });
+      select.addEventListener('change',sync); select.addEventListener('tl-dashboard-select-sync',sync);
+      select.addEventListener('invalid',event => { event.preventDefault(); button.setAttribute('aria-invalid','true'); button.focus(); });
+      label?.addEventListener('click',event => { event.preventDefault(); button.focus(); });
+      select.form?.addEventListener('reset',() => { close(); setTimeout(sync,0); });
+      sync();
+    });
+  };
+  document.addEventListener('pointerdown',event => { if(opened && !opened.button.contains(event.target) && !opened.list.contains(event.target)) close(); });
+  document.addEventListener('scroll',position,true); window.addEventListener('resize',position);
+  // Modal close removes its floating list too.
+  document.addEventListener('click',() => { if(opened && !opened.button.isConnected) close(); });
+  document.addEventListener('DOMContentLoaded',() => window.initTLDashboardSelects());
+})();
+
+</script>
+<style>#filterForm select.tl-dashboard-native,#teamMemberEditModal select.tl-dashboard-native { position:absolute!important; width:1px!important; min-width:0!important; max-width:1px!important; height:1px!important; min-height:0!important; padding:0!important; margin:0!important; opacity:0!important; clip-path:inset(50%); pointer-events:none; }</style>
+<style>
+
+/* Readable dropdown text with restrained dashboard purple accents. */
+#filterForm .tl-dashboard-select-button,
+#teamMemberEditModal .tl-dashboard-select-button {
+ font-size:14px; font-weight:400; line-height:1.45;
+ background:#1b1926; color:#f1f0f7; border-color:rgba(153,139,204,.24);
+}
+#filterForm .tl-dashboard-select-button:hover,
+#teamMemberEditModal .tl-dashboard-select-button:hover { background:#211e30; border-color:rgba(153,139,204,.40); }
+#filterForm .tl-dashboard-select-button:focus-visible,
+#teamMemberEditModal .tl-dashboard-select-button:focus-visible,
+#filterForm .tl-dashboard-select-button[aria-expanded="true"],
+#teamMemberEditModal .tl-dashboard-select-button[aria-expanded="true"] {
+ background:#211e30; border-color:#8775c5; box-shadow:0 0 0 2px rgba(135,117,197,.10);
+}
+.tl-dashboard-options { background:#1b1926; border-color:rgba(153,139,204,.30); padding:6px; scrollbar-color:#7869aa #1b1926; }
+.tl-dashboard-option { font-family:inherit; font-size:14px; font-weight:400; line-height:1.45; min-height:40px; padding:10px 12px; color:#e8e6ef; }
+.tl-dashboard-option:hover,.tl-dashboard-option.is-focused { background:rgba(135,117,197,.13); color:#fff; }
+.tl-dashboard-option[aria-selected="true"] { background:rgba(135,117,197,.18); color:#f2efff; font-weight:500; }
+.tl-dashboard-select-button .tl-dashboard-select-arrow { border-color:#afa2d6; }
+@media(max-width:640px) {
+ #filterForm .tl-dashboard-select-button,#teamMemberEditModal .tl-dashboard-select-button { font-size:16px; }
+ .tl-dashboard-option { font-size:16px; min-height:44px; }
+}
+
+</style>
+<style>
+
+/* Search, Department and Team share one quiet field treatment. */
+#filterForm .employee-filter-field.search-field input,
+#filterForm .employee-filter-field .tl-dashboard-select-button {
+ width:100%; height:36px; min-height:36px; box-sizing:border-box;
+ padding:0 12px; border-radius:10px; border:1px solid rgba(255,255,255,.08);
+ background:rgba(7,7,11,.72); color:#f4f4f5; font-family:inherit; font-size:14px;
+ font-weight:400; line-height:20px; box-shadow:none;
+}
+#filterForm .employee-filter-field .tl-dashboard-select-button:hover {
+ background:rgba(7,7,11,.72); border-color:rgba(255,255,255,.16); box-shadow:none;
+}
+#filterForm .employee-filter-field.search-field input:focus,
+#filterForm .employee-filter-field .tl-dashboard-select-button:focus-visible,
+#filterForm .employee-filter-field .tl-dashboard-select-button[aria-expanded="true"] {
+ background:rgba(10,9,15,.90); border-color:rgba(139,92,246,.45);
+ box-shadow:0 0 0 2px rgba(139,92,246,.06); outline:none;
+}
+/* Calendar-inspired purple accents belong inside the opened list. */
+.tl-dashboard-options {
+ padding:8px; border:1px solid rgba(255,255,255,.13); border-radius:14px;
+ background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),rgba(12,11,20,.98);
+ box-shadow:0 20px 45px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);
+ scrollbar-color:rgba(139,92,246,.50) transparent;
+}
+.tl-dashboard-option { border-radius:8px; font-size:14px; color:#eeebf5; }
+.tl-dashboard-option:hover,.tl-dashboard-option.is-focused { background:rgba(139,92,246,.12); color:#fff; }
+.tl-dashboard-option[aria-selected="true"] { background:rgba(139,92,246,.18); color:#ede9fe; font-weight:500; }
+#filterForm .tl-dashboard-select-arrow { width:7px; height:7px; flex-basis:7px; border-color:#a99cce; }
+@media(max-width:640px) {
+ #filterForm .employee-filter-field.search-field input,
+ #filterForm .employee-filter-field .tl-dashboard-select-button { height:44px; min-height:44px; font-size:16px; }
+ .tl-dashboard-option { font-size:16px; min-height:44px; }
+}
+
+</style>
+<style>
+/* Employee editor: the same dark surface and subtle accents as the dropdown panel. */
+#teamMemberEditModal .team-edit-modal-box {
+ box-sizing:border-box;width:min(900px,calc(100vw - 24px));max-height:calc(100dvh - 32px);
+ background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),rgba(12,11,20,.98);
+ border:1px solid rgba(255,255,255,.13);border-radius:18px;
+ box-shadow:0 20px 45px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);
+ overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(139,92,246,.50) transparent;
+}
+#teamMemberEditModal .team-edit-modal-box::-webkit-scrollbar{width:7px;}
+#teamMemberEditModal .team-edit-modal-box::-webkit-scrollbar-track{background:transparent;}
+#teamMemberEditModal .team-edit-modal-box::-webkit-scrollbar-thumb{background:rgba(139,92,246,.5);border-radius:8px;}
+#teamMemberEditModal .team-edit-modal-box::-webkit-scrollbar-button{display:none;}
+#teamMemberEditModal .team-edit-field{min-width:0;}
+#teamMemberEditModal .team-edit-field input:not([type="hidden"]),
+#teamMemberEditModal .tl-dashboard-select-button {
+ box-sizing:border-box;width:100%;min-width:0;height:44px;min-height:44px;padding:0 12px;
+ background:#0c0b13;border:1px solid rgba(255,255,255,.13);border-radius:10px;
+ color:#eeebf5;font-size:14px;line-height:20px;font-weight:400;
+}
+#teamMemberEditModal .team-edit-field input:not([type="hidden"]):focus,
+#teamMemberEditModal .tl-dashboard-select-button:focus-visible,
+#teamMemberEditModal .tl-dashboard-select-button[aria-expanded="true"] {
+ outline:none;border-color:rgba(139,92,246,.5);box-shadow:0 0 0 2px rgba(139,92,246,.10);background:#0c0b13;
+}
+#teamMemberEditModal .tl-dashboard-select-button:hover{background:#0c0b13;border-color:rgba(139,92,246,.4);}
+#teamMemberEditModal .team-edit-field label{font-size:12px;color:#b8b1c5;}
+#teamMemberEditModal input[type="file"]{padding:8px 10px!important;height:auto!important;}
+#teamMemberEditModal input[type="file"]::file-selector-button{background:rgba(139,92,246,.18);border:1px solid rgba(139,92,246,.25);color:#ede9fe;border-radius:7px;padding:6px 10px;margin-right:10px;}
+#teamMemberEditModal .team-edit-modal-footer{flex-wrap:wrap;}
+@media(max-width:640px){
+ #teamMemberEditModal .team-edit-modal-box{padding:18px;max-height:calc(100dvh - 24px);}
+ #teamMemberEditModal .team-edit-form-grid{grid-template-columns:minmax(0,1fr);gap:14px;}
+ #teamMemberEditModal .team-edit-field input:not([type="hidden"]),#teamMemberEditModal .tl-dashboard-select-button{font-size:16px;}
+ #teamMemberEditModal .team-edit-image-field{grid-column:1/-1;}
+ #teamMemberEditModal .team-edit-image-wrap{flex-wrap:wrap;}
+ #teamMemberEditModal .team-edit-cancel-btn,#teamMemberEditModal .team-edit-save-btn{min-height:44px;flex:1;}
+}
+</style></body>
   </html>

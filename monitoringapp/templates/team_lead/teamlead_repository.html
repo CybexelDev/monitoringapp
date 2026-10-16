@@ -2047,6 +2047,7 @@ body .resource-tab-empty {grid-column:1/-1;text-align:center;padding:32px 16px;c
 let pendingRepositoryDeleteForm = null;
 
 function openRepositoryDeleteModal(button) {
+  if(window.repositoryBusy) return false;
   pendingRepositoryDeleteForm = button.closest('form');
   const modal = document.getElementById('repositoryDeleteModal');
   if (modal.parentElement !== document.body) document.body.appendChild(modal);
@@ -2058,6 +2059,7 @@ function openRepositoryDeleteModal(button) {
 }
 
 function closeRepositoryDeleteModal() {
+  if(window.repositoryBusy) return;
   const modal = document.getElementById('repositoryDeleteModal');
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden', 'true');
@@ -2074,15 +2076,16 @@ document.addEventListener("keydown", function (event) {
 });
 </script>
 
+<div id="repositoryLiveMessages" hidden>{% for message in messages %}<span data-level="{{ message.level }}">{{ message }}</span>{% endfor %}</div>
 {% include "components/toast_notification.html" %}
 <script>
 
 (function () {
   const tabs = Array.from(document.querySelectorAll('[data-resource-tab]'));
   const panel = document.getElementById('resourceTabPanel');
-  const empty = document.getElementById('resourceTabEmpty');
+  let empty = document.getElementById('resourceTabEmpty');
   if (!tabs.length || !panel || !empty) return;
-  const cards = Array.from(panel.querySelectorAll('[data-resource-category]'));
+  let cards = Array.from(panel.querySelectorAll('[data-resource-category]'));
   const labels = {team: 'No Team resources available yet.', admin: 'No Admin resources available yet.', lead: 'No Team Lead resources available yet.', member: 'No Team Member resources available yet.'};
   tabs.forEach(tab => {
     const category = tab.dataset.resourceTab;
@@ -2118,9 +2121,108 @@ document.addEventListener("keydown", function (event) {
       selectTab(tabs[next], true);
     });
   });
+  window.refreshRepositoryTabs = () => {
+    empty = document.getElementById('resourceTabEmpty');
+    cards = Array.from(panel.querySelectorAll('[data-resource-category]'));
+    tabs.forEach(tab => {tab.querySelector('[data-resource-count]').textContent=cards.filter(card=>card.dataset.resourceCategory===tab.dataset.resourceTab).length;});
+    selectTab(tabs.find(tab=>tab.getAttribute('aria-selected')==='true')||tabs[0],false);
+  };
   selectTab(tabs[0], false);
 })();
 
 </script>
+<style>
+.repository-form-card,.repository-grid,.repository-card,.repository-card-content{min-width:0;max-width:100%;}
+.repository-card h3,.repository-description,.repository-meta,.repository-modal p,.repository-modal a{overflow-wrap:anywhere;}
+.repository-grid{max-height:70vh;max-height:70dvh;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#827395 transparent;}
+.resource-tabs{display:flex;flex-wrap:wrap;gap:10px;}
+.repository-modal.open{overflow-y:auto;max-height:100dvh;}
+.repository-live-toast{position:fixed;bottom:20px;right:20px;z-index:200000;padding:14px 18px;background:#241a33;color:#fff;border:1px solid #79618d;border-radius:12px;max-width:calc(100vw - 40px);}
+@media(max-width:640px){.repository-grid{grid-template-columns:minmax(0,1fr)!important;}.resource-tabs .resource-tab{flex:1 1 150px;min-height:44px;}.repository-form-card input,.repository-form-card textarea{font-size:16px;max-width:100%;}.repository-form-card{padding:18px;}.repository-card{width:100%;}.repository-modal img,.repository-modal iframe{max-width:100%;}}
+</style><script>(() => {
+ const form=document.querySelector('.repository-form-card'),panel=document.getElementById('resourceTabPanel');
+ let busy=false,pending=null,generation=0,paused=false;
+ const toast=(message,type='success')=>{if(typeof window.showToast==='function'){window.showToast(message,type);return;}const n=document.createElement('div');n.className='repository-live-toast';n.textContent=message;document.body.append(n);setTimeout(()=>n.remove(),5500);};
+ function sync(doc){
+  const next=doc.getElementById('resourceTabPanel');if(!next)throw Error('Check your login and try again.');
+  const top=panel.scrollTop,left=panel.scrollLeft;
+  // View dialogs moved to body must not leave stale duplicate IDs after refresh.
+  document.querySelectorAll('body > .repository-modal:not(.open)').forEach(n=>n.remove());
+  panel.innerHTML=next.innerHTML;panel.scrollTop=top;panel.scrollLeft=left;
+  window.refreshRepositoryTabs?.();window.lucide?.createIcons();
+ }
+ async function refresh(){
+  if(paused||busy||pending||document.hidden||document.querySelector('.repository-modal.open,.repository-delete-overlay.open')||document.activeElement?.closest('#resourceTabPanel'))return;
+  const c=new AbortController(),seq=++generation;pending=c;const timer=setTimeout(()=>c.abort(),12000);
+  try{const r=await fetch(location.href,{cache:'no-store',credentials:'same-origin',signal:c.signal});if(r.status===401||r.status===403){paused=true;return;}if(!r.ok)return;const doc=new DOMParser().parseFromString(await r.text(),'text/html');if(!doc.getElementById('resourceTabPanel')){paused=true;return;}if(seq===generation&&!busy)sync(doc);}catch(e){}finally{clearTimeout(timer);if(pending===c)pending=null;}
+ }
+ async function save(target,deleting=false){
+  if(busy||!target.reportValidity())return;
+  busy=true;window.repositoryBusy=true;generation++;pending?.abort();pending=null;
+  const payload=new FormData(target),states=[...target.querySelectorAll('button,input,textarea')].map(n=>[n,n.disabled]);states.forEach(([n])=>n.disabled=true);
+  const buttons=[...document.querySelectorAll('#repositoryDeleteModal button')];buttons.forEach(n=>n.disabled=true);
+  const c=new AbortController(),timer=setTimeout(()=>c.abort(),60000);
+  try{
+   const response=await fetch(target.getAttribute('action')||location.href,{method:'POST',body:payload,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:c.signal});
+   const doc=new DOMParser().parseFromString(await response.text(),'text/html'),messages=[...doc.querySelectorAll('#repositoryLiveMessages [data-level]')];
+   const error=messages.find(n=>+n.dataset.level>=40),success=messages.find(n=>+n.dataset.level===25);
+   if(!response.ok||error)throw Error(error?.textContent.trim()||'Could not save the resource.');
+   if(!doc.getElementById('resourceTabPanel')||!success)throw Error('Save could not be confirmed. Check the resource list before retrying.');
+   window.repositoryBusy=false;if(deleting)closeRepositoryDeleteModal();else target.reset();sync(doc);toast(success.textContent.trim());
+  }catch(e){toast(e.name==='AbortError'?'Request timed out. Check the list before retrying; it may have saved.':e.message,'error');}
+  finally{clearTimeout(timer);busy=false;window.repositoryBusy=false;states.forEach(([n,disabled])=>n.disabled=disabled);buttons.forEach(n=>n.disabled=false);}
+ }
+ document.addEventListener('submit',e=>{if(e.target===form){e.preventDefault();save(form);}else if(e.target.matches('#resourceTabPanel article form')){e.preventDefault();if(!busy)openRepositoryDeleteModal(e.target.querySelector('button'));}});
+ window.submitRepositoryDelete=()=>{if(pendingRepositoryDeleteForm)save(pendingRepositoryDeleteForm,true);};
+ document.addEventListener('keydown',e=>{if(e.key!=='Tab')return;const modal=document.querySelector('.repository-modal.open,.repository-delete-overlay.open');if(!modal)return;const nodes=[...modal.querySelectorAll('button:not(:disabled),a[href],[tabindex="0"]')].filter(n=>n.getClientRects().length);if(!nodes.length)return;if(e.shiftKey&&document.activeElement===nodes[0]){e.preventDefault();nodes.at(-1).focus();}else if(!e.shiftKey&&document.activeElement===nodes.at(-1)){e.preventDefault();nodes[0].focus();}});
+ setInterval(refresh,15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+ window.addEventListener('pagehide',()=>{paused=true;generation++;pending?.abort();});window.addEventListener('pageshow',e=>{if(e.persisted){paused=false;refresh();}});
+})();
+</script>
+<style>
+/* Native file picker, styled to match the repository theme. */
+#repository-file.repository-file {
+  min-width: 0;
+  min-height: 46px;
+  padding: 5px;
+  background: #0c0b13;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 12px;
+  color: #d9d5e5;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 24px;
+  overflow: hidden;
+}
+#repository-file::file-selector-button {
+  min-height: 34px;
+  margin: 0 12px 0 0;
+  padding: 6px 14px;
+  border: 1px solid rgba(167,139,250,.28);
+  border-radius: 8px;
+  background: rgba(139,92,246,.16);
+  color: #ede9fe;
+  font: inherit;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease;
+}
+#repository-file:hover:not(:disabled)::file-selector-button {
+  background: rgba(139,92,246,.24);
+  border-color: rgba(167,139,250,.45);
+}
+#repository-file:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 3px;
+}
+#repository-file:disabled { opacity: .6; cursor: wait; }
+#repository-file:disabled::file-selector-button { cursor: wait; }
+@media (max-width: 600px) {
+  #repository-file.repository-file { font-size: 16px; }
+  #repository-file::file-selector-button { margin-right: 8px; padding-inline: 10px; }
+}
+</style>
+
 </body>
 </html>
