@@ -4321,6 +4321,55 @@
 </style>
 <style>
 
+/* Report submission cards only: match Team Member's side-by-side layout. */
+.tl-report-submission-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 18px;
+    min-width: 0;
+    margin-bottom: 22px;
+}
+.tl-report-submission-grid > .tl-panel {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin: 0 !important;
+}
+.tl-report-submission-grid .tl-report-entry-form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 14px;
+}
+.tl-report-submission-grid .tl-report-entry-form textarea {
+    width: 100%;
+    min-height: 130px;
+    flex: 1;
+    resize: vertical;
+}
+.tl-report-submission-grid .tl-report-entry-form select {
+    width: 100%;
+}
+.tl-report-submission-grid .report-entry-submit {
+    width: 100%;
+}
+.tl-report-submission-grid .tl-report-restriction {
+    margin: 0;
+    padding: 18px;
+    background: rgba(7, 7, 11, .35);
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: 12px;
+    color: #a29aaa !important;
+    font-size: 13px;
+    line-height: 1.7;
+}
+@media (max-width: 1099px) {
+    .tl-report-submission-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 /* Morning and Evening report typography and submit controls. */
 .report-entry-heading {
     display: flex;
@@ -4432,6 +4481,74 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
 .tl-dashboard-select,.employee-filter-field { min-width:0; }
 @media(max-width:640px) { #filterForm .tl-dashboard-select-button,#teamMemberEditModal .tl-dashboard-select-button { font-size:16px; height:44px; min-height:44px; } .tl-dashboard-option { min-height:44px; font-size:15px; } }
 
+</style>
+<style>
+/* ONLY Morning / Evening report status dropdowns: share the Department / Team filter theme.
+   The original named <select> fields still submit their original status values. */
+#tlMorningEntry select.tl-dashboard-native,
+#tlEveningEntry select.tl-dashboard-native {
+    position: absolute !important;
+    width: 1px !important;
+    min-width: 0 !important;
+    max-width: 1px !important;
+    height: 1px !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+    clip-path: inset(50%);
+    pointer-events: none;
+}
+#tlMorningEntry .tl-dashboard-select,
+#tlEveningEntry .tl-dashboard-select {
+    width: 100%;
+    min-width: 0;
+}
+#tlMorningEntry .tl-dashboard-select-button,
+#tlEveningEntry .tl-dashboard-select-button {
+    width: 100%;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(7,7,11,.72);
+    color: #f4f4f5;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    box-shadow: none;
+}
+#tlMorningEntry .tl-dashboard-select-button:hover,
+#tlEveningEntry .tl-dashboard-select-button:hover {
+    background: rgba(7,7,11,.72);
+    border-color: rgba(255,255,255,.16);
+    box-shadow: none;
+}
+#tlMorningEntry .tl-dashboard-select-button:focus-visible,
+#tlEveningEntry .tl-dashboard-select-button:focus-visible,
+#tlMorningEntry .tl-dashboard-select-button[aria-expanded="true"],
+#tlEveningEntry .tl-dashboard-select-button[aria-expanded="true"] {
+    background: rgba(10,9,15,.90);
+    border-color: rgba(139,92,246,.45);
+    box-shadow: 0 0 0 2px rgba(139,92,246,.06);
+    outline: none;
+}
+#tlMorningEntry .tl-dashboard-select-arrow,
+#tlEveningEntry .tl-dashboard-select-arrow {
+    width: 7px;
+    height: 7px;
+    flex-basis: 7px;
+    border-color: #a99cce;
+}
+@media (max-width:640px) {
+    #tlMorningEntry .tl-dashboard-select-button,
+    #tlEveningEntry .tl-dashboard-select-button {
+        font-size: 16px;
+        min-height: 44px;
+    }
+}
 </style>
 </head>
   <body class="tl-dashboard-page">
@@ -4972,11 +5089,12 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
 {% include "components/toast_notification.html" %}
 
 
+  <div class="tl-report-submission-grid">
   <!-- 🌅 Submit Morning Report -->
   <div class="tl-panel" id="tlMorningEntry">
     <h2 class="report-entry-heading"><span class="report-entry-icon"><i data-lucide="sunrise" aria-hidden="true"></i></span>Submit Morning Report</h2>
     {% if morning_allowed %}
-      <form method="POST" class="space-y-3">
+      <form method="POST" class="tl-report-entry-form">
         {% csrf_token %}
         <textarea name="morning_report" rows="4"
           class="w-full p-3 rounded-lg bg-black border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600"
@@ -4999,7 +5117,7 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
         Morning report submission is only allowed between
         {{ morning_start|time:"h:i A" }} and {{ morning_end|time:"h:i A" }}.
       </p> -->
-      <p class="text-gray-400">
+      <p class="text-gray-400 tl-report-restriction">
   {% if morning_on_leave %}
     Holiday — no morning report required today.
   {% elif morning_start and morning_end %}
@@ -5016,7 +5134,7 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
   <div class="tl-panel" id="tlEveningEntry">
     <h2 class="report-entry-heading"><span class="report-entry-icon"><i data-lucide="moon-star" aria-hidden="true"></i></span>Submit Evening Report</h2>
     {% if evening_allowed %}
-      <form method="POST" class="space-y-3">
+      <form method="POST" class="tl-report-entry-form">
         {% csrf_token %}
         <textarea name="evening_report" rows="4"
           class="w-full p-3 rounded-lg bg-black border border-gray-600 text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-600"
@@ -5038,7 +5156,7 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
         Evening report submission is only allowed between
         {{ evening_start|time:"h:i A" }} and {{ evening_end|time:"h:i A" }}.
       </p> -->
-      <p class="text-gray-400">
+      <p class="text-gray-400 tl-report-restriction">
   {% if evening_on_leave %}
     Holiday — no evening report required today.
   {% elif evening_start and evening_end %}
@@ -5050,6 +5168,8 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
 </p>
     {% endif %}
   </div>
+
+  </div><!-- /.tl-report-submission-grid -->
 
   <!-- 📊 Submitted Reports -->
   <div class="tl-panel" id="tlLiveReports">
@@ -5506,11 +5626,11 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
       const sidebar = document.getElementById("sidebar");
       document.querySelectorAll(".menu-toggle").forEach(function (button) {
           button.addEventListener("click", function () {
-              sidebar.classList.toggle("open");
+              sidebar?.classList.toggle("open");
           });
       });
       document.addEventListener("click", function (event) {
-          if (window.innerWidth <= 900 && sidebar.classList.contains("open") && !sidebar.contains(event.target) && !event.target.closest(".menu-toggle")) {
+          if (window.innerWidth <= 768 && sidebar?.classList.contains("open") && !sidebar.contains(event.target) && !event.target.closest(".menu-toggle")) {
               sidebar.classList.remove("open");
           }
       });
@@ -6946,7 +7066,7 @@ document.addEventListener('DOMContentLoaded', () => {
     list.style.bottom = up ? innerHeight-r.top+6 + 'px' : 'auto';
   };
   window.initTLDashboardSelects = (root = document) => {
-    root.querySelectorAll('#filterForm select[name="team"], #filterForm select[name="department"], #teamMemberEditModal select').forEach(select => {
+    root.querySelectorAll('#filterForm select[name="team"], #filterForm select[name="department"], #teamMemberEditModal select, #tlMorningEntry select[name="morning_status"], #tlEveningEntry select[name="evening_status"]').forEach(select => {
       if (select.dataset.themed) { select.dispatchEvent(new Event('tl-dashboard-select-sync')); return; }
       select.dataset.themed = '1';
       const wrapper = document.createElement('div'); wrapper.className = 'tl-dashboard-select';
@@ -6959,7 +7079,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const list = document.createElement('div'); list.className = 'tl-dashboard-options'; list.id = 'tlDashboardOptions'+(++serial); list.hidden = true;
       list.setAttribute('role','listbox'); document.body.append(list);
       const label = select.closest('.team-edit-field,.employee-filter-field')?.querySelector('label');
-      const name = label?.textContent.trim() || (select.name === 'team' ? 'Team' : select.name === 'department' ? 'Department' : 'Choose an option');
+      const name = label?.textContent.trim() || (select.name === 'team' ? 'Team' : select.name === 'department' ? 'Department' : select.name === 'morning_status' ? 'Morning report status' : select.name === 'evening_status' ? 'Evening report status' : 'Choose an option');
       button.setAttribute('aria-haspopup','listbox'); button.setAttribute('aria-expanded','false'); button.setAttribute('aria-controls',list.id);
       list.setAttribute('aria-label',name);
       let active = select.selectedIndex, items = [], prefix = '', prefixTimer;
@@ -7136,5 +7256,49 @@ document.addEventListener('DOMContentLoaded', () => {
  #teamMemberEditModal .team-edit-image-wrap{flex-wrap:wrap;}
  #teamMemberEditModal .team-edit-cancel-btn,#teamMemberEditModal .team-edit-save-btn{min-height:44px;flex:1;}
 }
-</style></body>
+</style><!-- Team Lead browser-native notification permission: best-effort only.
+     Chrome/Edge may suppress requests without a user gesture. -->
+<script>
+(function () {
+    "use strict";
+    async function initializeDashboardPushPermission() {
+        const push = window.CybexelWindowsPush;
+        if (!push || !push.supported()) return;
+
+        try {
+            // Already allowed: bind the browser subscription to this login session.
+            if (Notification.permission === "granted") {
+                await push.enable("team_lead");
+                return;
+            }
+            // Respect a previous Block decision.
+            if (Notification.permission === "denied") return;
+
+            // Check on every Dashboard load, including auto-login and refresh.
+            // Chrome/Edge decides whether to display its native permission prompt.
+            // Never store an attempted flag: a dismissed prompt may remain "default".
+
+            // This is the browser's own native permission request, not a custom popup.
+            // Some Chrome/Edge versions require a user click and will suppress it here.
+            const permission = await Notification.requestPermission();
+            if (permission === "granted") {
+                await push.enable("team_lead");
+            }
+        } catch (error) {
+            console.warn("Dashboard notification initialization:", error);
+            // Existing sidebar Windows Alerts control remains the fallback.
+        } finally {
+            // The sidebar's existing control can still be used if Chrome/Edge
+            // suppresses an automatic permission request.
+        }
+    }
+
+    if (document.readyState === "complete") {
+        initializeDashboardPushPermission();
+    } else {
+        window.addEventListener("load", initializeDashboardPushPermission, { once: true });
+    }
+})();
+</script>
+</body>
   </html>

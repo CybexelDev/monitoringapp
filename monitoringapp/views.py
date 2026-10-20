@@ -1313,7 +1313,7 @@ def admin_group_chat(request, group_id):
     from asgiref.sync import async_to_sync
     from channels.layers import get_channel_layer
 
-    from .chat_receipts___ import broadcast_chat_activity    
+    from .chat_receipts import broadcast_chat_activity    
     from .member_chat_actions import chat_action
 
     current_user = _admin_chat_user(request)
@@ -3931,7 +3931,7 @@ def teamlead_group_chat_view(request, group_id):
     from asgiref.sync import async_to_sync
     from channels.layers import get_channel_layer
 
-    from .chat_receipts___ import broadcast_chat_activity
+    from .chat_receipts import broadcast_chat_activity
     from .member_chat_actions import chat_action
 
     user_id = request.session.get("user_id")
@@ -5471,6 +5471,61 @@ def teammember_reports(request):
         },
     )
 
+
+
+@never_cache
+@require_POST
+def teammember_project_seen(request, pk):
+    if request.session.get("position") != "team_member":
+        return JsonResponse({"ok": False}, status=403)
+
+    user_id = request.session.get("user_id")
+    user = User.objects.filter(
+        pk=user_id,
+        job_Position__iexact="Team Member"
+    ).first()
+
+    if user is None:
+        return JsonResponse({"ok": False}, status=403)
+
+    project = get_object_or_404(
+        ProjectAssign.objects.select_related("assigned_by"),
+        pk=pk,
+        assign_to=user,
+    )
+
+    with transaction.atomic():
+        updated = ProjectAssign.objects.filter(
+            pk=project.pk,
+            seen_at__isnull=True,
+        ).update(seen_at=timezone.now())
+
+        if updated and project.assigned_by_id != user.pk:
+            team_lead = project.assigned_by
+
+            if (
+                team_lead
+                and (team_lead.job_Position or "").strip().lower()
+                == "team lead"
+            ):
+                TeamLeadNotification.objects.create(
+                    recipient=team_lead,
+                    kind="project",
+                    title="Project Viewed",
+                    message=(
+                        f"{user.name} viewed the assigned project "
+                        f"'{project.work_name}'."
+                    ),
+                    url=reverse("teamlead_project_assigning"),
+                )
+
+    return JsonResponse({
+        "ok": True,
+        "first_view": bool(updated),
+    })
+
+
+
 from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponseBadRequest
@@ -6282,10 +6337,40 @@ def teammember_project(request):
         if status not in dict(ProjectAssign.STATUS_CHOICES):
             messages.error(request, "Invalid status selected.")
             return redirect("teammember_project")
+        # project.status = status
+        # project.save()
+        # messages.success(request, f"Project status updated to {status}.")
+        # return redirect("teammember_project")
+        
+        old_status = project.status
+
         project.status = status
         project.save()
+
+        # Notify the assigned Team Lead only when status changes.
+        if old_status != status:
+            team_lead = project.assigned_by
+
+            if (
+                team_lead
+                and team_lead.pk != user.pk
+                and (team_lead.job_Position or "").strip().lower() == "team lead"
+            ):
+                TeamLeadNotification.objects.create(
+                    recipient=team_lead,
+                    kind="project",
+                    title="Project Status Updated",
+                    message=(
+                        f"{user.name} updated the project "
+                        f"'{project.work_name}' from "
+                        f"{old_status} to {status}."
+                    ),
+                    url=reverse("teamlead_project_assigning"),
+                )
+
         messages.success(request, f"Project status updated to {status}.")
         return redirect("teammember_project")
+
 
     return render(request, "team_member/teammember_project.html", {"projects": projects})
 
@@ -6354,10 +6439,49 @@ def update_task(request, task_id):
     if status not in progress_by_status:
         messages.error(request, "Invalid task status.")
         return redirect("teammember_task")
+
+    old_status = task.status
+
     task.status = status
     task.progress = progress_by_status[status]
-    task.save()
+    task.save(update_fields=["status", "progress"])
+
+    # Notify Team Lead only when an assigned task changes status.
+    if old_status != status and task.created_by_id != user.pk:
+        team_lead = task.created_by
+
+        if (
+            team_lead
+            and (team_lead.job_Position or "").strip().lower()
+            == "team lead"
+        ):
+            status_labels = {
+                "pending": "Pending",
+                "in_progress": "In Progress",
+                "completed": "Completed",
+            }
+
+            new_status = status_labels.get(status, status)
+
+            notification_title = (
+                "Task Completed"
+                if status == "completed"
+                else "Task Status Updated"
+            )
+
+            TeamLeadNotification.objects.create(
+                recipient=team_lead,
+                kind="task",
+                title=notification_title,
+                message=(
+                    f"{user.name} updated the task "
+                    f"'{task.title}' to {new_status}."
+                ),
+                url=reverse("teamlead_task"),
+            )
+
     messages.success(request, "Task status updated successfully.")
+
     tab = "my" if task.created_by_id == user.pk else "assigned"
     return redirect(reverse("teammember_task") + "?tab=" + tab)
 
@@ -12063,6 +12187,35 @@ def admin_google_meet(request):
             meeting.meeting_link = link
             meeting.save()
             meeting.participants.set(participants)
+            
+            # Windows notifications for invited Team Leads.
+            teamlead_participants = [
+                person for person in participants
+                if (person.job_Position or "").strip().lower()
+                == "team lead"
+            ]
+
+            notification_title = (
+                "Google Meet Updated"
+                if action == "edit_meeting"
+                else "New Google Meet Scheduled"
+            )
+
+            for person in teamlead_participants:
+                TeamLeadNotification.objects.create(
+                    recipient=person,
+                    kind="meeting",
+                    title=notification_title,
+                    message=(
+                        f"{purpose}\n"
+                        f"Date: {meeting_date:%d %b %Y}\n"
+                        f"Time: {meeting_time:%I:%M %p}"
+                    ),
+                    url=reverse("teamlead_google_meet"),
+                )
+
+
+            
         message = "Meeting updated successfully." if action == "edit_meeting" else "Meeting scheduled successfully."
         if is_ajax:
             return JsonResponse({"ok": True, "message": message, "id": meeting.pk}, status=200 if action == "edit_meeting" else 201)

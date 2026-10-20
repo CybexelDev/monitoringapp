@@ -152,3 +152,27 @@ SESSION_COOKIE_AGE = 86400  # 1 day
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+from pathlib import Path
+
+CHAT_PUSH_KEY_DIR = Path(BASE_DIR) / "chat_push_keys"
+
+CHAT_PUSH_VAPID_PRIVATE_KEY = str(
+    CHAT_PUSH_KEY_DIR / "private.pem"
+)
+
+CHAT_PUSH_VAPID_PUBLIC_KEY = (
+    (CHAT_PUSH_KEY_DIR / "public.txt").read_text(
+        encoding="utf-8"
+    ).strip()
+    if (CHAT_PUSH_KEY_DIR / "public.txt").exists()
+    else ""
+)
+
+CHAT_PUSH_VAPID_SUBJECT = "mailto:mehreena.cybexel@gmail.com"
+
+CHAT_PUSH_ENABLED = bool(
+    CHAT_PUSH_VAPID_PUBLIC_KEY
+    and (CHAT_PUSH_KEY_DIR / "private.pem").exists()
+)

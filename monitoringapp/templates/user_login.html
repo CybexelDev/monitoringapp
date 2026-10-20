@@ -759,6 +759,23 @@
             }
 
         }
+
+        /* Position dropdown — matched to the Team Lead dashboard */
+        .position-themed { position:relative; width:100%; }
+        .position-themed select { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; margin:0!important; opacity:0!important; clip-path:inset(50%); pointer-events:none; }
+        .position-select-button { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; height:48px; padding:0 15px 0 42px; border:1px solid #ab8af4; border-radius:16px; background:#100d17; color:#f1eaff; font:inherit; font-size:11px; text-align:left; cursor:pointer; transition:border-color .2s,box-shadow .2s,background .2s; }
+        .position-select-button:hover { border-color:#bda5ff; background:#151020; }
+        .position-select-button:focus-visible,.position-select-button[aria-expanded="true"] { outline:none; border-color:#a78bfa; box-shadow:0 0 0 3px rgba(139,92,246,.16); }
+        .position-select-button[aria-invalid="true"] { border-color:#fb7185; }
+        .position-select-button .position-arrow { display:block; flex:0 0 8px; width:8px; height:8px; margin:-4px 3px 0 0; border-right:1.8px solid #c4b5fd; border-bottom:1.8px solid #c4b5fd; transform:rotate(45deg); transition:transform .18s; }
+        .position-select-button[aria-expanded="true"] .position-arrow { transform:rotate(225deg); margin-top:4px; }
+        .position-dropdown-list { position:fixed; z-index:99999; overflow-y:auto; padding:9px; border:1px solid #383046; border-radius:17px; background:linear-gradient(160deg,#181222,#0e0c15); box-shadow:0 20px 45px rgba(0,0,0,.5); scrollbar-width:thin; scrollbar-color:#8b5cf6 #21192f; }
+        .position-dropdown-list[hidden] { display:none!important; }
+        .position-dropdown-option { display:flex; justify-content:space-between; align-items:center; min-height:45px; padding:12px 15px; border-radius:12px; color:#f0eaf8; font:inherit; font-size:13px; cursor:pointer; }
+        .position-dropdown-option:hover,.position-dropdown-option.is-focused { background:rgba(105,76,179,.30); color:white; }
+        .position-dropdown-option[aria-selected="true"] { background:linear-gradient(100deg,rgba(88,57,154,.36),rgba(47,40,95,.30)); color:#ffffff; font-weight:600; }
+        .position-themed .input-icon { z-index:2; }
+        @media(max-width:480px) { .position-select-button { height:46px; font-size:14px; } .position-dropdown-option { min-height:44px; font-size:14px; } }
     </style>
 </head>
 
@@ -862,7 +879,7 @@
                         Position
                     </label>
 
-                    <div class="input-wrap">
+                    <div class="input-wrap position-themed">
 
                         <select
                             name="position"
@@ -883,7 +900,7 @@
                             </option>
 
                             <option value="management">
-                                Management
+                                Admin
                             </option>
                             <option value="accounts">
                                 Accounts
@@ -1014,5 +1031,87 @@
     });
 </script>
 
+
+<script>
+/* Dashboard-style Position selector; original Django select remains the submitted field. */
+(() => {
+  const select = document.getElementById('position');
+  if (!select) return;
+  const wrap = select.closest('.position-themed');
+  const button = document.createElement('button');
+  button.type = 'button'; button.className = 'position-select-button';
+  button.setAttribute('aria-haspopup','listbox'); button.setAttribute('aria-expanded','false');
+  const label = document.createElement('span');
+  const arrow = document.createElement('span'); arrow.className = 'position-arrow'; arrow.setAttribute('aria-hidden','true');
+  button.append(label,arrow);
+  select.after(button); select.tabIndex = -1;
+  const list = document.createElement('div'); list.className = 'position-dropdown-list';
+  list.id = 'loginPositionOptions'; list.setAttribute('role','listbox'); list.setAttribute('aria-label','Position'); list.hidden = true;
+  button.setAttribute('aria-controls',list.id);
+  document.body.append(list);
+  let active = select.selectedIndex;
+  let items = [];
+  function sync() {
+    label.textContent = select.options[select.selectedIndex]?.textContent.trim() || 'Select Position';
+    button.setAttribute('aria-label','Position: '+label.textContent);
+    if (select.validity.valid) button.removeAttribute('aria-invalid');
+  }
+  function close() { list.hidden = true; button.setAttribute('aria-expanded','false'); button.removeAttribute('aria-activedescendant'); }
+  function place() {
+    if (list.hidden) return;
+    const r=button.getBoundingClientRect(), below=innerHeight-r.bottom-10, above=r.top-10;
+    const up=below<180 && above>below;
+    list.style.width=Math.min(r.width,innerWidth-24)+'px';
+    list.style.left=Math.max(12,Math.min(r.left,innerWidth-Math.min(r.width,innerWidth-24)-12))+'px';
+    list.style.maxHeight=Math.max(60,Math.min(310,up?above:below))+'px';
+    list.style.top=up?'auto':r.bottom+6+'px';
+    list.style.bottom=up?innerHeight-r.top+6+'px':'auto';
+  }
+  function highlight(index) {
+    if(index<0 || index>=items.length) return;
+    active=index;
+    items.forEach((el,i)=>el.classList.toggle('is-focused',i===index));
+    button.setAttribute('aria-activedescendant',items[index].id);
+    items[index].scrollIntoView({block:'nearest'});
+  }
+  function choose(index) {
+    if (!select.options[index] || select.options[index].disabled) return;
+    select.selectedIndex=index;
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+    sync(); close(); button.focus({preventScroll:true});
+  }
+  function open() {
+    list.replaceChildren(); items=[];
+    [...select.options].forEach((opt,index)=>{
+      const item=document.createElement('div'); item.className='position-dropdown-option';
+      item.id='loginPositionOption'+index; item.setAttribute('role','option');
+      item.setAttribute('aria-selected',String(opt.selected));
+      const txt=document.createElement('span'); txt.textContent=opt.textContent.trim(); item.append(txt);
+      if(opt.selected){const tick=document.createElement('span');tick.textContent='✓';tick.style.cssText='font-size:18px;color:#a99bc2';tick.setAttribute('aria-hidden','true');item.append(tick);}
+      item.addEventListener('pointerdown',e=>e.preventDefault());
+      item.addEventListener('click',()=>choose(index));
+      list.append(item);items.push(item);
+    });
+    list.hidden=false;button.setAttribute('aria-expanded','true');place();
+    highlight(select.selectedIndex>=0?select.selectedIndex:0);
+  }
+  button.addEventListener('click',()=>list.hidden?open():close());
+  button.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){if(!list.hidden){e.preventDefault();close();}return;}
+    if(e.key==='Tab'){close();return;}
+    if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){
+      e.preventDefault();if(list.hidden){open();return;}
+      const n=select.options.length;
+      highlight(e.key==='Home'?0:e.key==='End'?n-1:Math.max(0,Math.min(n-1,active+(e.key==='ArrowDown'?1:-1))));
+    } else if(e.key==='Enter'||e.key===' '){e.preventDefault();if(list.hidden)open();else choose(active);}
+  });
+  document.addEventListener('pointerdown',e=>{if(!wrap.contains(e.target)&&!list.contains(e.target))close();});
+  document.addEventListener('scroll',place,true);window.addEventListener('resize',place);
+  select.addEventListener('change',sync);
+  select.addEventListener('invalid',e=>{e.preventDefault();button.setAttribute('aria-invalid','true');button.focus();});
+  document.querySelector('label[for="position"]')?.addEventListener('click',e=>{e.preventDefault();button.focus();});
+  sync();
+})();
+</script>
 </body>
 </html>

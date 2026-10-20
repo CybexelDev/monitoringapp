@@ -1,22 +1,46 @@
 # Save as monitoringapp/notification_signals.py.
 from django.db.models.signals import post_save, post_delete
+
 from django.dispatch import receiver
 from django.urls import reverse
+from django.db import transaction
+import logging
 
+from .components.windows_push.delivery import send_windows_push
+
+logger = logging.getLogger(__name__)
 from .models import (
     Announcement, ProjectAssign, MorningReport, EveningReport,
     Task, Notepad, Knowledge, User, TeamLeadNotification,
 )
 
+from django.db import transaction
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
+
 
 def notify(recipient, kind, title, message, url='', event_key=None):
     if recipient is None:
         return
-    fields = dict(recipient=recipient, kind=kind, title=title, message=message, url=url)
+
+    fields = {
+        "recipient": recipient,
+        "kind": kind,
+        "title": title,
+        "message": message,
+        "url": url,
+    }
+
     if event_key:
-        TeamLeadNotification.objects.get_or_create(event_key=event_key, defaults=fields)
-    else:
-        TeamLeadNotification.objects.create(**fields)
+        notification, created = TeamLeadNotification.objects.get_or_create(
+            event_key=event_key,
+            defaults=fields,
+        )
+        return notification
+
+    return TeamLeadNotification.objects.create(**fields)
+
+
 
 
 @receiver(post_save, sender=Announcement)
@@ -94,3 +118,76 @@ def resource_changed(sender, instance, created, **kwargs):
 def resource_deleted(sender, instance, **kwargs):
     notify(instance.user, 'resource', 'Resource deleted', instance.title,
            reverse('teamlead_repository'))
+
+
+
+@receiver(
+    post_save,
+    sender=TeamLeadNotification,
+    dispatch_uid="cybexel_teamlead_windows_push_v1",
+)
+def teamlead_windows_push_created(sender, instance, created, **kwargs):
+    if not created:
+        return
+        # Only important events should trigger Windows Push.
+    WINDOWS_PUSH_KINDS = {
+        "announcement",
+        "report",
+        "project",
+        "task",
+        "meeting",
+        "reminder",
+    }
+
+    if instance.kind not in WINDOWS_PUSH_KINDS:
+        return
+
+    notification_id = instance.pk
+
+    def deliver():
+        import logging
+        from .components.windows_push.delivery import send_windows_push
+
+        logger = logging.getLogger(__name__)
+
+        try:
+            notification = (
+                TeamLeadNotification.objects
+                .select_related("recipient")
+                .filter(pk=notification_id)
+                .first()
+            )
+
+            if notification is None:
+                return
+
+            recipient = notification.recipient
+
+            role = str(recipient.job_Position or "")
+            role = role.strip().lower().replace(" ", "_")
+
+            if role != "team_lead":
+                return
+
+            result = send_windows_push(
+                recipient=recipient,
+                portal="team_lead",
+                title=notification.title,
+                message=notification.message,
+                url=notification.url or "/teamlead/notifications/",
+                tag=f"teamlead-notification-{notification.pk}",
+            )
+
+            logger.info(
+                "Team Lead Windows Push %s: %s",
+                notification.pk,
+                result,
+            )
+
+        except Exception:
+            logger.exception(
+                "Windows Push failed for notification %s",
+                notification_id,
+            )
+
+    transaction.on_commit(deliver)

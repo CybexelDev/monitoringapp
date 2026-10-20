@@ -369,6 +369,10 @@ class ProjectAssign(models.Model):
         choices=STATUS_CHOICES,
         default="Not Started"
     )
+    seen_at = models.DateTimeField(
+    null=True,
+    blank=True,
+)
 
     def __str__(self):
         return f"{self.work_name} → {self.assign_to.name}"
@@ -1526,3 +1530,26 @@ class MasterAdminChatIdentity(models.Model):
 
     def __str__(self):
         return str(self.account)
+
+class ChatPushSubscription(models.Model):
+    """One browser push endpoint, bound to the current shared-chat identity."""
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="chat_push_subscriptions"
+    )
+    portal = models.CharField(max_length=20)
+    endpoint = models.URLField(max_length=2048)
+    endpoint_hash = models.CharField(max_length=64, unique=True, editable=False)
+    p256dh = models.CharField(max_length=100)
+    auth = models.CharField(max_length=32)
+    # Delivery must verify this login session before sending (Step 2).
+    session_key = models.TextField(editable=False)
+    expiration_time = models.DateTimeField(null=True, blank=True)
+    enabled = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["user", "enabled"], name="chat_push_user_enabled")]
+
+    def __str__(self):
+        return f"Chat push: user {self.user_id} ({self.portal})"

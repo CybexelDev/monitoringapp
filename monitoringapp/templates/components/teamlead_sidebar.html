@@ -1097,6 +1097,8 @@ html { background: #08070b; color-scheme: dark; }
 
     </div>
 
+    {% include "components/windows_push.html" with portal="team_lead" %}
+
 </aside>
 
 <!-- =========================================================
@@ -1738,3 +1740,4 @@ html { background: #08070b; color-scheme: dark; }
 })();
 
 </script>
+<script src="{% static 'js/windows-push.js' %}"></script>

@@ -4,6 +4,11 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 from monitoringapp.chat_receipts import broadcast_chat_activity
+
+import logging
+from asgiref.sync import sync_to_async
+
+logger = logging.getLogger(__name__)
 class MemberChatConsumer(AsyncWebsocketConsumer):
     group_chat = False
     allowed_positions = {'team_member'}
@@ -70,6 +75,14 @@ class MemberChatConsumer(AsyncWebsocketConsumer):
             self.group_chat,
             self.target_id,
         )
+                # Send Windows Push after the message has been saved.
+        try:
+            await sync_to_async(
+                self.send_teamlead_windows_push,
+                thread_sensitive=False,
+            )(result)
+        except Exception:
+            logger.exception("Chat Windows Push delivery failed.")
 
     @database_sync_to_async
     def save_message(self, message):
@@ -95,6 +108,109 @@ class MemberChatConsumer(AsyncWebsocketConsumer):
         return {'message_id': saved.pk, 'message': message, 'sender_id': user.pk,
                 'sender': user.name, 'sender_profile': user.profile_image.url if user.profile_image else None,
                 'timestamp': timestamp.isoformat()}
+    
+    def send_teamlead_windows_push(self, result):
+        """
+        Send Windows Push only to eligible Team Lead recipients.
+        Supports personal and group chat.
+        """
+
+        from django.urls import reverse
+        from django.db.models import Q
+        from monitoringapp.models import User, GroupMember
+        from chat.models import Conversation
+        from monitoringapp.components.windows_push.delivery import (
+            send_windows_push,
+        )
+
+        sender_id = result["sender_id"]
+        sender_name = result["sender"]
+        message_id = result["message_id"]
+        message = result["message"][:160]
+
+        recipients = []
+
+        if self.group_chat:
+            recipients = list(
+                User.objects.filter(
+                    group_memberships__group_id=self.target_id,
+                    job_Position__iexact="Team Lead",
+                )
+                .exclude(pk=sender_id)
+                .distinct()
+            )
+
+            url = reverse(
+                "teamlead_group_chat_view",
+                kwargs={"group_id": self.target_id},
+            )
+
+            from monitoringapp.models import Group
+
+            group = Group.objects.filter(
+                pk=self.target_id
+            ).only("name").first()
+
+            group_name = group.name if group else "Group Chat"
+
+            title = f"{group_name} — New Group Message"
+            message = f"{sender_name}: {message}"
+
+        else:
+            conversation = (
+                Conversation.objects.filter(
+                    pk=self.target_id
+                )
+                .filter(
+                    Q(user1_id=sender_id) | Q(user2_id=sender_id)
+                )
+                .first()
+            )
+
+            if conversation is None:
+                return
+
+            recipient_id = (
+                conversation.user2_id
+                if conversation.user1_id == sender_id
+                else conversation.user1_id
+            )
+
+            recipients = list(
+                User.objects.filter(
+                    pk=recipient_id,
+                    job_Position__iexact="Team Lead",
+                )
+            )
+
+            url = reverse(
+                "teamlead_chat_room",
+                kwargs={"user_id": sender_id},
+            )
+
+            title = f"New message from {sender_name}"
+
+        for recipient in recipients:
+            try:
+                send_windows_push(
+                    recipient=recipient,
+                    portal="team_lead",
+                    title=title,
+                    message=message,
+                    url=url,
+                    tag=(
+                        f"teamlead-group-{message_id}"
+                        if self.group_chat
+                        else f"teamlead-personal-{message_id}"
+                    ),
+                )
+
+            except Exception:
+                logger.exception(
+                    "Chat Windows Push failed for recipient %s",
+                    recipient.pk,
+                )
+
 
     async def chat_change(self, event):
         if not await self.allowed():

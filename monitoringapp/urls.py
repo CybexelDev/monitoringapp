@@ -3,6 +3,8 @@
 from django.urls import path, re_path
 from . import views
 from . import chat_receipts
+from . import chat_push
+
 
 urlpatterns = [
     path("", views.index, name="index"),
@@ -229,6 +231,12 @@ path("teammember/notifications/read-all/", views.teammember_notifications_read_a
 path("teammember/notifications/<int:notification_id>/open/", views.teammember_notification_open, name="teammember_notification_open"),
 
 path(
+    "teammember_project/<int:pk>/seen/",
+    views.teammember_project_seen,
+    name="teammember_project_seen",
+),
+
+path(
     "api/chat/meta/",
     chat_receipts.chat_meta,
     name="chat_meta",
@@ -368,6 +376,9 @@ path("master-admin/chat/<int:user_id>/", views.master_admin_chat_room, name="mas
 path("master-admin/group/<int:group_id>/", views.master_admin_group_chat, name="master_admin_group_chat"),
 path("master-admin/chat/meta/", views.master_admin_chat_meta, name="master_admin_chat_meta"),
 path("master-admin/chat/read/", views.master_admin_chat_read, name="master_admin_chat_read"),
+path("api/chat/push/<str:portal>/config/", chat_push.config, name="chat_push_config"),
+path("api/chat/push/<str:portal>/subscribe/", chat_push.subscribe, name="chat_push_subscribe"),
+path("api/chat/push/<str:portal>/unsubscribe/", chat_push.unsubscribe, name="chat_push_unsubscribe"),
 
 
 
