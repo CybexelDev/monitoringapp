@@ -1,0 +1,108 @@
+<style>
+  #windowsPushComponent { padding: 10px 12px; }
+  #windowsPushComponent .wp-panel { display:flex; align-items:center; gap:11px; min-height:62px; padding:11px 12px; border:1px solid rgba(183,153,255,.19); border-radius:14px; background:linear-gradient(115deg,rgba(139,92,246,.105),rgba(42,31,62,.30)); }
+  #windowsPushComponent .wp-icon { width:35px; height:35px; flex:0 0 35px; display:grid; place-items:center; border-radius:11px; background:rgba(139,92,246,.17); color:#d8c2ff; }
+  #windowsPushComponent .wp-icon svg { width:18px; height:18px; }
+  #windowsPushComponent .wp-copy { flex:1; min-width:0; }
+  #windowsPushComponent .wp-title { color:#f5efff; font-size:12px; line-height:1.35; font-weight:750; }
+  #windowsPushComponent .wp-sub { margin-top:4px; color:#b5a6ca; font-size:10px; line-height:1.35; }
+  #windowsPushComponent .wp-indicator { display:inline-flex; align-items:center; gap:5px; font-size:10px; font-weight:750; white-space:nowrap; color:#c6b7da; }
+  #windowsPushComponent .wp-dot { height:7px; width:7px; border-radius:50%; background:#90809f; }
+  #windowsPushComponent[data-state="enabled"] .wp-indicator { color:#8fe1b4; }
+  #windowsPushComponent[data-state="enabled"] .wp-dot { background:#3bd08a; box-shadow:0 0 0 3px rgba(59,208,138,.1); }
+  #windowsPushComponent .wp-enable { display:none; flex-shrink:0; border:1px solid rgba(177,146,255,.33); border-radius:9px; background:rgba(139,92,246,.18); color:#ece2ff; font-size:10px; font-weight:750; padding:7px 9px; cursor:pointer; }
+  #windowsPushComponent[data-state="disabled"] .wp-enable { display:inline-flex; }
+  #windowsPushComponent .wp-enable:focus-visible { outline:2px solid #b9a0fa; outline-offset:2px; }
+  #windowsPushComponent .wp-enable:disabled { opacity:.6; cursor:wait; }
+  #windowsPushComponent .wp-feedback { margin:6px 3px 0; color:#bda6dd; font-size:10px; line-height:1.5; }
+  #windowsPushComponent .wp-feedback:empty { display:none; }
+</style>
+
+<div id="windowsPushComponent" data-portal="{{ portal|default:'team_lead' }}" data-state="checking">
+  <div class="wp-panel">
+    <span class="wp-icon" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+    </span>
+    <div class="wp-copy">
+      <div class="wp-title">Windows Alerts</div>
+      <div class="wp-sub" id="windowsPushSubtitle">Checking status...</div>
+    </div>
+    <span class="wp-indicator" id="windowsPushIndicator"><span class="wp-dot"></span><span id="windowsPushLabel">Checking</span></span>
+    <button type="button" class="wp-enable" id="enableWindowsPush">Enable</button>
+  </div>
+  <p class="wp-feedback" id="windowsPushStatus" role="status" aria-live="polite"></p>
+</div>
+
+<script>
+(function () {
+    function initializeWindowsPushCard() {
+        const component = document.getElementById('windowsPushComponent');
+        if (!component || component.dataset.initialized === 'true') return;
+        component.dataset.initialized = 'true';
+
+        const portal = component.dataset.portal;
+        const button = component.querySelector('#enableWindowsPush');
+        const subtitle = component.querySelector('#windowsPushSubtitle');
+        const label = component.querySelector('#windowsPushLabel');
+        const feedback = component.querySelector('#windowsPushStatus');
+        const indicator = component.querySelector('#windowsPushIndicator');
+        const push = window.CybexelWindowsPush;
+        let busy = false;
+
+        function update(state, detail, errorMessage) {
+            component.dataset.state = state;
+            subtitle.textContent = detail;
+            label.textContent = state === 'enabled' ? 'Active' : state === 'checking' ? 'Checking' : state === 'disabled' ? 'Off' : 'Unavailable';
+            indicator.style.display = state === 'disabled' ? 'none' : 'inline-flex';
+            button.disabled = busy;
+            feedback.textContent = errorMessage || '';
+        }
+
+        async function refreshStatus() {
+            if (!push) {
+                update('unavailable', 'Push script is unavailable.', '');
+                return;
+            }
+            update('checking', 'Checking status...', '');
+            try {
+                const result = await push.status(portal);
+                if (!result.supported) {
+                    update('unavailable', 'Not supported in this browser.', '');
+                } else if (result.enabled) {
+                    update('enabled', 'Notifications enabled', '');
+                } else {
+                    update('disabled', 'Notifications turned off', result.permission === 'denied' ? 'Allow notifications in Chrome site settings.' : '');
+                }
+            } catch (error) {
+                update('unavailable', 'Unable to check notifications.', error.message || 'Please refresh the page.');
+            }
+        }
+
+        button.addEventListener('click', async function () {
+            if (busy || !push) return;
+            busy = true;
+            button.disabled = true;
+            button.textContent = 'Wait...';
+            feedback.textContent = '';
+            try {
+                await push.enable(portal);
+                await refreshStatus();
+            } catch (error) {
+                update('disabled', 'Notifications turned off', error.message || 'Could not enable notifications.');
+            } finally {
+                busy = false;
+                button.textContent = 'Enable';
+                button.disabled = false;
+            }
+        });
+
+        refreshStatus();
+    }
+
+    if (document.readyState === 'complete') {
+        initializeWindowsPushCard();
+    } else {
+        window.addEventListener('load', initializeWindowsPushCard, { once: true });
+    }
+})();
+</script>
