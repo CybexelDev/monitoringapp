@@ -961,7 +961,7 @@ html { background: #08070b; color-scheme: dark; }
 
             href="{% url 'teamlead_chat' %}" id="teamleadChatLink" data-chat-meta-url="{% url 'chat_meta' %}" data-chat-updates-path="/ws/member/chat-updates/"
 
-            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_chat' %}active{% endif %}">
+            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_chat' or request.resolver_match.url_name == 'teamlead_chat_room' or request.resolver_match.url_name == 'teamlead_group_chat_view' %}active{% endif %}">
 
 <span class="sidebar-icon sidebar-notification-icon">
     <i data-lucide="messages-square" aria-hidden="true"></i>
