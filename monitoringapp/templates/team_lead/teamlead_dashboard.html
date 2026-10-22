@@ -4549,6 +4549,49 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
         min-height: 44px;
     }
 }
+<style>
+#toastContainer {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    left: auto !important;
+
+    width: 380px !important;
+    max-width: calc(100vw - 32px) !important;
+    height: auto !important;
+    transform: none !important;
+    z-index: 200000 !important;
+}
+
+@media (max-width: 600px) {
+    #toastContainer {
+        bottom: 16px !important;
+        right: 16px !important;
+    }
+}
+</style>
+
+<script>
+(function () {
+    function positionDashboardToast() {
+        const container = document.getElementById('toastContainer');
+        if (container && container.parentElement !== document.body) {
+            document.body.appendChild(container);
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener(
+            'DOMContentLoaded',
+            positionDashboardToast,
+            { once: true }
+        );
+    } else {
+        positionDashboardToast();
+    }
+})();
+</script>
 </style>
 </head>
   <body class="tl-dashboard-page">

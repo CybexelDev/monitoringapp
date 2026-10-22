@@ -4260,6 +4260,26 @@ window.addEventListener("load", function () {
 #tlTaskFeedback > div {padding:14px 18px;margin-top:8px;border:1px solid #73608e;border-radius:12px;background:#211a30;color:#fff;box-shadow:0 8px 30px #0006;overflow-wrap:anywhere;}
 #tlTaskFeedback > .error {border-color:#df526a;}
 @media(max-width:640px) {.task-item{flex-wrap:wrap;gap:14px;}.task-main{width:100%;}.task-actions{width:100%;display:flex;gap:10px;}.task-actions>form:first-child{flex:1;min-width:0;}.status-select-wrap{width:100%;min-width:0;}.task-modal-input,.task-modal-textarea,.tl-task-select-button,.tl-task-option{font-size:16px!important;}.task-summary-grid{grid-template-columns:1fr;}.task-filter-tabs{display:flex;flex-wrap:wrap;}.task-modal-box{width:calc(100% - 24px);}.task-modal-header,.task-modal-body,.task-modal-footer{padding-left:16px;padding-right:16px;}}
+
+#toastContainer {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 24px !important;
+    right: 24px !important;
+    left: auto !important;
+    width: 380px !important;
+    max-width: calc(100vw - 32px) !important;
+    height: auto !important;
+    transform: none !important;
+    z-index: 200000 !important;
+}
+
+@media (max-width: 600px) {
+    #toastContainer {
+        bottom: 16px !important;
+        right: 16px !important;
+    }
+}
 </style>
 <script>
 /* Themed selects retain their original fields and submitted values. */
@@ -4378,7 +4398,25 @@ window.addEventListener("load", function () {
  const dialog=document.getElementById('taskDeleteDialog'), confirm=document.getElementById('taskDeleteConfirm');
  let pendingForm=null, controller=null, generation=0, paused=false, busy=false;
  const pageURL=location.href;
- const toast=(message,error=false)=>{const n=document.createElement('div');n.textContent=message;n.className=error?'error':'success';document.getElementById('tlTaskFeedback').append(n);setTimeout(()=>n.remove(),5500);};
+
+function positionTaskToast() {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const host = dialog.open ? dialog : document.body;
+
+    if (container.parentElement !== host) {
+        host.appendChild(container);
+    }
+}
+
+const toast = (message, error = false) => {
+    positionTaskToast();
+    window.showToast(message, error ? 'error' : 'success');
+};
+
+dialog.addEventListener('close', positionTaskToast);
+positionTaskToast();
  const parse=text=>new DOMParser().parseFromString(text,'text/html');
  const valid=page=>page.querySelector('#myTasksList')&&page.querySelector('#assignedTasksList');
  const notices=page=>[...page.querySelectorAll('#tlTaskMessages [data-level]')];
