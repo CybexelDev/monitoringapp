@@ -3719,6 +3719,22 @@
     .meet-panel { padding: 12px; }
 }
 
+#toastContainer {
+    top: auto;
+    bottom: 24px;
+    right: 24px;
+    left: auto;
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    z-index: 200000;
+}
+
+@media (max-width: 600px) {
+    #toastContainer {
+        bottom: 16px;
+        right: 16px;
+    }
+}
 </style>
 </head>
 
@@ -6392,7 +6408,9 @@ document.addEventListener('DOMContentLoaded',()=>{
  const form=document.getElementById('createMeetingForm'),modal=document.getElementById('meetingModal');
  let busy=false,pending=null,stopped=false,serial=0;
  const url=form.getAttribute('action');
- function toast(text,error=false){const n=document.createElement('div');n.textContent=text;n.className=error?'error':'success';document.getElementById('tlMeetFeedback').append(n);setTimeout(()=>n.remove(),5500);}
+function toast(text, error = false) {
+    window.showToast(text, error ? 'error' : 'success');
+}
  function sync(page){const old=document.getElementById('tlMeetResults'),fresh=page.getElementById('tlMeetResults');if(!fresh)throw Error('Session expired or unexpected response. Reload and sign in again.');const wrap=old.querySelector('.meeting-table-wrap'),top=wrap?.scrollTop||0,left=wrap?.scrollLeft||0;old.innerHTML=fresh.innerHTML;const tbody=old.querySelector('tbody');if(tbody){[...tbody.querySelectorAll('.meeting-row')].sort((a,b)=>((b.dataset.meetingDate||'')+'T'+(b.dataset.meetingTime||'00:00:00')).localeCompare((a.dataset.meetingDate||'')+'T'+(a.dataset.meetingTime||'00:00:00'))||Number(b.dataset.meetingId)-Number(a.dataset.meetingId)).forEach(row=>tbody.append(row));}const next=old.querySelector('.meeting-table-wrap');if(next){next.scrollTop=top;next.scrollLeft=left;}window.bindTLMeetEdit?.();window.bindTLMeetView?.();window.checkTLMeetingTimes?.();window.lucide?.createIcons();}
  async function refresh(){if(stopped||busy||pending||document.hidden||document.querySelector('.meeting-modal.show,.view-meeting-modal.show')||document.activeElement?.closest('#tlMeetResults'))return;const c=new AbortController(),id=++serial;pending=c;const t=setTimeout(()=>c.abort(),12000);try{const r=await fetch(url,{signal:c.signal,cache:'no-store',credentials:'same-origin'});if(r.status===401||r.status===403){stopped=true;return;}if(!r.ok)return;const page=new DOMParser().parseFromString(await r.text(),'text/html');if(!page.getElementById('tlMeetResults')){stopped=true;return;}if(id===serial&&!busy)sync(page);}catch(e){}finally{clearTimeout(t);if(pending===c)pending=null;}}
  form.addEventListener('submit',async e=>{e.preventDefault();if(busy||!form.reportValidity())return;if(document.getElementById('selectedParticipants')?.checked&&!form.querySelector('.member-checkbox:checked')){toast('Select at least one team member.',true);return;}
