@@ -3434,6 +3434,41 @@
 .view-meeting-card {max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;}
 #memberMeetingRefreshStatus {margin:10px 0 0;color:#a59aae;font-size:11px;}
 
+
+/* View details: shared purple theme; existing table styling is preserved. */
+#viewMeetingModal .view-meeting-card {
+ background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),#0c0b14;
+ border:1px solid rgba(255,255,255,.13);
+ scrollbar-width:thin;scrollbar-color:#7151a3 transparent;
+}
+#viewMeetingModal .view-meeting-header,
+#viewMeetingModal .view-meeting-footer {background:transparent;border-color:rgba(255,255,255,.08);}
+#viewMeetingModal .view-field input,
+#viewMeetingModal .view-field textarea {background:rgba(7,7,11,.72);border-color:rgba(255,255,255,.13);color:#f4f4f5;min-width:0;}
+#viewMeetingModal .view-field input:focus,
+#viewMeetingModal .view-field textarea:focus {border-color:rgba(139,92,246,.45);box-shadow:0 0 0 2px rgba(139,92,246,.08);}
+#viewMeetingModal .view-meeting-icon {background:rgba(139,92,246,.12);border-color:rgba(167,139,250,.24);color:#c4b5fd;}
+#viewMeetingModal .view-meeting-close,
+#viewMeetingModal .view-meeting-close-btn {background:#211832;border:1px solid rgba(167,139,250,.32);color:#e8def8;}
+#viewMeetingModal .view-meeting-close:hover,
+#viewMeetingModal .view-meeting-close-btn:hover {background:#2b2040;border-color:rgba(167,139,250,.48);}
+.dashboard-content,.meet-panel,.meet-hero,.meet-hero-left,.meet-hero-left>div,
+.dashboard-header-content>div,.view-field,.view-meeting-title-wrap {min-width:0;max-width:100%;}
+.meeting-table-wrap {max-width:100%;box-sizing:border-box;}
+.view-meeting-title-wrap {flex:1;}
+.view-meeting-close {flex-shrink:0;}
+.view-meeting-title-wrap h3,.view-meeting-title-wrap p {overflow-wrap:anywhere;}
+#toastContainer {position:fixed!important;top:auto!important;bottom:24px!important;right:24px!important;left:auto!important;max-width:calc(100vw - 32px);z-index:100000!important;}
+@media(max-width:600px){
+ .meet-panel-header {flex-wrap:wrap;}
+ #viewMeetingModal {padding:12px;}
+ #viewMeetingModal .view-meeting-card {max-height:calc(100dvh - 24px);}
+ #viewMeetingModal .view-field-row {grid-template-columns:minmax(0,1fr);}
+ #viewMeetingModal .view-meeting-header {gap:10px;}
+ #viewMeetingModal .view-meeting-header,#viewMeetingModal .view-meeting-body,#viewMeetingModal .view-meeting-footer {padding:16px;}
+ #toastContainer {right:16px!important;bottom:16px!important;}
+}
+
 </style>{% endblock %}
 {% block content %}
 <section class="dashboard-header">
@@ -3925,7 +3960,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  const modal=document.getElementById('viewMeetingModal');
  const refreshButton=document.getElementById('refreshMemberMeetings');
  const status=document.getElementById('memberMeetingRefreshStatus');
- let trigger=null,refreshing=false;
+ let trigger=null,refreshing=false,stopped=false,controller=null;
  // Use server time and explicit IST timestamps, regardless of device timezone.
  const clockOffset=Number('{% now "U" %}')*1000-Date.now();
  function updateMeetingClock(){
@@ -3965,9 +4000,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   modal.classList.remove('show');modal.setAttribute('aria-hidden','true');
   document.documentElement.classList.remove('member-meet-modal-open');
   if(trigger?.isConnected)trigger.focus();
+  refreshMeetings();
  }
  document.addEventListener('click',event=>{
   const button=event.target.closest('.view-meeting-btn');if(!button)return;
+  if(controller)controller.abort();
   trigger=button;
   const values={viewMeetingPurpose:button.dataset.purpose,viewMeetingDate:button.dataset.date,viewMeetingTime:button.dataset.time,viewMeetingLink:button.dataset.link,viewMeetingParticipants:button.dataset.participants};
   Object.entries(values).forEach(([id,value])=>{document.getElementById(id).value=value||'';});
@@ -3988,35 +4025,54 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
  });
  async function refreshMeetings(manual=false){
-  if(refreshing||document.hidden||modal.classList.contains('show'))return;
+  if(stopped||refreshing||document.hidden||modal.classList.contains('show')||!navigator.onLine)return;
   const oldPanel=document.getElementById('memberMeetingsPanel');
+  if(!oldPanel)return;
   const focusedRow=document.activeElement.closest?.('.meeting-row');
   const focusedId=focusedRow?.dataset.meetingId;
   const focusAction=document.activeElement.matches?.('[data-meeting-action]')?'[data-meeting-action]':'.view-meeting-btn';
-  refreshing=true;refreshButton.disabled=true;
+  refreshing=true;
+  if(refreshButton)refreshButton.disabled=true;
+  const request=new AbortController();controller=request;
+  let timedOut=false;
+  const timeout=setTimeout(()=>{timedOut=true;request.abort();},12000);
   try{
-   const response=await fetch(window.location.href,{credentials:'same-origin',cache:'no-store'});
-   if(!response.ok||response.redirected)throw new Error('Could not refresh meetings. Reload the page to check your login.');
+   const response=await fetch(window.location.href,{credentials:'same-origin',cache:'no-store',signal:request.signal});
+   if(response.status===401||response.status===403||response.redirected){stopped=true;throw new Error('Your session may have expired. Please sign in again.');}
+   if(!response.ok)throw new Error('Could not refresh meetings. Please try again.');
    const doc=new DOMParser().parseFromString(await response.text(),'text/html');
    const nextPanel=doc.getElementById('memberMeetingsPanel');
    if(!nextPanel)throw new Error('Could not refresh meetings. Please reload the page.');
+   if(stopped||request.signal.aborted||document.hidden||modal.classList.contains('show'))return;
    const wrap=oldPanel.querySelector('.meeting-table-wrap');const top=wrap?.scrollTop||0,left=wrap?.scrollLeft||0;
+   const tableFocused=document.activeElement===wrap;
+   const restoreFocus=oldPanel.contains(document.activeElement);
    oldPanel.replaceWith(nextPanel);const nextWrap=nextPanel.querySelector('.meeting-table-wrap');
    if(nextWrap){nextWrap.scrollTop=top;nextWrap.scrollLeft=left;}
    updateMeetingClock();
-   if(focusedId){const row=Array.from(nextPanel.querySelectorAll('.meeting-row')).find(row=>row.dataset.meetingId===focusedId);const button=row?.querySelector(focusAction);if(button&&!button.disabled)button.focus();}
+   if(restoreFocus&&tableFocused&&nextWrap)nextWrap.focus({preventScroll:true});
+   else if(restoreFocus&&focusedId){const row=Array.from(nextPanel.querySelectorAll('.meeting-row')).find(row=>row.dataset.meetingId===focusedId);const button=row?.querySelector(focusAction);if(button&&!button.disabled)button.focus({preventScroll:true});}
    if(window.lucide)lucide.createIcons();
-   status
+   if(status)status.textContent='';
+   if(manual&&window.showToast)window.showToast('Meetings updated.','success');
   }catch(error){
-   status.textContent=error.message;
-   if(manual&&window.showToast)window.showToast(error.message,'error');
-  }finally{refreshing=false;refreshButton.disabled=false;}
+   if(error.name==='AbortError'&&!timedOut)return;
+   const message=timedOut?'Updating meetings took too long. Please try again.':error.message;
+   if(status)status.textContent=message;
+   if(manual&&window.showToast)window.showToast(message,'error');
+  }finally{clearTimeout(timeout);if(controller===request)controller=null;refreshing=false;if(refreshButton)refreshButton.disabled=false;}
  }
- refreshButton.addEventListener('click',()=>refreshMeetings(true));
+ if(refreshButton)refreshButton.addEventListener('click',()=>refreshMeetings(true));
  updateMeetingClock();
- setInterval(updateMeetingClock,1000);
- setInterval(()=>refreshMeetings(),30000);
- document.addEventListener('visibilitychange',()=>{if(!document.hidden){updateMeetingClock();refreshMeetings();}});
+ const clockTimer=setInterval(()=>{if(!stopped&&!document.hidden)updateMeetingClock();},1000);
+ const refreshTimer=setInterval(()=>refreshMeetings(),15000);
+ document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){if(controller)controller.abort();}
+  else{updateMeetingClock();refreshMeetings();}
+ });
+ window.addEventListener('online',()=>refreshMeetings());
+ window.addEventListener('pagehide',()=>{stopped=true;if(controller)controller.abort();});
+ window.addEventListener('pageshow',event=>{if(event.persisted){stopped=false;updateMeetingClock();refreshMeetings();}});
  if(window.lucide)lucide.createIcons();
 });
 

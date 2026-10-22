@@ -828,6 +828,25 @@ button:focus-visible,.profile-image-wrapper:focus-visible {outline:2px solid #b6
 #memberProfilePage input:focus-visible,#memberProfilePage button:focus-visible,#profile-container:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px;}
 @media(max-width:600px){#memberProfilePage .profile-save-state{flex-basis:100%;}#memberProfilePage .profile-save-button,#memberProfilePage .profile-reset-button{flex:1;justify-content:center;}#memberProfilePage .profile-main-card,#memberProfilePage .profile-edit-card{padding:18px;}}
 @media(prefers-reduced-motion:reduce){#memberProfilePage *{transition:none!important;}}
+
+/* Profile containment and toast placement; existing colours are retained. */
+#memberProfilePage, #memberProfilePage * {box-sizing:border-box;}
+#memberProfilePage {min-width:0;max-width:100%;}
+#memberProfilePage .dashboard-header-content {flex-wrap:wrap;}
+#memberProfilePage .profile-save-wrapper {flex-wrap:wrap;gap:12px;}
+#memberProfilePage .profile-details-heading>div, #memberProfilePage .profile-edit-heading>div {min-width:0;}
+#memberProfilePage .profile-save-state {overflow-wrap:anywhere;}
+#memberProfilePage [hidden] {display:none!important;}
+#toastContainer {position:fixed!important;top:auto!important;bottom:24px!important;right:24px!important;left:auto!important;width:380px;max-width:calc(100vw - 32px);z-index:200000!important;}
+@media(max-width:600px){
+ #memberProfilePage .dashboard-header {padding:24px 18px;}
+ #memberProfilePage .dashboard-header h1 {font-size:clamp(28px,8vw,38px);letter-spacing:-1px;overflow-wrap:anywhere;}
+ #memberProfilePage .profile-form {grid-template-columns:minmax(0,1fr);}
+ #memberProfilePage .profile-form-input {font-size:16px;min-width:0;}
+ #memberProfilePage .profile-save-state {flex-basis:100%;}
+ #toastContainer {bottom:16px!important;right:16px!important;}
+}
+
 </style>
 
 {% endblock %}
@@ -1383,11 +1402,30 @@ button:focus-visible,.profile-image-wrapper:focus-visible {outline:2px solid #b6
  const reset = document.getElementById('resetProfile');
  const state = document.getElementById('profileSaveState');
  const fields = [...form.querySelectorAll('input[name]:not([type=hidden])')];
- let saving = false, loading = false, revision = 0, controller = null, preview = null;
+ let saving = false, loading = false, revision = 0, controller = null, preview = null, stopped = false;
  let baseline = snapshot();
  const endpoint =
     form.getAttribute('action') || window.location.pathname;
- const toast = (m,t) => {if(window.showToast) window.showToast(m,t);};
+ const toast = (m,t) => {
+  const host=document.getElementById('toastContainer');
+  if(host && host.parentElement!==document.body)document.body.appendChild(host);
+  if(window.showToast)window.showToast(m,t);
+ };
+ async function profileRequest(url, options) {
+  const abort=new AbortController(), external=options.signal;
+  const cancel=()=>abort.abort();
+  if(external?.aborted)cancel();else external?.addEventListener('abort',cancel,{once:true});
+  let timedOut=false;
+  const timer=setTimeout(()=>{timedOut=true;abort.abort();},options.method==='POST'?60000:12000);
+  try {
+   const response=await fetch(url,{...options,signal:abort.signal});
+   const text=await response.text();
+   return {ok:response.ok,headers:response.headers,text:async()=>text,json:async()=>JSON.parse(text)};
+  } catch(error) {
+   if(timedOut)throw new Error(options.method==='POST'?'Confirmation timed out. Check your saved profile before retrying.':'Profile refresh timed out.');
+   throw error;
+  } finally {clearTimeout(timer);external?.removeEventListener('abort',cancel);}
+ }
  function snapshot() {return JSON.stringify(fields.map(field=>[field.name,field.value]));}
  function dirty() {return snapshot() !== baseline;}
  function markState() {state.textContent = dirty() ? 'Unsaved changes' : 'All changes saved'; reset.disabled = saving || !dirty();}
@@ -1401,6 +1439,11 @@ button:focus-visible,.profile-image-wrapper:focus-visible {outline:2px solid #b6
   else {image.removeAttribute('src'); image.hidden = true; initial.hidden = false; if(letter) initial.textContent = letter;}
  }
  function syncSidebar(url) {
+  const avatar=document.getElementById('teamMemberSidebarAvatar');
+  if(avatar){
+   if(url){let img=avatar.querySelector('img');if(!img){img=document.createElement('img');img.alt='';avatar.replaceChildren(img);}img.src=url;}
+   else {avatar.textContent=initial.textContent;}
+  }
   document.querySelectorAll('.sidebar-profile-avatar img, .sidebar-avatar img, .sidebar-item[href="' + new URL(endpoint,location.href).pathname + '"] .sidebar-icon img').forEach(img => {if(url) img.src = url;});
  }
  function applyPage(doc) {
@@ -1424,13 +1467,13 @@ button:focus-visible,.profile-image-wrapper:focus-visible {outline:2px solid #b6
   photo.setAttribute('aria-disabled',String(value)); photo.setAttribute('aria-busy',String(value)); form.setAttribute('aria-busy',String(value));
  }
  async function loadProfile() {
-  if(loading || saving || dirty() || document.hidden) return;
+  if(stopped || loading || saving || dirty() || document.hidden || form.contains(document.activeElement)) return;
   loading = true; const ticket = ++revision; controller = new AbortController();
   try {
-   const response = await fetch(endpoint,{credentials:'same-origin',cache:'no-store',signal:controller.signal,headers:{'Accept':'text/html'}});
+   const response = await profileRequest(endpoint,{credentials:'same-origin',cache:'no-store',signal:controller.signal,headers:{'Accept':'text/html'}});
    if(!response.ok) return;
    const doc = parsePage(await response.text());
-   if(ticket !== revision || saving || dirty()) return;
+   if(stopped || ticket !== revision || saving || dirty() || form.contains(document.activeElement)) return;
    applyPage(doc);
   } catch(_) { /* Retry quietly while preserving the user's draft. */ }
   finally {if(ticket === revision) {loading = false;controller = null;}}
@@ -1441,7 +1484,7 @@ button:focus-visible,.profile-image-wrapper:focus-visible {outline:2px solid #b6
   const expected = fields.map(field=>[field.name,field.value]);
   ++revision; controller?.abort(); loading = false; lock(true); state.textContent = 'Saving…';
   try {
-   const response = await fetch(endpoint,{method:'POST',body,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'text/html'}});
+   const response = await profileRequest(endpoint,{method:'POST',body,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'text/html'}});
    if(!response.ok) throw new Error('Could not save your profile. Check the details and try again.');
    const doc = parsePage(await response.text());
    const notices = [...doc.querySelectorAll('#toast-django-messages [data-type]')];
@@ -1464,7 +1507,7 @@ button:focus-visible,.profile-image-wrapper:focus-visible {outline:2px solid #b6
   if(preview) URL.revokeObjectURL(preview); preview = URL.createObjectURL(file); setImage(preview);
   state.textContent = 'Uploading photo…';
   try {
-   const response = await fetch(endpoint,{method:'POST',body,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
+   const response = await profileRequest(endpoint,{method:'POST',body,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
    if(!response.ok || !(response.headers.get('content-type') || '').includes('application/json')) throw new Error('Could not upload the photo. Check your login and try again.');
    const result = await response.json();
    if(!result.success || !result.image_url) throw new Error(result.error || 'Photo update was not confirmed.');
@@ -1480,6 +1523,9 @@ button:focus-visible,.profile-image-wrapper:focus-visible {outline:2px solid #b6
  form.addEventListener('submit',saveDetails); form.addEventListener('input',markState);
  reset.addEventListener('click',()=>{if(saving) return;fields.forEach(field=>field.value = field.defaultValue);markState();});
  setInterval(loadProfile,15000);
+ window.addEventListener('pagehide',()=>{stopped=true;++revision;controller?.abort();loading=false;});
+ window.addEventListener('pageshow',event=>{if(event.persisted){stopped=false;loadProfile();}});
+ window.addEventListener('online',loadProfile);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden) loadProfile();});
  markState(); if(window.lucide) window.lucide.createIcons();
 })();

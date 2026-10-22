@@ -84,6 +84,15 @@ class MemberChatConsumer(AsyncWebsocketConsumer):
         except Exception:
             logger.exception("Chat Windows Push delivery failed.")
 
+        # Team Member Windows Push (independent of existing Team Lead delivery).
+        try:
+            await sync_to_async(
+                self.send_teammember_windows_push,
+                thread_sensitive=False,
+            )(result)
+        except Exception:
+            logger.exception("Team Member Chat Windows Push delivery failed.")
+
     @database_sync_to_async
     def save_message(self, message):
         from monitoringapp.models import User, GroupMember, GroupMessage
@@ -211,6 +220,59 @@ class MemberChatConsumer(AsyncWebsocketConsumer):
                     recipient.pk,
                 )
 
+
+    def send_teammember_windows_push(self, result):
+        """Push new personal/group messages to Team Member recipients only."""
+        from django.db.models import Q
+        from django.urls import reverse
+        from monitoringapp.models import User, Group
+        from chat.models import Conversation
+        from monitoringapp.components.windows_push.delivery import send_windows_push
+
+        sender_id = result["sender_id"]
+        sender_name = result["sender"]
+        message_id = result["message_id"]
+        message = result["message"][:160]
+
+        if self.group_chat:
+            recipients = User.objects.filter(
+                group_memberships__group_id=self.target_id,
+                job_Position__iexact="Team Member",
+            ).exclude(pk=sender_id).distinct()
+            url = reverse("group_chat_view", kwargs={"group_id": self.target_id})
+            group_name = (Group.objects.filter(pk=self.target_id)
+                          .values_list("name", flat=True).first() or "Group Chat")
+            title = f"{group_name} — New Group Message"
+            message = f"{sender_name}: {message}"
+        else:
+            conversation = Conversation.objects.filter(
+                pk=self.target_id
+            ).filter(Q(user1_id=sender_id) | Q(user2_id=sender_id)).first()
+            if conversation is None:
+                return
+            recipient_id = (conversation.user2_id if conversation.user1_id == sender_id
+                            else conversation.user1_id)
+            recipients = User.objects.filter(
+                pk=recipient_id,
+                job_Position__iexact="Team Member",
+            )
+            url = reverse("chat_room", kwargs={"user_id": sender_id})
+            title = f"New message from {sender_name}"
+
+        for recipient in recipients:
+            try:
+                send_windows_push(
+                    recipient=recipient,
+                    portal="team_member",
+                    title=title,
+                    message=message,
+                    url=url,
+                    tag=(f"teammember-group-{self.target_id}-{message_id}"
+                         if self.group_chat else
+                         f"teammember-personal-{self.target_id}-{message_id}"),
+                )
+            except Exception:
+                logger.exception("Team Member Chat Push failed for recipient %s", recipient.pk)
 
     async def chat_change(self, event):
         if not await self.allowed():

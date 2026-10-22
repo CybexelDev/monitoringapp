@@ -1043,6 +1043,23 @@ body.modal-open .reminder-main{overflow:hidden}
 html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hidden!important;}
 .reminder-dialog::backdrop {background:rgba(7,7,12,.3);backdrop-filter:blur(2px);}
 
+
+/* Shared purple popup theme, without changing the calendar/page design. */
+.reminder-dialog{background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),#0c0b14;border:1px solid rgba(255,255,255,.13);scrollbar-color:#7151a3 transparent;box-sizing:border-box;}
+.reminder-dialog .reminder-field input,.reminder-dialog .reminder-field textarea,.reminder-dialog .reminder-field select,.reminder-dialog .picker-trigger{background:rgba(7,7,11,.72);border-color:rgba(255,255,255,.13);color:#f4f4f5;min-width:0;}
+.reminder-dialog .reminder-btn:not(.primary):not(.danger){background:#211832;border-color:rgba(167,139,250,.32);color:#e8def8;}
+.reminder-dialog .reminder-btn.primary{background:linear-gradient(135deg,#7c4bd4,#6334b2);border:1px solid #9569dc;color:#fff;}
+.reminder-dialog .picker-panel{background:#171021;border-color:rgba(167,139,250,.24);box-sizing:border-box;}
+.reminder-dialog .picker-date.chosen{background:#7544cc;color:white;}
+.reminder-dialog .dialog-header{align-items:flex-start;}
+.reminder-dialog .dialog-header h2{min-width:0;overflow-wrap:anywhere;}
+.reminder-dialog .dialog-header>button{flex-shrink:0;}
+.reminder-view-value{padding:11px;border:1px solid rgba(255,255,255,.13);border-radius:9px;background:rgba(7,7,11,.72);white-space:pre-wrap;overflow-wrap:anywhere;color:#f4f4f5;}
+.reminder-card,.reminder-card-actions,.datetime-control,.datetime-buttons,.reminder-field{min-width:0;max-width:100%;}
+.reminder-card-actions{flex-wrap:wrap;}
+#toastContainer{position:fixed!important;top:auto!important;bottom:24px!important;right:24px!important;left:auto!important;max-width:calc(100vw - 32px);z-index:100000!important;}
+@media(max-width:600px){#toastContainer{bottom:16px!important;right:16px!important;}.reminder-dialog .dialog-footer{gap:8px;}.reminder-dialog input,.reminder-dialog textarea,.reminder-dialog select{font-size:16px;}}
+
 </style>{% endblock %}
 {% block content %}
 <main class="reminder-main">
@@ -1167,6 +1184,15 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
                     type="submit" class="reminder-btn danger">Delete reminder</button></div>
         </form>
     </dialog>
+<dialog class="reminder-dialog" id="viewDialog" aria-labelledby="viewHeading">
+ <div class="dialog-header"><h2 id="viewHeading">Reminder details</h2><button type="button" class="reminder-btn" data-close aria-label="Close">×</button></div>
+ <div class="reminder-field">Title<p class="reminder-view-value" id="viewTitle"></p></div>
+ <div class="reminder-field">Description<p class="reminder-view-value" id="viewDescription"></p></div>
+ <div class="reminder-field">Event<p class="reminder-view-value" id="viewEvent"></p></div>
+ <div class="reminder-field">Reminder<p class="reminder-view-value" id="viewRemind"></p></div>
+ <div class="reminder-field">Status<p class="reminder-view-value" id="viewStatus"></p></div>
+ <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Close</button></div>
+</dialog>
     {{ calendar_items|json_script:"reminderData" }}
 
 {% endblock %}
@@ -1175,9 +1201,10 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
         (() => {
             'use strict';
             let items = JSON.parse(document.getElementById('reminderData').textContent);
-            let month = '{{ selected_month }}'; const today = '{{ today }}'; let monthLabel = '{{ month_label }}'; let saving = false, loading = false, lastFocus = null, revision = 0;
+            let month = '{{ selected_month }}'; const today = '{{ today }}'; let monthLabel = '{{ month_label }}'; let saving = false, loading = false, lastFocus = null, revision = 0, stopped = false;
             const list = document.getElementById('reminderList');
             const editDialog = document.getElementById('editDialog'), deleteDialog = document.getElementById('deleteDialog');
+            const viewDialog = document.getElementById('viewDialog');
             const form = document.getElementById('reminderForm');
             const title = document.getElementById('reminderTitle'), description = document.getElementById('reminderDescription');
             const eventAt = document.getElementById('eventAt'), remindAt = document.getElementById('remindAt'), preset = document.getElementById('reminderPreset');
@@ -1189,6 +1216,33 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
             const dateLabel = d => new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
             const instant = d => new Date(/(?:Z|[+-]\d{2}:\d{2})$/.test(d) ? d : d + '+05:30');
             const timeLabel = d => instant(d).toLocaleString('en-GB', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true });
+            async function request(url, options = {}) {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), options.method === 'POST' ? 30000 : 12000);
+                try {
+                    const response = await fetch(url, {...options, signal:controller.signal});
+                    const body = await response.text();
+                    return {ok:response.ok,status:response.status,headers:response.headers,text:async()=>body,json:async()=>JSON.parse(body)};
+                } catch(error) {
+                    if(error.name==='AbortError') throw new Error(options.method === 'POST' ? 'Confirmation timed out. Check the reminder list before trying again.' : 'Loading took too long. Please try again.');
+                    throw error;
+                } finally {clearTimeout(timeout);}
+            }
+            function notify(message, type) {
+                const container=document.getElementById('toastContainer');
+                const active=[editDialog,deleteDialog,viewDialog].find(d=>d.open);
+                if(container)(active||document.body).appendChild(container);
+                if(typeof window.showToast==='function') window.showToast(message,type);
+                else {const feedback=document.getElementById('reminderFeedback');feedback.textContent=message;feedback.hidden=false;}
+            }
+            function view(item) {
+                document.getElementById('viewTitle').textContent=item.title;
+                document.getElementById('viewDescription').textContent=item.description||'—';
+                document.getElementById('viewEvent').textContent=timeLabel(item.event_at_iso||item.event_at);
+                document.getElementById('viewRemind').textContent=timeLabel(item.remind_at_iso||item.remind_at);
+                document.getElementById('viewStatus').textContent=item.is_completed?'Completed':'Active';
+                openDialog(viewDialog);
+            }
             function icons() { if (window.lucide) lucide.createIcons(); }
             function node(tag, cls, text) { const el = document.createElement(tag); el.className = cls; if (text !== undefined) el.textContent = text; return el; }
             function actionForm(item, action, label) {
@@ -1198,11 +1252,11 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
                 f.addEventListener('submit', async event => {
                     event.preventDefault(); if(saving) return; ++revision; loading = false; saving = true; b.disabled = true; const feedback = document.getElementById('reminderFeedback'); feedback.hidden = true;
                     try {
-                        const response = await fetch(f.getAttribute('action'), { method: 'POST', body: new FormData(f), credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
+                        const response = await request(f.getAttribute('action'), { method: 'POST', body: new FormData(f), credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
                         if (!response.ok || !(response.headers.get('content-type') || '').includes('application/json')) throw new Error('Could not update status. Check your session and the Complete/Reopen view change.');
                         const result = await response.json(); if (!result.ok || Number(result.id) !== Number(item.id)) throw new Error('Reminder update was not confirmed.');
-                        item.is_completed = result.is_completed; feedback.hidden = true; window.showToast(result.message || (item.is_completed ? 'Reminder completed.' : 'Reminder reopened.'), 'success'); render();
-                    } catch (error) { feedback.hidden = true; window.showToast(error.message || 'Unable to update. Please try again.', 'error'); b.disabled = false; } finally { saving = false; }
+                        if(typeof result.is_completed!=='boolean')throw new Error('Invalid reminder status response.'); item.is_completed = result.is_completed; feedback.hidden = true; notify(result.message || (item.is_completed ? 'Reminder completed.' : 'Reminder reopened.'), 'success'); render();
+                    } catch (error) { feedback.hidden = true; notify(error.message || 'Unable to update. Please try again.', 'error'); b.disabled = false; } finally { saving = false; }
                 }); return f;
             }
             function openDialog(dialog) {
@@ -1215,7 +1269,7 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
                 document.body.classList.add('modal-open');
                 document.documentElement.classList.add('modal-open');
             }
-            [editDialog, deleteDialog].forEach(dialog => { dialog.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { if(!saving) dialog.close(); })); dialog.addEventListener('close', () => {
+            [editDialog, deleteDialog, viewDialog].forEach(dialog => { dialog.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { if(!saving) dialog.close(); })); dialog.addEventListener('close', () => {
                     const container = document.getElementById('toastContainer');
                     if (container) document.body.appendChild(container);
                     document.body.classList.remove('modal-open');
@@ -1268,7 +1322,7 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
                 const query = document.getElementById('reminderSearch').value.trim().toLocaleLowerCase();
                 const filtered = items.filter(i => (scope === 'month' || i.date === selected) && (status === 'all' || (status === 'completed' ? i.is_completed : !i.is_completed)) && (!query || (i.title + ' ' + i.description).toLocaleLowerCase().includes(query)));
                 if (!filtered.length) { list.append(node('div', 'empty', 'No matching reminders. Try another date or filter.')); }
-                filtered.forEach(item => { const overdue = !item.is_completed && instant(item.event_at_iso || item.event_at) < new Date(); const card = node('article', 'reminder-card' + (item.is_completed ? ' is-completed' : '') + (overdue ? ' is-overdue' : '')); card.dataset.reminderId = String(item.id); card.append(node('h3', '', item.title)); if (item.is_completed) card.append(node('span', 'completed-label', 'Completed')); else if (overdue) card.append(node('span', 'overdue-label', 'Event overdue')); if (item.description) card.append(node('p', '', item.description)); card.append(node('span', 'reminder-meta', 'Event: ' + timeLabel(item.event_at_iso || item.event_at))); card.append(node('span', 'reminder-meta', 'Reminder: ' + timeLabel(item.remind_at_iso || item.remind_at))); const actions = node('div', 'reminder-card-actions'); const editButton = node('button', 'reminder-btn', 'Edit'); editButton.type = 'button'; editButton.addEventListener('click', () => edit(item)); const deleteButton = node('button', 'reminder-btn danger', 'Delete'); deleteButton.type = 'button'; deleteButton.addEventListener('click', () => { document.getElementById('deleteId').value = item.id; document.getElementById('deleteDescription').textContent = item.title; openDialog(deleteDialog); }); actions.append(editButton, actionForm(item, item.is_completed ? 'reopen' : 'complete', item.is_completed ? 'Reopen' : 'Complete'), deleteButton); card.append(actions); list.append(card); });
+                filtered.forEach(item => { const overdue = !item.is_completed && instant(item.event_at_iso || item.event_at) < new Date(); const card = node('article', 'reminder-card' + (item.is_completed ? ' is-completed' : '') + (overdue ? ' is-overdue' : '')); card.dataset.reminderId = String(item.id); card.append(node('h3', '', item.title)); if (item.is_completed) card.append(node('span', 'completed-label', 'Completed')); else if (overdue) card.append(node('span', 'overdue-label', 'Event overdue')); if (item.description) card.append(node('p', '', item.description)); card.append(node('span', 'reminder-meta', 'Event: ' + timeLabel(item.event_at_iso || item.event_at))); card.append(node('span', 'reminder-meta', 'Reminder: ' + timeLabel(item.remind_at_iso || item.remind_at))); const actions = node('div', 'reminder-card-actions'); const editButton = node('button', 'reminder-btn', 'Edit'); editButton.type = 'button'; editButton.addEventListener('click', () => edit(item)); const deleteButton = node('button', 'reminder-btn danger', 'Delete'); deleteButton.type = 'button'; deleteButton.addEventListener('click', () => { document.getElementById('deleteId').value = item.id; document.getElementById('deleteDescription').textContent = item.title; openDialog(deleteDialog); }); const viewButton=node('button','reminder-btn','View');viewButton.type='button';viewButton.addEventListener('click',()=>view(item)); actions.append(editButton, actionForm(item, item.is_completed ? 'reopen' : 'complete', item.is_completed ? 'Reopen' : 'Complete'), deleteButton); card.append(actions); list.append(card); });
             }
             document.querySelector('.calendar-grid').addEventListener('click', event => {
                 const b = event.target.closest('.day[data-day]'); if(!b || saving) return;
@@ -1286,7 +1340,7 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
                 else if (remind > start) error = 'Reminder must be on or before the event.';
                 else if (remind <= new Date()) error = 'Choose a future reminder time.';
                 const notice = document.getElementById('pickerError'); notice.textContent = error; notice.hidden = !error;
-                if (error) { window.showToast(error, 'warning'); notice.scrollIntoView({ block: 'nearest' }); return; }
+                if (error) { notify(error, 'warning'); notice.scrollIntoView({ block: 'nearest' }); return; }
                 saveForm(form, editDialog);
             });
             document.getElementById('reminderSearch').addEventListener('input', render);
@@ -1295,7 +1349,7 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
             form.addEventListener('invalid', event => {
                 if (validationToastPending) return;
                 validationToastPending = true;
-                window.showToast(event.target.validationMessage || 'Check the reminder fields.', 'warning');
+                notify(event.target.validationMessage || 'Check the reminder fields.', 'warning');
                 setTimeout(() => { validationToastPending = false; }, 0);
             }, true);
 
@@ -1312,7 +1366,7 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
                 return {doc, next};
             }
             async function loadMonth(url, navigate = false, force = false, push = true) {
-                if(loading || (!force && (saving || editDialog.open || deleteDialog.open))) return;
+                if(stopped || loading || (!force && (saving || editDialog.open || deleteDialog.open || viewDialog.open))) return;
                 loading = true; const ticket = ++revision;
                 const scroll = list.scrollTop;
                 const focused = document.activeElement;
@@ -1320,10 +1374,10 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
                 const actionIndex = cardId ? [...focused.closest('[data-reminder-id]').querySelectorAll('button')].indexOf(focused) : -1;
                 const target = new URL(url, location.href);
                 try {
-                    const response = await fetch(target, {credentials:'same-origin', cache:'no-store', headers:{'Accept':'text/html'}});
+                    const response = await request(target, {credentials:'same-origin', cache:'no-store', headers:{'Accept':'text/html'}});
                     if(!response.ok) throw new Error('Could not refresh reminders.');
                     const {doc, next} = parsePage(await response.text());
-                    if(ticket !== revision || (!force && (saving || editDialog.open || deleteDialog.open))) return;
+                    if(stopped || ticket !== revision || (!force && (saving || editDialog.open || deleteDialog.open || viewDialog.open))) return;
                     const newLabel = doc.getElementById('monthHeading').textContent;
                     const requested = target.searchParams.get('month');
                     const changedMonth = navigate && requested && requested !== month;
@@ -1343,7 +1397,7 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
                     }
                     const token = doc.querySelector('#reminderForm [name=csrfmiddlewaretoken]');
                     if(token) document.querySelectorAll('[name=csrfmiddlewaretoken]').forEach(input => input.value = token.value);
-                } catch(error) { if(navigate || force) window.showToast(error.message, 'error'); }
+                } catch(error) { if(navigate || force) notify(error.message, 'error'); }
                 finally { if(ticket === revision) loading = false; }
             }
             async function saveForm(targetForm, dialog) {
@@ -1351,7 +1405,7 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
                 const submit = targetForm.querySelector('[type=submit]'); const label = submit.textContent;
                 submit.disabled = true; submit.textContent = 'Saving…';
                 try {
-                    const response = await fetch(targetForm.action, {method:'POST',body:new FormData(targetForm),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'text/html'}});
+                    const response = await request(targetForm.getAttribute('action'), {method:'POST',body:new FormData(targetForm),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'text/html'}});
                     const {doc} = parsePage(await response.text());
                     const messages = [...doc.querySelectorAll('#toast-django-messages [data-type]')];
                     const error = messages.find(el => /error|warning/.test(el.dataset.type || ''));
@@ -1359,22 +1413,25 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
                     const success = messages.find(el => el.dataset.type === 'success' && /Reminder (created|updated|deleted)/i.test(el.textContent));
                     if(!success) throw new Error('Save was not confirmed. Check the reminder details and try again.');
                     const action = targetForm.elements.action.value;
+                    if(action === 'delete') {items=items.filter(i=>Number(i.id)!==Number(targetForm.elements.reminder_id.value));render();}
                     if(action !== 'delete') { selected = eventAt.value.slice(0,10); month = selected.slice(0,7); }
-                    saving = false; dialog.close(); window.showToast(success.textContent.trim(), 'success');
-                    const url = new URL(form.action, location.href); url.searchParams.set('month',month); url.searchParams.set('date',selected);
+                    saving = false; dialog.close(); notify(success.textContent.trim(), 'success');
+                    const url = new URL(form.getAttribute('action'), location.href); url.searchParams.set('month',month); url.searchParams.set('date',selected);
                     await loadMonth(url,true,true);
-                } catch(error) { window.showToast(error.message || 'Could not save. Please try again.', 'error'); }
+                } catch(error) { notify(error.message || 'Could not save. Please try again.', 'error'); }
                 finally { saving = false; submit.disabled = false; submit.textContent = label; }
             }
             deleteDialog.querySelector('form').addEventListener('submit', event => {event.preventDefault(); saveForm(event.currentTarget, deleteDialog);});
-            [editDialog,deleteDialog].forEach(dialog => dialog.addEventListener('cancel', event => { if(saving) event.preventDefault(); }));
+            [editDialog,deleteDialog,viewDialog].forEach(dialog => dialog.addEventListener('cancel', event => { if(saving) event.preventDefault(); }));
             document.querySelector('.calendar-controls').addEventListener('click', event => {
                 const a = event.target.closest('a'); if(!a || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button > 0) return;
                 event.preventDefault(); if(!saving) loadMonth(a.href, true);
             });
+            window.addEventListener('pagehide',()=>{stopped=true;++revision;loading=false;});
+            window.addEventListener('pageshow',event=>{if(event.persisted){stopped=false;const url=new URL(form.getAttribute('action'),location.href);url.searchParams.set('month',month);loadMonth(url);}});
             window.addEventListener('popstate', () => loadMonth(location.href, true, false, false));
-            setInterval(() => { if(!document.hidden) {const url = new URL(form.action,location.href); url.searchParams.set('month',month); loadMonth(url);} },15000);
-            document.addEventListener('visibilitychange', () => {if(!document.hidden) {const url = new URL(form.action,location.href); url.searchParams.set('month',month); loadMonth(url);}});
+            setInterval(() => { if(!document.hidden) {const url = new URL(form.getAttribute('action'),location.href); url.searchParams.set('month',month); loadMonth(url);} },15000);
+            document.addEventListener('visibilitychange', () => {if(!document.hidden) {const url = new URL(form.getAttribute('action'),location.href); url.searchParams.set('month',month); loadMonth(url);}});
             render(); icons();
         })();
     

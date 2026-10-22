@@ -1040,6 +1040,39 @@ select.status-select option {
 }
 
 
+/* Dropdown തുറക്കുമ്പോൾ row height മാറാതിരിക്കാൻ */
+.task-status-picker {
+    position: relative;
+}
+
+.task-status-options {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 100%;
+    min-width: 165px;
+    margin-top: 0;
+    box-sizing: border-box;
+    z-index: 100;
+    max-height: 180px;
+    overflow-y: auto;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+/* Options മുറിഞ്ഞുപോകാതിരിക്കാൻ */
+.task-list-card {
+    overflow: visible;
+}
+
+.task-item:has(.task-status-trigger[aria-expanded="true"]) {
+    z-index: 20;
+}
+
+.task-actions:has(.task-status-trigger[aria-expanded="true"]) {
+    z-index: 30;
+}
+
+
 /* =========================================================
    STATUS COLORS
 ========================================================= */
@@ -2329,6 +2362,33 @@ select.status-select option {
 .member-add-task:focus-visible {outline:2px solid #c4b5fd;outline-offset:3px;}
 @media(max-width:600px){.member-task-toolbar{padding:18px;gap:14px;flex-wrap:wrap;}.member-add-task{margin-left:auto;}}
 
+.task-status-picker{width:100%;min-width:0;}
+.task-status-trigger{width:100%;min-height:44px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid rgba(255,255,255,.13);border-radius:10px;background:rgba(7,7,11,.72);color:#f4f4f5;font:inherit;font-size:14px;text-align:left;cursor:pointer;}
+.task-status-trigger::after{content:'';width:7px;height:7px;border-right:1.5px solid #a99cce;border-bottom:1.5px solid #a99cce;transform:rotate(45deg);flex-shrink:0;}
+.task-status-trigger:focus-visible,.task-status-trigger[aria-expanded=true]{outline:2px solid rgba(139,92,246,.45);outline-offset:2px;}
+.task-status-options{margin-top:8px;padding:8px;border:1px solid rgba(255,255,255,.13);border-radius:14px;background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),#0c0b14;max-height:210px;overflow:auto;scrollbar-width:thin;scrollbar-color:#7151a3 transparent;}
+.task-status-options[hidden]{display:none;}
+.task-status-option{display:block;width:100%;min-height:40px;padding:9px 12px;border:0;border-radius:8px;background:transparent;color:#eeebf5;font:inherit;font-size:14px;text-align:left;cursor:pointer;}
+.task-status-option:hover,.task-status-option:focus-visible{background:rgba(139,92,246,.12);outline:none;}
+.task-status-option[aria-selected=true]{background:rgba(139,92,246,.18);color:#ede9fe;}
+
+.status-select-wrap:has(.task-status-picker)::before{display:none;}
+.status-select-wrap select[hidden]{display:none!important;}
+.task-status-picker{min-width:150px;}
+.task-status-options{max-height:180px;}
+.task-modal-box,.task-delete-dialog{
+ background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),#0c0b14;
+ border:1px solid rgba(255,255,255,.13);color:#f4f1fa;scrollbar-width:thin;scrollbar-color:#7151a3 transparent;
+}
+.task-modal-header,.task-modal-footer{background:transparent;border-color:rgba(255,255,255,.08);}
+.task-modal-icon{background:rgba(139,92,246,.12);border-color:rgba(167,139,250,.24);color:#c4b5fd;}
+.task-modal-input,.task-modal-textarea{background:rgba(7,7,11,.72);border-color:rgba(255,255,255,.13);color:#f4f4f5;}
+.task-modal-input:focus,.task-modal-textarea:focus{border-color:rgba(139,92,246,.45);box-shadow:0 0 0 2px rgba(139,92,246,.08);}
+.task-modal-close,.task-modal-cancel{background:#211832;color:#e8def8;border:1px solid rgba(167,139,250,.32);}
+.task-modal-submit{background:linear-gradient(135deg,#7c4bd4,#6334b2);border:1px solid #9569dc;color:#fff;}
+.task-modal-submit:hover{background:linear-gradient(135deg,#8b5ce2,#7443c4);}
+@media(max-width:600px){.task-status-trigger,.task-status-option{font-size:16px;min-height:44px;}.task-status-picker{max-width:100%;}}
+
 </style>{% endblock %}
 {% block content %}
 <section class="task-hero">
@@ -3156,4 +3216,22 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+function initTaskStatusPicker(dialog,index){
+ const select=dialog.querySelector('select[name="status"]');if(!select||dialog.querySelector('.task-status-picker'))return;
+ select.id='taskStatus-'+index;
+ const wrap=document.createElement('div');wrap.className='task-status-picker';
+ const trigger=document.createElement('button');trigger.type='button';trigger.className='task-status-trigger';trigger.id=select.id+'-trigger';trigger.setAttribute('aria-haspopup','listbox');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-label','Task status');
+ const list=document.createElement('div');list.className='task-status-options';list.id=select.id+'-options';list.setAttribute('role','listbox');list.setAttribute('aria-label','Task status');list.hidden=true;trigger.setAttribute('aria-controls',list.id);
+ const close=()=>{list.hidden=true;trigger.setAttribute('aria-expanded','false');};
+ const sync=()=>{trigger.textContent=select.selectedOptions[0]?.textContent||'Choose status';list.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.value===select.value)));};
+ [...select.options].forEach(option=>{const b=document.createElement('button');b.type='button';b.className='task-status-option';b.textContent=option.textContent;b.dataset.value=option.value;b.setAttribute('role','option');b.disabled=option.disabled;b.tabIndex=-1;b.addEventListener('click',()=>{select.value=option.value;sync();close();trigger.focus();select.dispatchEvent(new Event('change',{bubbles:true}));});list.appendChild(b);});
+ const open=()=>{list.hidden=false;trigger.setAttribute('aria-expanded','true');(list.querySelector('[aria-selected="true"]')||list.querySelector('button:not(:disabled)'))?.focus();};
+ trigger.addEventListener('click',()=>list.hidden?open():close());trigger.addEventListener('keydown',e=>{if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();open();}});
+ list.addEventListener('keydown',e=>{const items=[...list.querySelectorAll('button:not(:disabled)')];const i=items.indexOf(document.activeElement);let next;if(e.key==='ArrowDown')next=(i+1)%items.length;if(e.key==='ArrowUp')next=(i-1+items.length)%items.length;if(e.key==='Home')next=0;if(e.key==='End')next=items.length-1;if(next!==undefined){e.preventDefault();items[next]?.focus();}if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();trigger.focus();}if(e.key==='Tab'){close();trigger.focus();}});
+ dialog.addEventListener('click',e=>{if(!wrap.contains(e.target))close();});dialog.addEventListener('close',close);select.addEventListener('change',sync);
+ wrap.append(trigger,list);select.after(wrap);select.hidden=true;dialog.querySelector('label[for="'+select.id+'"]')?.setAttribute('for',trigger.id);sync();
+}
+
+
+document.addEventListener('DOMContentLoaded',()=>{document.querySelectorAll('.status-select-wrap').forEach((wrap,index)=>initTaskStatusPicker(wrap,index));});
 </script>{% endblock %}

@@ -155,6 +155,21 @@
 #memberChatPage .lead-contact-search #memberChatSearch::placeholder{color:#a99eB6;opacity:1;}
 #memberChatPage .lead-contact-search #memberChatSearch:focus{border-color:#a783ce;background:#17111f;}
 #memberChatPage .lead-search-field:focus-within .lead-search-icon{color:#d0b6ee;}
+
+/* Keep the existing theme while containing chat on narrow screens. */
+#memberChatPage .chat-shell,#memberChatPage .chat-composer,#memberChatPage .conversation-user{min-width:0;}
+#memberChatPage .chat-composer input,#memberChatPage .chat-composer textarea{min-width:0;max-width:100%;}
+#memberChatPage .conversation-user h2,#memberChatPage .conversation-user h3{overflow-wrap:anywhere;}
+#memberChatPage .message-bubble{max-width:min(82%,680px);}
+#memberChatPage .chat-messages{overscroll-behavior:contain;}
+#toastContainer{position:fixed!important;top:auto!important;bottom:24px!important;right:24px!important;left:auto!important;max-width:calc(100vw - 32px);z-index:100000!important;}
+@media(max-width:600px){
+ #memberChatPage .chat-composer{padding:10px;gap:8px;}
+ #memberChatPage .chat-composer input,#memberChatPage .chat-composer textarea{font-size:16px;}
+ #memberChatPage .message-bubble{max-width:88%;}
+ #memberChatPage .manage-group-button{max-width:120px;white-space:normal;}
+ #toastContainer{bottom:16px!important;right:16px!important;}
+}
 </style>{% endblock %}
 {% block content %}<div id="memberChatPage" data-meta-url="{% url 'chat_meta' %}" data-read-url="{% url 'chat_mark_read' %}" class="member-chat-has-room" data-mode="group" data-user-id="{{ current_user.id }}" data-current-name="{{ current_user.name }}" data-socket-path="/ws/member/group/{{ group.id }}/"><main class="chat-main">
 
@@ -861,6 +876,13 @@
 {% block extra_js %}<script>
 (() => {
  'use strict';
+ async function chatRequest(url,options={}){
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),options.method==='POST'?30000:12000);
+  try{const response=await fetch(url,{...options,signal:controller.signal});const body=await response.text();return {ok:response.ok,status:response.status,headers:response.headers,redirected:response.redirected,text:async()=>body,json:async()=>JSON.parse(body)};}
+  catch(error){if(error.name==='AbortError')throw new Error(options.method==='POST'?'Confirmation timed out. Check the chat before trying again.':'Chat update timed out.');throw error;}
+  finally{clearTimeout(timer);}
+ }
+
  const root = document.getElementById('memberChatPage');
  root.querySelectorAll('.chat-user-row,.chat-group-row').forEach(link=>{if(new URL(link.href,location.href).pathname===location.pathname){link.classList.add('mc-selected');link.setAttribute('aria-current','page');}});
  const currentId = Number(root.dataset.userId);
@@ -868,7 +890,7 @@
  const modal = document.getElementById('groupModal');
  const feedback = document.getElementById('memberChatFeedback');
  let busy = false, lastFocus = null, socket = null, closed = false, retry = 0, reconnectTimer, pending = null, historyBusy = false;
- const toast = (message,type='info') => {if(window.showToast) window.showToast(message,type); else {feedback.textContent = message;feedback.hidden = false;}};
+ const toast = (message,type='info') => {const container=document.getElementById('toastContainer');const dialog=document.querySelector('dialog[open]');if(container)(dialog||document.body).appendChild(container);if(window.showToast) window.showToast(message,type); else {feedback.textContent = message;feedback.hidden = false;}};
  const input = document.getElementById(mode === 'group' ? 'message-input' : 'chat-input');
  const messages = document.getElementById(mode === 'group' ? 'chat-area' : 'chat-messages');
  const send = mode === 'group' ? document.querySelector('#chat-form [type=submit]') : document.getElementById('sendBtn');
@@ -912,7 +934,7 @@
  }
  async function syncMembers(){
   if(closed||document.hidden||mode!=='group')return;if(memberBusy){memberAgain=true;return;}memberBusy=true;const epoch=memberEpoch;
-  try{const url=new URL(location.href);url.searchParams.delete('messages');url.searchParams.set('members','1');const response=await fetch(url,{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});if(response.status===403||response.status===404){document.getElementById('groupSettings')?.classList.add('hidden');return;}if(!response.ok||!(response.headers.get('content-type')||'').includes('application/json'))return;const data=await response.json();if(epoch!==memberEpoch){memberAgain=true;return;}renderMemberState(data);}catch(_){}finally{memberBusy=false;if(memberAgain&&!closed){memberAgain=false;queueMicrotask(syncMembers);}}
+  try{const url=new URL(location.href);url.searchParams.delete('messages');url.searchParams.set('members','1');const response=await chatRequest(url,{credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});if(response.status===403||response.status===404){document.getElementById('groupSettings')?.classList.add('hidden');return;}if(!response.ok||!(response.headers.get('content-type')||'').includes('application/json'))return;const data=await response.json();if(epoch!==memberEpoch){memberAgain=true;return;}renderMemberState(data);}catch(_){}finally{memberBusy=false;if(memberAgain&&!closed){memberAgain=false;queueMicrotask(syncMembers);}}
  }
  function confirmMemberAction(form){
   const action=form.elements.action.value;const name=form.dataset.memberName||'this member';openMessageAction(action,null,form.querySelector('[type=submit]'));activeGroupForm=form;
@@ -924,7 +946,7 @@
  async function operation(form){
   if(busy)return;busy=true;const button=form.querySelector('[type=submit]');if(button)button.disabled=true;
   try {
-   const response=await fetch(form.getAttribute('action')||location.href,{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
+   const response=await chatRequest(form.getAttribute('action')||location.href,{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
    if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Check your login and try again.');
    const data=await response.json();if(!response.ok||!data.ok)throw new Error(data.message||'Could not complete this action.');
    busy=false;toast(data.message,'success');
@@ -1015,7 +1037,7 @@
   if(activeGroupForm){try{const ok=await operation(activeGroupForm);if(ok){actionBusy=false;activeGroupForm=null;actionDialog.close();document.getElementById('manageGroupButton')?.focus();}else actionDialog.querySelector('.member-action-error').textContent='Could not complete this change. Check the notification and try again.';}finally{actionBusy=false;buttons.forEach(button=>button.disabled=false);}return;}
   const form=new FormData();form.set('action',activeAction);if(activeRow)form.set('message_id',activeRow.dataset.messageId);if(activeAction==='edit_message')form.set('message',actionDialog.querySelector('textarea').value);
   const token=root.querySelector('[name=csrfmiddlewaretoken]')?.value;if(token)form.set('csrfmiddlewaretoken',token);
-  try{const url=new URL(location.href);url.searchParams.delete('messages');const response=await fetch(url,{method:'POST',body:form,credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}});if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Check your login and try again.');const data=await response.json();updateServerClock(data.server_now);if(data.code==='edit_window_expired'&&activeRow){activeRow.dataset.editExpired='true';refreshEditWindow();}if(!response.ok||!data.ok)throw new Error(data.message||'Could not save this change.');historyEpoch++;historyAgain=true;actionBusy=false;actionDialog.close();toast(data.message,'success');syncHistory();}
+  try{const url=new URL(location.href);url.searchParams.delete('messages');const response=await chatRequest(url,{method:'POST',body:form,credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}});if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Check your login and try again.');const data=await response.json();updateServerClock(data.server_now);if(data.code==='edit_window_expired'&&activeRow){activeRow.dataset.editExpired='true';refreshEditWindow();}if(!response.ok||!data.ok)throw new Error(data.message||'Could not save this change.');historyEpoch++;historyAgain=true;actionBusy=false;actionDialog.close();toast(data.message,'success');syncHistory();}
   catch(error){actionDialog.querySelector('.member-action-error').textContent=error.message;toast(error.message,'error');}
   finally{actionBusy=false;buttons.forEach(button=>button.disabled=false);refreshEditWindow();}
  });
@@ -1091,16 +1113,16 @@
   if((atBottom&&!document.hidden)||mine)messages.scrollTop=messages.scrollHeight;
  }
  async function syncHistory(){
-  if(!messages||document.hidden)return;if(historyBusy){historyAgain=true;return;}historyBusy=true;const epoch=historyEpoch;
-  try{const url=new URL(location.href);url.searchParams.set('messages','1');const response=await fetch(url,{credentials:'same-origin',cache:'no-store',headers:{'Accept':'application/json'}});if(response.ok&&(response.headers.get('content-type')||'').includes('application/json')){const data=await response.json();updateServerClock(data.server_now||response.headers.get('Date'));if(epoch!==historyEpoch){historyAgain=true;return;}if(data.ok&&Array.isArray(data.items)){const atBottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<90;const visible=new Set(data.items.map(item=>String(item.message_id)));messages.querySelectorAll('[data-message-id]').forEach(row=>{if(!visible.has(row.dataset.messageId)){ids.delete(row.dataset.messageId);unseenRows.delete(row);row.remove();}});data.items.forEach(item=>renderMessage(item));[...messages.querySelectorAll('[data-message-id]')].sort((a,b)=>new Date(a.dataset.messageAt)-new Date(b.dataset.messageAt)||Number(a.dataset.messageId)-Number(b.dataset.messageId)).forEach(row=>messages.append(row));refreshJumpButton();decorateMessages();if(atBottom)messages.scrollTop=messages.scrollHeight;}}}catch(_){}finally{historyBusy=false;if(historyAgain){historyAgain=false;queueMicrotask(syncHistory);}}
+  if(closed||!messages||document.hidden)return;if(historyBusy){historyAgain=true;return;}historyBusy=true;const epoch=historyEpoch;
+  try{const url=new URL(location.href);url.searchParams.set('messages','1');const response=await chatRequest(url,{credentials:'same-origin',cache:'no-store',headers:{'Accept':'application/json'}});if(response.ok&&(response.headers.get('content-type')||'').includes('application/json')){const data=await response.json();updateServerClock(data.server_now||response.headers.get('Date'));if(closed)return;if(epoch!==historyEpoch){historyAgain=true;return;}if(data.ok&&Array.isArray(data.items)){const atBottom=messages.scrollHeight-messages.scrollTop-messages.clientHeight<90;const visible=new Set(data.items.map(item=>String(item.message_id)));messages.querySelectorAll('[data-message-id]').forEach(row=>{if(!visible.has(row.dataset.messageId)){ids.delete(row.dataset.messageId);unseenRows.delete(row);row.remove();}});data.items.forEach(item=>renderMessage(item));[...messages.querySelectorAll('[data-message-id]')].sort((a,b)=>new Date(a.dataset.messageAt)-new Date(b.dataset.messageAt)||Number(a.dataset.messageId)-Number(b.dataset.messageId)).forEach(row=>messages.append(row));refreshJumpButton();decorateMessages();if(atBottom)messages.scrollTop=messages.scrollHeight;}}}catch(_){}finally{historyBusy=false;if(historyAgain){historyAgain=false;queueMicrotask(syncHistory);}}
  }
  function status(text,connected){if(connection){connection.textContent=text;connection.dataset.connected=String(connected);}if(send)send.disabled=!connected||!!pending;}
  function restorePending(){if(!pending)return;clearTimeout(pending.timer);if(input&&!input.value)input.value=pending.text;pending=null;if(input)input.disabled=false;if(send)send.disabled=!socket||socket.readyState!==WebSocket.OPEN;toast('Connection interrupted. Check the chat before resending; the message may already be saved.','warning');}
  function connect(){
-  if(closed||!root.dataset.socketPath)return;
+  if(closed||!root.dataset.socketPath||socket?.readyState===WebSocket.OPEN||socket?.readyState===WebSocket.CONNECTING)return;clearTimeout(reconnectTimer);
   status('Connecting…',false);const scheme=location.protocol==='https:'?'wss':'ws';socket=new WebSocket(`${scheme}://${location.host}${root.dataset.socketPath}`);
   socket.onopen=()=>{retry=0;status('Connected',true);syncHistory();};
-  socket.onmessage=event=>{let data;try{data=JSON.parse(event.data);}catch{return;}if(data.action==='sync_messages'){historyEpoch++;memberEpoch++;syncHistory();syncMembers();return;}if(data.error){restorePending();toast(data.error,'error');return;}historyEpoch++;renderMessage(data,true);if(pending&&data.client_id===pending.id&&Number(data.sender_id)===currentId){clearTimeout(pending.timer);pending=null;if(input)input.disabled=false;if(send)send.disabled=false;input?.focus();}};
+  socket.onmessage=event=>{let data;try{data=JSON.parse(event.data);}catch{return;}if(data.action==='sync_messages'){historyEpoch++;memberEpoch++;syncHistory();syncMembers();return;}if(data.error){restorePending();toast(data.error,'error');return;}historyEpoch++;renderMessage(data,true);window.dispatchEvent(new Event('member:chat-changed'));if(pending&&data.client_id===pending.id&&Number(data.sender_id)===currentId){clearTimeout(pending.timer);pending=null;if(input)input.disabled=false;if(send)send.disabled=false;input?.focus();}};
   socket.onclose=event=>{status(event.code===4403?'Access denied':'Reconnecting…',false);restorePending();if(!closed&&event.code!==4403)reconnectTimer=setTimeout(connect,Math.min(1000*2**retry++,15000));};
   socket.onerror=()=>status('Connection unavailable',false);
  }
@@ -1111,6 +1133,8 @@
  }
  if(input){if(mode==='group')document.getElementById('chat-form').addEventListener('submit',sendMessage);else send?.addEventListener('click',sendMessage);input.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing)sendMessage(event);});}
  window.addEventListener('pagehide',()=>{closed=true;clearTimeout(reconnectTimer);if(pending)clearTimeout(pending.timer);socket?.close();});
+ window.addEventListener('pageshow',event=>{if(event.persisted){closed=false;if(pending)restorePending();connect();syncHistory();}});
+ window.addEventListener('online',()=>{if(!closed){connect();syncHistory();}});
  document.addEventListener('visibilitychange',()=>{refreshEditWindow();if(!document.hidden){syncHistory();syncMembers();}});
  if(messages){messages.scrollTop=messages.scrollHeight;connect();setInterval(syncHistory,15000);syncMembers();setInterval(syncMembers,15000);}icons();
 })();

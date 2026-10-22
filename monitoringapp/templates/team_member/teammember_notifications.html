@@ -350,6 +350,56 @@
 .notification-main .notification-category summary:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px;}
 .notification-main .category-menu{max-height:320px;overflow:auto;scrollbar-width:thin;scrollbar-color:#7650bc transparent;}
 @media(prefers-reduced-motion:reduce){.notification-main *{transition:none!important;}}
+
+/* Consistent purple controls; existing table design remains. */
+.notification-main .notification-category summary{background:#111018;border-color:#34303f;color:#eee8f8;font-size:14px;}
+.notification-main .category-menu{background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),#0c0b14;border:1px solid rgba(255,255,255,.13);scrollbar-color:#7151a3 transparent;}
+.notification-main .category-menu button{color:#eeebf5;font-size:14px;}
+.notification-main .category-menu button:hover,.notification-main .category-menu button:focus-visible{background:rgba(139,92,246,.12);color:#ede9fe;}
+.notification-main .category-menu button.selected{background:rgba(139,92,246,.18);color:#ede9fe;}
+.notification-main .notification-clear,.notification-main .notification-open{background:#211832;border:1px solid rgba(167,139,250,.32);color:#e8def8;}
+.notification-main .notification-clear:hover,.notification-main .notification-open:hover{background:#2b2040;border-color:rgba(167,139,250,.48);}
+.notification-main .notification-icon-button{background:#211832;border-color:rgba(167,139,250,.24);color:#c4b5fd;}
+.notification-main .notification-icon-button:hover{background:#2b2040;color:#ede9fe;}
+.notification-main,.notification-shell,.notification-toolbar,.notification-header-inner,.notification-header-inner>div,.notification-content{min-width:0;box-sizing:border-box;}
+.notification-search{min-width:0;}.notification-search input{min-width:0;}
+.notification-table-scroll{max-width:100%;overscroll-behavior:contain;}
+.notification-content strong,.notification-content p{overflow-wrap:anywhere;}
+.notification-header-actions{flex-wrap:wrap;}
+#toastContainer{position:fixed!important;top:auto!important;bottom:24px!important;right:24px!important;left:auto!important;max-width:calc(100vw - 32px);z-index:100000!important;}
+@media(max-width:600px){
+ .notification-toolbar{flex-wrap:wrap;}.notification-search{flex-basis:100%;}
+ .notification-category{width:100%;min-width:0;}.notification-category summary{width:100%;box-sizing:border-box;}
+ .notification-main .category-menu{width:100%;max-width:100%;box-sizing:border-box;}
+ .notification-search input{font-size:16px;}.notification-header-actions{gap:8px;}
+ #toastContainer{bottom:16px!important;right:16px!important;}
+}
+
+.notification-main .notification-unread-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 36px;
+    padding: 0 12px;
+    box-sizing: border-box;
+
+    background: #211832;
+    border: 1px solid rgba(167, 139, 250, .32);
+border-radius: 999px;
+    color: #e8def8;
+
+    font-size: 11px;
+    font-weight: 650;
+    white-space: nowrap;
+}
+
+.notification-main .notification-unread-count svg {
+    width: 14px;
+    height: 14px;
+    color: inherit;
+}
+
 </style>{% endblock %}
 {% block content %}<main class="notification-main">
         <section class="notification-shell" aria-labelledby="notificationHeading">
@@ -462,7 +512,7 @@
  const refreshStatus = document.getElementById('notificationRefreshStatus');
  let rows = [...shell.querySelectorAll('.notification-row')];
  let scroll = shell.querySelector('.notification-table-scroll');
- let folder = 'inbox', saving = false, loading = false, revision = 0, controller = null;
+ let folder = 'inbox', saving = false, loading = false, revision = 0, controller = null, stopped = false;
  const endpoint = "{% url 'teammember_notifications' %}";
  const icons = () => {if(window.lucide) window.lucide.createIcons();};
  const toast = (message,type) => {if(window.showToast) window.showToast(message,type);};
@@ -524,18 +574,19 @@
   } else if(focusedAll) (shell.querySelector('.notification-header-actions form button') || refreshButton).focus({preventScroll:true});
  }
  async function refreshList(manual = false) {
-  if(loading || saving || document.hidden) return;
+  if(stopped || loading || saving || document.hidden) return;
   loading = true; const ticket = ++revision;
   controller = new AbortController(); refreshButton.disabled = true;
-  refreshStatus.textContent = manual ? 'Refreshing…' : 'Updating…';
+  if(manual) refreshStatus.textContent = 'Refreshing…';
+  const requestController=controller;let timedOut=false;const timer=setTimeout(()=>{timedOut=true;requestController.abort();},12000);
   try {
    const response = await fetch(endpoint,{credentials:'same-origin',cache:'no-store',signal:controller.signal,headers:{'Accept':'text/html'}});
    if(!response.ok) throw new Error('Could not refresh notifications.');
    const remote = parsePage(await response.text());
-   if(ticket !== revision || saving) return;
-   applyPage(remote); refreshStatus.textContent = 'Up to date · Updates every 15s';
-  } catch(error) {if(ticket === revision && error.name !== 'AbortError') {refreshStatus.textContent = 'Unable to update · Retrying automatically'; if(manual) toast(error.message,'error');}}
-  finally {if(ticket === revision) {loading = false; controller = null; refreshButton.disabled = false;}}
+   if(stopped || ticket !== revision || saving) return;
+   applyPage(remote); if(manual)toast('Notifications updated.','success'); refreshStatus.textContent = 'Up to date · Updates every 15s';
+  } catch(error) {if(ticket === revision && (error.name !== 'AbortError' || timedOut)) {refreshStatus.textContent = 'Unable to update · Retrying automatically'; if(manual) toast(timedOut?'Refresh timed out. Please try again.':error.message,'error');}}
+  finally {clearTimeout(timer);if(ticket === revision) {loading = false; controller = null; refreshButton.disabled = false;}}
  }
  function verifyAction(remote, form, action) {
   const messages = [...remote.querySelectorAll('#toast-django-messages [data-type]')];
@@ -556,14 +607,15 @@
   saving = true; ++revision; controller?.abort(); loading = false;
   const buttons = [...shell.querySelectorAll('form button')]; buttons.forEach(button => button.disabled = true);
   refreshButton.disabled = true; shell.setAttribute('aria-busy','true'); refreshStatus.textContent = 'Saving…';
+  const saveController=new AbortController();const saveTimer=setTimeout(()=>saveController.abort(),30000);
   try {
-   const response = await fetch(form.action,{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'text/html'}});
+   const response = await fetch(form.getAttribute('action'),{method:'POST',signal:saveController.signal,body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'text/html'}});
    if(!response.ok) throw new Error('Could not update this notification. Please try again.');
    const remote = parsePage(await response.text());
    const message = verifyAction(remote,form,action);
-   applyPage(remote); toast(message,'success'); refreshStatus.textContent = 'Up to date · Updates every 15s';
-  } catch(error) {toast(error.message || 'Could not save. Please try again.','error'); refreshStatus.textContent = 'Update failed · Please try again';}
-  finally {saving = false; buttons.forEach(button => button.disabled = false); shell.querySelectorAll('form button').forEach(button => button.disabled = false); refreshButton.disabled = false; shell.setAttribute('aria-busy','false');}
+   applyPage(remote); window.dispatchEvent(new Event('member:notifications-changed'));toast(message,'success'); refreshStatus.textContent = 'Up to date · Updates every 15s';
+  } catch(error) {toast(error.name==='AbortError'?'Confirmation timed out. Check the notification status before retrying.':error.message || 'Could not save. Please try again.','error'); refreshStatus.textContent = 'Update failed · Please try again';}
+  finally {clearTimeout(saveTimer);saving = false; buttons.forEach(button => button.disabled = false); shell.querySelectorAll('form button').forEach(button => button.disabled = false); refreshButton.disabled = false; shell.setAttribute('aria-busy','false');}
  }
  shell.addEventListener('submit', event => {
   const form = event.target; if(!(form instanceof HTMLFormElement)) return;
@@ -576,6 +628,9 @@
  search.addEventListener('input',filterRows); kind.addEventListener('change',filterRows);
  refreshButton.addEventListener('click',()=>refreshList(true));
  setInterval(()=>refreshList(),15000);
+ window.addEventListener('pagehide',()=>{stopped=true;++revision;controller?.abort();loading=false;});
+ window.addEventListener('pageshow',event=>{if(event.persisted){stopped=false;refreshList();}});
+ window.addEventListener('online',()=>refreshList());
  document.addEventListener('visibilitychange',()=>{if(!document.hidden) refreshList();});
  const dropdown = document.getElementById('categoryDropdown'), label = document.getElementById('categoryLabel');
  const categoryButtons = [...dropdown.querySelectorAll('[data-value]')], summary = dropdown.querySelector('summary');

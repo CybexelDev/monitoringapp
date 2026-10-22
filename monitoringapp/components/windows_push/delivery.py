@@ -2,9 +2,8 @@
 """
 Cybexel - Reusable Windows Push Delivery
 
-Phase 1: Team Lead push delivery.
-Other portals will be enabled after their authentication
-and logout handling are verified.
+Team Lead and Team Member push delivery.
+Other portals require separate authentication and logout verification.
 """
 
 import json
@@ -20,7 +19,7 @@ from monitoringapp.models import ChatPushSubscription
 
 logger = logging.getLogger(__name__)
 
-ENABLED_PORTALS = {"team_lead"}
+ENABLED_PORTALS = {"team_lead", "team_member"}
 
 
 def _normal_role(value):

@@ -330,7 +330,6 @@
             color: #a78bfa;
             font-weight: 700;
         }
-        
 .member-announcements {min-width:0;}
 .member-announcements .dashboard-content {display:block;margin-top:24px;}
 .member-announcements .announcement-title {font-size:14px;overflow-wrap:anywhere;}
@@ -340,24 +339,64 @@
 .member-announcements .announcement-actions {display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .member-announcements .read-badge {padding:5px 9px;border-radius:8px;font-size:11px;border:1px solid #7151a3;color:#c4b5fd;background:rgba(139,92,246,.12);white-space:nowrap;}
 .member-announcements .read-badge.unread {color:#f6cd85;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.1);}
-.member-announcements .view-button,.announcement-pagination a {display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid #7151a3;border-radius:9px;background:#352448;color:#ede5ff;text-decoration:none;cursor:pointer;font-size:12px;}
+.announcement-pagination a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid #7151a3;
+    border-radius: 9px;
+    background: #352448;
+    color: #ede5ff;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+#memberAnnouncementsPage .view-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid rgba(167, 139, 250, 0.30);
+    border-radius: 9px;
+    background: rgba(139, 92, 246, 0.14);
+    color: #d8c9f5;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+}
+
+#memberAnnouncementsPage .view-button:hover {
+    background: rgba(139, 92, 246, 0.24);
+    border-color: rgba(167, 139, 250, 0.50);
+    color: #ede9fe;
+}
+
+#memberAnnouncementsPage .view-button:focus-visible {
+    outline: 2px solid #a78bfa;
+    outline-offset: 3px;
+}
+
+#memberAnnouncementsPage .view-button svg {
+    color: inherit;
+}
+
 .member-announcements svg {width:18px;height:18px;}
 .announcement-pagination {display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px;font-size:12px;color:#b7abc6;}
 .member-announcement-dialog {width:min(560px,calc(100vw - 32px));max-height:80dvh;padding:0;border:1px solid #65517e;border-radius:18px;background:#1b1726;color:#eee7fa;box-sizing:border-box;}
 .member-announcement-dialog::backdrop {background:rgba(7,7,12,.3);backdrop-filter:blur(2px);}
 .member-announcement-dialog header {display:flex;align-items:center;justify-content:space-between;gap:15px;padding:20px;border-bottom:1px solid #393047;}
 .member-announcement-dialog h2 {margin:0;font-size:18px;overflow-wrap:anywhere;}
-.member-announcement-dialog button {border:1px solid #645078;border-radius:8px;background:#30233f;color:#eee7fa;padding:8px;cursor:pointer;}
+.member-announcement-dialog button:not(.toast-close) {border:1px solid #645078;border-radius:8px;background:#30233f;color:#eee7fa;padding:8px;cursor:pointer;}
 .member-announcement-dialog .dialog-body {padding:20px;overflow:auto;max-height:55dvh;}
 .member-announcement-dialog .dialog-message {white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;font-size:14px;}
 .member-announcement-dialog .dialog-meta {font-size:12px;color:#b4a4c6;margin-bottom:15px;}
 html.announcement-dialog-open,html.announcement-dialog-open body,html.announcement-dialog-open .dashboard-box {overflow:hidden!important;}
 @media(max-width:600px){.member-announcements .dashboard-header{padding:23px 18px;border-radius:18px;}.member-announcements .dashboard-header-content{flex-wrap:wrap;gap:15px;}.member-announcements .dashboard-header h1{font-size:30px;letter-spacing:-1px;}.member-announcements .announcement-item{padding:16px 12px;gap:10px;}.member-announcements .announcement-title-row{flex-wrap:wrap;gap:10px;}.member-announcements .announcement-icon{width:34px;height:34px;min-width:34px;}.announcement-pagination{flex-wrap:wrap;}}
-
-
 .member-announcements .announcement-item {cursor:pointer;}
 .member-announcements .announcement-item:focus-visible {outline:2px solid #a78bfa;outline-offset:-2px;}
-
 /* Responsive refinements scoped to this page. */
 #memberAnnouncementsPage,#memberAnnouncementsPage * {box-sizing:border-box;}
 #memberAnnouncementsPage {width:100%;max-width:100%;min-width:0;}
@@ -394,7 +433,6 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
     .member-announcement-dialog header,.member-announcement-dialog .dialog-body {padding:16px;}
 }
 @media(prefers-reduced-motion:reduce){#memberAnnouncementsPage .announcement-item,#memberAnnouncementsPage .announcement-icon {transition:none;}}
-
 #memberAnnouncementsPage .member-announcement-tabs {display:flex;gap:6px;padding:6px;margin:16px;border:1px solid rgba(255,255,255,.07);border-radius:17px;background:rgba(255,255,255,.025);}
 #memberAnnouncementsPage .member-announcement-tab {flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:10px 14px;border:1px solid transparent;border-radius:12px;background:transparent;color:#898493;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s;}
 #memberAnnouncementsPage .member-announcement-tab:hover {color:#e4ddef;background:rgba(139,92,246,.06);}
@@ -402,48 +440,80 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
 #memberAnnouncementsPage .member-announcement-tab svg {width:17px;height:17px;flex-shrink:0;}
 #memberAnnouncementsPage .member-announcement-tab:focus-visible {outline:2px solid #a78bfa;outline-offset:2px;}
 #memberAnnouncementsPage .member-announcement-tab-count {display:inline-flex;align-items:center;justify-content:center;min-width:27px;height:27px;padding:0 7px;border-radius:9px;background:rgba(139,92,246,.09);color:#b69bec;font-size:11px;box-sizing:border-box;}
-#memberAnnouncementsPage .member-announcement-tab[aria-selected="true"] .resource-tab-count {background:rgba(139,92,246,.30);color:#eee4ff;}
-
+#memberAnnouncementsPage .member-announcement-tab[aria-selected="true"] .member-announcement-tab-count {background:rgba(139,92,246,.30);color:#eee4ff;}
 #memberAnnouncementsPage .member-announcement-tab {text-decoration:none;}
 @media(max-width:560px){#memberAnnouncementsPage .member-announcement-tabs {margin:12px;gap:4px;padding:5px;}#memberAnnouncementsPage .member-announcement-tab {gap:6px;padding:9px 5px;font-size:12px;}}
+
+/* Layout safety only: preserve existing colours and typography. */
+#memberAnnouncementsPage, #memberAnnouncementsPage * {box-sizing:border-box;}
+#memberAnnouncementsPage {min-width:0;max-width:100%;}
+#memberAnnouncementsPage .dashboard-header-content {min-width:0;flex-wrap:wrap;}
+#memberAnnouncementsPage .announcement-title-row {min-width:0;}
+#memberAnnouncementsPage .announcement-actions {flex-wrap:wrap;}
+#memberAnnouncementsPage .announcement-list {overscroll-behavior:contain;scrollbar-gutter:stable;}
+#memberAnnouncementsPage .announcement-pagination {flex-wrap:wrap;}
+.member-announcement-dialog {margin:auto;overflow:auto;}
+.member-announcement-dialog .dialog-body {overflow:auto;}
+@media(max-width:600px){
+ #memberAnnouncementsPage .announcement-title-row {flex-direction:column;gap:10px;}
+ #memberAnnouncementsPage .announcement-actions {justify-content:flex-start;}
+ #memberAnnouncementsPage .member-announcement-tab {flex-wrap:wrap;}
+}
+
+/* Keep the shared toast at the viewport bottom, including inside View. */
+#toastContainer.toast-container {position:fixed;top:auto!important;bottom:24px!important;right:24px!important;left:auto!important;width:380px;max-width:calc(100vw - 32px);}
+@media(max-width:600px){#toastContainer.toast-container{bottom:16px!important;right:16px!important;left:auto!important;width:calc(100vw - 32px);}}
+
+/* View popup: shared Project / Notepad purple theme. */
+.member-announcement-dialog {
+ background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),#0c0b14;
+ border:1px solid rgba(255,255,255,.13);
+ border-radius:20px;
+ color:#f4f1fa;
+ box-shadow:0 24px 70px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);
+ scrollbar-width:thin;
+ scrollbar-color:#7151a3 transparent;
+}
+.member-announcement-dialog > header {border-bottom:1px solid rgba(255,255,255,.08);}
+.member-announcement-dialog > header h2 {color:#f4f1fa;}
+.member-announcement-dialog #closeAnnouncementDialog {
+ display:grid;place-items:center;padding:0;
+ border:1px solid rgba(167,139,250,.22);
+ background:rgba(139,92,246,.10);color:#d8c9f5;
+ border-radius:10px;
+}
+.member-announcement-dialog #closeAnnouncementDialog:hover {background:rgba(139,92,246,.18);border-color:rgba(167,139,250,.38);}
+.member-announcement-dialog #closeAnnouncementDialog:focus-visible {outline:2px solid #a78bfa;outline-offset:3px;}
+.member-announcement-dialog .dialog-meta {color:#b5a8cb;}
+.member-announcement-dialog .dialog-message {color:#e8e2f0;}
+.member-announcement-dialog .dialog-body {scrollbar-width:thin;scrollbar-color:#7151a3 transparent;}
+.member-announcement-dialog .dialog-body::-webkit-scrollbar {width:6px;}
+.member-announcement-dialog .dialog-body::-webkit-scrollbar-thumb {background:#7151a3;border-radius:8px;}
+
 </style>{% endblock %}
 {% block content %}
-
 <div class="member-announcements" id="memberAnnouncementsPage">
 <p id="announcementFeedback" class="announcement-feedback" role="status" aria-live="polite" hidden></p>
 <section class="dashboard-header">
-
                 <div class="dashboard-header-content">
-
                     <div>
-
                         <div class="dashboard-eyebrow">
                             CYBEXEL TEAM MEMBER PANEL
                         </div>
-
                         <h1>
                             ANNOUNCEMENTS
                         </h1>
-
                         <p>
                             Read the updates shared with you by your team lead.
                         </p>
-
                     </div>
-
-
                     <div class="system-status">
-
                         <span class="status-dot"></span>
-
                         <span>
                             System Online
                         </span>
-
                     </div>
-
                 </div>
-
             </section>
 <section class="dashboard-content">
 <div class="section-heading"><div class="section-title-block"><span class="section-eyebrow">TEAM COMMUNICATION</span><h2>Your Announcements</h2></div><div class="heading-line"></div></div>
@@ -451,7 +521,7 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
 <a href="?source=lead" id="memberLeadAnnouncementTab" class="member-announcement-tab" role="tab" aria-selected="{% if announcement_source == 'lead' %}true{% else %}false{% endif %}" tabindex="{% if announcement_source == 'lead' %}0{% else %}-1{% endif %}" aria-controls="memberAnnouncementList"><i data-lucide="users" aria-hidden="true"></i><span>Team Lead</span><span class="member-announcement-tab-count">{{ lead_announcement_count }}</span></a>
 <a href="?source=admin" id="memberAdminAnnouncementTab" class="member-announcement-tab" role="tab" aria-selected="{% if announcement_source == 'admin' %}true{% else %}false{% endif %}" tabindex="{% if announcement_source == 'admin' %}0{% else %}-1{% endif %}" aria-controls="memberAnnouncementList"><i data-lucide="shield" aria-hidden="true"></i><span>Admin</span><span class="member-announcement-tab-count">{{ admin_announcement_count }}</span></a>
 </div><div class="history-top"><span class="history-label">{% if announcement_source == "admin" %}Admin announcements{% else %}Team Lead announcements{% endif %}</span><span class="history-count">{{ page_obj.paginator.count }} announcements · <span id="announcementUnreadCount">{{ unread_count }}</span> unread</span></div>
-<div class="announcement-list" id="memberAnnouncementList" role="tabpanel" aria-labelledby="{% if announcement_source == 'admin' %}memberAdminAnnouncementTab{% else %}memberLeadAnnouncementTab{% endif %}">
+<div class="announcement-list" id="memberAnnouncementList" tabindex="0" role="tabpanel" aria-labelledby="{% if announcement_source == 'admin' %}memberAdminAnnouncementTab{% else %}memberLeadAnnouncementTab{% endif %}">
 {% for row in page_obj %}
 <article class="announcement-item" id="announcement-{{ row.announcement_id }}" tabindex="0" aria-label="{{ row.announcement.title|default:'Announcement' }} — select to mark as seen">
 <div class="announcement-icon"><i data-lucide="megaphone"></i></div>
@@ -466,119 +536,130 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
 {% if page_obj.paginator.num_pages > 1 %}<nav class="announcement-pagination" aria-label="Announcement pages"><div>{% if page_obj.has_previous %}<a href="?source={{ announcement_source }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}</div><span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_next %}<a href="?source={{ announcement_source }}&amp;page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></nav>{% endif %}
 </div></section></div>
 <dialog id="memberAnnouncementDialog" class="member-announcement-dialog" aria-labelledby="announcementDialogTitle"><header><h2 id="announcementDialogTitle">Announcement</h2><button type="button" id="closeAnnouncementDialog" aria-label="Close">✕</button></header><div class="dialog-body"><div class="dialog-meta" id="announcementDialogMeta"></div><div class="dialog-message" id="announcementDialogMessage"></div></div></dialog>
-
 {% endblock %}
-{% block extra_js %}<script>
+{% block extra_js %}
+<script>
 (() => {
-    const page=document.getElementById('memberAnnouncementsPage');
-    const dialog=document.getElementById('memberAnnouncementDialog');
-    if(!page || !dialog)return;
-    const saving=new Set();
-    let trigger=null,busy=false,revision=0,readController=null,expired=false;
-    function notice(message){
-        if(typeof window.showToast==='function')window.showToast(message,'error');
-        else {const box=document.getElementById('announcementFeedback');box.textContent=message;box.hidden=false;}
-    }
-    function fingerprint(card){
-        const copy=card.cloneNode(true);
-        copy.querySelectorAll('[name="csrfmiddlewaretoken"]').forEach(el=>el.remove());
-        copy.querySelectorAll('[data-lucide]').forEach(el=>{const icon=document.createElement('i');icon.dataset.lucide=el.dataset.lucide;el.replaceWith(icon);});
-        return copy.innerHTML.replace(/\s+/g,' ').trim();
-    }
-    let baseline=fingerprint(page.querySelector('.history-card'));
-    function draw(doc){
-        const incoming=doc.querySelector('#memberAnnouncementsPage .history-card');
-        if(!incoming)throw new Error('Unable to update announcements.');
-        const current=page.querySelector('.history-card');
-        const list=current.querySelector('.announcement-list');
-        const top=list?.scrollTop || 0;
-        const tabFocused=document.activeElement?.closest('.member-announcement-tab');
-        const focused=document.activeElement?.closest('.announcement-item');
-        const focusId=focused?.id;
-        const viewFocused=document.activeElement?.classList.contains('view-button');
-        baseline=fingerprint(incoming);
-        current.innerHTML=incoming.innerHTML;
-        const nextList=current.querySelector('.announcement-list');
-        if(nextList)nextList.scrollTop=top;
-        if(window.lucide)window.lucide.createIcons();
-        if(tabFocused)current.querySelector('.member-announcement-tab[aria-selected="true"]')?.focus({preventScroll:true});
-        if(focusId){const card=document.getElementById(focusId);const target=viewFocused?card?.querySelector('.view-button'):card;target?.focus({preventScroll:true});}
-    }
-    async function load(url,manual=false){
-        if(expired || saving.size || dialog.open || (!manual && (busy || document.hidden)))return;
-        readController?.abort();
-        const controller=new AbortController();readController=controller;
-        const stamp=++revision;busy=true;
-        try {
-            const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:controller.signal,headers:{'Accept':'text/html'}});
-            if(!response.ok)throw new Error('Could not load announcements. Please try again.');
-            if(!(response.headers.get('content-type') || '').includes('text/html'))throw new Error('Unexpected announcement response.');
-            const doc=new DOMParser().parseFromString(await response.text(),'text/html');
-            const next=doc.querySelector('#memberAnnouncementsPage .history-card');
-            if(!next){
-                if(response.redirected){expired=true;notice('Please sign in again to view announcements.');return;}
-                throw new Error('Unable to load announcements.');
-            }
-            if(stamp!==revision || saving.size || dialog.open || controller.signal.aborted)return;
-            if(manual || fingerprint(next)!==baseline)draw(doc);
-            if(manual && response.url!==location.href)history.pushState(null,'',response.url);
-        } catch(error){if(error.name!=='AbortError' && manual)notice(error.message);}
-        finally {if(stamp===revision)busy=false;if(readController===controller)readController=null;}
-    }
-    async function markSeen(card){
-        const badge=card.querySelector('.read-badge');
-        const form=card.querySelector('.announcement-seen-form');
-        if(!badge?.classList.contains('unread') || saving.has(card.id))return;
-        readController?.abort();revision++;busy=false;
-        saving.add(card.id);card.setAttribute('aria-busy','true');
-        try {
-            const response=await fetch(form.action,{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
-            if(!response.ok || !(response.headers.get('content-type') || '').includes('application/json'))throw new Error('Unable to mark this announcement as seen. Please try again.');
-            const data=await response.json();
-            if(!data.ok)throw new Error(data.message || 'Unable to mark as seen.');
-            badge.textContent='Seen';badge.classList.remove('unread');
-            const count=document.getElementById('announcementUnreadCount');
-            if(count)count.textContent=data.unread_count;
-        } catch(error){notice(error.message);}
-        finally {saving.delete(card.id);card.removeAttribute('aria-busy');}
-    }
-    function showView(card,button){
-        document.getElementById('announcementDialogTitle').textContent=card.querySelector('.announcement-title').textContent.trim();
-        document.getElementById('announcementDialogMessage').textContent=card.querySelector('.announcement-message').textContent;
-        document.getElementById('announcementDialogMeta').textContent=card.querySelector('.announcement-meta').textContent.trim();
-        trigger=button;document.body.appendChild(dialog);dialog.showModal();
-        document.documentElement.classList.add('announcement-dialog-open');
-        document.getElementById('closeAnnouncementDialog').focus();
-    }
-    page.addEventListener('click',event=>{
-        const tab=event.target.closest('.member-announcement-tab');
-        if(tab && event.button===0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey){event.preventDefault();load(tab.href,true);return;}
-        const card=event.target.closest('.announcement-item');
-        const view=event.target.closest('.view-button');
-        if(view && card){event.preventDefault();showView(card,view);return;}
-        const link=event.target.closest('.announcement-pagination a');
-        if(link && event.button===0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey){event.preventDefault();load(link.href,true);return;}
-        if(card && !event.target.closest('button,a,input,form'))markSeen(card);
-    });
-    page.addEventListener('keydown',event=>{
-        const tab=event.target.closest('.member-announcement-tab');
-        if(tab && ['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){
-            const tabs=[...page.querySelectorAll('.member-announcement-tab')];
-            const target=event.key==='Home'?tabs[0]:event.key==='End'?tabs[tabs.length-1]:tabs[(tabs.indexOf(tab)+1)%tabs.length];
-            event.preventDefault();load(target.href,true);return;
-        }
-        const card=event.target.closest('.announcement-item');
-        if(card && event.target===card && (event.key==='Enter' || event.key===' ')){event.preventDefault();markSeen(card);}
-    });
-    page.addEventListener('submit',event=>{if(event.target.matches('.announcement-seen-form'))event.preventDefault();});
-    const close=()=>dialog.close();
-    document.getElementById('closeAnnouncementDialog').addEventListener('click',close);
-    dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left || event.clientX>r.right || event.clientY<r.top || event.clientY>r.bottom)close();}});
-    dialog.addEventListener('close',()=>{document.documentElement.classList.remove('announcement-dialog-open');if(trigger?.isConnected)trigger.focus({preventScroll:true});load(location.href);});
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden)load(location.href);});
-    window.addEventListener('popstate',()=>load(location.href));
-    setInterval(()=>load(location.href),15000);
-    if(window.lucide)window.lucide.createIcons();
+ 'use strict';
+ const page=document.getElementById('memberAnnouncementsPage');
+ const dialog=document.getElementById('memberAnnouncementDialog');
+ if(!page || !dialog)return;
+ const saving=new Set(),writes=new Set();
+ let trigger=null,busy=false,revision=0,readController=null,expired=false,stopped=false,timer=null;
+ const sharedToasts=document.getElementById('toastContainer');
+ document.body.appendChild(dialog);
+ function placeToasts(){
+  if(sharedToasts)(dialog.open?dialog:document.body).appendChild(sharedToasts);
+ }
+ function notice(message,kind='error'){
+  placeToasts();
+  if(typeof window.showToast==='function')window.showToast(message,kind);
+  else {
+   const feedback=document.getElementById('announcementFeedback');
+   if(feedback){feedback.textContent=message;feedback.hidden=false;}
+  }
+ }
+ function fingerprint(card){
+  const copy=card.cloneNode(true);
+  copy.querySelectorAll('[name="csrfmiddlewaretoken"]').forEach(el=>el.remove());
+  copy.querySelectorAll('[data-lucide]').forEach(el=>{const icon=document.createElement('i');icon.dataset.lucide=el.dataset.lucide;el.replaceWith(icon);});
+  copy.querySelectorAll('[aria-busy]').forEach(el=>el.removeAttribute('aria-busy'));
+  return copy.innerHTML.replace(/\s+/g,' ').trim();
+ }
+ let baseline=fingerprint(page.querySelector('.history-card'));
+ function draw(doc,manual){
+  const incoming=doc.querySelector('#memberAnnouncementsPage .history-card');
+  const current=page.querySelector('.history-card');
+  const list=current.querySelector('.announcement-list');
+  const active=document.activeElement;
+  const focusId=active.closest('.announcement-item')?.id;
+  const focusView=active.classList.contains('view-button');
+  const tabFocus=active.closest('.member-announcement-tab');
+  const pagerFocus=active.closest('.announcement-pagination');
+  const top=manual?0:(list?.scrollTop||0);
+  baseline=fingerprint(incoming);current.innerHTML=incoming.innerHTML;
+  const nextList=current.querySelector('.announcement-list');nextList.scrollTop=top;
+  window.lucide?.createIcons();
+  if(tabFocus)current.querySelector('[role="tab"][aria-selected="true"]')?.focus({preventScroll:true});
+  else if(pagerFocus)nextList.focus({preventScroll:true});
+  else if(focusId){const card=document.getElementById(focusId);(focusView?card?.querySelector('.view-button'):card)?.focus({preventScroll:true});}
+ }
+ async function load(url,manual=false,push=false){
+  if(stopped || expired || saving.size || dialog.open || (!manual && (busy || document.hidden)))return;
+  readController?.abort();const controller=new AbortController();readController=controller;
+  const stamp=++revision;busy=true;const timeout=setTimeout(()=>controller.abort(),12000);
+  if(manual)page.setAttribute('aria-busy','true');
+  try{
+   const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:controller.signal,headers:{Accept:'text/html'}});
+   if(response.status===401 || response.status===403){expired=true;throw Error('Please sign in again to view announcements.');}
+   if(!response.ok)throw Error('Could not load announcements. Please try again.');
+   const doc=new DOMParser().parseFromString(await response.text(),'text/html');
+   const next=doc.querySelector('#memberAnnouncementsPage .history-card');
+   if(!next){if(response.redirected)expired=true;throw Error(expired?'Please sign in again to view announcements.':'Unable to load announcements.');}
+   if(stamp!==revision || saving.size || dialog.open || controller.signal.aborted)return;
+   if(manual || fingerprint(next)!==baseline)draw(doc,manual);
+   if(push && response.url!==location.href)history.pushState(null,'',response.url);
+  }catch(error){if(stamp===revision && !stopped && manual)notice(error.name==='AbortError'?'The request timed out. Please try again.':error.message);}
+  finally{clearTimeout(timeout);if(stamp===revision){busy=false;page.removeAttribute('aria-busy');}if(readController===controller)readController=null;}
+ }
+ async function markSeen(card){
+  const badge=card.querySelector('.read-badge'),form=card.querySelector('.announcement-seen-form');
+  if(!form || !badge?.classList.contains('unread') || saving.has(card.id))return;
+  readController?.abort();revision++;busy=false;page.removeAttribute('aria-busy');
+  const controller=new AbortController();writes.add(controller);
+  const timeout=setTimeout(()=>controller.abort(),12000);
+  saving.add(card.id);card.setAttribute('aria-busy','true');
+  try{
+   const response=await fetch(form.getAttribute('action'),{method:'POST',body:new FormData(form),credentials:'same-origin',signal:controller.signal,headers:{'X-Requested-With':'XMLHttpRequest',Accept:'application/json'}});
+   if(response.status===401 || response.status===403)throw Error('Your session or security token expired. Reload and sign in if needed.');
+   if(!response.ok || !(response.headers.get('content-type')||'').includes('application/json'))throw Error('Unable to mark this announcement as seen. Please try again.');
+   const data=await response.json();if(!data.ok)throw Error(data.message||'Unable to mark as seen.');
+   badge.textContent='Seen';badge.classList.remove('unread');
+   const count=page.querySelector('#announcementUnreadCount');
+   if(count && Number.isSafeInteger(data.unread_count) && data.unread_count>=0)count.textContent=data.unread_count;
+   baseline=fingerprint(page.querySelector('.history-card'));
+   window.dispatchEvent(new CustomEvent('member:notifications-changed'));
+   notice('Announcement marked as seen.','success');
+  }catch(error){if(!stopped)notice(error.name==='AbortError'?'Could not confirm the update. Please try again.':error.message);}
+  finally{clearTimeout(timeout);writes.delete(controller);saving.delete(card.id);card.removeAttribute('aria-busy');}
+ }
+ function showView(card,button){
+  readController?.abort();revision++;busy=false;page.removeAttribute('aria-busy');
+  document.getElementById('announcementDialogTitle').textContent=card.querySelector('.announcement-title').textContent.trim();
+  document.getElementById('announcementDialogMessage').textContent=card.querySelector('.announcement-message').textContent;
+  document.getElementById('announcementDialogMeta').textContent=card.querySelector('.announcement-meta').textContent.trim();
+  trigger=button;dialog.showModal();placeToasts();document.documentElement.classList.add('announcement-dialog-open');
+  document.getElementById('closeAnnouncementDialog').focus();markSeen(card);
+ }
+ page.addEventListener('click',event=>{
+  const link=event.target.closest('.member-announcement-tab,.announcement-pagination a');
+  if(link && event.button===0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey){event.preventDefault();load(link.href,true,true);return;}
+  const card=event.target.closest('.announcement-item'),view=event.target.closest('.view-button');
+  if(view && card){event.preventDefault();showView(card,view);return;}
+  if(card && !event.target.closest('button,a,input,form') && !window.getSelection()?.toString())markSeen(card);
+ });
+ page.addEventListener('keydown',event=>{
+  const tab=event.target.closest('.member-announcement-tab');
+  if(tab && ['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){
+   const tabs=[...page.querySelectorAll('.member-announcement-tab')],index=tabs.indexOf(tab);
+   const target=event.key==='Home'?tabs[0]:event.key==='End'?tabs.at(-1):tabs[(index+(event.key==='ArrowLeft'?-1:1)+tabs.length)%tabs.length];
+   event.preventDefault();load(target.href,true,true);return;
+  }
+  if(tab && event.key===' '){event.preventDefault();load(tab.href,true,true);return;}
+  const card=event.target.closest('.announcement-item');
+  if(card && event.target===card && ['Enter',' '].includes(event.key)){event.preventDefault();markSeen(card);}
+ });
+ page.addEventListener('submit',event=>{if(event.target.matches('.announcement-seen-form')){event.preventDefault();markSeen(event.target.closest('.announcement-item'));}});
+ document.getElementById('closeAnnouncementDialog').addEventListener('click',()=>dialog.close());
+ dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
+ dialog.addEventListener('close',()=>{if(sharedToasts)document.body.appendChild(sharedToasts);document.documentElement.classList.remove('announcement-dialog-open');if(trigger?.isConnected)trigger.focus({preventScroll:true});load(location.href);});
+ const start=()=>{if(timer===null)timer=setInterval(()=>load(location.href),15000);};
+ window.addEventListener('pagehide',()=>{stopped=true;clearInterval(timer);timer=null;revision++;busy=false;readController?.abort();writes.forEach(c=>c.abort());});
+ window.addEventListener('pageshow',()=>{stopped=false;start();load(location.href);});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)load(location.href);});
+ window.addEventListener('online',()=>load(location.href));
+ window.addEventListener('popstate',()=>load(location.href,true,false));
+ window.lucide?.createIcons();start();
 })();
-
-</script>{% endblock %}
+</script>
+{% endblock %}

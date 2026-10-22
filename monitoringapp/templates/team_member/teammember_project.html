@@ -1079,6 +1079,46 @@ html.member-project-status-open body,html.member-project-view-open body {overflo
 @media(max-width:420px){#memberProjectsPage .dashboard-header {padding:20px 16px!important;}.project-view-facts {grid-template-columns:1fr 1fr;}.project-view-images {grid-template-columns:1fr;}.member-project-status-dialog {padding:18px;}}
 @media(prefers-reduced-motion:reduce){#memberProjectsPage * {transition:none!important;animation:none!important;}}
 
+
+/* Project-specific refinements; retain the existing page fonts and header. */
+#memberProjectsPage .table-wrapper {background:linear-gradient(145deg,#1b1923,#121119);}
+#memberProjectsPage .table-wrapper th {background:#211e2b;color:#b7adca;}
+#memberProjectsPage .table-wrapper th:nth-child(1){width:230px;}
+#memberProjectsPage .table-wrapper th:nth-child(2){width:120px;}
+#memberProjectsPage .table-wrapper th:nth-child(3){width:180px;}
+#memberProjectsPage .table-wrapper th:nth-child(4){width:145px;}
+#memberProjectsPage .table-wrapper th:nth-child(5){width:100px;}
+#memberProjectsPage .table-wrapper th:nth-child(6){width:145px;}
+#memberProjectsPage .table-wrapper th:nth-child(7){width:190px;}
+#memberProjectsPage .table-wrapper td:nth-child(7){white-space:nowrap;}
+.member-project-status-dialog,.project-view-dialog {
+ background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),#0c0b14;
+ border-color:rgba(255,255,255,.13);scrollbar-width:thin;scrollbar-color:#7151a3 transparent;
+}
+.member-project-status-dialog .status-form {display:flex;flex-direction:column;align-items:stretch;gap:12px;min-width:0;}
+.member-project-status-label{margin:0;}
+.member-project-status-header p,.project-view-heading{min-width:0;overflow-wrap:anywhere;}
+.member-project-status-dialog .update-button{align-self:flex-end;min-height:42px;margin-top:8px;}
+.project-status-picker{width:100%;min-width:0;}
+.project-status-trigger{width:100%;min-height:44px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid rgba(255,255,255,.13);border-radius:10px;background:rgba(7,7,11,.72);color:#f4f4f5;font:inherit;font-size:14px;text-align:left;cursor:pointer;}
+.project-status-trigger::after{content:'';width:7px;height:7px;border-right:1.5px solid #a99cce;border-bottom:1.5px solid #a99cce;transform:rotate(45deg);flex-shrink:0;}
+.project-status-trigger:focus-visible,.project-status-trigger[aria-expanded=true]{outline:2px solid rgba(139,92,246,.45);outline-offset:2px;}
+.project-status-options{margin-top:8px;padding:8px;border:1px solid rgba(255,255,255,.13);border-radius:14px;background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),#0c0b14;max-height:210px;overflow:auto;scrollbar-width:thin;scrollbar-color:#7151a3 transparent;}
+.project-status-options[hidden]{display:none;}
+.project-status-option{display:block;width:100%;min-height:40px;padding:9px 12px;border:0;border-radius:8px;background:transparent;color:#eeebf5;font:inherit;font-size:14px;text-align:left;cursor:pointer;}
+.project-status-option:hover,.project-status-option:focus-visible{background:rgba(139,92,246,.12);outline:none;}
+.project-status-option[aria-selected=true]{background:rgba(139,92,246,.18);color:#ede9fe;}
+.member-project-status-dialog button:disabled{opacity:.6;cursor:wait;}
+#toastContainer.toast-container{position:fixed!important;top:auto!important;bottom:24px!important;right:24px!important;left:auto!important;}
+@media(max-width:600px){
+ .member-project-status-dialog{padding:20px;max-height:calc(100dvh - 24px);}
+ .project-view-header{padding:18px;gap:10px;}.project-view-body{padding:18px;}
+ .project-view-facts,.project-view-extra{grid-template-columns:1fr;}
+ .project-view-footer{flex-wrap:wrap;gap:12px;padding:16px 18px;}
+ .project-status-trigger,.project-status-option{font-size:16px;min-height:44px;}
+ #toastContainer.toast-container{bottom:16px!important;right:16px!important;max-width:calc(100vw - 32px);}
+}
+
 </style>
 
 {% endblock %}
@@ -1301,7 +1341,7 @@ html.member-project-status-open body,html.member-project-view-open body {overflo
                         <button
                             type="button"
                             onclick="openMemberProjectView(this)"
-
+                            data-seen-url="{% url 'teammember_project_seen' project.id %}"
                             data-work_name="{{ project.work_name }}"
                             data-work_type="{{ project.work_type }}"
                             data-category="{{ project.category }}"
@@ -1528,6 +1568,26 @@ html.member-project-status-open body,html.member-project-view-open body {overflo
 
 {% block extra_js %}<script>
 
+
+function placeProjectToasts(){
+ const container=document.getElementById('toastContainer');
+ if(container)(document.querySelector('.member-project-status-dialog[open],#memberProjectView[open]')||document.body).appendChild(container);
+}
+function initProjectStatusPicker(dialog){
+ const select=dialog.querySelector('select[name="status"]');if(!select||dialog.querySelector('.project-status-picker'))return;
+ const wrap=document.createElement('div');wrap.className='project-status-picker';
+ const trigger=document.createElement('button');trigger.type='button';trigger.className='project-status-trigger';trigger.id=select.id+'-trigger';trigger.setAttribute('aria-haspopup','listbox');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-label','Project status');
+ const list=document.createElement('div');list.className='project-status-options';list.id=select.id+'-options';list.setAttribute('role','listbox');list.setAttribute('aria-label','Project status');list.hidden=true;trigger.setAttribute('aria-controls',list.id);
+ const close=()=>{list.hidden=true;trigger.setAttribute('aria-expanded','false');};
+ const sync=()=>{trigger.textContent=select.selectedOptions[0]?.textContent||'Choose status';list.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.value===select.value)));};
+ [...select.options].forEach(option=>{const b=document.createElement('button');b.type='button';b.className='project-status-option';b.textContent=option.textContent;b.dataset.value=option.value;b.setAttribute('role','option');b.disabled=option.disabled;b.tabIndex=-1;b.addEventListener('click',()=>{select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));sync();close();trigger.focus();});list.appendChild(b);});
+ const open=()=>{list.hidden=false;trigger.setAttribute('aria-expanded','true');(list.querySelector('[aria-selected="true"]')||list.querySelector('button:not(:disabled)'))?.focus();};
+ trigger.addEventListener('click',()=>list.hidden?open():close());trigger.addEventListener('keydown',e=>{if(['ArrowDown','ArrowUp'].includes(e.key)){e.preventDefault();open();}});
+ list.addEventListener('keydown',e=>{const items=[...list.querySelectorAll('button:not(:disabled)')];const i=items.indexOf(document.activeElement);let next;if(e.key==='ArrowDown')next=(i+1)%items.length;if(e.key==='ArrowUp')next=(i-1+items.length)%items.length;if(e.key==='Home')next=0;if(e.key==='End')next=items.length-1;if(next!==undefined){e.preventDefault();items[next]?.focus();}if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close();trigger.focus();}if(e.key==='Tab'){close();trigger.focus();}});
+ dialog.addEventListener('click',e=>{if(!wrap.contains(e.target))close();});dialog.addEventListener('close',close);select.addEventListener('change',sync);
+ wrap.append(trigger,list);select.after(wrap);select.hidden=true;dialog.querySelector('label[for="'+select.id+'"]')?.setAttribute('for',trigger.id);sync();
+}
+
 let memberProjectViewFocus;
 function closeMemberProjectView(){document.getElementById('memberProjectView').close();}
 function memberProjectResourceUrl(raw){
@@ -1554,56 +1614,91 @@ function openMemberProjectView(button){
   });
   if(!container.children.length){const text=document.createElement('span');text.className='project-view-empty';text.textContent=pair[0]==='images'?'No images attached.':'No files attached.';container.appendChild(text);}
  });
- dialog.showModal();document.documentElement.classList.add('member-project-view-open');
+ dialog.showModal();placeProjectToasts();document.documentElement.classList.add('member-project-view-open');
+ 
+  // Record the first project view without refreshing the page.
+  const seenUrl = button.dataset.seenUrl;
+  const csrfToken = document.querySelector(
+    'input[name="csrfmiddlewaretoken"]'
+  )?.value;
+
+  if (seenUrl && csrfToken) {
+    const seenController=new AbortController();const seenTimeout=setTimeout(()=>seenController.abort(),12000);
+    fetch(seenUrl, {
+      method: 'POST',
+      signal:seenController.signal,
+      credentials: 'same-origin',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error('Unable to mark this project as viewed.');
+      }
+    }).catch(error => {
+      placeProjectToasts();if(typeof window.showToast==='function')window.showToast('Project details opened, but marking it as viewed failed. Please try again.','error');
+    }).finally(()=>clearTimeout(seenTimeout));
+  }
+
  if(window.lucide)window.lucide.createIcons();
 }
 (function(){
  const dialog=document.getElementById('memberProjectView');
- dialog.addEventListener('close',function(){document.documentElement.classList.remove('member-project-view-open');if(memberProjectViewFocus?.isConnected)memberProjectViewFocus.focus({preventScroll:true});});
+ dialog.addEventListener('close',function(){document.documentElement.classList.remove('member-project-view-open');placeProjectToasts();if(memberProjectViewFocus?.isConnected)memberProjectViewFocus.focus({preventScroll:true});});
  dialog.addEventListener('click',function(event){if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
 })();
 let memberProjectStatusFocus;
 function openMemberProjectStatus(id){
  const dialog=document.getElementById('member-project-status-'+id);if(!dialog)return;
- memberProjectStatusFocus=document.activeElement;dialog.showModal();document.documentElement.classList.add('member-project-status-open');dialog.querySelector('select').focus();
+ memberProjectStatusFocus=document.activeElement;initProjectStatusPicker(dialog);dialog.showModal();placeProjectToasts();document.documentElement.classList.add('member-project-status-open');dialog.querySelector('.project-status-trigger').focus();
 }
 (() => {
  const page=document.getElementById('memberProjectsPage');if(!page)return;
- let controller=null,revision=0,busy=false,saving=false,expired=false;
+ let controller=null,revision=0,busy=false,saving=false,expired=false,stopped=false,pollTimer=null,saveController=null;
  const bound=new WeakSet();
- function notice(message,type='error'){if(typeof window.showToast==='function')window.showToast(message,type);else{const box=document.getElementById('projectFeedback');box.textContent=message;box.hidden=false;}}
+ function notice(message,type='error'){placeProjectToasts();if(typeof window.showToast==='function')window.showToast(message,type);else{const box=document.getElementById('projectFeedback');box.textContent=message;box.hidden=false;}}
  const popupOpen=()=>!!document.querySelector('.member-project-status-dialog[open],#memberProjectView[open]');
- function bindDialogs(){page.querySelectorAll('.member-project-status-dialog').forEach(dialog=>{if(bound.has(dialog))return;bound.add(dialog);dialog.addEventListener('close',()=>{document.documentElement.classList.remove('member-project-status-open');if(memberProjectStatusFocus?.isConnected)memberProjectStatusFocus.focus({preventScroll:true});if(!saving)load();});dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});});}
- function fingerprint(el){const copy=el.cloneNode(true);copy.querySelectorAll('[name="csrfmiddlewaretoken"]').forEach(el=>el.remove());copy.querySelectorAll('[data-lucide]').forEach(el=>{const i=document.createElement('i');i.dataset.lucide=el.dataset.lucide;el.replaceWith(i);});return copy.innerHTML.replace(/\s+/g,' ').trim();}
+ function bindDialogs(){page.querySelectorAll('.member-project-status-dialog').forEach(dialog=>{if(bound.has(dialog))return;bound.add(dialog);dialog.addEventListener('cancel',event=>{if(saving)event.preventDefault();});dialog.addEventListener('close',()=>{document.documentElement.classList.remove('member-project-status-open');placeProjectToasts();if(memberProjectStatusFocus?.isConnected)memberProjectStatusFocus.focus({preventScroll:true});if(!saving)load();});dialog.addEventListener('click',event=>{if(saving||event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});});}
+ function fingerprint(el){const copy=el.cloneNode(true);copy.querySelectorAll('.project-status-picker').forEach(el=>el.remove());copy.querySelectorAll('select[hidden]').forEach(el=>el.removeAttribute('hidden'));copy.querySelectorAll('label[for$="-trigger"]').forEach(el=>el.setAttribute('for',el.htmlFor.replace(/-trigger$/, '')));copy.querySelectorAll('[name="csrfmiddlewaretoken"]').forEach(el=>el.remove());copy.querySelectorAll('[data-lucide]').forEach(el=>{const i=document.createElement('i');i.dataset.lucide=el.dataset.lucide;el.replaceWith(i);});return copy.innerHTML.replace(/\s+/g,' ').trim();}
  let baseline=fingerprint(page);
  function draw(doc){
   const incoming=doc.getElementById('memberProjectsPage');const wrapper=page.querySelector('.table-wrapper');const top=wrapper?.scrollTop||0,left=wrapper?.scrollLeft||0;
   baseline=fingerprint(incoming);page.innerHTML=incoming.innerHTML;const next=page.querySelector('.table-wrapper');if(next){next.scrollTop=top;next.scrollLeft=left;}bindDialogs();if(window.lucide)window.lucide.createIcons();
  }
- async function read(response){if(!response.ok || !(response.headers.get('content-type')||'').includes('text/html'))throw new Error('Unable to load projects.');const doc=new DOMParser().parseFromString(await response.text(),'text/html');if(!doc.getElementById('memberProjectsPage')){if(response.redirected){expired=true;throw new Error('Please sign in again to continue.');}throw new Error('Unexpected project response.');}return doc;}
+ async function read(response){if(response.status===401||response.status===403){expired=true;throw new Error('Please sign in again or check your project access.');}if(!response.ok || !(response.headers.get('content-type')||'').includes('text/html'))throw new Error('Unable to load projects.');const doc=new DOMParser().parseFromString(await response.text(),'text/html');if(!doc.getElementById('memberProjectsPage')){if(response.redirected){expired=true;throw new Error('Please sign in again to continue.');}throw new Error('Unexpected project response.');}return doc;}
  async function load(){
-  if(expired||saving||busy||document.hidden||popupOpen())return;
-  const active=new AbortController();controller=active;const stamp=++revision;busy=true;
-  try{const doc=await read(await fetch(location.href,{credentials:'same-origin',cache:'no-store',signal:active.signal,headers:{Accept:'text/html'}}));if(stamp!==revision||active.signal.aborted||saving||popupOpen())return;if(fingerprint(doc.getElementById('memberProjectsPage'))!==baseline)draw(doc);}catch(error){if(expired)notice(error.message);}finally{if(stamp===revision)busy=false;if(controller===active)controller=null;}
+  if(stopped||expired||saving||busy||document.hidden||popupOpen())return;
+  const active=new AbortController();controller=active;const stamp=++revision;busy=true;const timeout=setTimeout(()=>active.abort(),12000);
+  try{const doc=await read(await fetch(location.href,{credentials:'same-origin',cache:'no-store',signal:active.signal,headers:{Accept:'text/html'}}));if(stopped||stamp!==revision||active.signal.aborted||saving||popupOpen())return;if(fingerprint(doc.getElementById('memberProjectsPage'))!==baseline)draw(doc);}catch(error){if(expired)notice(error.message);}finally{clearTimeout(timeout);if(stamp===revision)busy=false;if(controller===active)controller=null;}
  }
  page.addEventListener('submit',async event=>{
   const form=event.target;if(!form.matches('.status-form'))return;event.preventDefault();if(saving)return;
   const dialog=form.closest('dialog'),selected=form.querySelector('[name="status"]'),wanted=selected.value,dialogId=dialog.id;
-  const body=new FormData(form);const controls=[...form.querySelectorAll('button,select')];const states=controls.map(el=>el.disabled);
-  saving=true;controller?.abort();revision++;busy=false;controls.forEach(el=>el.disabled=true);form.setAttribute('aria-busy','true');
+  const body=new FormData(form);const controls=[...dialog.querySelectorAll('button,select')];const states=controls.map(el=>el.disabled);
+  saving=true;controller?.abort();revision++;busy=false;controls.forEach(el=>el.disabled=true);form.setAttribute('aria-busy','true');const activeSave=new AbortController();saveController=activeSave;const saveTimeout=setTimeout(()=>activeSave.abort(),30000);
   try{
-   const doc=await read(await fetch(form.action,{method:'POST',body,credentials:'same-origin',headers:{Accept:'text/html'}}));
+   const doc=await read(await fetch(form.getAttribute('action')||location.href,{method:'POST',body,signal:activeSave.signal,credentials:'same-origin',headers:{Accept:'text/html'}}));
    const flashes=[...doc.querySelectorAll('#toast-django-messages [data-type]')];const error=flashes.find(el=>/error|warning/.test(el.dataset.type||''));
    if(error)throw new Error(error.textContent.trim());
    const next=doc.getElementById(dialogId)?.querySelector('[name="status"]');if(!next || next.value!==wanted)throw new Error('Status could not be confirmed. Check the project before trying again.');
-   const id=dialogId.replace('member-project-status-','');dialog.close();draw(doc);
+   const id = dialogId.replace('member-project-status-', '');
+
+dialog.close();
+
+placeProjectToasts();
+
+draw(doc);
    page.querySelector(`[data-project-edit="${id}"]`)?.focus({preventScroll:true});
    notice(flashes.find(el=>/success/.test(el.dataset.type||''))?.textContent.trim()||'Project status updated successfully.','success');
-  }catch(error){notice(error instanceof TypeError?'Unable to confirm the update. Check the project before retrying.':error.message);}
-  finally{saving=false;controls.forEach((el,i)=>el.disabled=states[i]);form.removeAttribute('aria-busy');}
+  }catch(error){notice(error.name==='AbortError'?'Update could not be confirmed in time. Check the status before retrying.':error instanceof TypeError?'Unable to confirm the update. Check the project before retrying.':error.message);}
+  finally{clearTimeout(saveTimeout);saveController=null;saving=false;controls.forEach((el,i)=>el.disabled=states[i]);form.removeAttribute('aria-busy');}
  });
  document.getElementById('memberProjectView').addEventListener('close',()=>{if(!saving)load();});
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});bindDialogs();if(window.lucide)window.lucide.createIcons();setInterval(load,15000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});bindDialogs();if(window.lucide)window.lucide.createIcons();
+ function start(){if(pollTimer===null)pollTimer=setInterval(load,15000);}
+ window.addEventListener('pagehide',()=>{stopped=true;controller?.abort();saveController?.abort();clearInterval(pollTimer);pollTimer=null;});
+ window.addEventListener('pageshow',()=>{stopped=false;start();load();});window.addEventListener('online',load);start();
 })();
 
 </script>{% endblock %}

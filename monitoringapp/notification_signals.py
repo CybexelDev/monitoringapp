@@ -191,3 +191,141 @@ def teamlead_windows_push_created(sender, instance, created, **kwargs):
             )
 
     transaction.on_commit(deliver)
+
+# ================================================================
+# TEAM MEMBER WEB PUSH — additive receiver only.
+# Leave the existing Team Lead receiver above unchanged.
+# Notifications must be created for Team Member recipients elsewhere.
+# ================================================================
+@receiver(
+    post_save,
+    sender=TeamLeadNotification,
+    dispatch_uid="cybexel_teammember_windows_push_v1",
+)
+def teammember_windows_push_created(sender, instance, created, **kwargs):
+    if not created or instance.kind not in {
+        "announcement", "project", "task", "meeting", "reminder", "report"
+    }:
+        return
+
+    if not instance.recipient_id:
+        return
+
+    role = str(instance.recipient.job_Position or "").strip().lower().replace(" ", "_")
+    if role != "team_member":
+        return
+
+    notification_id = instance.pk
+
+    def deliver_to_member():
+        try:
+            notification = (
+                TeamLeadNotification.objects.select_related("recipient")
+                .filter(pk=notification_id).first()
+            )
+            if notification is None:
+                return
+            recipient = notification.recipient
+            role_now = str(recipient.job_Position or "").strip().lower().replace(" ", "_")
+            if role_now != "team_member":
+                return
+
+            # Never open Team Lead pages from Team Member push notifications.
+            member_route = {
+                "announcement": "teammember_announcements",
+                "project": "teammember_project",
+                "task": "teammember_task",
+                "meeting": "teammember_google_meet",
+                "reminder": "teammember_reminders",
+                "report": "teammember_reports",
+            }.get(notification.kind, "teammember_notifications")
+            try:
+                destination = reverse(member_route)
+            except Exception:
+                destination = reverse("teammember_notifications")
+
+            result = send_windows_push(
+                recipient=recipient,
+                portal="team_member",
+                title=notification.title,
+                message=notification.message,
+                url=destination,
+                tag=f"teammember-notification-{notification.pk}",
+            )
+            logger.info("Team Member Windows Push %s: %s", notification.pk, result)
+        except Exception:
+            logger.exception("Team Member Windows Push failed for notification %s", notification_id)
+
+    transaction.on_commit(deliver_to_member)
+
+
+
+# ================================================
+# TEAM MEMBER - GOOGLE MEET WINDOWS PUSH
+# ================================================
+
+from django.db.models.signals import m2m_changed
+from .models import GoogleMeeting
+
+
+@receiver(
+    m2m_changed,
+    sender=GoogleMeeting.participants.through,
+    dispatch_uid="teammember_google_meet_push_v1",
+)
+def teammember_google_meet_push(
+    sender, instance, action, reverse, pk_set, **kwargs
+):
+    if action != "post_add" or reverse or not pk_set:
+        return
+
+    # Master Admin already has its own notification flow.
+    if instance.is_master_admin_meeting:
+        return
+
+    meeting_id = instance.pk
+    member_ids = list(
+        User.objects.filter(
+            pk__in=pk_set,
+            job_Position__iexact="Team Member",
+        ).values_list("pk", flat=True)
+    )
+
+    def deliver():
+        try:
+            meeting = GoogleMeeting.objects.filter(
+                pk=meeting_id
+            ).first()
+
+            if meeting is None:
+                return
+
+            for member in User.objects.filter(pk__in=member_ids):
+                # Check that the user is still invited.
+                if not meeting.participants.filter(
+                    pk=member.pk
+                ).exists():
+                    continue
+
+                notify(
+                    recipient=member,
+                    kind="meeting",
+                    title="New Google Meet Scheduled",
+                    message=(
+                        f"{meeting.purpose} - "
+                        f"{meeting.date:%d %b %Y} "
+                        f"at {meeting.time:%I:%M %p}"
+                    ),
+                    url=reverse("teammember_google_meet"),
+                    event_key=(
+                        f"member-meeting-invite:"
+                        f"{meeting.pk}:{member.pk}"
+                    ),
+                )
+
+        except Exception:
+            logger.exception(
+                "Team Member Google Meet notification failed"
+            )
+
+    transaction.on_commit(deliver)
