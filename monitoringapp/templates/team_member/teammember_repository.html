@@ -1347,6 +1347,40 @@ body .resource-tab-empty {grid-column:1/-1;text-align:center;padding:32px 16px;c
 @media(max-width:600px) {body .resource-tabs {gap:4px;padding:5px;} body .resource-tab {flex-direction:column;gap:6px;padding:9px 5px;font-size:11px;} body .resource-tab svg {width:16px;height:16px;} body .resource-tab-count {min-width:22px;height:22px;border-radius:7px;}}
 
 
+
+/* File chooser and responsive containment only. */
+#repository-file::file-selector-button {
+    margin-right: 12px;
+    padding: 10px 18px;
+    border: 1px solid rgba(167, 139, 250, 0.32);
+    border-radius: 10px;
+    background: #211832;
+    color: #e8def8;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#repository-file:hover::file-selector-button {
+    background: #2b2040;
+    border-color: rgba(167, 139, 250, 0.48);
+}
+#repository-file:hover::file-selector-button {background:linear-gradient(135deg,#8b5ce2,#7443c4);border-color:#b497ee;}
+#repository-file:focus-visible {outline:2px solid #a78bfa;outline-offset:3px;}
+#repository-file:disabled::file-selector-button {opacity:.6;cursor:wait;}
+#memberRepositoryPage .repository-grid [data-resource-category][hidden] {display:none!important;}
+#memberRepositoryPage .repository-hero,#memberRepositoryPage .dashboard-header-content > div {min-width:0;}
+.repository-modal-card a {overflow-wrap:anywhere;}
+.repository-delete-box {max-height:calc(100dvh - 24px);overflow:auto;}
+#toastContainer.toast-container {position:fixed!important;top:auto!important;bottom:24px!important;right:24px!important;left:auto!important;}
+@media(max-width:600px){
+ #repository-file {font-size:14px;}
+ #repository-file::file-selector-button {padding:10px 12px;margin-right:8px;}
+ .repository-modal-header {flex-wrap:wrap;}
+ #toastContainer.toast-container {bottom:16px!important;right:16px!important;max-width:calc(100vw - 32px);}
+}
+
 </style>
 {% endblock %}
 {% block content %}
@@ -1915,7 +1949,7 @@ body .resource-tab-empty {grid-column:1/-1;text-align:center;padding:32px 16px;c
 {% block extra_js %}<script>
 (() => {
  const page=document.getElementById('memberRepositoryPage'),form=document.getElementById('repositoryAddForm'),deleteModal=document.getElementById('repositoryDeleteModal');if(!page||!form)return;
- let trigger=null,pending=null,saving=false,busy=false,controller=null,revision=0,expired=false,activeModal=null;
+ let trigger=null,pending=null,saving=false,busy=false,controller=null,revision=0,expired=false,activeModal=null,stopped=false,pollTimer=null,saveController=null;
  function notice(message,type='error'){if(typeof window.showToast==='function')window.showToast(message,type);else{const box=document.getElementById('repositoryFeedback');box.textContent=message;box.hidden=false;}}
  function lock(open){document.documentElement.classList.toggle('repository-popup-open',open);document.body.classList.toggle('repository-popup-open',open);}
  const popup=()=>!!activeModal||deleteModal.classList.contains('open');
@@ -1937,13 +1971,14 @@ body .resource-tab-empty {grid-column:1/-1;text-align:center;padding:32px 16px;c
  function draw(doc){
   const grid=page.querySelector('.repository-grid'),next=doc.querySelector('#memberRepositoryPage .repository-grid');const top=grid.scrollTop;
   const focusId=document.activeElement?.closest('[data-resource-id]')?.dataset.resourceId;const focusDelete=document.activeElement?.classList.contains('repository-delete');
-  baseline=fingerprint(next);grid.innerHTML=next.innerHTML;
+  if(!next)throw new Error('Incomplete repository response. Please try again.');baseline=fingerprint(next);grid.innerHTML=next.innerHTML;
   window.refreshMemberRepositoryTabs?.();grid.scrollTop=top;
   const csrf=doc.querySelector('#repositoryAddForm [name="csrfmiddlewaretoken"]');if(csrf)form.querySelector('[name="csrfmiddlewaretoken"]').value=csrf.value;
   if(window.lucide)window.lucide.createIcons();
   if(focusId)grid.querySelector(`[data-resource-id="${focusId}"] ${focusDelete?'.repository-delete':'.repository-view-button'}`)?.focus({preventScroll:true});
  }
  async function html(response){
+  if(response.status===401||response.status===403){expired=true;throw new Error('Please sign in again or check your repository access.');}
   if(!(response.headers.get('content-type')||'').includes('text/html'))throw new Error('Unexpected resource response.');
   const doc=new DOMParser().parseFromString(await response.text(),'text/html');
   if(!doc.getElementById('memberRepositoryPage')){if(response.redirected){expired=true;throw new Error('Please sign in again to continue.');}throw new Error('Unable to load repository.');}
@@ -1951,23 +1986,24 @@ body .resource-tab-empty {grid-column:1/-1;text-align:center;padding:32px 16px;c
   if(!response.ok||error)throw new Error(error?.textContent.trim()||'Unable to save the resource.');return doc;
  }
  async function load(){
-  if(expired||busy||saving||document.hidden||popup())return;
-  const active=new AbortController();controller=active;const stamp=++revision;busy=true;
-  try{const doc=await html(await fetch(location.href,{credentials:'same-origin',cache:'no-store',signal:active.signal,headers:{Accept:'text/html'}}));if(stamp!==revision||active.signal.aborted||saving||popup())return;if(fingerprint(doc.querySelector('.repository-grid'))!==baseline)draw(doc);}catch(error){if(expired)notice(error.message);}finally{if(stamp===revision)busy=false;if(controller===active)controller=null;}
+  if(stopped||expired||busy||saving||document.hidden||popup())return;
+  const active=new AbortController();controller=active;const stamp=++revision;busy=true;const timeout=setTimeout(()=>active.abort(),12000);
+  try{const doc=await html(await fetch(location.href,{credentials:'same-origin',cache:'no-store',signal:active.signal,headers:{Accept:'text/html'}}));if(stopped||stamp!==revision||active.signal.aborted||saving||popup())return;if(!doc.querySelector('#memberRepositoryPage .repository-grid'))throw new Error('Incomplete repository response.');if(fingerprint(doc.querySelector('#memberRepositoryPage .repository-grid'))!==baseline)draw(doc);}catch(error){if(expired)notice(error.message);}finally{clearTimeout(timeout);if(stamp===revision)busy=false;if(controller===active)controller=null;}
  }
  async function mutate(target,kind){
   if(saving)return;
   if(kind==='add'){const title=form.querySelector('[name="title"]');title.setCustomValidity(title.value.trim()?'':'Enter a resource title.');if(!form.reportValidity())return;}
   const body=new FormData(target),controls=[...target.querySelectorAll('button,input,textarea')],states=controls.map(el=>el.disabled),buttons=kind==='delete'?[...deleteModal.querySelectorAll('button')]:[];
   saving=true;controller?.abort();revision++;busy=false;controls.forEach(el=>el.disabled=true);buttons.forEach(el=>el.disabled=true);target.setAttribute('aria-busy','true');
+  const activeSave=new AbortController();saveController=activeSave;const timeout=setTimeout(()=>activeSave.abort(),120000);
   try{
-   const response=await fetch(target.action,{method:'POST',credentials:'same-origin',body,headers:{Accept:'text/html'}});const doc=await html(response);
+   const response=await fetch(target.getAttribute('action')||location.href,{method:'POST',signal:activeSave.signal,credentials:'same-origin',body,headers:{Accept:'text/html'}});const doc=await html(response);
    const success=[...doc.querySelectorAll('#toast-django-messages [data-type]')].find(el=>/success/.test(el.dataset.type||''));
-   if(!response.redirected&&!success)throw new Error('The operation could not be confirmed. Check the resource before retrying.');
+   if(!success)throw new Error('The operation could not be confirmed. Check the resource before retrying.');
    if(kind==='delete'){saving=false;closeDelete();saving=true;}draw(doc);
    if(kind==='add')form.reset();notice(success?.textContent.trim()||(kind==='add'?'Resource added successfully.':'Resource deleted successfully.'),'success');
-  }catch(error){notice(error instanceof TypeError?'Unable to confirm the save. Check the repository before retrying.':error.message);}
-  finally{saving=false;controls.forEach((el,i)=>el.disabled=states[i]);buttons.forEach(el=>el.disabled=false);target.removeAttribute('aria-busy');}
+  }catch(error){notice(error.name==='AbortError'?'The operation timed out. Check the repository before retrying.':error instanceof TypeError?'Unable to confirm the save. Check the repository before retrying.':error.message);}
+  finally{clearTimeout(timeout);saveController=null;saving=false;controls.forEach((el,i)=>el.disabled=states[i]);buttons.forEach(el=>el.disabled=false);target.removeAttribute('aria-busy');}
  }
  form.addEventListener('submit',event=>{event.preventDefault();mutate(form,'add');});window.submitRepositoryDelete=()=>{if(pending)mutate(pending,'delete');};
  // Also cover keyboard form submission so it always opens confirmation.
@@ -1981,7 +2017,10 @@ body .resource-tab-empty {grid-column:1/-1;text-align:center;padding:32px 16px;c
  });
  // Keep reference links limited to web URLs, including after a live update.
  document.addEventListener('click',event=>{const link=event.target.closest('.repository-modal-action');if(link){try{if(!['http:','https:'].includes(new URL(link.href,location.href).protocol))event.preventDefault();}catch{event.preventDefault();}}});
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});if(window.lucide)window.lucide.createIcons();setInterval(load,15000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});if(window.lucide)window.lucide.createIcons();
+ function start(){if(pollTimer===null)pollTimer=setInterval(load,15000);}
+ window.addEventListener('pagehide',()=>{stopped=true;controller?.abort();saveController?.abort();clearInterval(pollTimer);pollTimer=null;});
+ window.addEventListener('pageshow',()=>{stopped=false;start();load();});window.addEventListener('online',load);start();
 })();
 
 
