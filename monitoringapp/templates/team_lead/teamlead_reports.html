@@ -1597,6 +1597,186 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
 @media(max-width:768px){body.tl-reports-page .main-area{height:100dvh;padding:10px}body.tl-reports-page .dashboard-box{height:100%;padding:12px}body.tl-reports-page .glass-sidebar{max-width:calc(100vw - 20px)}body.tl-reports-page .dashboard-header h1{font-size:clamp(22px,6vw,32px)}body.tl-reports-page .report-role-tab{flex:1 1 180px;justify-content:center}body.tl-reports-page .filter-area{width:100%}body.tl-reports-page .report-date-picker{flex:1 1 180px;min-width:0}body.tl-reports-page .filter-area input{font-size:16px}}
 @media(max-width:420px){body.tl-reports-page .report-actions{width:100%}body.tl-reports-page .report-actions .glass-button{flex:1 1 130px;justify-content:center}body.tl-reports-page .report-view-header{padding:14px;gap:10px}body.tl-reports-page .report-view-header h2{font-size:18px}}
 </style>
+
+<style>
+/* VIEW POPUP ONLY — pixel styling mirrored from admin_reports(9).html */
+.teamlead-report-view-dialog {
+    width:min(700px,calc(100vw - 28px));max-height:calc(100dvh - 28px);
+    box-sizing:border-box;padding:0;overflow:auto;border:1px solid #383045;border-radius:22px;
+    background:#0e0c16;color:#f1eafa;color-scheme:dark;box-shadow:0 24px 80px #0009;
+    scrollbar-width:thin;scrollbar-color:#6d528d transparent;
+}
+.teamlead-report-view-dialog::backdrop {background:rgba(5,4,12,.74);backdrop-filter:blur(5px);}
+.teamlead-report-view-dialog .report-view-header {
+    display:flex;align-items:center;gap:14px;padding:23px 25px;border-bottom:1px solid #302637;
+    background:linear-gradient(115deg,#211630,#131321 65%,#171c2b);
+}
+.teamlead-report-view-dialog .report-view-header-icon {
+    width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:13px;
+    border:1px solid rgba(151,140,255,.30);background:linear-gradient(130deg,#2b2042,#20264a);color:#a9baff;
+}
+.teamlead-report-view-dialog .report-view-header-icon svg {width:21px;height:21px;}
+.teamlead-report-view-dialog .report-view-heading {flex:1;min-width:0;}
+.teamlead-report-view-dialog .report-view-heading h2 {margin:0;font-size:20px;font-weight:800;color:#faf7ff;}
+.teamlead-report-view-dialog .report-view-heading p {margin:5px 0 0;font-size:12px;color:#9990aa;}
+.teamlead-report-view-dialog .report-view-close {
+    width:38px;height:38px;display:grid;place-items:center;flex:none;cursor:pointer;
+    border:1px solid #363043;border-radius:10px;background:#21202e;color:#c5bdce;
+}
+.teamlead-report-view-dialog .report-view-close svg {width:18px;height:18px;}
+.teamlead-report-view-dialog .report-view-content {padding:25px;max-height:calc(100dvh - 215px);overflow:auto;}
+.teamlead-report-view-dialog .report-view-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.teamlead-report-view-dialog .report-view-field {min-width:0;}
+.teamlead-report-view-dialog .report-view-field.is-wide {grid-column:1/-1;}
+.teamlead-report-view-dialog .report-view-field > label {display:block;margin-bottom:8px;font-size:11px;font-weight:800;color:#bcb1cc;letter-spacing:.035em;text-transform:uppercase;}
+.teamlead-report-view-dialog .report-view-value {
+    box-sizing:border-box;min-height:49px;padding:13px 14px;border:1px solid #302c3b;border-radius:11px;
+    background:#0a0911;color:#efecf7;font-size:14px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;
+}
+.teamlead-report-view-dialog .report-view-long {min-height:98px;max-height:none;}
+.teamlead-report-view-dialog .report-view-footer {display:flex;justify-content:flex-end;padding:17px 25px 22px;border-top:1px solid #292331;}
+.teamlead-report-view-dialog .report-view-done,.teamlead-report-view-dialog .report-view-drilldown {
+    padding:10px 17px;min-height:40px;border:1px solid #49345e;border-radius:10px;
+    background:#21162e;color:#decaf5;font:inherit;font-size:12px;font-weight:750;cursor:pointer;
+}
+.teamlead-report-view-dialog .report-view-done:hover,.teamlead-report-view-dialog .report-view-drilldown:hover {background:#322145;}
+.teamlead-report-view-dialog .report-view-group + .report-view-group {margin-top:26px;}
+.teamlead-report-view-dialog .report-view-group h3 {margin:0 0 12px;font-size:14px;color:#e7daf7;}
+.teamlead-report-view-dialog .report-view-entry {padding:15px;margin:0 0 11px;border:1px solid #342a44;border-radius:12px;background:#15101e;}
+.teamlead-report-view-dialog .report-view-entry-heading {display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;}
+.teamlead-report-view-dialog .report-view-entry-heading strong {color:#f2eafb;font-size:13px;}
+.teamlead-report-view-dialog .report-view-entry-heading small {color:#a898bb;font-size:11px;}
+.teamlead-report-view-dialog .report-view-entry-meta {margin:7px 0 10px;color:#b9adc8;font-size:11px;line-height:1.5;}
+.teamlead-report-view-dialog .report-view-entry-text {white-space:pre-wrap;overflow-wrap:anywhere;color:#e2dbe9;font-size:12px;line-height:1.7;}
+.teamlead-report-view-dialog .report-view-entry-footer {margin-top:12px;text-align:right;}
+.teamlead-report-view-dialog .report-view-empty {color:#afa4bf;font-size:13px;line-height:1.7;}
+.teamlead-report-view-dialog button:focus-visible {outline:2px solid #a78bfa;outline-offset:2px;}
+.teamlead-report-view-dialog .report-view-section-list {
+    display:grid;gap:0;min-height:0;max-height:min(540px,calc(100dvh - 238px));
+    overflow-y:auto;overscroll-behavior:contain;padding-right:4px;
+    scrollbar-width:thin;scrollbar-color:#8061b4 transparent;
+}
+.teamlead-report-view-dialog .report-view-section-item {
+    padding:17px 0;border-bottom:1px solid rgba(255,255,255,.10);
+}
+.teamlead-report-view-dialog .report-view-section-item:first-child {padding-top:0;}
+.teamlead-report-view-dialog .report-view-section-item:last-child {border-bottom:0;}
+.teamlead-report-view-dialog .report-view-section-top {
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+}
+.teamlead-report-view-dialog .report-view-section-top strong {color:#f6f0ff;font-size:14px;overflow-wrap:anywhere;}
+.teamlead-report-view-dialog .report-view-section-status {
+    display:inline-flex;align-items:center;padding:5px 11px;border-radius:9px;
+    border:1px solid rgba(167,139,250,.3);background:rgba(139,92,246,.1);
+    color:#d7c1f8;font-size:11px;font-weight:700;
+}
+.teamlead-report-view-dialog .report-view-section-status.is-completed,
+.teamlead-report-view-dialog .report-view-section-status.is-submitted {color:#9ee7ba;border-color:rgba(52,211,153,.28);background:rgba(52,211,153,.10);}
+.teamlead-report-view-dialog .report-view-section-status.is-progress {color:#9bd3ff;border-color:rgba(59,130,246,.32);background:rgba(59,130,246,.12);}
+.teamlead-report-view-dialog .report-view-section-status.is-pending {color:#ffd080;border-color:rgba(245,158,11,.32);background:rgba(245,158,11,.12);}
+.teamlead-report-view-dialog .report-view-section-meta {margin:8px 0 11px;color:#b3a6cc;font-size:12px;line-height:1.6;overflow-wrap:anywhere;}
+.teamlead-report-view-dialog .report-view-section-text {margin:0;color:#ece7f5;font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;}
+.teamlead-report-view-dialog {
+    width: min(740px, calc(100vw - 30px));
+    max-height: min(85dvh, 780px);
+    overflow: hidden; /* Never scroll the dialog shell itself */
+    padding: 0;
+    border: 1px solid #3d324e;
+    border-radius: 20px;
+    background: #0e0c16;
+    color: #f1eafa;
+}
+.teamlead-report-view-dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+.teamlead-report-view-dialog .report-view-header,
+.teamlead-report-view-dialog .report-view-footer {
+    flex: 0 0 auto;
+}
+.teamlead-report-view-dialog .report-view-header {
+    gap: 12px;
+    padding: 21px 23px;
+    background: linear-gradient(113deg, #211630 0%, #151320 62%, #151c2a 100%);
+    border-bottom: 1px solid #302739;
+}
+.teamlead-report-view-dialog .report-view-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding: 18px 23px;
+    scrollbar-width: thin;
+    scrollbar-color: #7653ad #14101d;
+}
+.teamlead-report-view-dialog .report-view-content::-webkit-scrollbar { width: 7px; }
+.teamlead-report-view-dialog .report-view-content::-webkit-scrollbar-track { background: #14101d; }
+.teamlead-report-view-dialog .report-view-content::-webkit-scrollbar-thumb {
+    background: #7653ad;
+    border-radius: 10px;
+}
+.teamlead-report-view-dialog .report-view-section-list {
+    display: grid;
+    gap: 12px;
+    min-height: 0;
+    max-height: none;
+    overflow: visible; /* All scrolling is owned by .report-view-content */
+    padding: 0;
+}
+.teamlead-report-view-dialog .report-view-section-item,
+.teamlead-report-view-dialog .report-view-section-item:first-child,
+.teamlead-report-view-dialog .report-view-section-item:last-child {
+    min-width: 0;
+    padding: 17px 18px;
+    margin: 0;
+    border: 1px solid #342a44;
+    border-radius: 13px;
+    background: linear-gradient(125deg, #171220, #110e18);
+}
+.teamlead-report-view-dialog .report-view-section-top { gap: 10px; }
+.teamlead-report-view-dialog .report-view-section-top strong { font-size: 13px; line-height: 1.5; }
+.teamlead-report-view-dialog .report-view-section-status { flex-shrink: 0; }
+.teamlead-report-view-dialog .report-view-section-meta {
+    margin: 10px 0 12px;
+    color: #a99bbd;
+    font-size: 11px;
+    line-height: 1.7;
+}
+.teamlead-report-view-dialog .report-view-section-text {
+    padding-top: 12px;
+    border-top: 1px solid rgba(181,152,224,.12);
+    font-size: 13px;
+    line-height: 1.75;
+    color: #e9e2f2;
+}
+.teamlead-report-view-dialog .report-view-footer {
+    padding: 14px 23px 18px;
+    border-top: 1px solid #292331;
+    background: #0e0c16;
+}
+@media (max-width: 520px) {
+    .teamlead-report-view-dialog {
+        width: calc(100vw - 20px);
+        max-height: calc(100dvh - 20px);
+        border-radius: 16px;
+    }
+    .teamlead-report-view-dialog .report-view-header { padding: 16px; gap: 10px; }
+    .teamlead-report-view-dialog .report-view-heading h2 { font-size: 17px; }
+    .teamlead-report-view-dialog .report-view-header-icon {
+        width: 42px; height: 42px; flex-basis: 42px;
+    }
+    .teamlead-report-view-dialog .report-view-content { padding: 13px; }
+    .teamlead-report-view-dialog .report-view-section-item,
+    .teamlead-report-view-dialog .report-view-section-item:first-child,
+    .teamlead-report-view-dialog .report-view-section-item:last-child { padding: 14px; }
+    .teamlead-report-view-dialog .report-view-footer { padding: 12px 16px 16px; }
+    .teamlead-report-view-dialog .report-view-section-top { align-items: flex-start; }
+}
+
+.teamlead-report-view-dialog { font-family: inherit; }
+</style>
 </head>
 
 <body class="tl-reports-page">
@@ -1810,7 +1990,7 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
                         <h2>Morning Reports</h2>
                     </div>
                     <div class="heading-line"></div>
-                    <button type="button" class="report-section-view" data-report-section="morning" aria-label="View Morning Reports" title="View Morning Reports">
+                    <button type="button" class="report-section-view" data-report-section="morning" aria-haspopup="dialog" aria-controls="reportSectionModal" aria-label="View Morning Reports" title="View Morning Reports">
                         <i data-lucide="eye"></i>
                     </button>
                 </div>
@@ -1900,7 +2080,7 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
                         <h2>Evening Reports</h2>
                     </div>
                     <div class="heading-line"></div>
-                    <button type="button" class="report-section-view" data-report-section="evening" aria-label="View Evening Reports" title="View Evening Reports">
+                    <button type="button" class="report-section-view" data-report-section="evening" aria-haspopup="dialog" aria-controls="reportSectionModal" aria-label="View Evening Reports" title="View Evening Reports">
                         <i data-lucide="eye"></i>
                     </button>
                 </div>
@@ -2334,65 +2514,121 @@ document.addEventListener("DOMContentLoaded", () => window.initTeamReportDatePic
 </script>
 
 
-<div id="reportSectionModal" class="report-view-modal" hidden role="dialog" aria-modal="true" aria-labelledby="reportSectionTitle">
-    <div class="report-view-panel">
-        <div class="report-view-header">
-            <div><span class="section-eyebrow">REPORT DETAILS</span><h2 id="reportSectionTitle">Reports</h2></div>
-            <button type="button" id="closeReportSection" class="report-view-close" aria-label="Close reports">&times;</button>
+<!-- Exact Admin Reports eye-view layout; Team Lead records come from the current visible table. -->
+<dialog id="reportSectionModal" class="teamlead-report-view-dialog" aria-labelledby="reportSectionTitle" aria-describedby="reportSectionSubtitle">
+    <header class="report-view-header">
+        <span class="report-view-header-icon" aria-hidden="true"><i data-lucide="eye"></i></span>
+        <div class="report-view-heading">
+            <h2 id="reportSectionTitle">Report Details</h2>
+            <p id="reportSectionSubtitle">View full report information</p>
         </div>
-        <div id="morningReportDetails" class="report-section-details" hidden>
-            {% for report in morning_reports %}
-            <article class="report-detail-card">
-                <div class="report-detail-top"><strong>{{ report.user.name }}</strong><span class="status-badge{% if report.status == 'Completed' %} status-completed{% elif report.status == 'In Progress' %} status-progress{% elif report.status == 'Pending' %} status-pending{% endif %}">{{ report.status }}</span></div>
-                <p class="report-detail-meta">{{ report.created_at|date:"Y-m-d" }} · {{ report.created_at|time:"h:i A" }} · {{ report.team }} · {{ report.department }}</p>
-                <p class="report-detail-text">{{ report.report_text }}</p>
-            </article>
-            {% empty %}<p class="report-detail-empty">No morning reports found.</p>{% endfor %}
-        </div>
-        <div id="eveningReportDetails" class="report-section-details" hidden>
-            {% for report in evening_reports %}
-            <article class="report-detail-card">
-                <div class="report-detail-top"><strong>{{ report.user.name }}</strong><span class="status-badge{% if report.status == 'Completed' %} status-completed{% elif report.status == 'In Progress' %} status-progress{% elif report.status == 'Pending' %} status-pending{% endif %}">{{ report.status|default:"Submitted" }}</span></div>
-                <p class="report-detail-meta">{{ report.created_at|date:"Y-m-d" }} · {{ report.created_at|time:"h:i A" }} · {{ report.team }} · {{ report.department }}</p>
-                <p class="report-detail-text">{{ report.report_text }}</p>
-            </article>
-            {% empty %}<p class="report-detail-empty">No evening reports found.</p>{% endfor %}
-        </div>
-    </div>
-</div>
+        <button type="button" id="closeReportSection" class="report-view-close" data-close-report-view aria-label="Close report details"><i data-lucide="x"></i></button>
+    </header>
+    <div id="reportSectionContent" class="report-view-content"></div>
+    <footer class="report-view-footer">
+        <button type="button" class="report-view-done" data-close-report-view>Close</button>
+    </footer>
+</dialog>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const modal = document.getElementById("reportSectionModal");
-    const closeButton = document.getElementById("closeReportSection");
-    const morning = document.getElementById("morningReportDetails");
-    const evening = document.getElementById("eveningReportDetails");
-    let previousFocus;
+document.addEventListener('DOMContentLoaded', () => {
+    'use strict';
+    const dialog = document.getElementById('reportSectionModal');
+    const dialogContent = document.getElementById('reportSectionContent');
+    const dialogTitle = document.getElementById('reportSectionTitle');
+    const dialogSubtitle = document.getElementById('reportSectionSubtitle');
+    const content = document.getElementById('tlReportContent');
+    if (!dialog || !dialogContent || !content) return;
+    let previousFocus = null;
+    let activePeriod = null;
+    let frame = null;
+
+    function element(tag, className, value) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (value !== undefined) node.textContent = value;
+        return node;
+    }
+    function selectedSection(period) {
+        return [...content.querySelectorAll('.report-section')].find(section =>
+            section.querySelector('.report-section-view')?.dataset.reportSection === period);
+    }
+    function readReport(row) {
+        const cells = row.cells;
+        if (!cells || cells.length < 7 || row.querySelector('.empty-row')) return null;
+        return {
+            date: cells[0].textContent.trim(),
+            time: cells[1].textContent.trim(),
+            name: cells[2].textContent.trim(),
+            team: cells[3].textContent.trim(),
+            department: cells[4].textContent.trim(),
+            report: cells[5].querySelector('.report-text')?.textContent.trim() || cells[5].textContent.trim(),
+            status: cells[6].textContent.trim() || 'Submitted'
+        };
+    }
+    function displaySection(period, preserveScroll = false) {
+        const section = selectedSection(period);
+        if (!section) return;
+        const reports = [...section.querySelectorAll('tbody tr')].map(readReport).filter(Boolean);
+        const lastScroll = preserveScroll ? dialogContent.scrollTop : 0;
+        dialogTitle.textContent = period === 'morning' ? 'Morning Reports' : 'Evening Reports';
+        dialogSubtitle.textContent = `${reports.length} report${reports.length === 1 ? '' : 's'} in the selected view`;
+        const list = element('div', 'report-view-section-list');
+        if (!reports.length) {
+            list.append(element('p', 'report-view-empty', `No ${period} reports found for the selected filters.`));
+        }
+        reports.forEach(report => {
+            const card = element('article', 'report-view-section-item');
+            const heading = element('div', 'report-view-section-top');
+            const status = element('span', 'report-view-section-status', report.status);
+            const normalized = report.status.trim().toLowerCase();
+            if (normalized === 'completed' || normalized === 'submitted') status.classList.add('is-completed');
+            else if (normalized === 'in progress' || normalized === 'progress') status.classList.add('is-progress');
+            else if (normalized === 'pending') status.classList.add('is-pending');
+            heading.append(element('strong', '', report.name || '—'), status);
+            card.append(
+                heading,
+                element('p', 'report-view-section-meta', `${report.date} · ${report.time} · ${report.team} · ${report.department}`),
+                element('p', 'report-view-section-text', report.report || '—')
+            );
+            list.append(card);
+        });
+        dialogContent.replaceChildren(list);
+        dialogContent.scrollTop = lastScroll;
+    }
     function closeReports() {
-        modal.hidden = true;
-        document.body.classList.remove("report-view-open");
-        if (previousFocus?.isConnected) previousFocus.focus();
-        else document.querySelector('.report-section-view')?.focus();
+        if (dialog.open) dialog.close();
     }
     window.tlCloseReports = closeReports;
-    document.addEventListener("click", function (event) {
-            const button = event.target.closest(".report-section-view");
-            if (!button) return;
-            previousFocus = button;
-            const isMorning = button.dataset.reportSection === "morning";
-            document.getElementById("reportSectionTitle").textContent = isMorning ? "Morning Reports" : "Evening Reports";
-            morning.hidden = !isMorning;
-            evening.hidden = isMorning;
-            modal.hidden = false;
-            document.body.classList.add("report-view-open");
-            closeButton.focus();
+    document.addEventListener('click', event => {
+        const eye = event.target.closest('#tlReportContent .report-section-view[data-report-section]');
+        if (!eye) return;
+        event.preventDefault();
+        const period = eye.dataset.reportSection;
+        if (period !== 'morning' && period !== 'evening') return;
+        previousFocus = eye;
+        activePeriod = period;
+        displaySection(period);
+        if (!dialog.open) dialog.showModal();
+        dialog.querySelector('[data-close-report-view]')?.focus({preventScroll:true});
+        window.lucide?.createIcons();
     });
-    closeButton.addEventListener("click", closeReports);
-    modal.addEventListener("click", function (event) { if (event.target === modal) closeReports(); });
-    document.addEventListener("keydown", function (event) {
-        if (modal.hidden) return;
-        if (event.key === "Escape") closeReports();
-        if (event.key === "Tab") { event.preventDefault(); closeButton.focus(); }
+    dialog.querySelectorAll('[data-close-report-view]').forEach(button => button.addEventListener('click',closeReports));
+    dialog.addEventListener('click', event => { if (event.target === dialog) closeReports(); });
+    dialog.addEventListener('close', () => {
+        activePeriod = null;
+        if (previousFocus?.isConnected) previousFocus.focus({preventScroll:true});
+        previousFocus = null;
     });
+
+    // Existing 15-second live report refresh can replace tbody contents.
+    // Keep the open viewer synchronized, retaining the user's scroll position.
+    const observer = new MutationObserver(records => {
+        if (!dialog.open || !activePeriod) return;
+        if (!records.some(record => record.target.closest?.('tbody'))) return;
+        if (frame !== null) cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(() => { frame = null; if (dialog.open && activePeriod) displaySection(activePeriod, true); });
+    });
+    observer.observe(content, {subtree:true,childList:true,characterData:true});
 });
 </script>
 <div id="tlReportMessages" hidden>{% for notice in messages %}{% if notice.level %}<span data-level="{{ notice.level }}" data-type="{{ notice.tags|default:'info' }}">{{ notice }}</span>{% endif %}{% endfor %}</div>
@@ -2454,8 +2690,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         ['tlMorningRows','tlEveningRows','tlReportDay'].forEach(id => updateRegion(id,page));
       }
-      // Open View dialogs keep their scroll position and receive fresh reports.
-      ['morningReportDetails','eveningReportDetails'].forEach(id => updateRegion(id,page));
+      // The Admin-style view observes live table row changes and refreshes its visible cards.
     } catch (error) {
       if (navigation && error.name !== 'AbortError') toast(error.message,'error');
     } finally { clearTimeout(timeout); if (pending === controller) pending = null; }
