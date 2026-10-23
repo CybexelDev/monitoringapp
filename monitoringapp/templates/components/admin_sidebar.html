@@ -104,7 +104,15 @@ body.admin-workspace #sidebar .sidebar-item > span:last-child { min-width: 0; ov
         width: min(250px, calc(100vw - 24px));
         max-width: calc(100vw - 24px);
     }
-    body.admin-workspace #adminMenuButton { z-index: 1101; }
+    /* Match Team Lead sidebar: hamburger at top-left inside the open panel.
+       ID selector overrides base.html's right:18px mobile menu placement. */
+    body.admin-workspace #adminMenuButton.mobile-menu-button {
+        position: fixed;
+        top: 31px;
+        left: 29px;
+        right: auto;
+        z-index: 1101;
+    }
 }
 @media (prefers-reduced-motion: reduce) {
     body.admin-workspace #sidebar { transition: none !important; }
