@@ -348,6 +348,20 @@ body.admin-notifications-page { height: 100%; overflow: hidden; }
 #adminNotificationDialog{width:min(520px,calc(100vw - 28px));max-height:80vh;overflow:auto;background:#181322;color:#f3edff;border:1px solid #514064;border-radius:18px;padding:22px;}
 #adminNotificationDialog::backdrop{background:rgba(8,7,12,.45);backdrop-filter:blur(3px);}
 #adminNotificationDialog p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;}
+
+/* All new activity categories share the existing restrained Dark Purple look. */
+body.admin-notifications-page .notification-content,
+body.admin-notifications-page .notification-content strong,
+body.admin-notifications-page .notification-content p {min-width:0;overflow-wrap:anywhere;}
+body.admin-notifications-page .notification-category .category-menu {max-width:min(280px,calc(100vw - 32px));}
+@media(max-width:540px){
+ body.admin-notifications-page .notification-toolbar{align-items:stretch;gap:10px;}
+ body.admin-notifications-page .notification-search{min-width:0;width:100%;flex-basis:100%;}
+ body.admin-notifications-page .notification-category{width:100%;}
+ body.admin-notifications-page .notification-category summary{width:100%;}
+ body.admin-notifications-page .category-menu{left:0;right:auto;width:100%;}
+ body.admin-notifications-page .notification-header-actions{gap:8px;}
+}
 </style>{% endblock %}
 {% block content %}<div class="notification-main">
         <section class="notification-shell" aria-labelledby="notificationHeading">
@@ -384,9 +398,12 @@ body.admin-notifications-page { height: 100%; overflow: hidden; }
             <button type="button" data-value="project">Projects</button>
             <button type="button" data-value="schedule">Schedules</button>
             <button type="button" data-value="task">Tasks</button>
-            <button type="button" data-value="note">Notes</button>
-            <button type="button" data-value="resource">Resources</button>
+            <button type="button" data-value="note">Notepad</button>
+            <button type="button" data-value="resource">Knowledge Repository</button>
             <button type="button" data-value="reminder">Reminders</button>
+            <button type="button" data-value="meeting">Google Meet</button>
+            <button type="button" data-value="chat">Chat</button>
+            <button type="button" data-value="profile">Profile</button>
         </div>
     </details>
     <!-- Existing filter script uses this field -->
@@ -397,9 +414,12 @@ body.admin-notifications-page { height: 100%; overflow: hidden; }
         <option value="project">Projects</option>
         <option value="schedule">Schedules</option>
         <option value="task">Tasks</option>
-        <option value="note">Notes</option>
-        <option value="resource">Resources</option>
+        <option value="note">Notepad</option>
+        <option value="resource">Knowledge Repository</option>
         <option value="reminder">Reminders</option>
+        <option value="meeting">Google Meet</option>
+        <option value="chat">Chat</option>
+        <option value="profile">Profile</option>
     </select>
 </div>
             </div>
@@ -417,7 +437,7 @@ body.admin-notifications-page { height: 100%; overflow: hidden; }
                         {% for item in items %}
                         <tr data-id="{{ item.pk }}" class="notification-row{% if not item.is_read %} unread{% endif %}" data-kind="{{ item.kind }}" data-read="{{ item.is_read|yesno:'true,false' }}" data-archived="{{ item.is_archived|yesno:'true,false' }}"{% if item.is_archived %} hidden{% endif %}>
                             <td><div class="notification-detail">
-                                <span class="notification-icon" aria-hidden="true"><i data-lucide="{% if item.kind == 'report' %}file-text{% elif item.kind == 'announcement' %}megaphone{% elif item.kind == 'project' %}clipboard-list{% elif item.kind == 'schedule' %}clock{% elif item.kind == 'task' %}list-checks{% elif item.kind == 'note' %}notebook-pen{% elif item.kind == 'resource' %}book-open{% elif item.kind == 'reminder' %}calendar-clock{% else %}bell{% endif %}"></i></span>
+                                <span class="notification-icon" aria-hidden="true"><i data-lucide="{% if item.kind == 'report' %}file-text{% elif item.kind == 'announcement' %}megaphone{% elif item.kind == 'project' %}clipboard-list{% elif item.kind == 'schedule' %}clock{% elif item.kind == 'task' %}list-checks{% elif item.kind == 'note' %}notebook-pen{% elif item.kind == 'resource' %}book-open{% elif item.kind == 'reminder' %}calendar-clock{% elif item.kind == 'meeting' %}video{% elif item.kind == 'chat' %}messages-square{% elif item.kind == 'profile' %}circle-user-round{% else %}bell{% endif %}"></i></span>
                                 <div class="notification-content"><strong>{{ item.title }}</strong>{% if item.message %}<p>{{ item.message }}</p>{% endif %}</div>
                             </div></td>
                             <td class="notification-date"><time datetime="{{ item.created_at|date:'c' }}">{{ item.created_at|date:'d M Y' }}<span>{{ item.created_at|date:'h:i A' }}</span></time></td>

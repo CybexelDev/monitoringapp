@@ -37,8 +37,11 @@
             <span class="sidebar-icon"><i data-lucide="book-open" aria-hidden="true"></i></span>
             <span>Knowledge Repository</span>
         </a>
-        <a href="{% url 'admin_chat' %}" class="sidebar-item {% if active_route == 'admin_chat' or active_route == 'admin_chat_room' or active_route == 'admin_group_chat' %}active{% endif %}" {% if active_route == 'admin_chat' or active_route == 'admin_chat_room' or active_route == 'admin_group_chat' %}aria-current="page"{% endif %}>
-            <span class="sidebar-icon"><i data-lucide="messages-square" aria-hidden="true"></i></i></span>
+        <a href="{% url 'admin_chat' %}" id="adminChatLink" data-chat-meta-url="{% url 'chat_meta' %}" class="sidebar-item {% if active_route == 'admin_chat' or active_route == 'admin_chat_room' or active_route == 'admin_group_chat' %}active{% endif %}" {% if active_route == 'admin_chat' or active_route == 'admin_chat_room' or active_route == 'admin_group_chat' %}aria-current="page"{% endif %}>
+            <span class="sidebar-icon" style="position:relative">
+                <i data-lucide="messages-square" aria-hidden="true"></i>
+                <span id="adminChatBadge" hidden aria-hidden="true" style="position:absolute;top:-7px;right:-8px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:#e05268;color:white;font-size:9px;line-height:16px;text-align:center;font-weight:700;pointer-events:none"></span>
+            </span>
             <span>Chat</span>
         </a>
         <a href="{% url 'admin_google_meet' %}" class="sidebar-item {% if active_route == 'admin_google_meet' %}active{% endif %}" {% if active_route == 'admin_google_meet' %}aria-current="page"{% endif %}>
@@ -73,34 +76,188 @@
 </aside>
 {% endwith %}
 
+<style>
+/* Admin Sidebar only: retain the original width, colours and proportions. */
+body.admin-workspace #sidebar {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+body.admin-workspace #sidebar .sidebar-profile,
+body.admin-workspace #sidebar .sidebar-bottom { flex-shrink: 0; }
+body.admin-workspace #sidebar .sidebar-nav {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+}
+body.admin-workspace #sidebar .sidebar-nav::-webkit-scrollbar { display: none; width: 0; height: 0; }
+body.admin-workspace #sidebar .sidebar-item { min-width: 0; }
+body.admin-workspace #sidebar .sidebar-item > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 768px) {
+    body.admin-workspace #sidebar {
+        width: min(250px, calc(100vw - 24px));
+        max-width: calc(100vw - 24px);
+    }
+    body.admin-workspace #adminMenuButton { z-index: 1101; }
+}
+@media (prefers-reduced-motion: reduce) {
+    body.admin-workspace #sidebar { transition: none !important; }
+}
+</style>
+
 <script>
 (function () {
     function initSidebarPhoto() {
         const link = document.getElementById('adminSidebarProfileLink');
         const icon = link?.querySelector('.sidebar-icon');
-        if (!icon || icon.querySelector('img') || !link.dataset.profileUrl) return;
-        // Resolve the signed-in user's photo once when template context lacks it.
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000);
-        fetch(link.dataset.profileUrl, {
-            credentials: 'same-origin', cache: 'no-store',
-            headers: {'Accept': 'application/json'}, signal: controller.signal
-        }).then(response => {
-            if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) throw new Error('Profile unavailable');
-            return response.json();
-        }).then(data => {
-            if (!data.profile_image_url || icon.querySelector('img')) return;
-            const url = new URL(data.profile_image_url, location.origin);
-            if (!['http:', 'https:'].includes(url.protocol)) return;
-            const img = document.createElement('img');
-            img.alt = ''; img.width = 28; img.height = 28;
-            img.style.cssText = 'width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0';
-            img.onload = () => { if (icon.isConnected && !icon.querySelector('img')) icon.replaceChildren(img); };
-            img.src = url.href;
-        }).catch(() => {}).finally(() => clearTimeout(timeout));
-        window.addEventListener('pagehide', () => controller.abort(), {once: true});
+        const endpointValue = link?.dataset.profileUrl;
+        if (!icon || !endpointValue) return;
+        const endpoint = new URL(endpointValue, location.origin);
+        if (endpoint.origin !== location.origin) return;
+
+        let pending = null;
+        let stopped = false;
+        let lastUrl = icon.querySelector('img')?.src || '';
+
+        function updatePhoto(rawUrl) {
+            if (!rawUrl || typeof rawUrl !== 'string') return;
+            let url;
+            try { url = new URL(rawUrl, location.origin); } catch (_) { return; }
+            if (!['http:', 'https:'].includes(url.protocol) || url.origin !== location.origin) return;
+            if (url.href === lastUrl) return;
+            const nextImage = new Image();
+            nextImage.alt = '';
+            nextImage.width = 28;
+            nextImage.height = 28;
+            nextImage.style.cssText = 'width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0';
+            nextImage.onload = () => {
+                // Clear the loader callback before showing it: otherwise reusing
+                // the image node can reset the src when a newer photo loads.
+                nextImage.onload = null;
+                if (stopped || !icon.isConnected) return;
+                // Keep the existing image visible until the replacement has loaded.
+                const current = icon.querySelector('img');
+                if (current) current.src = url.href;
+                else icon.replaceChildren(nextImage);
+                lastUrl = url.href;
+            };
+            nextImage.src = url.href;
+        }
+
+        async function refreshPhoto() {
+            if (stopped || pending || document.hidden) return;
+            const request = new AbortController();
+            pending = request;
+            const timeout = setTimeout(() => request.abort(), 10000);
+            try {
+                const response = await fetch(endpoint.href, {
+                    credentials: 'same-origin', cache: 'no-store',
+                    headers: {'Accept': 'application/json'}, signal: request.signal
+                });
+                if (!response.ok || !(response.headers.get('content-type') || '').includes('application/json')) return;
+                const data = await response.json();
+                if (!stopped && !request.signal.aborted) updatePhoto(data.profile_image_url);
+            } catch (_) { /* Keep the current image when offline. */ }
+            finally {
+                clearTimeout(timeout);
+                if (pending === request) pending = null;
+            }
+        }
+
+        // Profile image, Chat count and notification count refresh independently.
+        const timer = setInterval(refreshPhoto, 30000);
+        window.refreshAdminSidebarPhoto = refreshPhoto;
+        refreshPhoto();
+        document.addEventListener('admin:profile-changed', refreshPhoto);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshPhoto(); });
+        window.addEventListener('focus', refreshPhoto);
+        window.addEventListener('online', refreshPhoto);
+        window.addEventListener('pageshow', () => { stopped = false; refreshPhoto(); });
+        window.addEventListener('pagehide', event => {
+            stopped = true;
+            pending?.abort();
+            if (!event.persisted) clearInterval(timer);
+        });
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initSidebarPhoto, {once: true});
     else initSidebarPhoto();
+})();
+</script>
+
+<script>
+/* Chat badge mirrors the Notifications icon badge. This is NOT a new chat UI.
+   Its value is the count of DISTINCT people with unread messages. */
+(function () {
+    function initAdminChatBadge() {
+        const link = document.getElementById('adminChatLink');
+        const badge = document.getElementById('adminChatBadge');
+        if (!link || !badge) return;
+        const endpoint = new URL(link.dataset.chatMetaUrl || '', window.location.origin);
+        if (endpoint.origin !== window.location.origin) return;
+        let pending = null;
+        let stopped = false;
+        let needsRefresh = false;
+
+        function paint(value) {
+            const count = Number(value);
+            if (!Number.isFinite(count) || count < 0) return;
+            const people = Math.floor(count);
+            badge.textContent = people > 99 ? '99+' : String(people);
+            badge.hidden = people === 0;
+            link.setAttribute('aria-label', people
+                ? `Chat, ${people} people with unread messages` : 'Chat');
+        }
+        async function refresh() {
+            if (stopped || document.hidden) return;
+            if (pending) { needsRefresh = true; return; }
+            const ctrl = new AbortController();
+            pending = ctrl;
+            const timeout = setTimeout(() => ctrl.abort(), 10000);
+            try {
+                const response = await fetch(endpoint.href, {
+                    credentials: 'same-origin', cache: 'no-store',
+                    headers: {'Accept': 'application/json'}, signal: ctrl.signal
+                });
+                if (!response.ok || !(response.headers.get('content-type') || '').includes('application/json')) return;
+                const data = await response.json();
+                if (data.ok === true && !stopped && !ctrl.signal.aborted) {
+                    // Intentionally do not sum personal/group .unread; those are message counts.
+                    paint(data.unread_sender_count);
+                }
+            } catch (_) { /* Retain the last count if offline. */ }
+            finally {
+                clearTimeout(timeout);
+                if (pending === ctrl) pending = null;
+                if (needsRefresh && !stopped && !document.hidden) {
+                    needsRefresh = false;
+                    refresh();
+                }
+            }
+        }
+        window.refreshAdminChatBadge = refresh;
+        const interval = setInterval(refresh, 8000);
+        refresh();
+        document.addEventListener('admin:chat-changed', refresh);
+        document.addEventListener('chat:read', refresh);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+        window.addEventListener('focus', refresh);
+        window.addEventListener('online', refresh);
+        window.addEventListener('pageshow', () => { stopped = false; refresh(); });
+        window.addEventListener('pagehide', event => {
+            stopped = true;
+            needsRefresh = false;
+            pending?.abort();
+            if (!event.persisted) clearInterval(interval);
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAdminChatBadge, {once: true});
+    } else initAdminChatBadge();
 })();
 </script>

@@ -386,7 +386,7 @@ body.admin-usermanagement-page .filter-grid {
     width: 100%;
     min-width: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(0, 1fr));
     gap: 10px;
 }
 
@@ -1075,10 +1075,10 @@ body.admin-usermanagement-page .joining-date-picker .custom-calendar {
 
 body.admin-usermanagement-page .joining-date-picker.open .custom-calendar {
             display: block;
-            animation: teamReportCalendarIn .16s ease-out;
+            animation: userCalendarIn .16s ease-out;
         }
 
-@keyframes teamReportCalendarIn {
+@keyframes userCalendarIn {
             from {
                 opacity: 0;
                 transform: translateY(-5px) scale(.985);
@@ -1237,11 +1237,11 @@ body.admin-usermanagement-page .joining-date-picker .custom-calendar {
             }
 
 body.admin-usermanagement-page .joining-date-picker.open .custom-calendar {
-                animation: teamReportCalendarInMobile .16s ease-out;
+                animation: userCalendarInMobile .16s ease-out;
             }
 }
 
-@keyframes teamReportCalendarInMobile {
+@keyframes userCalendarInMobile {
             from {
                 opacity: 0;
                 transform: translateX(-50%) translateY(-5px) scale(.985);
@@ -1398,6 +1398,204 @@ body.admin-usermanagement-page .user-status-dot[data-status="inactive"] {
 body.admin-usermanagement-page #designation { padding-left: 42px; }
 body.admin-usermanagement-page .edit-modal input,
 body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
+
+/* Consistent purple controls and compact responsive alignment. */
+body.admin-usermanagement-page .filter-heading { margin-bottom: 0; }
+body.admin-usermanagement-page .filter-input,
+body.admin-usermanagement-page .filter-select { min-height: 44px; }
+body.admin-usermanagement-page .filter-select,
+body.admin-usermanagement-page .glass-select,
+body.admin-usermanagement-page .edit-select {
+    color-scheme: dark;
+    background-color: #21192f;
+    border-color: rgba(139,92,246,.35);
+    padding-right: 36px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23c4b5fd' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+}
+body.admin-usermanagement-page .select-wrapper::after { display:none; }
+body.admin-usermanagement-page select option { background:#21192f; color:#ede9fe; }
+body.admin-usermanagement-page select:disabled { opacity:.65; cursor:wait; }
+body.admin-usermanagement-page .table-wrapper { overscroll-behavior:contain; }
+body.admin-usermanagement-page .employee-table { min-width:1250px; }
+body.admin-usermanagement-page .form-group,
+body.admin-usermanagement-page .edit-form-group { min-width:0; }
+body.admin-usermanagement-page button:disabled { opacity:.6; cursor:wait; }
+@media(max-width:768px) {
+ body.admin-usermanagement-page .filter-input,
+ body.admin-usermanagement-page .filter-select { font-size:16px; }
+ body.admin-usermanagement-page .table-section-header { gap:12px; flex-wrap:wrap; }
+ body.admin-usermanagement-page .edit-modal-box { box-sizing:border-box; width:100%; }
+}
+
+body.admin-usermanagement-page .dashboard-dropdown{position:relative;width:100%;font-size:14px}
+body.admin-usermanagement-page .dashboard-dropdown summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;padding:10px 12px;border:1px solid #34303f;border-radius:10px;background:#111018;color:#eee8f8;cursor:pointer;list-style:none;box-sizing:border-box}
+body.admin-usermanagement-page .dashboard-dropdown summary::-webkit-details-marker{display:none}
+body.admin-usermanagement-page .dashboard-dropdown summary::after{content:'⌄';color:#c4b5fd;flex:none}
+body.admin-usermanagement-page .dashboard-dropdown summary span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.admin-usermanagement-page .dashboard-dropdown[open] summary{border-color:#8b5cf6}
+body.admin-usermanagement-page .dashboard-dropdown-menu{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:40;max-height:260px;overflow:auto;padding:6px;border:1px solid rgba(167,139,250,.3);border-radius:12px;background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),#0c0b14;box-shadow:0 16px 35px #0006;scrollbar-width:thin;scrollbar-color:#7650bc transparent}
+body.admin-usermanagement-page .dashboard-dropdown-menu button{display:block;width:100%;border:0!important;background:transparent!important;color:#eee8f8!important;text-align:left;padding:11px 12px;font-size:14px;border-radius:8px;white-space:normal;overflow-wrap:anywhere}
+body.admin-usermanagement-page .dashboard-dropdown-menu button:hover,body.admin-usermanagement-page .dashboard-dropdown-menu button:focus-visible,body.admin-usermanagement-page .dashboard-dropdown-menu button[aria-pressed=true]{background:rgba(139,92,246,.2)!important;color:#ede9fe!important}
+body.admin-usermanagement-page .dashboard-dropdown { min-width:0; }
+body.admin-usermanagement-page .dashboard-dropdown[open] { z-index:50; }
+body.admin-usermanagement-page .dashboard-dropdown summary[aria-disabled="true"] { opacity:.6; cursor:not-allowed; }
+body.admin-usermanagement-page .dropdown-native { position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;padding:0!important;pointer-events:none!important; }
+body.admin-usermanagement-page .input-wrapper:has(.dashboard-dropdown) > .input-icon { display:none; }
+body.admin-usermanagement-page .select-wrapper:has(.dashboard-dropdown)::after { display:none; }
+@media(max-width:768px) { body.admin-usermanagement-page .dashboard-dropdown summary { font-size:16px; } }
+
+
+/* Reference image: near-black panels with subtle violet and blue corner lighting. */
+body.admin-usermanagement-page .edit-modal-box {
+ background:radial-gradient(ellipse at 0% 0%,rgba(139,92,246,.20),transparent 38%),radial-gradient(ellipse at 100% 0%,rgba(96,165,250,.13),transparent 32%),#0c0b14;
+ border:1px solid rgba(167,139,250,.24);border-radius:22px;
+ box-shadow:0 24px 70px rgba(0,0,0,.5);box-sizing:border-box;
+ scrollbar-color:#7650bc #0c0b14;
+}
+body.admin-usermanagement-page .modal-header {padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,.08);}
+body.admin-usermanagement-page .modal-icon {background:rgba(124,58,237,.18);border-color:rgba(167,139,250,.25);color:#c4b5fd;}
+body.admin-usermanagement-page .edit-modal .glass-input,
+body.admin-usermanagement-page .edit-modal .edit-input,
+body.admin-usermanagement-page .edit-modal .dashboard-dropdown summary {
+ background:#0c0b14;border:1px solid #302b3b;color:#eee8f8;
+}
+body.admin-usermanagement-page .edit-modal input:focus,
+body.admin-usermanagement-page .edit-modal .dashboard-dropdown[open] summary {border-color:#8b5cf6;}
+body.admin-usermanagement-page .modal-actions {padding-top:18px;border-top:1px solid rgba(255,255,255,.08);gap:12px;}
+body.admin-usermanagement-page .modal-save,
+body.admin-usermanagement-page .create-button {background:linear-gradient(135deg,#8049d2,#6031a6);border:1px solid #9666dc;color:#fff;}
+body.admin-usermanagement-page .modal-cancel {background:#17151e;border:1px solid #302b3b;color:#d6d0e2;}
+body.admin-usermanagement-page .filter-grid {
+ display:grid;grid-template-columns:minmax(180px,1.25fr) repeat(2,minmax(150px,1fr));gap:12px;align-items:start;
+}
+body.admin-usermanagement-page .filter-input,
+body.admin-usermanagement-page .filter-grid .dashboard-dropdown summary {
+ width:100%;height:46px;min-height:46px;margin:0;padding:11px 14px;box-sizing:border-box;
+ border:1px solid #383044;border-radius:10px;background:#111018;color:#eee8f8;font-size:14px;
+}
+body.admin-usermanagement-page .filter-grid .dashboard-dropdown {min-width:0;}
+body.admin-usermanagement-page .filter-input:focus {border-color:#8b5cf6;outline:2px solid rgba(139,92,246,.15);}
+body.admin-usermanagement-page .filter-heading {margin-bottom:0;}
+body.admin-usermanagement-page .glass-file {
+ display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;
+ padding:7px;border:1px solid #383044;border-radius:10px;background:#111018;color:#bcb3cd;font-size:13px;
+}
+body.admin-usermanagement-page .glass-file::file-selector-button {
+ margin:0 12px 0 0;padding:10px 14px;border:1px solid #7047a6;border-radius:7px;
+ background:#302044;color:#e9ddff;font:inherit;font-weight:600;cursor:pointer;
+}
+body.admin-usermanagement-page .glass-file::file-selector-button:hover {background:#442b63;}
+body.admin-usermanagement-page .glass-file:focus-visible {outline:2px solid #a78bfa;outline-offset:2px;}
+@media(max-width:900px){
+ body.admin-usermanagement-page .filter-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+ body.admin-usermanagement-page .filter-grid>.filter-input {grid-column:1/-1;}
+}
+@media(max-width:540px){
+ body.admin-usermanagement-page .filter-grid {grid-template-columns:minmax(0,1fr);gap:10px;}
+ body.admin-usermanagement-page .filter-input,body.admin-usermanagement-page .filter-grid .dashboard-dropdown summary {font-size:16px;}
+ body.admin-usermanagement-page .edit-modal {padding:10px;}
+ body.admin-usermanagement-page .edit-modal-box {padding:18px;max-height:calc(100dvh - 20px);border-radius:18px;}
+ body.admin-usermanagement-page .glass-file::file-selector-button {padding:10px;margin-right:8px;}
+}
+
+
+/* Uniform Add/Edit field geometry. */
+body.admin-usermanagement-page #addEmployeeModal .user-form,
+body.admin-usermanagement-page #editModal .edit-form-grid {
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px;align-items:start;
+}
+body.admin-usermanagement-page .edit-modal .form-group,
+body.admin-usermanagement-page .edit-modal .edit-form-group {display:flex;flex-direction:column;gap:8px;min-width:0;margin:0;}
+body.admin-usermanagement-page .edit-modal .form-label,
+body.admin-usermanagement-page .edit-modal .edit-label {margin:0;line-height:20px;min-height:20px;}
+body.admin-usermanagement-page .edit-modal .glass-input,
+body.admin-usermanagement-page .edit-modal .edit-input,
+body.admin-usermanagement-page .edit-modal .dashboard-dropdown summary,
+body.admin-usermanagement-page .edit-modal .custom-date-input {
+ box-sizing:border-box;width:100%;height:48px;min-height:48px;max-height:48px;margin:0;font-size:14px;line-height:20px;border-radius:10px;
+}
+body.admin-usermanagement-page .edit-modal .glass-input {padding-top:13px;padding-bottom:13px;}
+body.admin-usermanagement-page .edit-modal .edit-input,
+body.admin-usermanagement-page .edit-modal .dashboard-dropdown summary,
+body.admin-usermanagement-page .edit-modal .custom-date-input {padding:13px 14px;}
+body.admin-usermanagement-page .edit-modal .input-wrapper,
+body.admin-usermanagement-page .edit-modal .select-wrapper {width:100%;min-width:0;margin:0;}
+body.admin-usermanagement-page .edit-modal .profile-preview {display:flex;align-items:center;gap:14px;min-width:0;width:100%;}
+body.admin-usermanagement-page .edit-modal .profile-preview>div {flex:1;min-width:0;}
+body.admin-usermanagement-page .edit-modal .profile-preview img {width:64px;height:64px;flex:none;object-fit:cover;}
+body.admin-usermanagement-page .edit-modal input[type="date"] {color-scheme:dark;}
+@media(max-width:768px){
+ body.admin-usermanagement-page #addEmployeeModal .user-form,
+ body.admin-usermanagement-page #editModal .edit-form-grid {grid-template-columns:minmax(0,1fr);gap:16px;}
+ body.admin-usermanagement-page .edit-modal .glass-input,
+ body.admin-usermanagement-page .edit-modal .edit-input,
+ body.admin-usermanagement-page .edit-modal .dashboard-dropdown summary {font-size:16px;}
+}
+
+
+/* Crisp chevrons, independent of font glyphs. */
+body.admin-usermanagement-page .dashboard-dropdown summary::after {
+ content:"";display:block;width:16px;height:16px;flex:0 0 16px;
+ background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c4b5fd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center/16px no-repeat;
+ transition:transform .15s ease;
+}
+body.admin-usermanagement-page .dashboard-dropdown[open] summary::after {transform:rotate(180deg);}
+body.admin-usermanagement-page .joining-date-picker .custom-calendar {
+ background:radial-gradient(circle at 0 0,rgba(139,92,246,.2),transparent 45%),#0c0b14;
+ border:1px solid #55416e;border-radius:14px;
+}
+body.admin-usermanagement-page .joining-date-picker .calendar-day.is-selected {background:#7c3aed;color:#fff;}
+body.admin-usermanagement-page .joining-date-picker .calendar-nav {color:#c4b5fd;background:#241735;}
+
+
+body.admin-usermanagement-page .edit-modal .joining-date-picker .custom-calendar {
+ position:relative;top:auto;left:auto;right:auto;bottom:auto;transform:none;
+ width:100%;max-width:320px;margin-top:8px;animation:none;
+}
+
+/* Calendar styling matched to the supplied reference. */
+body.admin-usermanagement-page .edit-modal .joining-date-picker .custom-calendar {
+ max-width:375px;padding:16px;border-radius:20px;border:1px solid #393146;
+ background:radial-gradient(ellipse at 0 0,rgba(139,92,246,.17),transparent 45%),radial-gradient(ellipse at 100% 0,rgba(96,165,250,.10),transparent 35%),#0c0b14;
+ box-shadow:0 18px 40px #0006;
+}
+body.admin-usermanagement-page .joining-date-picker .calendar-header {display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+body.admin-usermanagement-page .joining-date-picker .calendar-nav {width:40px;height:40px;border:1px solid #393146;border-radius:12px;background:rgba(255,255,255,.04);color:#e5dcf6;display:grid;place-items:center;}
+body.admin-usermanagement-page .joining-date-picker .calendar-nav svg {width:18px;height:18px;}
+body.admin-usermanagement-page .joining-date-picker .calendar-month-title {color:#fff;font-size:15px;font-weight:800;background:transparent;border:0;}
+body.admin-usermanagement-page .joining-date-picker .calendar-weekdays {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));color:#898492;font-size:12px;font-weight:800;margin-bottom:12px;}
+body.admin-usermanagement-page .joining-date-picker .calendar-days {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;}
+body.admin-usermanagement-page .joining-date-picker .calendar-day {width:100%;height:42px;min-width:0;padding:0;border-radius:10px;color:#dedbe5;font-size:14px;background:transparent;border:1px solid transparent;}
+body.admin-usermanagement-page .joining-date-picker .calendar-day.is-muted {color:#514b5c;}
+body.admin-usermanagement-page .joining-date-picker .calendar-day.is-today {border-color:#527da7;color:#bdd6f3;box-shadow:none;}
+body.admin-usermanagement-page .joining-date-picker .calendar-day.is-selected {background:rgba(139,92,246,.24);border-color:#a78bfa;color:#fff;}
+body.admin-usermanagement-page .joining-date-picker .calendar-day:hover {background:rgba(139,92,246,.18);}
+body.admin-usermanagement-page .joining-date-picker .calendar-footer {display:flex;justify-content:space-between;border-top:1px solid #27222f;margin-top:14px;padding-top:12px;}
+body.admin-usermanagement-page .joining-date-picker .calendar-footer-btn {background:transparent;border:0;color:#c4b5fd;font-weight:700;}
+
+
+/* Wide compact search with adjacent Filter and Reset actions. */
+body.admin-usermanagement-page #filterForm .filter-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+body.admin-usermanagement-page .employee-search-row {grid-column:1/-1;display:flex;align-items:center;gap:10px;min-width:0;}
+body.admin-usermanagement-page .employee-search-field {position:relative;flex:1;min-width:0;}
+body.admin-usermanagement-page .employee-search-field>svg {position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#a78bfa;pointer-events:none;}
+body.admin-usermanagement-page #filterForm .filter-input {height:40px;min-height:40px;padding:8px 12px 8px 38px;font-size:14px;}
+body.admin-usermanagement-page #filterForm .dashboard-dropdown summary {height:40px;min-height:40px;padding:8px 12px;font-size:14px;}
+body.admin-usermanagement-page .employee-filter-btn,
+body.admin-usermanagement-page #filterForm .reset-filter-btn {display:inline-flex;align-items:center;justify-content:center;gap:7px;height:40px;min-height:40px;width:auto;padding:0 15px;border-radius:9px;white-space:nowrap;font-size:13px;cursor:pointer;}
+body.admin-usermanagement-page .employee-filter-btn {border:1px solid #9666dc;background:linear-gradient(135deg,#8049d2,#6031a6);color:#fff;}
+body.admin-usermanagement-page .employee-filter-btn svg {width:16px;height:16px;}
+body.admin-usermanagement-page #filterForm .reset-filter-btn span {display:inline;}
+@media(max-width:540px){
+ body.admin-usermanagement-page .employee-search-row {flex-wrap:wrap;}
+ body.admin-usermanagement-page .employee-search-field {flex-basis:100%;}
+ body.admin-usermanagement-page .employee-filter-btn,body.admin-usermanagement-page #filterForm .reset-filter-btn {flex:1;}
+ body.admin-usermanagement-page #filterForm .filter-grid {grid-template-columns:minmax(0,1fr);}
+ body.admin-usermanagement-page #filterForm .filter-input,body.admin-usermanagement-page #filterForm .dashboard-dropdown summary {font-size:16px;}
+}
+
 </style>
 {% endblock %}
 {% block content %}
@@ -1450,35 +1648,23 @@ body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
         <span>FILTER EMPLOYEES</span>
     </div>
 
-    <button
-        type="button"
-        class="reset-filter-btn"
-        id="resetFiltersBtn"
-        title="Reset Filters"
-    >
-        <i data-lucide="rotate-ccw"></i>
-        <span>Reset</span>
-    </button>
+
 </div>
 
                     <form id="filterForm">
                         <div class="filter-grid">
-                            <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search name, email or employee ID..." class="filter-input">
+                            <div class="employee-search-row">
+                                <div class="employee-search-field"><i data-lucide="search" aria-hidden="true"></i>
+                                <input type="search" name="search" value="{{ request.GET.search }}" placeholder="Search name, email or employee ID..." aria-label="Search employees" class="filter-input"></div>
+                                <button type="submit" class="employee-filter-btn"><i data-lucide="filter" aria-hidden="true"></i><span>Filter</span></button>
+                                <button type="button" class="reset-filter-btn" id="resetFiltersBtn" title="Reset filters"><i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Reset</span></button>
+                            </div>
 
                             <select name="department" class="filter-select">
                                 <option value="">All Departments</option>
                                 {% for dept in departments %}
                                 <option value="{{ dept.name }}" {% if request.GET.department == dept.name %}selected{% endif %}>
                                     {{ dept.name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-
-                            <select name="team" class="filter-select">
-                                <option value="">All Teams</option>
-                                {% for t in teams %}
-                                <option value="{{ t.name }}" {% if request.GET.team == t.name %}selected{% endif %}>
-                                    {{ t.name }}
                                 </option>
                                 {% endfor %}
                             </select>
@@ -1512,7 +1698,7 @@ body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
                                 <th>Image</th>
                                 <th>Emp ID</th>
                                 <th>Department</th>
-                                <th>Team</th>
+                                
                                 <th>Job Position</th>
                                 <th>Designation</th>
                                 <th>Name</th>
@@ -1542,13 +1728,13 @@ body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
 
                                 <td>{{ user.employee_id }}</td>
                                 <td>{{ user.department }}</td>
-                                <td>{{ user.team }}</td>
+                                
                                 <td>{{ user.job_Position }}</td>
                                 <td>{{ user.designation }}</td>
                                 <td class="employee-name">{{ user.name }}</td>
                                 <td>{{ user.email }}</td>
                                 <td>{{ user.phone }}</td>
-                                <td>{{ user.work_location }}</td>
+                               <td>{{ user.work_location|default:"—" }}</td> 
                                 <td>{{ user.joining_date }}</td>
                                 <td>{{ user.username }}</td>
 
@@ -1572,10 +1758,11 @@ body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
                                             data-email="{{ user.email }}"
                                             data-phone="{{ user.phone }}"
                                             data-department="{{ user.department_id|default_if_none:'' }}"
-                                            data-team="{{ user.team_id|default_if_none:'' }}"
                                             data-designation="{{ user.designation }}"
                                             data-job_position="{{ user.job_Position }}"
-                                            data-worklocation="{{ user.work_location }}"
+                                            
+data-worklocation="{% if user.work_location and user.work_location != 'None' %}{{ user.work_location }}{% endif %}"
+
                                             data-joining="{{ user.joining_date|date:'Y-m-d' }}"
                                             data-username="{{ user.username }}"
                                             data-status="{{ user.status }}"
@@ -1599,7 +1786,7 @@ body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
 
                             {% empty %}
                             <tr>
-                                <td colspan="14" class="empty-row">No users found</td>
+                                <td colspan="13" class="empty-row">No users found</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -1678,18 +1865,6 @@ body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
             </div>
 
             <div class="form-group">
-                <label for="team" class="form-label">Team</label>
-                <div class="select-wrapper">
-                    <select id="team" name="team" class="glass-select">
-                        <option value="">Select Team</option>
-                        {% for team in teams %}
-                        <option value="{{ team.id }}">{{ team.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-group">
                 <label for="job_Position" class="form-label">Job Position</label>
                 <div class="select-wrapper">
                     <select id="job_Position" name="job_Position" class="glass-select" required>
@@ -1712,7 +1887,7 @@ body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
                 <label for="work_location" class="form-label">Work Location</label>
                 <div class="input-wrapper">
                     <span class="input-icon"><i data-lucide="map-pin"></i></span>
-                    <input type="text" id="work_location" name="work_location" class="glass-input" placeholder="Work location">
+                    <input type="text" id="work_location" name="work_location" class="glass-input" maxlength="150" placeholder="Work location">
                 </div>
             </div>
 
@@ -1731,7 +1906,7 @@ body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
                             <button type="button" class="calendar-nav" data-next-month aria-label="Next month"><i data-lucide="chevron-right"></i></button>
                         </div>
                         <div class="calendar-weekdays">
-                            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                            <span>SU</span><span>MO</span><span>TU</span><span>WE</span><span>TH</span><span>FR</span><span>SA</span>
                         </div>
                         <div class="calendar-days" data-calendar-days></div>
                         <div class="calendar-footer">
@@ -1834,15 +2009,6 @@ body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
             </div>
 
             <div class="edit-form-group">
-                <label class="edit-label" for="edit_team">Team</label>
-                <select id="edit_team" name="edit_team" class="edit-select"><option value="">Not assigned</option>
-                    {% for team in teams %}
-                    <option value="{{ team.id }}">{{ team.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="edit-form-group">
                 <label class="edit-label" for="edit_job_position">Job Position</label>
                 <select id="edit_job_position" name="edit_job_position" class="edit-select" required><option value="Team Lead">Team Lead</option><option value="Team Member">Team Member</option></select>
             </div>
@@ -1854,12 +2020,33 @@ body.admin-usermanagement-page .edit-modal select { pointer-events: auto; }
 
             <div class="edit-form-group">
                 <label class="edit-label" for="edit_work_location">Work Location</label>
-                <input type="text" id="edit_work_location" name="edit_work_location" class="edit-input">
+                <input type="text" id="edit_work_location" name="edit_work_location" class="edit-input" maxlength="150">
             </div>
 
             <div class="edit-form-group">
                 <label class="edit-label" for="edit_joining_date">Joining Date</label>
-                <input type="date" id="edit_joining_date" name="edit_joining_date" class="edit-input">
+                <div class="joining-date-picker custom-date-picker" data-date-picker>
+                    <input type="hidden" id="edit_joining_date" name="edit_joining_date">
+                    <button type="button" class="custom-date-input" data-date-toggle aria-haspopup="dialog" aria-expanded="false">
+                        <span data-date-display>dd-mm-yyyy</span>
+                        <i data-lucide="calendar-days"></i>
+                    </button>
+                    <div class="custom-calendar" data-calendar role="dialog" aria-label="Choose joining date">
+                        <div class="calendar-header">
+                            <button type="button" class="calendar-nav" data-prev-month aria-label="Previous month"><i data-lucide="chevron-left"></i></button>
+                            <button type="button" class="calendar-month-title" data-month-title></button>
+                            <button type="button" class="calendar-nav" data-next-month aria-label="Next month"><i data-lucide="chevron-right"></i></button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span>SU</span><span>MO</span><span>TU</span><span>WE</span><span>TH</span><span>FR</span><span>SA</span>
+                        </div>
+                        <div class="calendar-days" data-calendar-days></div>
+                        <div class="calendar-footer">
+                            <button type="button" class="calendar-footer-btn" data-clear-date>Clear</button>
+                            <button type="button" class="calendar-footer-btn" data-today-date>Today</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="edit-form-group">
@@ -2000,7 +2187,7 @@ if (togglePassword && password) {
 }
 
 /* SELECT VALUE HELPER
-   Handles both ID values and displayed department/team names. */
+   Handles both ID values and displayed department names. */
 function setSelectValueOrText(selectId, value) {
     const select = document.getElementById(selectId);
     if (!select) return;
@@ -2070,7 +2257,6 @@ function openEditModal(button) {
     document.getElementById("edit_phone").value = button.dataset.phone || "";
 
     setSelectValueOrText("edit_department", button.dataset.department);
-    setSelectValueOrText("edit_team", button.dataset.team);
 
     fillDesignationChoices(document.getElementById("edit_department").value, "edit_designation", button.dataset.designation || "");
     document.getElementById("edit_job_position").value = button.dataset.job_position || "";
@@ -2088,6 +2274,8 @@ function openEditModal(button) {
     } else {
         joiningInput.value = "";
     }
+
+    joiningInput.dispatchEvent(new Event("change", {bubbles:true}));
 
     document.getElementById("edit_username").value = button.dataset.username || "";
     document.getElementById("edit_password").value = "";
@@ -2430,6 +2618,12 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
 
+        hiddenInput.addEventListener('change', () => {
+            selectedDate = fromISO(hiddenInput.value);
+            const date = selectedDate || new Date();
+            viewDate = new Date(date.getFullYear(), date.getMonth(), 1);
+            updateDisplay(); renderCalendar();
+        });
         updateDisplay();
         renderCalendar();
     });
@@ -2494,6 +2688,7 @@ function syncUserModalState() {
     if (sidebar && !sidebar.classList.contains('open')) {
         sidebar.inert = Boolean(active) || window.matchMedia('(max-width: 768px)').matches;
     }
+    document.body.style.overflow = active ? 'hidden' : '';
     if (active && !wasOpen) {
         returnFocus = document.activeElement;
         (active.querySelector('button,input,select') || active).focus();
@@ -2613,6 +2808,12 @@ document.addEventListener('keydown', function(event) {
     async function save(form, button, deleting = false) {
         if (busy) return;
         busy = true; request?.abort(); ++sequence; clearTimeout(debounce);
+        const designation = form.querySelector('select[name="designation"], select[name="edit_designation"]');
+        if (!deleting && designation && (designation.disabled || !designation.value)) {
+            busy = false;
+            const message = 'Choose a department with a valid designation before saving.';
+            showError(form, message); notify(message, 'error'); schedule(); return;
+        }
         const data = new FormData(form);
         if (button?.name) data.append(button.name, button.value || '1');
         const controls = [document.querySelector('#addEmployeeModal button[type=submit]'), document.querySelector('#editForm button[type=submit]'), document.getElementById('confirmUserDelete')];
@@ -2676,6 +2877,65 @@ document.addEventListener('keydown', function(event) {
     window.addEventListener('pagehide', () => { clearTimeout(timer); clearTimeout(debounce); request?.abort(); });
     window.addEventListener('pageshow', schedule);
     schedule();
+})();
+
+
+/* Dashboard dropdown appearance, preserving the original form controls. */
+(() => {
+    const dropdowns = [];
+    document.querySelectorAll('select.filter-select, select.glass-select, select.edit-select').forEach((select, index) => {
+        const details = document.createElement('details'); details.className='dashboard-dropdown';
+        const summary = document.createElement('summary');
+        const title = document.createElement('span'); summary.append(title);
+        summary.id = (select.id || 'user-filter-' + index) + '-trigger';
+        const label = select.id ? document.querySelector('label[for="' + select.id + '"]') : null;
+        summary.setAttribute('aria-label', label?.textContent.trim() || select.options[0]?.textContent.trim() || select.name);
+        if (label) label.htmlFor=summary.id;
+        const menu=document.createElement('div'); menu.className='dashboard-dropdown-menu';
+        menu.setAttribute('role','group'); menu.setAttribute('aria-label',summary.getAttribute('aria-label'));
+        details.append(summary,menu); select.after(details);
+        select.classList.add('dropdown-native'); select.tabIndex=-1;
+        function render() {
+            title.textContent=select.selectedOptions[0]?.textContent.trim() || select.options[0]?.textContent.trim() || 'Select';
+            summary.setAttribute('aria-disabled',String(select.disabled));
+            summary.tabIndex=select.disabled ? -1 : 0;
+            if(select.disabled) details.open=false;
+            menu.replaceChildren();
+            for(const option of select.options) {
+                if(option.hidden || option.disabled) continue;
+                const button=document.createElement('button'); button.type='button'; button.textContent=option.textContent.trim();
+                button.setAttribute('aria-pressed',String(option.selected));
+                button.addEventListener('click',()=>{
+                    select.value=option.value; details.open=false;
+                    select.dispatchEvent(new Event('change',{bubbles:true})); render(); summary.focus();
+                }); menu.append(button);
+            }
+        }
+        summary.addEventListener('click',event=>{if(select.disabled) event.preventDefault();});
+        details.addEventListener('toggle',()=>{
+            if(details.open) { dropdowns.forEach(item=>{if(item.details!==details)item.details.open=false;});render(); }
+        });
+        details.addEventListener('keydown',event=>{
+            if(event.key==='Escape' && details.open) {event.preventDefault();event.stopImmediatePropagation();details.open=false;summary.focus();}
+            if(select.disabled || !['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
+            event.preventDefault();
+            if(!details.open){render();details.open=true;}
+            const buttons=[...menu.querySelectorAll('button')];if(!buttons.length)return;
+            const i=buttons.indexOf(document.activeElement);
+            buttons[event.key==='Home'?0:event.key==='End'?buttons.length-1:event.key==='ArrowDown'?(i+1)%buttons.length:(i-1+buttons.length)%buttons.length].focus();
+        });
+        select.addEventListener('change',render);
+        select.addEventListener('invalid',event=>{event.preventDefault();summary.focus();details.open=true;});
+        new MutationObserver(render).observe(select,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','selected']});
+        dropdowns.push({details,render});render();
+    });
+    const refresh=()=>dropdowns.forEach(item=>item.render());
+    document.addEventListener('click',event=>dropdowns.forEach(item=>{if(!item.details.contains(event.target))item.details.open=false;}));
+    document.addEventListener('reset',()=>setTimeout(refresh,0));
+    document.getElementById('resetFiltersBtn')?.addEventListener('click',()=>setTimeout(refresh,0));
+    document.querySelectorAll('.edit-modal').forEach(modal=>new MutationObserver(()=>{
+        dropdowns.forEach(item=>{if(modal.contains(item.details)){item.details.open=false;item.render();}});
+    }).observe(modal,{attributes:true,attributeFilter:['class']}));
 })();
 
 </script>

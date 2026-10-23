@@ -2901,6 +2901,225 @@ body.admin-google-meet-page .meet-panel{ padding: 12px; }
 
 body.admin-google-meet-page .participant-selection {flex-wrap:wrap;} body.admin-google-meet-page #meetingDepartment {width:100%;padding:12px;border:1px solid rgba(167,139,250,.25);border-radius:10px;background:#0e0d15;color:#eee4ff;}
 body.admin-google-meet-page #meetingDepartmentSelection[hidden] {display:none!important;}
+
+
+/* ================================================================
+   Meeting Details reference — Admin Create/Edit and View popups.
+   Scoped styles; existing endpoints and modal handlers unchanged.
+================================================================ */
+body.admin-google-meet-page .meeting-modal,
+body.admin-google-meet-page .view-meeting-modal {
+    box-sizing: border-box;
+    padding: clamp(12px, 3vw, 24px);
+}
+body.admin-google-meet-page .meeting-modal-overlay,
+body.admin-google-meet-page .view-meeting-overlay {
+    background: rgba(4, 4, 11, .76);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+}
+body.admin-google-meet-page .meeting-modal-box,
+body.admin-google-meet-page .view-meeting-card {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    width: min(700px, 100%);
+    max-width: 700px;
+    max-height: calc(100dvh - 32px);
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #363044;
+    border-radius: 23px;
+    background: linear-gradient(145deg, #171125 0%, #11101d 43%, #0c0b14 100%);
+    color: #f7f4ff;
+    box-shadow: 0 30px 80px rgba(0,0,0,.58), inset 0 1px rgba(255,255,255,.035);
+}
+body.admin-google-meet-page .meeting-modal-header,
+body.admin-google-meet-page .view-meeting-header {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    min-width: 0;
+    padding: 23px 27px;
+    border-bottom: 1px solid #30293d;
+    background: linear-gradient(110deg, #20152f, #121221 64%, #171c2c);
+}
+body.admin-google-meet-page .meeting-modal-title,
+body.admin-google-meet-page .view-meeting-title-wrap {min-width:0;display:flex;align-items:center;gap:15px;}
+body.admin-google-meet-page .meeting-modal-icon,
+body.admin-google-meet-page .view-meeting-icon {
+    width: 52px; height: 52px; flex: 0 0 52px;
+    display: grid; place-items: center; border-radius: 15px;
+    border: 1px solid rgba(128, 141, 255, .30);
+    background: linear-gradient(135deg, #2b2145, #20294f);
+    color: #a2beff;
+    box-shadow: none;
+}
+body.admin-google-meet-page .meeting-modal-icon svg,
+body.admin-google-meet-page .view-meeting-icon svg {width:23px;height:23px;}
+body.admin-google-meet-page .meeting-modal-header h2,
+body.admin-google-meet-page .view-meeting-header h3 {
+    margin: 0; color: #f6f3ff; font-size: 21px; font-weight: 800;
+    line-height: 1.3; letter-spacing: -.02em;
+}
+body.admin-google-meet-page .meeting-modal-eyebrow {display:none;}
+body.admin-google-meet-page .meeting-modal-header p,
+body.admin-google-meet-page .view-meeting-header p {margin:5px 0 0;color:#9690a6;font-size:12px;line-height:1.45;}
+body.admin-google-meet-page .meeting-modal-close,
+body.admin-google-meet-page .view-meeting-close {
+    width:42px;height:42px;flex:0 0 42px;
+    display:grid;place-items:center;border-radius:12px;
+    background:#21212f;border:1px solid #363446;color:#bcb7c8;
+    cursor:pointer;
+}
+body.admin-google-meet-page .meeting-modal-close:hover,
+body.admin-google-meet-page .view-meeting-close:hover {
+    background:#30243e;border-color:#5d4773;color:#fff;
+}
+body.admin-google-meet-page #createMeetingForm {
+    box-sizing: border-box;
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x:hidden;
+    padding: 24px 27px 27px;
+    overscroll-behavior: contain;
+    scrollbar-width: thin; scrollbar-color: #654e85 transparent;
+}
+body.admin-google-meet-page .view-meeting-body {
+    box-sizing: border-box; flex: 1 1 auto; min-height:0;
+    overflow-y:auto;overflow-x:hidden;padding:23px 27px;
+    overscroll-behavior:contain;
+    scrollbar-width:thin;scrollbar-color:#654e85 transparent;
+}
+body.admin-google-meet-page .view-meeting-footer {
+    flex: 0 0 auto; padding:17px 27px 23px;
+    border-top:1px solid #292332;
+    background:#0c0b14;
+}
+body.admin-google-meet-page .meeting-form-group label,
+body.admin-google-meet-page .view-field label {
+    color:#bdb4ce;font-size:11px;font-weight:800;letter-spacing:.035em;
+}
+body.admin-google-meet-page .view-field label svg {color:#a98af7;width:15px;height:15px;}
+body.admin-google-meet-page .meeting-input-wrap input,
+body.admin-google-meet-page .view-field input,
+body.admin-google-meet-page .view-field textarea,
+body.admin-google-meet-page .meet-date-input,
+body.admin-google-meet-page .meeting-time-trigger {
+    box-sizing:border-box;min-height:51px;
+    border:1px solid #302d3b;border-radius:12px;
+    color:#efedf5;background:#0a0911;
+    font-size:13px;
+}
+body.admin-google-meet-page .view-field input,
+body.admin-google-meet-page .view-field textarea {padding:13px 15px;font-size:14px;line-height:1.6;}
+body.admin-google-meet-page .view-field textarea {min-height:98px;resize:vertical;}
+body.admin-google-meet-page .meeting-input-wrap input:focus,
+body.admin-google-meet-page .meet-date-input:focus,
+body.admin-google-meet-page .meeting-time-trigger:focus,
+body.admin-google-meet-page .meeting-input-wrap input:focus-visible {
+    outline:none;border-color:#8667b9;box-shadow:0 0 0 3px rgba(133,93,190,.13);background:#0d0a17;
+}
+body.admin-google-meet-page .meeting-input-wrap > svg {color:#ad91df;}
+body.admin-google-meet-page .participant-option,
+body.admin-google-meet-page .team-member-selection {background:#100d19;border-color:#30283f;}
+body.admin-google-meet-page .participant-option:hover,
+body.admin-google-meet-page .participant-option:has(input:checked) {
+    background:#21182f;border-color:#634889;
+}
+body.admin-google-meet-page .meeting-modal-footer {margin-top:24px;padding-top:18px;border-top:1px solid #302939;}
+body.admin-google-meet-page .meeting-cancel-btn,
+body.admin-google-meet-page .meeting-submit-btn,
+body.admin-google-meet-page .view-meeting-close-btn {min-height:43px;border-radius:11px;font-size:12px;}
+body.admin-google-meet-page .meeting-cancel-btn {
+    color:#dfd5eb;background:#201827;border:1px solid #44334f;
+}
+body.admin-google-meet-page .meeting-submit-btn {
+    color:#fff;background:linear-gradient(135deg,#6e42a5,#49276d);
+    border:1px solid #74529b;box-shadow:0 8px 20px rgba(61,25,99,.22);
+}
+body.admin-google-meet-page .view-meeting-close-btn {
+    min-width:112px;color:#d6b9f3;background:#1d142b;border:1px solid #452d63;
+}
+body.admin-google-meet-page .view-meeting-close-btn:hover {background:#2c1d3c;border-color:#75519e;}
+/* Dropdown uses the original select as the submitted form control. */
+body.admin-google-meet-page .meeting-department-select {position:relative;min-width:0;}
+body.admin-google-meet-page .meeting-department-select > select.is-enhanced {
+    position:absolute!important;width:1px!important;height:1px!important;
+    padding:0!important;margin:0!important;opacity:0!important;
+    border:0!important;pointer-events:none!important;
+}
+body.admin-google-meet-page .meeting-department-toggle {
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    width:100%;min-height:48px;box-sizing:border-box;padding:0 14px;
+    background:#0a0912;border:1px solid #493955;border-radius:12px;
+    color:#efe9f8;font:inherit;font-size:13px;text-align:left;cursor:pointer;
+}
+body.admin-google-meet-page .meeting-department-toggle::after {
+    content:"";width:8px;height:8px;flex-shrink:0;
+    border-right:2px solid #b79bdd;border-bottom:2px solid #b79bdd;
+    transform:translateY(-2px) rotate(45deg);transition:transform .17s;
+}
+body.admin-google-meet-page .meeting-department-toggle[aria-expanded="true"]::after {transform:translateY(2px) rotate(225deg);}
+body.admin-google-meet-page .meeting-department-toggle:focus-visible {outline:2px solid #a98ad6;outline-offset:2px;}
+body.admin-google-meet-page .meeting-department-options {
+    position:absolute;z-index:10015;top:calc(100% + 7px);left:0;right:0;
+    max-height:220px;overflow-y:auto;padding:5px;border-radius:12px;
+    border:1px solid #554071;background:#181122;
+    box-shadow:0 20px 48px #000a;scrollbar-width:thin;scrollbar-color:#71519a transparent;
+}
+body.admin-google-meet-page .meeting-department-options[hidden] {display:none!important;}
+body.admin-google-meet-page .meeting-department-option {
+    display:block;width:100%;min-height:37px;padding:9px 11px;
+    border:0;border-radius:8px;background:transparent;color:#e6d8f4;
+    text-align:left;font:inherit;font-size:12px;cursor:pointer;
+}
+body.admin-google-meet-page .meeting-department-option:hover,
+body.admin-google-meet-page .meeting-department-option[aria-selected="true"] {
+    background:#3b2855;color:#fff;
+}
+body.admin-google-meet-page .meeting-time-popover {
+    background:#171120;border-color:#49345d;
+    color:#f5edff;
+}
+body.admin-google-meet-page .meet-custom-calendar {background:#161020;border-color:#4f3c64;}
+body.admin-google-meet-page .meeting-toast-stack {
+    position:fixed;right:20px;bottom:20px;z-index:250000;
+    display:grid;gap:10px;width:min(360px,calc(100vw - 28px));pointer-events:none;
+}
+body.admin-google-meet-page .meeting-toast {
+    padding:14px 17px;border-radius:12px;border:1px solid #674b8d;
+    background:#1c1429;color:#f5ecff;box-shadow:0 14px 35px #0009;
+    font-size:13px;line-height:1.5;pointer-events:auto;
+}
+body.admin-google-meet-page .meeting-toast[data-type="success"] {border-color:#46725c;}
+body.admin-google-meet-page .meeting-toast[data-type="error"] {border-color:#935266;}
+@media (max-width:650px) {
+    body.admin-google-meet-page .meeting-modal-box,
+    body.admin-google-meet-page .view-meeting-card {max-height:calc(100dvh - 18px);border-radius:18px;}
+    body.admin-google-meet-page .meeting-modal-header,
+    body.admin-google-meet-page .view-meeting-header {padding:17px 18px;gap:10px;}
+    body.admin-google-meet-page .meeting-modal-header h2,
+    body.admin-google-meet-page .view-meeting-header h3 {font-size:18px;}
+    body.admin-google-meet-page .meeting-modal-icon,
+    body.admin-google-meet-page .view-meeting-icon {width:43px;height:43px;flex-basis:43px;border-radius:12px;}
+    body.admin-google-meet-page #createMeetingForm,
+    body.admin-google-meet-page .view-meeting-body {padding:18px;}
+    body.admin-google-meet-page .view-meeting-footer {padding:15px 18px 18px;}
+    body.admin-google-meet-page .view-field-row {grid-template-columns:1fr;gap:0;}
+    body.admin-google-meet-page .meeting-input-wrap input,
+    body.admin-google-meet-page .view-field input,
+    body.admin-google-meet-page .view-field textarea {font-size:14px;}
+}
+@media (max-width:360px) {
+    body.admin-google-meet-page .meeting-modal-title,
+    body.admin-google-meet-page .view-meeting-title-wrap {gap:9px;}
+    body.admin-google-meet-page .meeting-modal-header h2,
+    body.admin-google-meet-page .view-meeting-header h3 {font-size:16px;}
+}
+
 </style>{% endblock %}
 {% block content %}
 {% for message in messages %}<span hidden data-meeting-operation-message data-level="{{ message.level }}">{{ message }}</span>{% endfor %}<div class="dashboard-box">
@@ -5257,7 +5476,72 @@ document.addEventListener('DOMContentLoaded',()=>{
  document.addEventListener('click',event=>{if(event.target.closest('.edit-meeting-btn'))syncMode();});
  syncMode();
 });
-</script><script>
+</script>
+<script>
+/* Dark-purple department menu: native select remains the real POST field. */
+document.addEventListener('DOMContentLoaded', () => {
+  const select = document.getElementById('meetingDepartment');
+  const parent = select?.parentElement;
+  const modal = document.getElementById('meetingModal');
+  const form = document.getElementById('createMeetingForm');
+  if (!select || !parent || !form) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'meeting-department-select';
+  select.before(wrap); wrap.append(select);
+  const toggle = document.createElement('button');
+  toggle.type='button';toggle.className='meeting-department-toggle';
+  toggle.setAttribute('aria-haspopup','listbox');toggle.setAttribute('aria-expanded','false');
+  toggle.setAttribute('aria-label','Choose department');
+  const title=document.createElement('span'); toggle.append(title);
+  const options=document.createElement('div');
+  options.className='meeting-department-options';options.id='meetingDepartmentOptions';
+  options.setAttribute('role','listbox');options.setAttribute('aria-label','Departments');
+  options.hidden=true;toggle.setAttribute('aria-controls',options.id);
+  wrap.append(toggle,options);
+  function close(focus=false) {options.hidden=true;toggle.setAttribute('aria-expanded','false');if(focus)toggle.focus();}
+  function update() {
+    const selected=select.selectedOptions[0];
+    title.textContent=selected?.textContent?.trim()||'Choose department';
+    options.querySelectorAll('[data-dept-value]').forEach(b => b.setAttribute('aria-selected',String(b.dataset.deptValue===select.value)));
+  }
+  Array.from(select.options).forEach(option => {
+    const item=document.createElement('button');item.type='button';
+    item.className='meeting-department-option';item.setAttribute('role','option');
+    item.dataset.deptValue=option.value;item.textContent=option.textContent.trim();
+    item.addEventListener('click',()=>{select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));close(true);});
+    options.append(item);
+  });
+  toggle.addEventListener('click',()=>{
+    const opening=options.hidden;options.hidden=!opening;
+    toggle.setAttribute('aria-expanded',String(opening));
+    if(opening)options.querySelector('[aria-selected="true"]')?.focus();
+  });
+  toggle.addEventListener('keydown', e => {
+    if(e.key==='ArrowDown'||e.key==='Enter'||e.key===' ') {
+      e.preventDefault();options.hidden=false;toggle.setAttribute('aria-expanded','true');
+      options.querySelector('[aria-selected="true"]')?.focus();
+    }
+  });
+  options.addEventListener('keydown', e => {
+    const list=Array.from(options.querySelectorAll('button'));
+    const idx=list.indexOf(document.activeElement);
+    if(e.key==='Escape') {e.preventDefault();close(true);}
+    else if(e.key==='ArrowDown'||e.key==='ArrowUp') {
+      e.preventDefault();list[(idx+(e.key==='ArrowDown'?1:-1)+list.length)%list.length]?.focus();
+    }
+  });
+  document.addEventListener('pointerdown',e=>{if(!wrap.contains(e.target))close();});
+  select.addEventListener('change',update);
+  select.addEventListener('invalid', e=>{
+    if(!parent.hidden){e.preventDefault();options.hidden=false;toggle.setAttribute('aria-expanded','true');toggle.focus();}
+  });
+  form.addEventListener('reset',()=>setTimeout(()=>{update();close();},0));
+  modal && new MutationObserver(()=>{if(!modal.classList.contains('show'))close();else update();})
+    .observe(modal,{attributes:true,attributeFilter:['class']});
+  select.classList.add('is-enhanced'); update();
+});
+</script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('createMeetingForm');
   if (!form) return;
@@ -5266,9 +5550,22 @@ document.addEventListener('DOMContentLoaded', () => {
   feedback.setAttribute('role', 'status'); feedback.setAttribute('aria-live', 'polite'); feedback.hidden = true;
   form.prepend(feedback);
   function notify(message, type) {
-    feedback.textContent = message; feedback.hidden = false;
+    feedback.textContent = message; feedback.hidden = type !== 'error';
     feedback.style.color = type === 'error' ? '#fda4af' : '#c4b5fd';
-    if (window.showToast) window.showToast(message, type);
+    if (typeof window.showToast === 'function') {
+      window.showToast(message, type);
+    } else {
+      let stack = document.getElementById('adminMeetingToastStack');
+      if (!stack) {
+        stack = document.createElement('div');stack.id = 'adminMeetingToastStack';
+        stack.className = 'meeting-toast-stack';stack.setAttribute('role','status');
+        stack.setAttribute('aria-live','polite');document.body.appendChild(stack);
+      }
+      const toast = document.createElement('div');
+      toast.className = 'meeting-toast';toast.dataset.type=type||'success';toast.textContent=message;
+      stack.appendChild(toast);
+      setTimeout(()=>toast.remove(),4300);
+    }
   }
   function modalOpen() { return !!document.querySelector('.meeting-modal.show,.view-meeting-modal.show'); }
   function sortMeetings() {

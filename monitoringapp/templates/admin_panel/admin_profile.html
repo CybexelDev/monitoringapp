@@ -571,6 +571,76 @@ body.admin-profile-page .profile-info-item {
 }
 body.admin-profile-page #profile-input { display: none; }
 
+
+/* Profile-only responsive and bottom-right toast improvements. */
+body.admin-profile-page .profile-main-card,
+body.admin-profile-page .profile-edit-card,
+body.admin-profile-page .profile-details,
+body.admin-profile-page .profile-form,
+body.admin-profile-page .profile-form-group { min-width:0; max-width:100%; box-sizing:border-box; }
+body.admin-profile-page .profile-form-input { width:100%; max-width:100%; min-width:0; box-sizing:border-box; }
+body.admin-profile-page .profile-details-heading,
+body.admin-profile-page .profile-edit-heading { min-width:0; }
+body.admin-profile-page .profile-details-heading > div:last-child,
+body.admin-profile-page .profile-edit-heading > div:last-child { min-width:0; }
+body.admin-profile-page .profile-info-value {
+  max-width:100%; white-space:normal; overflow-wrap:anywhere;
+  word-break:normal; text-overflow:clip;
+}
+body.admin-profile-page .profile-image-wrapper:focus-visible { outline:2px solid #a78bfa; outline-offset:11px; border-radius:50%; }
+body.admin-profile-page .profile-form .profile-inline-status {
+  position:absolute!important; width:1px!important; height:1px!important;
+  overflow:hidden!important; clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important; clip-path:inset(50%)!important;
+  padding:0!important; margin:-1px!important; border:0!important;
+}
+.admin-profile-toast-stack {
+  position:fixed; right:20px; bottom:20px; z-index:2147480000;
+  width:min(360px,calc(100vw - 32px));
+  display:flex; flex-direction:column; align-items:stretch;
+  gap:10px; pointer-events:none;
+}
+.admin-profile-toast {
+  display:flex; align-items:flex-start; gap:11px;
+  padding:13px 15px; color:#f2edff;
+  background:linear-gradient(135deg,#21192f 0%,#11101b 75%);
+  border:1px solid rgba(167,139,250,.32); border-radius:13px;
+  box-shadow:0 16px 40px rgba(0,0,0,.42);
+  font:500 12px/1.55 Inter,system-ui,sans-serif;
+  overflow-wrap:anywhere; pointer-events:auto;
+  animation:profile-toast-appear .2s ease-out;
+}
+.admin-profile-toast::before {
+  content:'✓'; flex:0 0 auto; display:grid; place-items:center;
+  height:23px; width:23px; border-radius:8px;
+  background:rgba(139,92,246,.20); color:#c4b5fd; font-weight:800;
+}
+.admin-profile-toast[data-tone="error"] { border-color:rgba(251,113,133,.38); }
+.admin-profile-toast[data-tone="error"]::before {
+  content:'!'; background:rgba(251,113,133,.15); color:#fda4af;
+}
+.admin-profile-toast[data-tone="warning"]::before { content:'!'; }
+@keyframes profile-toast-appear {
+  from { opacity:0; transform:translateY(10px); }
+  to { opacity:1; transform:translateY(0); }
+}
+@media(max-width:480px) {
+  body.admin-profile-page .profile-content { padding:16px 0 24px; }
+  body.admin-profile-page .profile-main-card,
+  body.admin-profile-page .profile-edit-card { padding:15px; }
+  body.admin-profile-page .profile-details-heading,
+  body.admin-profile-page .profile-edit-heading { gap:10px; }
+  body.admin-profile-page .profile-details-icon,
+  body.admin-profile-page .profile-edit-icon { width:44px; height:44px; flex:0 0 44px; border-radius:13px; }
+  body.admin-profile-page .profile-details-heading h3,
+  body.admin-profile-page .profile-edit-heading h3 { font-size:16px; }
+  body.admin-profile-page .profile-form-input { height:46px; }
+  .admin-profile-toast-stack { right:12px; left:12px; bottom:12px; width:auto; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .admin-profile-toast { animation:none; }
+}
+
 </style>
 {% endblock %}
 {% block content %}
@@ -1099,11 +1169,48 @@ document.addEventListener('DOMContentLoaded', () => {
   const endpoint='{% url "admin_profile" %}';
   let saving=false,uploading=false,controller=null,revision=0,baseline='',summarySignature=null;
   let committedImage=display.getAttribute('src');
-  const feedback=document.createElement('p');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');feedback.hidden=true;form.prepend(feedback);
+  const feedback=document.createElement('p');
+  feedback.className='profile-inline-status';
+  feedback.setAttribute('role','status');
+  feedback.setAttribute('aria-live','polite');
+  feedback.hidden=true;form.prepend(feedback);
   const fields=['name','email','phone'];
   function snapshot(){return JSON.stringify(fields.map(name=>form.elements.namedItem(name)?.value||''));}
   baseline=snapshot();
-  function notify(message,type='success'){feedback.textContent=message;feedback.hidden=false;feedback.style.color=type==='error'?'#fda4af':'#c4b5fd';if(window.showToast)window.showToast(message,type);}
+  function fallbackToast(message,type='success'){
+    let stack=document.getElementById('adminProfileToastStack');
+    if(!stack){
+      stack=document.createElement('div');
+      stack.id='adminProfileToastStack';
+      stack.className='admin-profile-toast-stack';
+      // The existing form status element announces messages to screen readers.
+      stack.setAttribute('aria-hidden','true');
+      document.body.appendChild(stack);
+    }
+    const toast=document.createElement('div');
+    toast.className='admin-profile-toast';
+    toast.dataset.tone=type;
+    const content=document.createElement('span');
+    content.textContent=message;
+    toast.appendChild(content);
+    stack.appendChild(toast);
+    while(stack.children.length>3)stack.firstElementChild.remove();
+    window.setTimeout(()=>toast.remove(),4500);
+  }
+  function notify(message,type='success'){
+    if(!message)return;
+    feedback.textContent=message;
+    feedback.hidden=false;
+    if(typeof window.showToast==='function'){
+      try{window.showToast(message,type);return;}catch(error){/* use local toast below */}
+    }
+    fallbackToast(message,type);
+  }
+  document.querySelectorAll('[data-profile-operation-message]').forEach(message=>{
+    const text=message.textContent.trim();
+    const level=Number(message.dataset.level);
+    if(text)notify(text,level>=40?'error':level>=30?'warning':'success');
+  });
   function sidebarPhoto(url){
     document.querySelectorAll('#sidebar a[href],.glass-sidebar a[href]').forEach(link=>{
       if(new URL(link.href,location.href).pathname!==new URL(endpoint,location.origin).pathname)return;

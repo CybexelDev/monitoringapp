@@ -101,7 +101,7 @@
             font-weight: 650;
             cursor: pointer;
             text-decoration: none;
-            transition: ****background**** .2s, border-color .2s
+            transition: background .2s, border-color .2s
         }
         .reminder-btn:hover {
             background: rgba(139, 92, 246, .15);
@@ -157,7 +157,7 @@
             font: inherit;
             font-size: 12px;
             cursor: pointer;
-            transition: ****background**** .2s, border-color .2s
+            transition: background .2s, border-color .2s
         }
         .reminder-main .day:hover {
             border-color: rgba(139, 92, 246, .30);
@@ -1049,6 +1049,471 @@ body.modal-open .reminder-main{overflow:hidden}
 .reminder-main{position:static;inset:auto;left:auto;top:auto;margin:0;padding:0;height:100%;min-width:0;overflow:auto;}
 @media(max-width:1100px){.reminder-main{position:static;left:auto;padding:0;}}
 @media(max-width:768px){.reminder-main{position:static;left:auto;top:auto;right:auto;bottom:auto;padding:0;}}
+
+/* ===== Meeting Details-style DARK PURPLE Reminders UI ===== */
+body.admin-reminders-page .reminder-dialog {
+    width: min(540px, calc(100vw - 28px));
+    max-width: 100%;
+    max-height: min(90dvh, 800px);
+    box-sizing: border-box;
+    padding: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    border-radius: 22px;
+    border: 1px solid rgba(162, 142, 208, .29);
+    background: linear-gradient(125deg, #1b142b 0%, #11101c 48%, #0d0c16 100%);
+    color: #f7f4ff;
+    box-shadow: 0 28px 85px rgba(0, 0, 0, .64), inset 0 1px rgba(255, 255, 255, .035);
+    scrollbar-width: thin;
+    scrollbar-color: #634989 transparent;
+    overscroll-behavior: contain;
+}
+body.admin-reminders-page .reminder-dialog::backdrop {
+    background: rgba(5, 4, 11, .77);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+}
+body.admin-reminders-page .reminder-dialog .dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 22px 24px;
+    margin: 0;
+    background: linear-gradient(110deg, rgba(36, 25, 55, .68), rgba(17, 17, 29, .76) 58%, rgba(20, 29, 48, .62));
+    border-bottom: 1px solid rgba(170, 148, 215, .12);
+}
+body.admin-reminders-page .reminder-dialog .reminder-dialog-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+body.admin-reminders-page .reminder-dialog .reminder-modal-icon {
+    width: 50px;
+    height: 50px;
+    flex: 0 0 50px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    color: #a5c8ff;
+    background: linear-gradient(130deg, rgba(67, 82, 170, .34), rgba(79, 49, 142, .33));
+    border: 1px solid rgba(123, 145, 249, .28);
+}
+body.admin-reminders-page .reminder-dialog .reminder-modal-icon svg { width: 23px; height: 23px; }
+body.admin-reminders-page .reminder-dialog .reminder-modal-eyebrow {
+    display: block;
+    color: #bfa0f6;
+    text-transform: uppercase;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    margin-bottom: 5px;
+}
+body.admin-reminders-page .reminder-dialog .dialog-header h2 {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.24;
+    margin: 0;
+    color: #faf8ff;
+}
+body.admin-reminders-page .reminder-dialog .reminder-modal-subtitle {
+    color: #928a9f;
+    font-size: 11px;
+    line-height: 1.4;
+    margin: 4px 0 0;
+}
+body.admin-reminders-page .reminder-dialog .reminder-modal-close {
+    flex: 0 0 37px;
+    width: 37px;
+    height: 37px;
+    min-height: 37px;
+    padding: 0;
+    border-radius: 10px;
+    background: rgba(255,255,255,.035);
+    border: 1px solid rgba(255,255,255,.10);
+    color: #bbb4ca;
+}
+body.admin-reminders-page .reminder-dialog .reminder-modal-close:hover {
+    background: rgba(124, 87, 185, .17);
+    border-color: rgba(170, 143, 223, .39);
+    color: #fff;
+}
+body.admin-reminders-page .reminder-dialog .reminder-modal-close svg {width:18px;height:18px;}
+body.admin-reminders-page #reminderForm,
+body.admin-reminders-page #deleteDialog .reminder-delete-body {
+    padding: 22px 24px 24px;
+}
+body.admin-reminders-page .reminder-dialog .reminder-field {
+    color: #c0b7d0;
+    font-weight: 700;
+    line-height: 1.5;
+    margin: 0 0 18px;
+}
+body.admin-reminders-page .reminder-dialog .reminder-field input,
+body.admin-reminders-page .reminder-dialog .reminder-field textarea,
+body.admin-reminders-page .reminder-dialog .reminder-field select,
+body.admin-reminders-page .reminder-dialog .picker-trigger {
+    background: #0b0a13;
+    border: 1px solid rgba(190, 174, 224, .19);
+    border-radius: 11px;
+    color: #f5f1ff;
+    min-height: 44px;
+    outline: none;
+}
+body.admin-reminders-page .reminder-dialog .reminder-field input:focus,
+body.admin-reminders-page .reminder-dialog .reminder-field textarea:focus,
+body.admin-reminders-page .reminder-dialog .picker-trigger:focus-visible {
+    border-color: rgba(165, 128, 235, .78);
+    box-shadow: 0 0 0 3px rgba(116, 77, 188, .14);
+}
+body.admin-reminders-page .reminder-dialog .reminder-field input::placeholder,
+body.admin-reminders-page .reminder-dialog .reminder-field textarea::placeholder {color:#706a7d;}
+body.admin-reminders-page .reminder-dialog .picker-trigger svg {color:#bfa3ed;}
+body.admin-reminders-page .reminder-dialog .picker-panel {
+    border: 1px solid rgba(164, 131, 221, .38);
+    border-radius: 14px;
+    background: linear-gradient(145deg, #21182e, #0d0b16 68%);
+    max-width: 100%;
+}
+body.admin-reminders-page .reminder-dialog .picker-date.chosen {
+    background: #63409a;
+}
+body.admin-reminders-page .reminder-dialog .dialog-footer {
+    padding-top: 16px;
+    border-top: 1px solid rgba(196, 178, 224, .12);
+    margin-top: 22px;
+}
+body.admin-reminders-page .reminder-dialog .reminder-btn {
+    border: 1px solid rgba(178, 158, 208, .18);
+    background: #1d172b;
+    color: #e2d9ef;
+    border-radius: 10px;
+    min-height: 40px;
+}
+body.admin-reminders-page .reminder-dialog .reminder-btn:hover { background:#2b203f;border-color:rgba(175,143,236,.42); }
+body.admin-reminders-page .reminder-dialog .reminder-btn.primary {
+    background: linear-gradient(135deg, #68419f, #4d327f);
+    border-color: rgba(171, 134, 239, .49);
+    color: #fff;
+}
+body.admin-reminders-page .reminder-dialog .reminder-btn.danger {
+    color: #fff;
+    background: #ce4860;
+    border-color: #e16b80;
+}
+body.admin-reminders-page .reminder-dialog .reminder-btn.danger:hover {background:#dd536a;}
+body.admin-reminders-page #deleteDialog {width:min(450px,calc(100vw - 28px));}
+body.admin-reminders-page #deleteDialog .reminder-delete-body p {margin:0 0 11px;color:#c3b9d0;font-size:13px;}
+body.admin-reminders-page #deleteDialog #deleteDescription {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(185, 164, 224, .15);
+    background: #0c0a15;
+    color: #f2eaff;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+/* Remind me dropdown — distinct, premium PURPLE theme (not bright violet). */
+body.admin-reminders-page .reminder-purple-select {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    margin-top: 8px;
+}
+/* The existing select still controls the reminder timing logic. */
+body.admin-reminders-page .reminder-purple-select .reminder-native-select {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    clip-path: inset(50%);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+body.admin-reminders-page .reminder-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 47px;
+    padding: 0 14px;
+    border: 1px solid #674793;
+    border-radius: 11px;
+    background: linear-gradient(120deg, #2b193e 0%, #21162f 68%, #1b1429 100%);
+    box-shadow: inset 0 1px 0 rgba(225, 198, 255, .075), 0 5px 15px rgba(37, 19, 58, .13);
+    color: #f3eaff;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 650;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+body.admin-reminders-page .reminder-select-trigger:hover {
+    background: linear-gradient(120deg, #352049, #261936 80%);
+    border-color: #9973c8;
+}
+body.admin-reminders-page .reminder-select-trigger:focus-visible,
+body.admin-reminders-page .reminder-select-trigger[aria-expanded="true"] {
+    outline: none;
+    border-color: #b68fe3;
+    background: linear-gradient(120deg, #37214f, #291b3c 75%);
+    box-shadow: 0 0 0 3px rgba(127, 77, 191, .17), inset 0 1px 0 rgba(225,198,255,.08);
+}
+body.admin-reminders-page .reminder-select-trigger svg {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    color: #c6a2f4;
+    transition: transform .2s ease;
+}
+body.admin-reminders-page .reminder-select-trigger[aria-expanded="true"] svg {transform: rotate(180deg);}
+body.admin-reminders-page .reminder-select-menu {
+    position: relative;
+    z-index: 12;
+    display: grid;
+    gap: 4px;
+    margin-top: 7px;
+    padding: 7px;
+    max-height: 215px;
+    overflow-y: auto;
+    border: 1px solid #684697;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #2b1a3d 0%, #1b132a 80%, #171021 100%);
+    box-shadow: 0 16px 32px rgba(0,0,0,.40), inset 0 1px 0 rgba(218,190,255,.08);
+    scrollbar-width: thin;
+    scrollbar-color: #7952a9 transparent;
+}
+body.admin-reminders-page .reminder-select-menu[hidden] {display:none !important;}
+body.admin-reminders-page .reminder-select-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    min-height: 39px;
+    padding: 9px 12px;
+    text-align: left;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #d9c8ee;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+body.admin-reminders-page .reminder-select-option:hover,
+body.admin-reminders-page .reminder-select-option:focus-visible {
+    outline: none;
+    background: rgba(113, 67, 164, .35);
+    border-color: rgba(189, 149, 236, .25);
+    color: #fff;
+}
+body.admin-reminders-page .reminder-select-option[aria-selected="true"] {
+    background: linear-gradient(110deg, #563076, #38234f);
+    border-color: #8560b4;
+    color: #fff;
+    font-weight: 700;
+}
+body.admin-reminders-page .reminder-select-option[aria-selected="true"]::after {
+    content: "✓";
+    font-size: 13px;
+    color: #e0c2ff;
+    font-weight: 800;
+}
+/* Page responsiveness: keep calendar and dialog content inside the screen. */
+body.admin-reminders-page .reminder-main,
+body.admin-reminders-page .reminder-shell,
+body.admin-reminders-page .reminder-layout,
+body.admin-reminders-page .reminder-panel {min-width:0;}
+body.admin-reminders-page .reminder-dialog .time-editor{flex-wrap:wrap;}
+body.admin-reminders-page .reminder-dialog .datetime-buttons{min-width:0;}
+body.admin-reminders-page .reminder-dialog .datetime-buttons > *{min-width:0;}
+@media(max-width:600px) {
+ body.admin-reminders-page .reminder-dialog .dialog-header {padding:17px 16px;gap:10px;}
+ body.admin-reminders-page .reminder-dialog .reminder-modal-icon {width:42px;height:42px;flex-basis:42px;}
+ body.admin-reminders-page .reminder-dialog .dialog-header h2{font-size:17px;}
+ body.admin-reminders-page .reminder-dialog .reminder-modal-subtitle{font-size:10px;}
+ body.admin-reminders-page #reminderForm,
+ body.admin-reminders-page #deleteDialog .reminder-delete-body {padding:17px 16px 18px;}
+ body.admin-reminders-page .reminder-dialog .dialog-footer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;}
+ body.admin-reminders-page .reminder-dialog .dialog-footer .reminder-btn{min-width:0;padding:0 8px;}
+ body.admin-reminders-page .reminder-main .calendar-grid {gap:3px;}
+ body.admin-reminders-page .reminder-main .day {min-width:0;}
+}
+@media(max-width:360px) {
+ body.admin-reminders-page .reminder-dialog .dialog-footer {grid-template-columns:1fr;}
+ body.admin-reminders-page .reminder-dialog .datetime-buttons{grid-template-columns:1fr;}
+}
+/* Toast shown even when the base layout has no global toast helper. */
+.reminder-fallback-toasts {
+ position:fixed;bottom:20px;right:20px;z-index:2147483000;
+ width:min(355px,calc(100vw - 32px));display:grid;gap:9px;pointer-events:none;
+}
+.reminder-fallback-toast {
+ display:flex;align-items:flex-start;gap:10px;padding:12px 15px;
+ border-radius:12px;border:1px solid rgba(166,137,213,.35);
+ background:linear-gradient(135deg,#221931,#10101c);
+ box-shadow:0 14px 40px rgba(0,0,0,.40);
+ color:#f3effa;font-size:12px;line-height:1.5;pointer-events:auto;
+}
+.reminder-fallback-toast::before {content:"";width:7px;height:7px;margin-top:6px;flex:0 0 7px;border-radius:50%;background:#70e0a1;}
+.reminder-fallback-toast[data-type="error"]::before {background:#ff7b91;}
+.reminder-fallback-toast[data-type="warning"]::before {background:#f8c36d;}
+@media(max-width:600px){.reminder-fallback-toasts{left:16px;right:16px;bottom:16px;width:auto;}}
+
+
+/* ================================================================
+   Remind me: SAME UI AS TEAM LEAD DASHBOARD
+   Reference: Department / Team filter dropdown (final active styles).
+   Only appearance is updated; #reminderPreset remains source of truth.
+   ================================================================ */
+body.admin-reminders-page #reminderPresetPicker {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* Match #filterForm .tl-dashboard-select-button */
+body.admin-reminders-page #reminderPresetPicker .reminder-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(7,7,11,.72);
+    color: #f4f4f5;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    text-align: left;
+    box-shadow: none;
+    cursor: pointer;
+    transition: border-color .18s, box-shadow .18s, background .18s;
+}
+body.admin-reminders-page #reminderPresetPicker .reminder-select-trigger:hover {
+    background: rgba(7,7,11,.72);
+    border-color: rgba(255,255,255,.16);
+    box-shadow: none;
+}
+body.admin-reminders-page #reminderPresetPicker .reminder-select-trigger:focus-visible,
+body.admin-reminders-page #reminderPresetPicker .reminder-select-trigger[aria-expanded="true"] {
+    outline: none;
+    background: rgba(10,9,15,.90);
+    border-color: rgba(139,92,246,.45);
+    box-shadow: 0 0 0 2px rgba(139,92,246,.06);
+}
+body.admin-reminders-page #reminderPresetPicker #reminderPresetText {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Match Team Lead's CSS chevron (not a font or text "v"). */
+body.admin-reminders-page #reminderPresetPicker .reminder-tl-arrow {
+    display: block;
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    margin: -4px 3px 0 0;
+    padding: 0;
+    border-right: 1.8px solid #a99cce;
+    border-bottom: 1.8px solid #a99cce;
+    transform: rotate(45deg);
+    transition: transform .18s ease, margin .18s ease;
+}
+body.admin-reminders-page #reminderPresetPicker .reminder-select-trigger[aria-expanded="true"] .reminder-tl-arrow {
+    transform: rotate(225deg);
+    margin-top: 4px;
+}
+
+/* Match final .tl-dashboard-options styling on Team Lead Dashboard. */
+body.admin-reminders-page #reminderPresetPicker .reminder-select-menu {
+    position: absolute;
+    inset: calc(100% + 7px) 0 auto 0;
+    z-index: 1000;
+    display: grid;
+    gap: 0;
+    max-height: min(260px, 40dvh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 8px;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 90% 0%, rgba(96,165,250,.13), transparent 32%),
+        radial-gradient(circle at 0% 0%, rgba(139,92,246,.20), transparent 38%),
+        rgba(12,11,20,.98);
+    box-shadow:
+        0 20px 45px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.06);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139,92,246,.50) transparent;
+}
+body.admin-reminders-page #reminderPresetPicker .reminder-select-menu[hidden] {
+    display: none !important;
+}
+body.admin-reminders-page #reminderPresetPicker .reminder-select-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 40px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #eeebf5;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.45;
+    text-align: left;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+body.admin-reminders-page #reminderPresetPicker .reminder-select-option:hover,
+body.admin-reminders-page #reminderPresetPicker .reminder-select-option:focus-visible {
+    outline: none;
+    border: 0;
+    background: rgba(139,92,246,.12);
+    color: #fff;
+}
+body.admin-reminders-page #reminderPresetPicker .reminder-select-option[aria-selected="true"] {
+    background: rgba(139,92,246,.18);
+    color: #ede9fe;
+    font-weight: 500;
+}
+body.admin-reminders-page #reminderPresetPicker .reminder-select-option[aria-selected="true"]::after {
+    content: "✓";
+    flex: 0 0 auto;
+    font-size: 15px;
+    font-weight: 600;
+    color: #c4b5fd;
+}
+@media (max-width: 640px) {
+    body.admin-reminders-page #reminderPresetPicker .reminder-select-trigger {
+        font-size: 16px;
+    }
+    body.admin-reminders-page #reminderPresetPicker .reminder-select-option {
+        min-height: 44px;
+        font-size: 16px;
+    }
+}
 </style>{% endblock %}
 {% block content %}<div class="reminder-main">
         <div class="reminder-shell">
@@ -1118,8 +1583,17 @@ body.modal-open .reminder-main{overflow:hidden}
     </div>
     <dialog class="reminder-dialog" id="editDialog" aria-labelledby="editHeading">
         <div class="dialog-header">
-            <h2 id="editHeading">Add reminder</h2><button type="button" class="reminder-btn" data-close
-                aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button>
+            <div class="reminder-dialog-heading">
+                <span class="reminder-modal-icon" aria-hidden="true"><i data-lucide="bell-ring"></i></span>
+                <div>
+                    <span class="reminder-modal-eyebrow">REMINDER MANAGEMENT</span>
+                    <h2 id="editHeading">Add reminder</h2>
+                    <p class="reminder-modal-subtitle">Schedule or update a reminder</p>
+                </div>
+            </div>
+            <button type="button" class="reminder-btn reminder-modal-close" data-close aria-label="Close">
+                <i data-lucide="x" aria-hidden="true"></i>
+            </button>
         </div>
         <form method="post" action="{% url 'admin_reminders' %}" id="reminderForm">{% csrf_token %}
             <input type="hidden" name="action" id="formAction" value="create"><input type="hidden" name="reminder_id"
@@ -1139,12 +1613,24 @@ body.modal-open .reminder-main{overflow:hidden}
                     <div class="picker-panel" hidden></div>
                 </div>
             </div>
-            <label class="reminder-field">Remind me<select id="reminderPreset">
-                    <option value="1440">1 day before</option>
-                    <option value="60">1 hour before</option>
-                    <option value="0">At event time</option>
-                    <option value="custom">Custom date &amp; time</option>
-                </select></label>
+            <div class="reminder-field">
+                <span id="reminderPresetHeading">Remind me</span>
+                <div class="reminder-purple-select" id="reminderPresetPicker">
+                    <select id="reminderPreset" class="reminder-native-select" tabindex="-1" aria-hidden="true">
+                        <option value="1440">1 day before</option>
+                        <option value="60">1 hour before</option>
+                        <option value="0">At event time</option>
+                        <option value="custom">Custom date &amp; time</option>
+                    </select>
+                    <button type="button" id="reminderPresetTrigger" class="reminder-select-trigger"
+                            aria-haspopup="listbox" aria-controls="reminderPresetOptions"
+                            aria-labelledby="reminderPresetHeading reminderPresetText" aria-expanded="false">
+                        <span id="reminderPresetText">1 day before</span>
+                        <span class="reminder-tl-arrow" aria-hidden="true"></span>
+                    </button>
+                    <div class="reminder-select-menu" id="reminderPresetOptions" role="listbox" aria-label="Reminder timing" hidden></div>
+                </div>
+            </div>
             <div class="reminder-field"><span>Reminder date &amp; time</span><input type="hidden" name="remind_at"
                     id="remindAt">
                 <div class="datetime-control" data-input="remindAt">
@@ -1163,14 +1649,28 @@ body.modal-open .reminder-main{overflow:hidden}
         </form>
     </dialog>
     <dialog class="reminder-dialog" id="deleteDialog" aria-labelledby="deleteHeading">
-        <h2 id="deleteHeading">Delete reminder?</h2>
-        <p id="deleteDescription"></p>
-        <p>This removes the reminder from your calendar.</p>
-        <form method="post" action="{% url 'admin_reminders' %}">{% csrf_token %}<input type="hidden" name="action"
-                value="delete"><input type="hidden" name="reminder_id" id="deleteId">
-            <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Cancel</button><button
-                    type="submit" class="reminder-btn danger">Delete reminder</button></div>
-        </form>
+        <div class="dialog-header">
+            <div class="reminder-dialog-heading">
+                <span class="reminder-modal-icon" aria-hidden="true"><i data-lucide="trash-2"></i></span>
+                <div>
+                    <span class="reminder-modal-eyebrow">CONFIRM ACTION</span>
+                    <h2 id="deleteHeading">Delete reminder?</h2>
+                    <p class="reminder-modal-subtitle">This action cannot be undone.</p>
+                </div>
+            </div>
+            <button type="button" class="reminder-btn reminder-modal-close" data-close aria-label="Close">
+                <i data-lucide="x" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="reminder-delete-body">
+            <p>Are you sure you want to delete this reminder?</p>
+            <p id="deleteDescription"></p>
+            <form method="post" action="{% url 'admin_reminders' %}">{% csrf_token %}<input type="hidden" name="action"
+                    value="delete"><input type="hidden" name="reminder_id" id="deleteId">
+                <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Cancel</button><button
+                        type="submit" class="reminder-btn danger">Delete reminder</button></div>
+            </form>
+        </div>
     </dialog>
     {{ calendar_items|json_script:"reminderData" }}
     
@@ -1190,7 +1690,34 @@ body.modal-open .reminder-main{overflow:hidden}
             let month = document.getElementById('adminReminderMonth').textContent.trim(); let today = document.getElementById('adminReminderToday').textContent.trim();
             let saving=false, controller=null, revision=0;
             let monthLabel=document.getElementById('monthHeading').textContent.trim();
-            function toast(message, type='success') { const feedback=document.getElementById('reminderFeedback'); feedback.textContent=message; feedback.hidden=false; if(window.showToast)window.showToast(message,type); }
+            function toast(message, type='success') {
+                const feedback = document.getElementById('reminderFeedback');
+                feedback.hidden = true; // Show operation notices as bottom-right toasts, not a permanent banner.
+                if (typeof window.showToast === 'function') {
+                    window.showToast(message, type);
+                    return;
+                }
+                let host = document.getElementById('reminderFallbackToasts');
+                if (!host) {
+                    host = document.createElement('div');
+                    host.id = 'reminderFallbackToasts';
+                    host.className = 'reminder-fallback-toasts';
+                    host.setAttribute('aria-live', 'polite');
+                    document.body.appendChild(host);
+                }
+                const topDialog = [editDialog, deleteDialog].find(dialog => dialog.open);
+                // Native modal dialogs live in the browser top layer, above normal fixed content.
+                if (topDialog && host.parentElement !== topDialog) topDialog.appendChild(host);
+                if (!topDialog && host.parentElement !== document.body) document.body.appendChild(host);
+                const notice = document.createElement('div');
+                notice.className = 'reminder-fallback-toast';
+                notice.dataset.type = type;
+                notice.setAttribute('role', type === 'error' ? 'alert' : 'status');
+                notice.textContent = message;
+                host.appendChild(notice);
+                while (host.children.length > 3) host.firstElementChild.remove();
+                setTimeout(() => { notice.remove(); }, 4600);
+            }
             async function requestJSON(url, options={}) { const response=await fetch(url, {credentials:'same-origin',cache:'no-store',...options}); if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Please sign in again or check the reminder view.'); const data=await response.json(); if(!response.ok || !data.ok)throw new Error(data.message || 'Unable to update reminders.'); return data; }
             const list = document.getElementById('reminderList');
             const editDialog = document.getElementById('editDialog'), deleteDialog = document.getElementById('deleteDialog');
@@ -1223,17 +1750,85 @@ body.modal-open .reminder-main{overflow:hidden}
             [editDialog, deleteDialog].forEach(dialog => { dialog.addEventListener('cancel', event=>{if(saving)event.preventDefault();}); dialog.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => {if(!saving)dialog.close();})); dialog.addEventListener('close', () => {
                     const container = document.getElementById('toastContainer');
                     if (container) document.body.appendChild(container);
+                    const fallback = document.getElementById('reminderFallbackToasts');
+                    if (fallback && fallback.parentElement !== document.body) document.body.appendChild(fallback);
                     document.body.classList.remove('modal-open');
                 }); });
             const controls = Array.from(document.querySelectorAll('.datetime-control'));
             function closePickers() { controls.forEach(c => { c.querySelector('.picker-panel').hidden = true; c.querySelector('.picker-panel').replaceChildren(); c.querySelectorAll('.picker-trigger').forEach(b => b.setAttribute('aria-expanded', 'false')); }); }
+
+            // Custom dark-purple dropdown mirrors the original select (preset is still the source of truth).
+            const presetPicker = document.getElementById('reminderPresetPicker');
+            const presetTrigger = document.getElementById('reminderPresetTrigger');
+            const presetMenu = document.getElementById('reminderPresetOptions');
+            const presetText = document.getElementById('reminderPresetText');
+            function syncPresetPicker() {
+                const selectedOption = preset.options[preset.selectedIndex];
+                presetText.textContent = selectedOption ? selectedOption.textContent : 'Select timing';
+                presetMenu.querySelectorAll('[role="option"]').forEach(option => {
+                    option.setAttribute('aria-selected', String(option.dataset.value === preset.value));
+                });
+            }
+            function closePresetPicker(returnFocus = false) {
+                presetMenu.hidden = true;
+                presetTrigger.setAttribute('aria-expanded', 'false');
+                if (returnFocus) presetTrigger.focus();
+            }
+            function openPresetPicker() {
+                closePickers();
+                presetMenu.hidden = false;
+                presetTrigger.setAttribute('aria-expanded', 'true');
+                syncPresetPicker();
+                (presetMenu.querySelector('[aria-selected="true"]') || presetMenu.firstElementChild)?.focus();
+            }
+            Array.from(preset.options).forEach(option => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'reminder-select-option';
+                button.setAttribute('role', 'option');
+                button.dataset.value = option.value;
+                button.textContent = option.textContent;
+                button.addEventListener('click', () => {
+                    preset.value = option.value;
+                    preset.dispatchEvent(new Event('change', { bubbles: true }));
+                    syncPresetPicker();
+                    closePresetPicker(true);
+                });
+                presetMenu.appendChild(button);
+            });
+            presetTrigger.addEventListener('click', () => {
+                if (presetMenu.hidden) openPresetPicker();
+                else closePresetPicker();
+            });
+            presetPicker.addEventListener('keydown', event => {
+                if (event.key === 'Escape' && !presetMenu.hidden) {
+                    event.preventDefault();event.stopPropagation();closePresetPicker(true);return;
+                }
+                if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && !presetMenu.hidden) {
+                    event.preventDefault();
+                    const options = Array.from(presetMenu.querySelectorAll('[role="option"]'));
+                    const index = options.indexOf(document.activeElement);
+                    const next = (index + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+                    options[next].focus();
+                }
+                if ((event.key === 'Enter' || event.key === ' ') && document.activeElement === presetTrigger && presetMenu.hidden) {
+                    event.preventDefault();openPresetPicker();
+                }
+            });
+            editDialog.addEventListener('click', event => {
+                if (!event.target.closest('#reminderPresetPicker')) closePresetPicker();
+            });
+            editDialog.addEventListener('close', () => closePresetPicker());
+            preset.addEventListener('change', syncPresetPicker);
+            syncPresetPicker();
+
             function syncDateControls() { controls.forEach(c => { const value = document.getElementById(c.dataset.input).value; const d = value ? new Date(value) : null; c.querySelector('.date-trigger span').textContent = d && !isNaN(d) ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select date'; c.querySelector('.time-trigger span').textContent = d && !isNaN(d) ? d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Select time'; }); }
             function setControl(c, date, time) { const input = document.getElementById(c.dataset.input); input.value = date + 'T' + time; input.dispatchEvent(new Event('input', { bubbles: true })); syncDateControls(); document.getElementById('pickerError').hidden = true; closePickers(); }
             function pickerButton(label, cls, click) { const b = node('button', cls, label); b.type = 'button'; b.addEventListener('click', click); return b; }
             controls.forEach(c => {
                 const panel = c.querySelector('.picker-panel'), input = document.getElementById(c.dataset.input);
                 const dateButton = c.querySelector('.date-trigger'), timeButton = c.querySelector('.time-trigger');
-                function show(trigger) { const wasOpen = trigger.getAttribute('aria-expanded') === 'true'; closePickers(); if (wasOpen) return false; panel.hidden = false; trigger.setAttribute('aria-expanded', 'true'); return true; }
+                function show(trigger) { const wasOpen = trigger.getAttribute('aria-expanded') === 'true'; closePresetPicker(); closePickers(); if (wasOpen) return false; panel.hidden = false; trigger.setAttribute('aria-expanded', 'true'); return true; }
                 dateButton.addEventListener('click', () => {
                     if (!show(dateButton)) return;
                     let base = input.value ? new Date(input.value) : new Date(selected + 'T09:00'); let year = base.getFullYear(), mon = base.getMonth();
@@ -1257,7 +1852,7 @@ body.modal-open .reminder-main{overflow:hidden}
             editDialog.addEventListener('cancel', event => { if (controls.some(c => !c.querySelector('.picker-panel').hidden)) { event.preventDefault(); closePickers(); } });
             editDialog.addEventListener('close', closePickers);
             function updatePreset() { if (preset.value === 'custom' || !eventAt.value) return; const d = new Date(eventAt.value); d.setMinutes(d.getMinutes() - Number(preset.value)); remindAt.value = dateValue(d); remindAt.setCustomValidity(''); syncDateControls(); }
-            function edit(item) { if(saving)return; form.reset(); document.getElementById('formAction').value = item ? 'update' : 'create'; document.getElementById('reminderId').value = item ? item.id : ''; document.getElementById('editHeading').textContent = item ? 'Edit reminder' : 'Add reminder'; title.value = item ? item.title : ''; description.value = item ? item.description : ''; eventAt.value = item ? item.event_at : selected + 'T09:00'; preset.value = item ? 'custom' : '1440'; remindAt.value = item ? item.remind_at : ''; if (!item) updatePreset(); remindAt.setCustomValidity(''); closePickers(); syncDateControls(); document.getElementById('pickerError').hidden = true; openDialog(editDialog); }
+            function edit(item) { if(saving)return; form.reset(); document.getElementById('formAction').value = item ? 'update' : 'create'; document.getElementById('reminderId').value = item ? item.id : ''; document.getElementById('editHeading').textContent = item ? 'Edit reminder' : 'Add reminder'; title.value = item ? item.title : ''; description.value = item ? item.description : ''; eventAt.value = item ? item.event_at : selected + 'T09:00'; preset.value = item ? 'custom' : '1440'; remindAt.value = item ? item.remind_at : ''; if (!item) updatePreset(); remindAt.setCustomValidity(''); closePickers(); syncDateControls(); document.getElementById('pickerError').hidden = true; syncPresetPicker(); closePresetPicker(); openDialog(editDialog); }
             function render() {
                 const scrollTop=list.scrollTop; const focus=document.activeElement; const focusedCard=focus?.closest('[data-reminder-id]'); const focusID=focusedCard?.dataset.reminderId; const actionIndex=focusedCard ? [...focusedCard.querySelectorAll('button')].indexOf(focus) : -1;
                 document.getElementById('selectedDateLabel').textContent = dateLabel(selected);

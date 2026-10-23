@@ -1614,7 +1614,7 @@ body.admin-announcements-page .admin-announcement-tab[aria-selected="true"] {bac
 body.admin-announcements-page .admin-announcement-tab svg {width:17px;height:17px;flex-shrink:0;}
 body.admin-announcements-page .admin-announcement-tab:focus-visible {outline:2px solid #a78bfa;outline-offset:2px;}
 body.admin-announcements-page .admin-announcement-tab-count {display:inline-flex;align-items:center;justify-content:center;min-width:27px;height:27px;padding:0 7px;border-radius:9px;background:rgba(139,92,246,.09);color:#b69bec;font-size:11px;box-sizing:border-box;}
-body.admin-announcements-page .admin-announcement-tab[aria-selected="true"] .resource-tab-count {background:rgba(139,92,246,.30);color:#eee4ff;}
+body.admin-announcements-page .admin-announcement-tab[aria-selected="true"] .admin-announcement-tab-count {background:rgba(139,92,246,.30);color:#eee4ff;}
 
 body.admin-announcements-page .admin-announcement-panel[hidden] {display:none!important;}
 body.admin-announcements-page .tl-announcement-preview {display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;overflow-wrap:anywhere;}
@@ -1622,6 +1622,74 @@ body.admin-announcements-page #adminLeadAnnouncementDialog {width:min(92vw,460px
 body.admin-announcements-page #adminLeadAnnouncementDialog::backdrop {background:rgba(4,4,10,.35);backdrop-filter:blur(3px);}
 body.admin-announcements-page #adminLeadAnnouncementMessage {white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.7;max-height:55vh;overflow:auto;}
 @media(max-width:560px){body.admin-announcements-page .admin-announcement-tab {gap:6px;padding:9px 5px;font-size:12px;}}
+
+/* Announcement layout refinements: preserve the existing dark-purple theme. */
+body.admin-announcements-page .dashboard-box,
+body.admin-announcements-page .dashboard-content,
+body.admin-announcements-page .create-card,
+body.admin-announcements-page .history-card,
+body.admin-announcements-page .announcement-body,
+body.admin-announcements-page .admin-announcement-panel {min-width:0;max-width:100%;box-sizing:border-box;}
+body.admin-announcements-page .create-card *,
+body.admin-announcements-page .history-card *,
+body.admin-announcements-page .seen-modal-card * {box-sizing:border-box;}
+body.admin-announcements-page .announcement-textarea,
+body.admin-announcements-page .announcement-edit-textarea {display:block;width:100%;max-width:100%;box-sizing:border-box;}
+body.admin-announcements-page .section-title-block,
+body.admin-announcements-page .dashboard-header-content > div:first-child {min-width:0;}
+body.admin-announcements-page .announcement-title-row {align-items:flex-start;gap:12px;}
+body.admin-announcements-page .announcement-title {min-width:0;overflow-wrap:anywhere;line-height:1.5;}
+body.admin-announcements-page .announcement-message {overflow-wrap:anywhere;word-break:normal;}
+body.admin-announcements-page .announcement-actions {align-items:center;flex:none;flex-wrap:nowrap;}
+body.admin-announcements-page .history-top {flex-wrap:wrap;padding-top:10px;padding-bottom:10px;}
+body.admin-announcements-page .send-area {flex-wrap:wrap;row-gap:10px;}
+body.admin-announcements-page .send-option {box-sizing:border-box;max-width:100%;}
+body.admin-announcements-page .member-option {min-width:0;box-sizing:border-box;}
+body.admin-announcements-page .admin-announcement-tab {overflow-wrap:anywhere;text-align:center;}
+body.admin-announcements-page .admin-announcement-tab-count {flex:none;}
+body.admin-announcements-page .seen-modal-card,
+body.admin-announcements-page #adminLeadAnnouncementDialog {box-sizing:border-box;max-width:calc(100vw - 28px);}
+body.admin-announcements-page .delete-confirm-actions {flex-wrap:wrap;}
+body.admin-announcements-page .announcement-live-error,
+body.admin-announcements-page .delete-confirm-error {margin:9px 0 4px;font-size:12px;color:#ffb0bc;line-height:1.5;}
+/* Self-contained toast if shared window.showToast is unavailable. */
+.announcement-toast-stack {position:fixed;right:24px;bottom:24px;z-index:200100;width:min(370px,calc(100vw - 32px));display:grid;gap:9px;pointer-events:none;}
+.announcement-toast {display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:12px;border:1px solid #514169;background:#181321;color:#f4ecff;box-shadow:0 15px 38px #0009;font-size:12px;line-height:1.5;pointer-events:auto;overflow-wrap:anywhere;}
+.announcement-toast::before {content:'✓';color:#a4e5bb;font-weight:900;font-size:14px;}
+.announcement-toast[data-type=error] {border-color:#875060;}
+.announcement-toast[data-type=error]::before {content:'!';color:#ff9ead;}
+.announcement-toast[data-type=warning]::before {content:'!';color:#f2ce92;}
+body.admin-announcements-page #toastContainer {position:fixed!important;right:24px!important;left:auto!important;top:auto!important;bottom:24px!important;z-index:200100!important;max-width:calc(100vw - 32px)!important;}
+@media(max-width:768px){
+ body.admin-announcements-page .dashboard-box {width:100%;padding:12px;overflow-x:hidden;}
+ body.admin-announcements-page .dashboard-header {padding:22px 17px;}
+ body.admin-announcements-page .dashboard-header-content {gap:13px;}
+ body.admin-announcements-page .form-bottom {gap:15px;}
+ body.admin-announcements-page .send-area {min-width:0;}
+ body.admin-announcements-page .members-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
+ body.admin-announcements-page .announcement-footer .seen-status-wrapper {max-width:100%;flex:1 1 100%;}
+ body.admin-announcements-page .seen-modal {padding:12px;}
+ body.admin-announcements-page .seen-modal-card {width:min(100%,460px);}
+}
+@media(max-width:480px){
+ body.admin-announcements-page .dashboard-header h1 {font-size:clamp(23px,7vw,30px);letter-spacing:-.5px;}
+ body.admin-announcements-page .create-card {padding:15px 12px;}
+ body.admin-announcements-page .admin-announcement-tabs {padding:4px;gap:4px;}
+ body.admin-announcements-page .admin-announcement-tab {flex:1 1 0;gap:5px;flex-wrap:wrap;min-height:52px;padding:8px 5px;font-size:11px;line-height:1.35;}
+ body.admin-announcements-page .admin-announcement-tab svg {width:14px;height:14px;}
+ body.admin-announcements-page .admin-announcement-tab-count {min-width:22px;height:22px;font-size:10px;}
+ body.admin-announcements-page .announcement-item {padding:15px 11px;gap:9px;}
+ body.admin-announcements-page .announcement-title-row {gap:7px;}
+ body.admin-announcements-page .announcement-title {font-size:11px;}
+ body.admin-announcements-page .announcement-actions {gap:5px;}
+ body.admin-announcements-page .announcement-action {width:29px!important;height:29px!important;}
+ body.admin-announcements-page .members-grid {grid-template-columns:minmax(0,1fr);}
+ body.admin-announcements-page .send-options {min-width:0;align-items:stretch;}
+ body.admin-announcements-page .send-option {width:100%;min-height:43px;}
+ body.admin-announcements-page .delete-confirm-actions button {flex:1 1 120px;}
+ .announcement-toast-stack {right:16px;bottom:16px;}
+ body.admin-announcements-page #toastContainer {right:16px!important;bottom:16px!important;}
+}
 </style>{% endblock %}
 {% block content %}
 <div hidden aria-hidden="true">
@@ -2581,12 +2649,15 @@ body.admin-announcements-page #adminLeadAnnouncementMessage {white-space:pre-wra
            DELETE CONFIRMATION
         ========================================================= */
 let pendingDeleteAnnouncementForm = null;
+let previousDeleteBodyOverflow = "";
 
 function confirmDeleteAnnouncement(form) {
     pendingDeleteAnnouncementForm = form;
+    document.querySelector("#deleteAnnouncementModal .delete-confirm-error")?.remove();
     const modal = document.getElementById("deleteAnnouncementModal");
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
+    previousDeleteBodyOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     modal.querySelector(".seen-modal-close").focus();
     return false;
@@ -2596,7 +2667,7 @@ function closeDeleteAnnouncementModal() {
     const modal = document.getElementById("deleteAnnouncementModal");
     modal.classList.remove("open");
     modal.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
+    document.body.style.overflow = previousDeleteBodyOverflow;
     pendingDeleteAnnouncementForm = null;
 }
 
@@ -2615,15 +2686,27 @@ document.addEventListener('DOMContentLoaded', () => {
  const root = document.querySelector('.admin-announcements-page .dashboard-box');
  const own = document.getElementById('adminOwnAnnouncementsPanel');
  if (!root || !own) return;
- let busy = false, controller = null, timer = null, revision = 0, ownSignature = '';
+ let busy = false, controller = null, timer = null, revision = 0;
+ let ownSignature = own.querySelector('.announcement-list')?.innerHTML || '';
  const pageUrl = new URL(window.location.href); pageUrl.searchParams.delete('format');
  const notify = (text, type = 'success') => {
-  if (typeof window.showToast === 'function') window.showToast(text, type);
-  else {
-   let status = document.getElementById('announcementLiveStatus');
-   if (!status) { status = document.createElement('p'); status.id = 'announcementLiveStatus'; status.setAttribute('role','status'); own.prepend(status); }
-   status.textContent = text;
+  if (typeof window.showToast === 'function') {
+   window.showToast(text, type);
+   return;
   }
+  let stack = document.getElementById('announcementToastStack');
+  if (!stack) {
+   stack = document.createElement('div'); stack.id = 'announcementToastStack';
+   stack.className = 'announcement-toast-stack';
+   stack.setAttribute('aria-live', 'polite');
+   document.body.append(stack);
+  }
+  const toast = document.createElement('div'); toast.className = 'announcement-toast';
+  toast.dataset.type = type; toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+  toast.textContent = text;
+  stack.append(toast);
+  while (stack.childElementCount > 4) stack.firstElementChild.remove();
+  setTimeout(() => toast.remove(), 4500);
  };
  const editing = () => Array.from(own.querySelectorAll('.announcement-edit-box')).some(box => getComputedStyle(box).display !== 'none');
  function updateCounts() {
@@ -2641,8 +2724,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const nextList = incoming.querySelector('.announcement-list'), list = own.querySelector('.announcement-list');
   if (!editing() && list && nextList && ownSignature !== nextList.innerHTML) {
    const top = list.scrollTop;
+   const focused = document.activeElement;
+   const focusedCardId = list.contains(focused) ? focused.closest('.announcement-item')?.id : null;
+   const focusedAction = focused?.classList?.contains('edit-action') ? '.edit-action'
+    : focused?.classList?.contains('delete-action') ? '.delete-action'
+    : focused?.classList?.contains('view-action') ? '.view-action' : null;
    list.replaceChildren(...Array.from(nextList.childNodes)); list.scrollTop = top;
-   ownSignature = list.innerHTML;
+   ownSignature = nextList.innerHTML;
+   if (focusedCardId && focusedAction) {
+    document.getElementById(focusedCardId)?.querySelector(focusedAction)?.focus({preventScroll:true});
+   }
   }
   const count = own.querySelector('.history-count'), nextCount = incoming.querySelector('.history-count');
   if (count && nextCount) count.textContent = nextCount.textContent;
@@ -2678,12 +2769,25 @@ document.addEventListener('DOMContentLoaded', () => {
  }
  function schedule() {
   clearTimeout(timer); if (document.hidden) return;
-  timer = setTimeout(async () => { if (!busy) { try { await refresh(); } catch (_) {} } schedule(); },10000);
+  timer = setTimeout(async () => {
+   const confirmOpen = document.getElementById('deleteAnnouncementModal')?.classList.contains('open');
+   if (!busy && !confirmOpen && !document.getElementById('adminLeadAnnouncementDialog')?.open) {
+    try { await refresh(); } catch (_) { /* retry on next scheduled sync */ }
+   }
+   schedule();
+  },10000);
  }
  window.saveAdminAnnouncement = async (form, button = null) => {
   if (busy) return;
   busy = true; controller?.abort(); ++revision;
   const data = new FormData(form), action = data.get('action');
+  const draft = typeof data.get('message') === 'string' ? data.get('message').trim() : '';
+  if ((action === 'create_announcement' || action === 'edit_announcement') && !draft) {
+   busy = false; notify('Please enter an announcement message.', 'error'); schedule(); return;
+  }
+  if (action === 'create_announcement' && data.get('send_to') === 'selected' && !data.getAll('recipient_ids').length) {
+   busy = false; notify('Select at least one recipient.', 'error'); schedule(); return;
+  }
   if (button?.name) data.append(button.name,button.value || '1');
   const controls = Array.from(root.querySelectorAll('button[type=submit]'));
   controls.push(document.querySelector('.delete-confirm-submit'));
@@ -2691,8 +2795,13 @@ document.addEventListener('DOMContentLoaded', () => {
   enabled.forEach(control => { control.disabled = true; });
   form.querySelector('.announcement-live-error')?.remove();
   let saved = false;
+  const saveAbort = new AbortController();
+  const saveTimeout = setTimeout(() => saveAbort.abort(), 30000);
   try {
-   const response = await fetch(form.getAttribute('action') || pageUrl,{method:'POST',body:data,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}});
+   const response = await fetch(form.getAttribute('action') || pageUrl,{
+    method:'POST',body:data,credentials:'same-origin',signal:saveAbort.signal,
+    headers:{'X-Requested-With':'XMLHttpRequest'}
+   });
    let result;
    if ((response.headers.get('Content-Type') || '').includes('application/json')) {
     result = await response.json();
@@ -2716,12 +2825,23 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch(error) {
    if (saved) notify('Saved successfully. Announcement updates will retry automatically.','warning');
    else {
-    if (action !== 'delete_announcement') {
-     const alert = document.createElement('p'); alert.className = 'announcement-live-error'; alert.setAttribute('role','alert'); alert.style.color = '#efa6b2'; alert.textContent = error.message; form.prepend(alert);
+    if (action === 'delete_announcement') {
+     const card = document.querySelector('#deleteAnnouncementModal .seen-modal-body');
+     if (card) {
+      let alert = card.querySelector('.delete-confirm-error');
+      if (!alert) { alert = document.createElement('p'); alert.className = 'delete-confirm-error'; alert.setAttribute('role','alert'); card.prepend(alert); }
+      alert.textContent = error.message;
+     }
+    } else {
+     const alert = document.createElement('p'); alert.className = 'announcement-live-error';
+     alert.setAttribute('role','alert'); alert.textContent = error.message; form.prepend(alert);
     }
-    notify(error.message,'error');
+    notify(error.name === 'AbortError' ? 'The request timed out. Check its status before retrying.' : error.message,'error');
    }
-  } finally { enabled.forEach(control => { control.disabled = false; }); busy = false; schedule(); }
+  } finally {
+   clearTimeout(saveTimeout);
+   enabled.forEach(control => { control.disabled = false; }); busy = false; schedule();
+  }
  };
  document.addEventListener('submit',event => {
   const form = event.target;

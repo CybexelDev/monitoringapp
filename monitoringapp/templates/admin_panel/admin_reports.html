@@ -1054,6 +1054,242 @@ body.admin-reports-page .report-reset-btn:hover {
 
     
 
+
+/* Report eye actions, responsive scrolling and Meeting Details-style dark-purple viewer. */
+body.admin-reports-page .dashboard-box,
+body.admin-reports-page .dashboard-content,
+body.admin-reports-page .report-section,
+body.admin-reports-page .report-card,
+body.admin-reports-page .report-toolbar {
+    box-sizing: border-box; min-width: 0; max-width: 100%;
+}
+body.admin-reports-page .report-toolbar { flex-wrap: wrap; }
+body.admin-reports-page .report-actions,body.admin-reports-page .filter-area {min-width:0;}
+body.admin-reports-page .report-actions .glass-button {font:inherit;font-size:11px;cursor:pointer;white-space:nowrap;}
+body.admin-reports-page .report-card .table-wrapper {max-height:440px;overflow:auto;overscroll-behavior:contain;}
+body.admin-reports-page .report-table th {position:sticky;top:0;z-index:1;background:#211b2c;}
+body.admin-reports-page .report-table td .report-text {max-height:66px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;white-space:pre-wrap;overflow-wrap:anywhere;}
+.admin-report-view-dialog {
+    width:min(700px,calc(100vw - 28px));max-height:calc(100dvh - 28px);
+    box-sizing:border-box;padding:0;overflow:auto;border:1px solid #383045;border-radius:22px;
+    background:#0e0c16;color:#f1eafa;color-scheme:dark;box-shadow:0 24px 80px #0009;
+    scrollbar-width:thin;scrollbar-color:#6d528d transparent;
+}
+.admin-report-view-dialog::backdrop {background:rgba(5,4,12,.74);backdrop-filter:blur(5px);}
+.admin-report-view-dialog .report-view-header {
+    display:flex;align-items:center;gap:14px;padding:23px 25px;border-bottom:1px solid #302637;
+    background:linear-gradient(115deg,#211630,#131321 65%,#171c2b);
+}
+.admin-report-view-dialog .report-view-header-icon {
+    width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:13px;
+    border:1px solid rgba(151,140,255,.30);background:linear-gradient(130deg,#2b2042,#20264a);color:#a9baff;
+}
+.admin-report-view-dialog .report-view-header-icon svg {width:21px;height:21px;}
+.admin-report-view-dialog .report-view-heading {flex:1;min-width:0;}
+.admin-report-view-dialog .report-view-heading h2 {margin:0;font-size:20px;font-weight:800;color:#faf7ff;}
+.admin-report-view-dialog .report-view-heading p {margin:5px 0 0;font-size:12px;color:#9990aa;}
+.admin-report-view-dialog .report-view-close {
+    width:38px;height:38px;display:grid;place-items:center;flex:none;cursor:pointer;
+    border:1px solid #363043;border-radius:10px;background:#21202e;color:#c5bdce;
+}
+.admin-report-view-dialog .report-view-close svg {width:18px;height:18px;}
+.admin-report-view-dialog .report-view-content {padding:25px;max-height:calc(100dvh - 215px);overflow:auto;}
+.admin-report-view-dialog .report-view-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+.admin-report-view-dialog .report-view-field {min-width:0;}
+.admin-report-view-dialog .report-view-field.is-wide {grid-column:1/-1;}
+.admin-report-view-dialog .report-view-field > label {display:block;margin-bottom:8px;font-size:11px;font-weight:800;color:#bcb1cc;letter-spacing:.035em;text-transform:uppercase;}
+.admin-report-view-dialog .report-view-value {
+    box-sizing:border-box;min-height:49px;padding:13px 14px;border:1px solid #302c3b;border-radius:11px;
+    background:#0a0911;color:#efecf7;font-size:14px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;
+}
+.admin-report-view-dialog .report-view-long {min-height:98px;max-height:none;}
+.admin-report-view-dialog .report-view-footer {display:flex;justify-content:flex-end;padding:17px 25px 22px;border-top:1px solid #292331;}
+.admin-report-view-dialog .report-view-done,.admin-report-view-dialog .report-view-drilldown {
+    padding:10px 17px;min-height:40px;border:1px solid #49345e;border-radius:10px;
+    background:#21162e;color:#decaf5;font:inherit;font-size:12px;font-weight:750;cursor:pointer;
+}
+.admin-report-view-dialog .report-view-done:hover,.admin-report-view-dialog .report-view-drilldown:hover {background:#322145;}
+.admin-report-view-dialog .report-view-group + .report-view-group {margin-top:26px;}
+.admin-report-view-dialog .report-view-group h3 {margin:0 0 12px;font-size:14px;color:#e7daf7;}
+.admin-report-view-dialog .report-view-entry {padding:15px;margin:0 0 11px;border:1px solid #342a44;border-radius:12px;background:#15101e;}
+.admin-report-view-dialog .report-view-entry-heading {display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;}
+.admin-report-view-dialog .report-view-entry-heading strong {color:#f2eafb;font-size:13px;}
+.admin-report-view-dialog .report-view-entry-heading small {color:#a898bb;font-size:11px;}
+.admin-report-view-dialog .report-view-entry-meta {margin:7px 0 10px;color:#b9adc8;font-size:11px;line-height:1.5;}
+.admin-report-view-dialog .report-view-entry-text {white-space:pre-wrap;overflow-wrap:anywhere;color:#e2dbe9;font-size:12px;line-height:1.7;}
+.admin-report-view-dialog .report-view-entry-footer {margin-top:12px;text-align:right;}
+.admin-report-view-dialog .report-view-empty {color:#afa4bf;font-size:13px;line-height:1.7;}
+.admin-report-view-dialog button:focus-visible {outline:2px solid #a78bfa;outline-offset:2px;}
+.report-local-toast-stack {position:fixed;bottom:24px;right:24px;width:min(360px,calc(100vw - 32px));z-index:200000;display:grid;gap:9px;pointer-events:none;}
+.report-local-toast {padding:13px 16px;border:1px solid #57436f;border-radius:12px;background:#1b1529;color:#f3ebff;box-shadow:0 12px 32px #0008;font-size:13px;pointer-events:auto;}
+.report-local-toast[data-type="error"] {border-color:#975062;}
+.report-local-toast[data-type="success"] {border-color:#41735c;}
+@media(max-width:650px) {
+    body.admin-reports-page .dashboard-header{padding:20px 16px;}
+    body.admin-reports-page .report-actions,body.admin-reports-page .filter-area {width:100%;}
+    body.admin-reports-page .report-actions .glass-button {flex:1 1 135px;}
+    body.admin-reports-page .report-date-picker {flex:1 1 100%;width:100%;}
+    body.admin-reports-page .filter-area .glass-button {flex:1 1 130px;}
+    body.admin-reports-page .report-toolbar {padding:14px;}
+    .admin-report-view-dialog .report-view-grid {grid-template-columns:1fr;}
+    .admin-report-view-dialog .report-view-field.is-wide {grid-column:1;}
+    .admin-report-view-dialog .report-view-header {padding:18px;}
+    .admin-report-view-dialog .report-view-content {padding:17px;}
+    .admin-report-view-dialog .report-view-footer {padding:16px 18px;}
+}
+@media(max-width:390px) {
+    body.admin-reports-page .report-actions .glass-button {flex:1 1 100%;}
+    body.admin-reports-page .report-date-picker .custom-calendar {max-width:calc(100vw - 30px);}
+    .admin-report-view-dialog .report-view-heading h2 {font-size:17px;}
+}
+
+
+/* Team Lead Reports-inspired section View buttons; scoped to Admin Reports. */
+body.admin-reports-page .report-section .section-heading {min-width:0;}
+body.admin-reports-page .report-section-view {
+    display:inline-flex;align-items:center;justify-content:center;
+    width:38px;height:38px;flex:0 0 38px;margin-left:auto;
+    border:1px solid rgba(170,140,247,.42);border-radius:9px;
+    background:rgba(111,76,190,.18);color:#e8dbff;cursor:pointer;
+    transition:background .2s,border-color .2s,color .2s;
+}
+body.admin-reports-page .report-section-view:hover {background:rgba(111,76,190,.4);border-color:#a78bfa;color:#fff;}
+body.admin-reports-page .report-section-view:focus-visible {outline:2px solid #a78bfa;outline-offset:3px;}
+body.admin-reports-page .report-section-view svg {width:18px;height:18px;}
+.admin-report-view-dialog .report-view-section-list {
+    display:grid;gap:0;min-height:0;max-height:min(540px,calc(100dvh - 238px));
+    overflow-y:auto;overscroll-behavior:contain;padding-right:4px;
+    scrollbar-width:thin;scrollbar-color:#8061b4 transparent;
+}
+.admin-report-view-dialog .report-view-section-item {
+    padding:17px 0;border-bottom:1px solid rgba(255,255,255,.10);
+}
+.admin-report-view-dialog .report-view-section-item:first-child {padding-top:0;}
+.admin-report-view-dialog .report-view-section-item:last-child {border-bottom:0;}
+.admin-report-view-dialog .report-view-section-top {
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+}
+.admin-report-view-dialog .report-view-section-top strong {color:#f6f0ff;font-size:14px;overflow-wrap:anywhere;}
+.admin-report-view-dialog .report-view-section-status {
+    display:inline-flex;align-items:center;padding:5px 11px;border-radius:9px;
+    border:1px solid rgba(167,139,250,.3);background:rgba(139,92,246,.1);
+    color:#d7c1f8;font-size:11px;font-weight:700;
+}
+.admin-report-view-dialog .report-view-section-status.is-completed,
+.admin-report-view-dialog .report-view-section-status.is-submitted {color:#9ee7ba;border-color:rgba(52,211,153,.28);background:rgba(52,211,153,.10);}
+.admin-report-view-dialog .report-view-section-status.is-progress {color:#9bd3ff;border-color:rgba(59,130,246,.32);background:rgba(59,130,246,.12);}
+.admin-report-view-dialog .report-view-section-status.is-pending {color:#ffd080;border-color:rgba(245,158,11,.32);background:rgba(245,158,11,.12);}
+.admin-report-view-dialog .report-view-section-meta {margin:8px 0 11px;color:#b3a6cc;font-size:12px;line-height:1.6;overflow-wrap:anywhere;}
+.admin-report-view-dialog .report-view-section-text {margin:0;color:#ece7f5;font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;}
+@media(max-width:520px) {
+    body.admin-reports-page .report-section-view {margin-left:auto;}
+    .admin-report-view-dialog .report-view-section-list {max-height:calc(100dvh - 225px);}
+}
+
+
+/* =============================================================
+   Admin reports – Team Lead style viewer with ONE scrollbar.
+   Keep the header and close footer fixed while entries scroll.
+   ============================================================= */
+.admin-report-view-dialog {
+    width: min(740px, calc(100vw - 30px));
+    max-height: min(85dvh, 780px);
+    overflow: hidden; /* Never scroll the dialog shell itself */
+    padding: 0;
+    border: 1px solid #3d324e;
+    border-radius: 20px;
+    background: #0e0c16;
+    color: #f1eafa;
+}
+.admin-report-view-dialog[open] {
+    display: flex;
+    flex-direction: column;
+}
+.admin-report-view-dialog .report-view-header,
+.admin-report-view-dialog .report-view-footer {
+    flex: 0 0 auto;
+}
+.admin-report-view-dialog .report-view-header {
+    gap: 12px;
+    padding: 21px 23px;
+    background: linear-gradient(113deg, #211630 0%, #151320 62%, #151c2a 100%);
+    border-bottom: 1px solid #302739;
+}
+.admin-report-view-dialog .report-view-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding: 18px 23px;
+    scrollbar-width: thin;
+    scrollbar-color: #7653ad #14101d;
+}
+.admin-report-view-dialog .report-view-content::-webkit-scrollbar { width: 7px; }
+.admin-report-view-dialog .report-view-content::-webkit-scrollbar-track { background: #14101d; }
+.admin-report-view-dialog .report-view-content::-webkit-scrollbar-thumb {
+    background: #7653ad;
+    border-radius: 10px;
+}
+.admin-report-view-dialog .report-view-section-list {
+    display: grid;
+    gap: 12px;
+    min-height: 0;
+    max-height: none;
+    overflow: visible; /* All scrolling is owned by .report-view-content */
+    padding: 0;
+}
+.admin-report-view-dialog .report-view-section-item,
+.admin-report-view-dialog .report-view-section-item:first-child,
+.admin-report-view-dialog .report-view-section-item:last-child {
+    min-width: 0;
+    padding: 17px 18px;
+    margin: 0;
+    border: 1px solid #342a44;
+    border-radius: 13px;
+    background: linear-gradient(125deg, #171220, #110e18);
+}
+.admin-report-view-dialog .report-view-section-top { gap: 10px; }
+.admin-report-view-dialog .report-view-section-top strong { font-size: 13px; line-height: 1.5; }
+.admin-report-view-dialog .report-view-section-status { flex-shrink: 0; }
+.admin-report-view-dialog .report-view-section-meta {
+    margin: 10px 0 12px;
+    color: #a99bbd;
+    font-size: 11px;
+    line-height: 1.7;
+}
+.admin-report-view-dialog .report-view-section-text {
+    padding-top: 12px;
+    border-top: 1px solid rgba(181,152,224,.12);
+    font-size: 13px;
+    line-height: 1.75;
+    color: #e9e2f2;
+}
+.admin-report-view-dialog .report-view-footer {
+    padding: 14px 23px 18px;
+    border-top: 1px solid #292331;
+    background: #0e0c16;
+}
+@media (max-width: 520px) {
+    .admin-report-view-dialog {
+        width: calc(100vw - 20px);
+        max-height: calc(100dvh - 20px);
+        border-radius: 16px;
+    }
+    .admin-report-view-dialog .report-view-header { padding: 16px; gap: 10px; }
+    .admin-report-view-dialog .report-view-heading h2 { font-size: 17px; }
+    .admin-report-view-dialog .report-view-header-icon {
+        width: 42px; height: 42px; flex-basis: 42px;
+    }
+    .admin-report-view-dialog .report-view-content { padding: 13px; }
+    .admin-report-view-dialog .report-view-section-item,
+    .admin-report-view-dialog .report-view-section-item:first-child,
+    .admin-report-view-dialog .report-view-section-item:last-child { padding: 14px; }
+    .admin-report-view-dialog .report-view-footer { padding: 12px 16px 16px; }
+    .admin-report-view-dialog .report-view-section-top { align-items: flex-start; }
+}
+
 </style>
 {% endblock %}
 {% block content %}
@@ -1276,6 +1512,10 @@ body.admin-reports-page .report-reset-btn:hover {
 
                     <div class="heading-line"></div>
 
+                    <button type="button" class="report-section-view" data-report-section="morning" aria-label="View Morning Reports" title="View Morning Reports" aria-haspopup="dialog" aria-controls="adminReportViewDialog">
+                        <i data-lucide="eye" aria-hidden="true"></i>
+                    </button>
+
                 </div>
 
 
@@ -1408,6 +1648,10 @@ body.admin-reports-page .report-reset-btn:hover {
 
                     <div class="heading-line"></div>
 
+                    <button type="button" class="report-section-view" data-report-section="evening" aria-label="View Evening Reports" title="View Evening Reports" aria-haspopup="dialog" aria-controls="adminReportViewDialog">
+                        <i data-lucide="eye" aria-hidden="true"></i>
+                    </button>
+
                 </div>
 
 
@@ -1525,6 +1769,21 @@ body.admin-reports-page .report-reset-btn:hover {
 
 {% endblock %}
 {% block extra_js %}
+<!-- Read-only report viewer. Renders only report data already provided by the server. -->
+<dialog id="adminReportViewDialog" class="admin-report-view-dialog" aria-labelledby="adminReportViewTitle" aria-describedby="adminReportViewSubtitle">
+    <header class="report-view-header">
+        <span class="report-view-header-icon" aria-hidden="true"><i data-lucide="eye"></i></span>
+        <div class="report-view-heading">
+            <h2 id="adminReportViewTitle">Report Details</h2>
+            <p id="adminReportViewSubtitle">View full report information</p>
+        </div>
+        <button type="button" class="report-view-close" data-close-report-view aria-label="Close report details"><i data-lucide="x"></i></button>
+    </header>
+    <div class="report-view-content" id="adminReportViewContent"></div>
+    <footer class="report-view-footer">
+        <button type="button" class="report-view-done" data-close-report-view>Close</button>
+    </footer>
+</dialog>
 <script>
 
 /* =========================================================
@@ -1849,102 +2108,229 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
- const root = document.querySelector('.admin-reports-page .dashboard-box');
- const filter = root?.querySelector('.filter-area');
- if (!root || !filter) return;
- let currentUrl = new URL(window.location.href), request = null, token = 0, timer = null;
- const signatures = new Map();
- const notify = message => {
-  if (typeof window.showToast === 'function') window.showToast(message,'error');
-  else {
-   let alert = document.getElementById('reportLiveError');
-   if (!alert) { alert = document.createElement('p'); alert.id = 'reportLiveError'; alert.setAttribute('role','alert'); filter.after(alert); }
-   alert.textContent = message;
-  }
- };
- function apply(doc, navigation) {
-  const incoming = Array.from(doc.querySelectorAll('.report-section'));
-  const sections = Array.from(root.querySelectorAll('.report-section'));
-  if (incoming.length !== sections.length || !incoming.length) throw new Error('Unable to load reports. Check your login and connection.');
-  sections.forEach((section,index) => {
-   const body = section.querySelector('tbody'), next = incoming[index].querySelector('tbody');
-   if (!body || !next) throw new Error('Report table not found.');
-   const signature = next.innerHTML;
-   if (signatures.get(index) !== signature) {
-    const wrapper = section.querySelector('.table-wrapper'), top = wrapper.scrollTop, left = wrapper.scrollLeft;
-    body.replaceChildren(...Array.from(next.childNodes)); signatures.set(index,signature);
-    wrapper.scrollTop = top; wrapper.scrollLeft = left;
-   }
-  });
-  if (navigation) {
-   const tabs = root.querySelector('.report-role-tabs'), nextTabs = doc.querySelector('.report-role-tabs');
-   const actions = root.querySelector('.report-actions'), nextActions = doc.querySelector('.report-actions');
-   if (tabs && nextTabs) tabs.replaceChildren(...Array.from(nextTabs.childNodes));
-   if (actions && nextActions) actions.replaceChildren(...Array.from(nextActions.childNodes));
-   const freshForm = doc.querySelector('.filter-area');
-   if (freshForm) {
-    for (const name of ['tab','all']) {
-     filter.querySelector(`input[name="${name}"]`)?.remove();
-     const input = freshForm.querySelector(`input[name="${name}"]`);
-     if (input) filter.append(input.cloneNode(true));
-    }
-    const date = filter.querySelector('input[name="date"]');
-    if (date) { date.value = freshForm.querySelector('input[name="date"]')?.value || ''; date.dispatchEvent(new Event('change',{bubbles:true})); }
-    const reset = filter.querySelector('.report-reset-btn'), nextReset = freshForm.querySelector('.report-reset-btn');
-    if (reset && nextReset) reset.href = nextReset.href;
-   }
-  }
-  document.getElementById('reportLiveError')?.remove();
-  if (window.lucide) window.lucide.createIcons();
- }
- function schedule() {
-  clearTimeout(timer); if (document.hidden) return;
-  timer = setTimeout(async () => { if (!request) { try { await load(currentUrl,false); } catch (_) {} } schedule(); },10000);
- }
- async function load(url, navigation, historyMode = 'push') {
-  request?.abort(); const controller = new AbortController(); request = controller;
-  const sequence = ++token, timeout = setTimeout(() => controller.abort(),12000);
-  const target = new URL(url,window.location.href); target.searchParams.delete('export');
-  if (navigation) root.setAttribute('aria-busy','true');
-  try {
-   const response = await fetch(target,{credentials:'same-origin',cache:'no-store',signal:controller.signal});
-   if (!response.ok) throw new Error('Unable to update reports.');
-   const doc = new DOMParser().parseFromString(await response.text(),'text/html');
-   if (sequence !== token || controller.signal.aborted) return;
-   apply(doc,navigation);
-   currentUrl = target;
-   if (navigation && historyMode === 'push' && target.href !== window.location.href) history.pushState(null,'',target);
-  } finally {
-   clearTimeout(timeout);
-   if (request === controller) { request = null; root.removeAttribute('aria-busy'); schedule(); }
-  }
- }
- function navigate(url, mode = 'push') {
-  load(url,true,mode).catch(error => { if (error.name !== 'AbortError') notify(error.message); });
- }
- root.addEventListener('click',event => {
-  const link = event.target.closest('.report-role-tab, .report-actions a, .report-reset-btn');
-  if (!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || link.target === '_blank' || link.hasAttribute('download')) return;
-  const url = new URL(link.href);
-  if (url.origin !== window.location.origin || url.searchParams.has('export')) return;
-  event.preventDefault(); navigate(url);
- });
- filter.addEventListener('submit',event => {
-  event.preventDefault();
-  const url = new URL(currentUrl.pathname,currentUrl.origin);
-  for (const [key,value] of new FormData(filter)) if (String(value).trim()) url.searchParams.set(key,value);
-  navigate(url);
- });
- window.addEventListener('popstate',() => navigate(window.location.href,'none'));
- document.addEventListener('visibilitychange',() => {
-  if (document.hidden) { clearTimeout(timer); request?.abort(); }
-  else { if (!request) load(currentUrl,false).catch(() => {}); schedule(); }
- });
- window.addEventListener('online',() => { if (!request) load(currentUrl,false).catch(() => {}); });
- window.addEventListener('pagehide',() => { clearTimeout(timer); request?.abort(); });
- window.addEventListener('pageshow',schedule);
- schedule();
-});
+  const root = document.querySelector('.admin-reports-page .dashboard-box');
+  const filter = root?.querySelector('.filter-area');
+  const dialog = document.getElementById('adminReportViewDialog');
+  const dialogContent = document.getElementById('adminReportViewContent');
+  const dialogTitle = document.getElementById('adminReportViewTitle');
+  const dialogSubtitle = document.getElementById('adminReportViewSubtitle');
+  if (!root || !filter || !dialog || !dialogContent) return;
 
+  let currentUrl = new URL(window.location.href);
+  let request = null, token = 0, timer = null, isExporting = false;
+  const signatures = new Map();
+
+  function notify(message, type = 'info') {
+    const stackHost = dialog.open ? dialog : document.body;
+    if (typeof window.showToast === 'function' && !dialog.open) {
+      window.showToast(message, type); return;
+    }
+    let stack = document.getElementById('reportLocalToastStack');
+    if (!stack) {
+      stack = document.createElement('div'); stack.id = 'reportLocalToastStack';
+      stack.className = 'report-local-toast-stack'; stack.setAttribute('role','status');
+    }
+    if (stack.parentElement !== stackHost) stackHost.appendChild(stack);
+    const toast = document.createElement('div'); toast.className = 'report-local-toast';
+    toast.dataset.type = type; toast.textContent = message;
+    stack.appendChild(toast); setTimeout(() => toast.remove(), 4500);
+  }
+  function moveToastsOut() {
+    const stack = document.getElementById('reportLocalToastStack');
+    if (stack && stack.parentElement !== document.body) document.body.appendChild(stack);
+  }
+  function readReport(row) {
+    const columns = [...row.cells];
+    if (columns.length < 7 || row.querySelector('.empty-row')) return null;
+    return {
+      date: columns[0].textContent.trim(), time: columns[1].textContent.trim(),
+      name: columns[2].textContent.trim(), team: columns[3].textContent.trim(),
+      department: columns[4].textContent.trim(),
+      report: columns[5].querySelector('.report-text')?.textContent.trim() || '',
+      status: columns[6].textContent.trim(),
+      period: row.closest('.report-section')?.querySelector('.section-heading h2')?.textContent.trim() || 'Reports'
+    };
+  }
+  function el(tag, cls, content) {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (content != null) node.textContent = content;
+    return node;
+  }
+  function openView() {
+    if (!dialog.open) dialog.showModal();
+    dialog.querySelector('[data-close-report-view]')?.focus({preventScroll:true});
+    if (window.lucide) window.lucide.createIcons();
+  }
+  // Matches the Team Lead section eye: show ALL reports for a single period.
+  // Reads current table rows so date/tab filters and AJAX updates remain accurate.
+  function displaySection(period) {
+    const index = period === 'morning' ? 0 : 1;
+    const section = root.querySelectorAll('.report-section')[index];
+    if (!section) return notify('Unable to open these reports.','error');
+    const heading = period === 'morning' ? 'Morning Reports' : 'Evening Reports';
+    const reports = [...section.querySelectorAll('tbody tr')].map(readReport).filter(Boolean);
+    dialogTitle.textContent = heading;
+    dialogSubtitle.textContent = `${reports.length} report${reports.length === 1 ? '' : 's'} in the selected view`;
+    dialogContent.replaceChildren();
+    if (!reports.length) {
+      dialogContent.appendChild(el('p','report-view-empty',`No ${period} reports found for the selected filters.`));
+    } else {
+      const list = el('div','report-view-section-list');
+      reports.forEach(report => {
+        const item = el('article','report-view-section-item');
+        const headingRow = el('div','report-view-section-top');
+        const status = el('span','report-view-section-status',report.status || 'Submitted');
+        const normalized = (report.status || '').trim().toLowerCase();
+        if (normalized === 'completed' || normalized === 'submitted') status.classList.add('is-completed');
+        else if (normalized === 'in progress' || normalized === 'progress') status.classList.add('is-progress');
+        else if (normalized === 'pending') status.classList.add('is-pending');
+        headingRow.append(el('strong','',report.name || '—'),status);
+        item.append(headingRow,
+          el('p','report-view-section-meta',`${report.date} · ${report.time} · ${report.team} · ${report.department}`),
+          el('p','report-view-section-text',report.report || '—'));
+        list.appendChild(item);
+      });
+      dialogContent.appendChild(list);
+    }
+    dialogContent.scrollTop = 0;
+    openView();
+  }
+  dialog.querySelectorAll('[data-close-report-view]').forEach(button => button.addEventListener('click',() => dialog.close()));
+  dialog.addEventListener('close', () => {
+    moveToastsOut();
+    if (!request) load(currentUrl, false).catch(() => {});
+    schedule();
+  });
+  dialog.addEventListener('click',event => { if (event.target===dialog) dialog.close(); });
+
+  function apply(doc, navigation) {
+    const incoming = [...doc.querySelectorAll('.report-section')];
+    const sections = [...root.querySelectorAll('.report-section')];
+    if (incoming.length !== sections.length || !incoming.length)
+      throw new Error('Unable to load reports. Check your login and connection.');
+    sections.forEach((section,index) => {
+      const body = section.querySelector('tbody'), next = incoming[index].querySelector('tbody');
+      if (!body || !next) throw new Error('Report table not found.');
+      const signature = next.innerHTML;
+      if (signatures.get(index) !== signature) {
+        const wrapper = section.querySelector('.table-wrapper'), top = wrapper?.scrollTop || 0, left = wrapper?.scrollLeft || 0;
+        body.replaceChildren(...Array.from(next.childNodes)); signatures.set(index,signature);
+        if (wrapper) { wrapper.scrollTop = top; wrapper.scrollLeft = left; }
+      }
+    });
+    if (navigation) {
+      const tabs = root.querySelector('.report-role-tabs'), nextTabs = doc.querySelector('.report-role-tabs');
+      const actions = root.querySelector('.report-actions'), nextActions = doc.querySelector('.report-actions');
+      if (tabs && nextTabs) tabs.replaceChildren(...Array.from(nextTabs.childNodes));
+      if (actions && nextActions) actions.replaceChildren(...Array.from(nextActions.childNodes));
+      const freshForm = doc.querySelector('.filter-area');
+      if (freshForm) {
+        for (const name of ['tab','all']) {
+          filter.querySelector(`input[name="${name}"]`)?.remove();
+          const input = freshForm.querySelector(`input[name="${name}"]`);
+          if (input) filter.append(input.cloneNode(true));
+        }
+        const date = filter.querySelector('input[name="date"]');
+        if (date) {
+          date.value = freshForm.querySelector('input[name="date"]')?.value || '';
+          date.dispatchEvent(new Event('change',{bubbles:true}));
+        }
+        const reset = filter.querySelector('.report-reset-btn'), nextReset = freshForm.querySelector('.report-reset-btn');
+        if (reset && nextReset) reset.href = nextReset.href;
+      }
+    }
+    if (window.lucide) window.lucide.createIcons();
+  }
+  function schedule() {
+    clearTimeout(timer); if (document.hidden) return;
+    timer = setTimeout(async () => {
+      if (!request && !dialog.open && !isExporting) { try { await load(currentUrl,false); } catch (_) {} }
+      schedule();
+    },10000);
+  }
+  async function load(url, navigation, historyMode = 'push') {
+    request?.abort(); const controller = new AbortController(); request = controller;
+    const sequence = ++token, timeout = setTimeout(() => controller.abort(),12000);
+    const target = new URL(url,window.location.href); target.searchParams.delete('export');
+    if (navigation) root.setAttribute('aria-busy','true');
+    try {
+      const response = await fetch(target,{credentials:'same-origin',cache:'no-store',signal:controller.signal});
+      if (!response.ok) throw new Error('Unable to update reports.');
+      const doc = new DOMParser().parseFromString(await response.text(),'text/html');
+      if (sequence !== token || controller.signal.aborted) return;
+      apply(doc,navigation); currentUrl = target;
+      if (navigation && historyMode === 'push' && target.href !== window.location.href) history.pushState(null,'',target);
+    } finally {
+      clearTimeout(timeout);
+      if (request === controller) { request = null; root.removeAttribute('aria-busy'); schedule(); }
+    }
+  }
+  function navigate(url, mode = 'push') {
+    load(url,true,mode).catch(error => { if (error.name !== 'AbortError') notify(error.message,'error'); });
+  }
+  async function exportExcel(link) {
+    if (isExporting) return;
+    isExporting = true;
+    link.setAttribute('aria-busy','true'); link.classList.add('is-exporting');
+    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(),30000);
+    try {
+      const response = await fetch(link.href,{credentials:'same-origin',cache:'no-store',signal:controller.signal});
+      if (!response.ok) throw new Error('Excel export failed. Please try again.');
+      const contentType = (response.headers.get('Content-Type')||'').toLowerCase();
+      const disposition = response.headers.get('Content-Disposition')||'';
+      const filenameStar = /filename\*\s*=\s*(?:utf-8''|UTF-8'')([^;]+)/i.exec(disposition);
+      const filenameBasic = /filename\s*=\s*"?([^";]+)"?/i.exec(disposition);
+      let filename = 'team_reports.xlsx';
+      try { if (filenameStar) filename = decodeURIComponent(filenameStar[1].trim().replace(/^"|"$/g,''));
+            else if (filenameBasic) filename = filenameBasic[1].trim(); } catch (_) {}
+      filename = filename.split(/[\\/]/).pop().replace(/[\x00-\x1f]/g,'') || 'team_reports.xlsx';
+      const namedFile = /\.(xlsx|xls|csv)$/i.test(filename);
+      const excelType = /spreadsheet|ms-excel|csv|octet-stream/.test(contentType);
+      if (!excelType && !(namedFile && !/text\/html|application\/json/.test(contentType)))
+        throw new Error('The server did not return an Excel file. Check the export view.');
+      const blob = await response.blob();
+      if (!blob.size) throw new Error('The exported file is empty.');
+      const downloadURL = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');anchor.href = downloadURL;anchor.download = filename;
+      document.body.appendChild(anchor); anchor.click(); anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(downloadURL),60000);
+      notify('Excel file is ready to download.','success');
+    } catch (error) {
+      notify(error.name==='AbortError'?'Excel export timed out. Try again.':error.message,'error');
+    } finally {
+      clearTimeout(timeout); isExporting = false;
+      link.removeAttribute('aria-busy');link.classList.remove('is-exporting');
+    }
+  }
+  root.addEventListener('click',event => {
+    const sectionEye = event.target.closest('.report-section-view[data-report-section]');
+    if (sectionEye && root.contains(sectionEye)) {
+      displaySection(sectionEye.dataset.reportSection);
+      return;
+    }
+    const link = event.target.closest('.report-role-tab, .report-actions a, .report-reset-btn');
+    if (!link || event.button!==0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || link.target==='_blank' || link.hasAttribute('download')) return;
+    const url = new URL(link.href);
+    if (url.origin!==window.location.origin) return;
+    if (url.searchParams.has('export')) { event.preventDefault(); exportExcel(link);return; }
+    event.preventDefault();navigate(url);
+  });
+  filter.addEventListener('submit',event => {
+    event.preventDefault();
+    const url = new URL(currentUrl.pathname,currentUrl.origin);
+    for (const [key,value] of new FormData(filter)) if (String(value).trim()) url.searchParams.set(key,value);
+    navigate(url);
+  });
+  window.addEventListener('popstate',() => navigate(window.location.href,'none'));
+  document.addEventListener('visibilitychange',() => {
+    if (document.hidden) {clearTimeout(timer);request?.abort();}
+    else {if (!request && !dialog.open) load(currentUrl,false).catch(()=>{});schedule();}
+  });
+  window.addEventListener('online',() => {if (!request && !dialog.open) load(currentUrl,false).catch(()=>{});});
+  window.addEventListener('pagehide',() => {clearTimeout(timer);request?.abort();});
+  window.addEventListener('pageshow',schedule);
+  schedule();
+});
 </script>
 {% endblock %}

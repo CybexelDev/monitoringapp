@@ -1734,6 +1734,402 @@ body.admin-notepad-page .note-delete-open .dashboard-box {overflow:hidden!import
 html.note-delete-open, body.admin-notepad-page.note-delete-open, body.admin-notepad-page.note-delete-open .dashboard-box { overflow:hidden!important; overscroll-behavior:none; }
 
 body.admin-notepad-page.note-popup-open { overflow:hidden!important; }
+
+
+/* Admin Notepad — Meeting Details-style dark-purple sort dropdown. */
+body.admin-notepad-page .saved-notes-section { overflow: visible; }
+body.admin-notepad-page .note-search-tools { align-items: stretch; position: relative; z-index: 10; }
+body.admin-notepad-page .note-search-tools > input[type="search"] {
+    box-sizing: border-box; min-width: 0; flex: 1 1 230px;
+    min-height: 43px; padding: 10px 14px;
+    background: #0d0b15; color: #f0ebfa;
+    border: 1px solid #393048; border-radius: 10px;
+}
+body.admin-notepad-page .note-search-tools > input[type="search"]:focus-visible {
+    outline: 2px solid #9673d7; outline-offset: 1px;
+}
+body.admin-notepad-page .note-search-tools > select.note-sort-native[hidden] { display: none !important; }
+body.admin-notepad-page .note-sort-dropdown {
+    position: relative; z-index: 12;
+    flex: 0 1 225px; min-width: 190px; max-width: 100%;
+    font-size: 12px; font-weight: 650;
+}
+body.admin-notepad-page .note-sort-dropdown > summary {
+    box-sizing: border-box; display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; width: 100%; min-height: 43px; padding: 10px 14px;
+    list-style: none; cursor: pointer;
+    border: 1px solid #40334f; border-radius: 10px;
+    background: #0d0b15; color: #eee9fa;
+    transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+body.admin-notepad-page .note-sort-dropdown > summary::-webkit-details-marker { display: none; }
+body.admin-notepad-page .note-sort-dropdown > summary:hover,
+body.admin-notepad-page .note-sort-dropdown[open] > summary {
+    border-color: #8e6abb; background: #171122;
+}
+body.admin-notepad-page .note-sort-dropdown > summary:focus-visible {
+    outline: 2px solid #a78bfa; outline-offset: 3px;
+}
+body.admin-notepad-page .note-sort-caption { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+body.admin-notepad-page .note-sort-chevron {
+    display: block; width: 8px; height: 8px; flex: 0 0 8px;
+    border-right: 2px solid #c4b5fd; border-bottom: 2px solid #c4b5fd;
+    transform: translateY(-2px) rotate(45deg); transition: transform .2s ease;
+}
+body.admin-notepad-page .note-sort-dropdown[open] .note-sort-chevron { transform: translateY(2px) rotate(225deg); }
+body.admin-notepad-page .note-sort-menu {
+    box-sizing: border-box; position: absolute; top: calc(100% + 7px); left: 0; right: 0;
+    z-index: 40; padding: 7px;
+    border: 1px solid #57436f; border-radius: 12px;
+    background: radial-gradient(circle at 0% 0%, rgba(139,92,246,.18), transparent 55%), #0e0c16;
+    box-shadow: 0 18px 42px rgba(0,0,0,.65);
+}
+body.admin-notepad-page .note-sort-menu button {
+    box-sizing: border-box; display: flex; align-items: center;
+    width: 100%; min-height: 39px; padding: 10px 12px;
+    color: #e5dbf4; font: inherit; font-size: 12px; font-weight: 600; text-align: left;
+    background: transparent; border: 1px solid transparent; border-radius: 8px;
+    cursor: pointer;
+}
+body.admin-notepad-page .note-sort-menu button:hover,
+body.admin-notepad-page .note-sort-menu button:focus-visible,
+body.admin-notepad-page .note-sort-menu button[aria-pressed="true"] {
+    background: rgba(139,92,246,.19); color: #faf7ff;
+    border-color: rgba(167,139,250,.14); outline: none;
+}
+body.admin-notepad-page .note-sort-menu button[aria-pressed="true"]::after {
+    content: "✓"; margin-left: auto; color: #c4b5fd; font-weight: 800;
+}
+/* Bottom-right fallback used only if the application's shared showToast is missing. */
+.note-local-toast-stack {
+    position: fixed; right: 18px; bottom: 18px; z-index: 300000;
+    width: min(360px, calc(100vw - 32px)); display: grid; gap: 9px;
+    pointer-events: none;
+}
+.note-local-toast {
+    box-sizing: border-box; display: flex; align-items: flex-start;
+    gap: 10px; padding: 13px 15px; border-radius: 12px;
+    border: 1px solid #5c477a; background: #1b1529; color: #f5efff;
+    box-shadow: 0 12px 35px rgba(0,0,0,.52);
+    font-size: 12px; line-height: 1.5; overflow-wrap: anywhere;
+    pointer-events: auto;
+}
+.note-local-toast::before { content: "✓"; color: #9ee7ba; font-weight: 800; }
+.note-local-toast[data-type="error"] { border-color: #985363; }
+.note-local-toast[data-type="error"]::before { content: "!"; color: #ffb7c2; }
+.note-local-toast[data-type="warning"]::before { content: "!"; color: #ffd080; }
+@media (max-width: 700px) {
+    body.admin-notepad-page .dashboard-box,
+    body.admin-notepad-page .notepad-page,
+    body.admin-notepad-page .notepad-editor-card,
+    body.admin-notepad-page .saved-notes-section,
+    body.admin-notepad-page .notepad-toolbar { max-width: 100%; min-width: 0; box-sizing: border-box; }
+    body.admin-notepad-page .notepad-form-header { flex-wrap: wrap; }
+    body.admin-notepad-page .notepad-form-header-left { min-width: 0; }
+    body.admin-notepad-page .notepad-form-header-left > div:last-child { min-width: 0; }
+    body.admin-notepad-page .note-search-tools > input[type="search"] { flex: 1 1 100%; font-size: 16px; }
+    body.admin-notepad-page .note-sort-dropdown { flex: 1 1 100%; width: 100%; }
+    body.admin-notepad-page .note-search-tools > button,
+    body.admin-notepad-page .note-search-tools > a { flex: 1 1 100px; text-align: center; }
+    body.admin-notepad-page .note-sort-dropdown > summary { font-size: 14px; }
+    body.admin-notepad-page .note-sort-menu button { min-height: 43px; font-size: 14px; }
+    body.admin-notepad-page .saved-notes-section .saved-note-title { white-space: normal; }
+    body.admin-notepad-page #noteEditDialog,
+    body.admin-notepad-page #noteViewDialog { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }
+    body.admin-notepad-page .note-delete-box { width: min(420px, calc(100vw - 30px)); }
+}
+@media (max-width: 380px) {
+    body.admin-notepad-page .notepad-form-header-left { gap: 8px; }
+    body.admin-notepad-page .saved-notes-section .saved-note { padding: 12px; }
+    body.admin-notepad-page .note-edit-actions, body.admin-notepad-page .note-delete-buttons { flex-wrap: wrap; }
+    body.admin-notepad-page .note-edit-actions button, body.admin-notepad-page .note-delete-buttons button { flex: 1 1 115px; }
+}
+
+/* ============================================================
+   NOTE POPUPS - EXACT VISUAL FAMILY OF MEETING DETAILS VIEW
+   Deep purple/near black with subtle blue-purple details.
+   Scoped CSS only: existing Notepad handlers remain untouched.
+   ============================================================ */
+body.admin-notepad-page {
+  --np-panel: #100e19;
+  --np-field: #0b0a12;
+  --np-text: #f4f0fa;
+  --np-muted: #9990a6;
+  --np-border: #302b3b;
+  --np-accent: #a78bfa;
+}
+body.admin-notepad-page #noteViewDialog,
+body.admin-notepad-page #noteEditDialog,
+body.admin-notepad-page #noteDeleteModal .note-delete-box {
+  box-sizing: border-box;
+  padding: 0;
+  border: 1px solid #373043;
+  border-radius: 22px;
+  color: var(--np-text);
+  color-scheme: dark;
+  background: linear-gradient(145deg, #1c152b 0%, #100f1b 55%, #0d0c16 100%);
+  box-shadow: 0 30px 90px rgba(0,0,0,.55);
+  overflow: hidden;
+}
+body.admin-notepad-page #noteViewDialog,
+body.admin-notepad-page #noteEditDialog {
+  width: min(690px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+}
+body.admin-notepad-page #noteViewDialog[open],
+body.admin-notepad-page #noteEditDialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+body.admin-notepad-page #noteViewDialog::backdrop,
+body.admin-notepad-page #noteEditDialog::backdrop,
+body.admin-notepad-page #noteDeleteModal {
+  background: rgba(7,7,15,.72);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+body.admin-notepad-page .note-purple-popup-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-sizing: border-box;
+  padding: 24px 27px;
+  margin: 0;
+  min-width: 0;
+  border-bottom: 1px solid #2c2537;
+  background: linear-gradient(110deg,rgba(40,27,61,.60),rgba(15,15,26,.78) 62%,rgba(21,27,44,.72));
+}
+body.admin-notepad-page .note-purple-popup-icon {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #374579;
+  border-radius: 14px;
+  background: linear-gradient(135deg,#29234b,#202b52);
+  color: #93bdff;
+}
+body.admin-notepad-page .note-purple-popup-icon svg {width:23px;height:23px;stroke-width:2;}
+body.admin-notepad-page .note-purple-popup-heading {min-width:0;flex:1;}
+body.admin-notepad-page .note-purple-popup-heading h2,
+body.admin-notepad-page .note-purple-popup-heading h3 {
+  margin:0;
+  color:#f5f2fb;
+  font-size:20px;
+  font-weight:800;
+  line-height:1.25;
+  overflow-wrap:anywhere;
+}
+body.admin-notepad-page .note-purple-popup-subtitle {
+  margin:6px 0 0;
+  color:#928a9e;
+  font-size:12px;
+  line-height:1.5;
+}
+body.admin-notepad-page .note-purple-popup-header .note-edit-close {
+  display:grid;
+  place-items:center;
+  flex:0 0 42px;
+  width:42px;
+  height:42px;
+  padding:0;
+  border:1px solid #383342;
+  border-radius:11px;
+  background:#20202d;
+  color:#afa7bd;
+  cursor:pointer;
+  transition:background .2s,color .2s;
+}
+body.admin-notepad-page .note-purple-popup-header .note-edit-close svg {width:22px;height:22px;stroke-width:2.3;}
+body.admin-notepad-page .note-purple-popup-header .note-edit-close:hover {background:#30283d;color:#fff;}
+
+/* View: one content scroller, pinned header and Close footer. */
+body.admin-notepad-page #noteViewDialog .note-purple-details-body {
+  min-height:0;
+  flex:1 1 auto;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:25px 27px 15px;
+  scrollbar-width:thin;
+  scrollbar-color:#6c578c transparent;
+}
+body.admin-notepad-page #noteViewDialog .note-purple-field {margin-bottom:22px;min-width:0;}
+body.admin-notepad-page #noteViewDialog .note-purple-field-label,
+body.admin-notepad-page #noteEditDialog label {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:0 0 10px;
+  color:#aaa3b6;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.025em;
+  text-transform:uppercase;
+}
+body.admin-notepad-page .note-purple-field-label svg {width:15px;height:15px;color:#aa89f6;}
+body.admin-notepad-page #noteViewDialog #noteViewTitle,
+body.admin-notepad-page #noteViewDialog #noteViewUpdated,
+body.admin-notepad-page #noteViewDialog #noteViewContent {
+  box-sizing:border-box;
+  display:block;
+  width:100%;
+  min-height:55px;
+  margin:0;
+  padding:15px;
+  border:1px solid #33303e;
+  border-radius:12px;
+  background:#0b0a13;
+  color:#edeaf2;
+  font-size:15px;
+  line-height:1.6;
+  overflow-wrap:anywhere;
+  white-space:pre-wrap;
+}
+body.admin-notepad-page #noteViewDialog #noteViewContent {
+  min-height:110px;
+  max-height:none;
+  overflow:visible;
+}
+body.admin-notepad-page .note-purple-popup-footer,
+body.admin-notepad-page #noteViewDialog .note-edit-actions {
+  display:flex;
+  flex:0 0 auto;
+  justify-content:flex-end;
+  align-items:center;
+  gap:10px;
+  margin:0;
+  padding:21px 27px 24px;
+  border-top:1px solid transparent;
+}
+body.admin-notepad-page #noteViewDialog #dismissNoteView,
+body.admin-notepad-page #noteEditDialog #cancelNoteEdit,
+body.admin-notepad-page #noteDeleteModal .note-delete-buttons button:not(.note-delete-confirm) {
+  box-sizing:border-box;
+  width:auto;
+  min-height:44px;
+  min-width:105px;
+  padding:9px 18px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #47305e;
+  border-radius:11px;
+  background:#1c122b;
+  color:#ccb8ef;
+  font:inherit;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+}
+/* Edit: same field treatment as read-only Meeting Details. */
+body.admin-notepad-page #noteEditDialog #noteEditForm {
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:25px 27px 22px;
+  scrollbar-width:thin;
+  scrollbar-color:#6c578c transparent;
+}
+body.admin-notepad-page #noteEditDialog label:not(:first-of-type) {margin-top:21px;}
+body.admin-notepad-page #noteEditDialog input[type="text"],
+body.admin-notepad-page #noteEditDialog textarea {
+  box-sizing:border-box;
+  display:block;
+  width:100%;
+  border:1px solid #33303e;
+  border-radius:12px;
+  padding:14px 15px;
+  outline:0;
+  background:#0b0a13;
+  color:#f0edf5;
+  font:inherit;
+  font-size:15px;
+  line-height:1.6;
+}
+body.admin-notepad-page #noteEditDialog textarea {min-height:150px;max-height:40dvh;resize:vertical;}
+body.admin-notepad-page #noteEditDialog input[type="text"]:focus,
+body.admin-notepad-page #noteEditDialog textarea:focus {
+  border-color:#8871c2;
+  box-shadow:0 0 0 3px rgba(139,92,246,.12);
+}
+body.admin-notepad-page #noteEditDialog .note-edit-actions {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:22px -27px -22px;
+  padding:18px 27px 22px;
+  border-top:1px solid #292335;
+}
+body.admin-notepad-page #noteEditDialog #updateNoteButton {
+  box-sizing:border-box;
+  width:auto;
+  min-height:44px;
+  padding:10px 19px;
+  border:1px solid #714ba5;
+  border-radius:11px;
+  background:linear-gradient(135deg,#69429a,#4e307e);
+  box-shadow:none;
+  color:#fff;
+  font:inherit;
+  font-size:12px;
+  font-weight:800;
+}
+/* Delete: same shell + title but retain red destructive action. */
+body.admin-notepad-page #noteDeleteModal {padding:16px;}
+body.admin-notepad-page #noteDeleteModal .note-delete-box {
+  width:min(550px,100%);
+  max-height:calc(100dvh - 32px);
+  overflow:auto;
+  scrollbar-width:thin;
+}
+body.admin-notepad-page #noteDeleteModal .note-delete-description {
+  margin:0;
+  padding:26px 27px 16px;
+  color:#d9d3e3;
+  font-size:14px;
+  line-height:1.7;
+}
+body.admin-notepad-page #noteDeleteModal .note-delete-buttons {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:11px;
+  margin:0;
+  padding:15px 27px 24px;
+}
+body.admin-notepad-page #noteDeleteModal .note-delete-confirm {
+  box-sizing:border-box;
+  min-height:44px;
+  width:auto;
+  padding:10px 17px;
+  border:1px solid #c8405b;
+  border-radius:11px;
+  background:#cf455d;
+  color:#fff;
+  font:inherit;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+}
+body.admin-notepad-page :is(#noteViewDialog,#noteEditDialog,#noteDeleteModal) button:hover {filter:brightness(1.1);}
+body.admin-notepad-page :is(#noteViewDialog,#noteEditDialog,#noteDeleteModal) button:focus-visible {outline:2px solid #a78bfa;outline-offset:3px;}
+@media(max-width:540px) {
+  body.admin-notepad-page #noteViewDialog,body.admin-notepad-page #noteEditDialog {width:calc(100vw - 22px);max-height:calc(100dvh - 22px);border-radius:18px;}
+  body.admin-notepad-page .note-purple-popup-header {padding:17px;gap:10px;}
+  body.admin-notepad-page .note-purple-popup-icon {width:42px;height:42px;flex-basis:42px;border-radius:12px;}
+  body.admin-notepad-page .note-purple-popup-heading h2,body.admin-notepad-page .note-purple-popup-heading h3 {font-size:18px;}
+  body.admin-notepad-page #noteViewDialog .note-purple-details-body {padding:18px 17px 5px;}
+  body.admin-notepad-page #noteEditDialog #noteEditForm {padding:18px 17px 20px;}
+  body.admin-notepad-page #noteEditDialog .note-edit-actions {margin:20px -17px -20px;padding:17px;}
+  body.admin-notepad-page #noteViewDialog .note-edit-actions {padding:14px 17px 18px;}
+  body.admin-notepad-page #noteDeleteModal .note-delete-description {padding:20px 17px 8px;}
+  body.admin-notepad-page #noteDeleteModal .note-delete-buttons {padding:15px 17px 19px;}
+}
+
 </style>{% endblock %}
 {% block content %}
 <div hidden aria-hidden="true">
@@ -1959,11 +2355,23 @@ body.admin-notepad-page.note-popup-open { overflow:hidden!important; }
 
                     <form method="get" action="{% url 'admin_notepad' %}" class="note-search-tools">
 <input type="search" name="q" value="{{ query }}" placeholder="Search all your notes" aria-label="Search notes">
-<select name="sort" aria-label="Sort notes">
+<!-- Keep the real select for GET forms, filters, and existing AJAX logic. -->
+<select name="sort" class="note-sort-native" aria-label="Sort notes" hidden>
 <option value="updated" {% if sort == 'updated' %}selected{% endif %}>Recently updated</option>
 <option value="created" {% if sort == 'created' %}selected{% endif %}>Newest created</option>
 <option value="title" {% if sort == 'title' %}selected{% endif %}>Title A–Z</option>
 </select>
+<details class="note-sort-dropdown">
+    <summary aria-label="Sort saved notes">
+        <span class="note-sort-caption">Recently updated</span>
+        <span class="note-sort-chevron" aria-hidden="true"></span>
+    </summary>
+    <div class="note-sort-menu" role="group" aria-label="Sort order">
+        <button type="button" data-note-sort="updated" aria-pressed="false">Recently updated</button>
+        <button type="button" data-note-sort="created" aria-pressed="false">Newest created</button>
+        <button type="button" data-note-sort="title" aria-pressed="false">Title A–Z</button>
+    </div>
+</details>
 <button type="submit" class="notepad-new-button">Search</button>
 <a href="{% url 'admin_notepad' %}" class="notepad-new-button">Reset</a>
 </form>
@@ -2102,26 +2510,40 @@ body.admin-notepad-page.note-popup-open { overflow:hidden!important; }
 
 
 <!-- Read-only preview; the main form remains exclusively for new notes. -->
-<dialog id="noteViewDialog" aria-labelledby="noteViewTitle">
-    <div class="note-edit-heading">
-        <div>
-            <p class="note-view-label">Saved note</p>
-            <h2 id="noteViewTitle"></h2>
+<dialog id="noteViewDialog" aria-labelledby="noteViewHeading">
+    <header class="note-edit-heading note-purple-popup-header">
+        <span class="note-purple-popup-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <div class="note-purple-popup-heading">
+            <h2 id="noteViewHeading">Note Details</h2>
+            <p class="note-purple-popup-subtitle">View saved note details</p>
         </div>
-        <button type="button" class="note-edit-close" id="closeNoteView" aria-label="Close note preview">×</button>
+        <button type="button" class="note-edit-close" id="closeNoteView" aria-label="Close note preview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg></button>
+    </header>
+    <div class="note-purple-details-body">
+        <section class="note-purple-field">
+            <div class="note-purple-field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h7"/></svg> NOTE TITLE</div>
+            <div id="noteViewTitle"></div>
+        </section>
+        <section class="note-purple-field">
+            <div class="note-purple-field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> LAST UPDATED</div>
+            <time id="noteViewUpdated"></time>
+        </section>
+        <section class="note-purple-field">
+            <div class="note-purple-field-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M5 3h10l4 4v14H5z"/><path d="M8 12h8M8 16h8"/></svg> NOTE CONTENT</div>
+            <div id="noteViewContent" tabindex="0" role="region" aria-label="Note content"></div>
+        </section>
     </div>
-    <time id="noteViewUpdated"></time>
-    <div id="noteViewContent" tabindex="0" role="region" aria-label="Note content"></div>
-    <div class="note-edit-actions">
+    <footer class="note-edit-actions note-purple-popup-footer">
         <button type="button" class="notepad-new-button" id="dismissNoteView">Close</button>
-    </div>
+    </footer>
 </dialog>
 
 <dialog id="noteEditDialog" aria-labelledby="noteEditHeading">
-  <div class="note-edit-heading">
-<h2 id="noteEditHeading">Edit Note</h2>
-<button type="button" class="note-edit-close" id="closeNoteEdit" aria-label="Close edit popup">×</button>
-</div>
+  <header class="note-edit-heading note-purple-popup-header">
+    <span class="note-purple-popup-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5 4 4M4 20l4.6-1L20 7.6a2.1 2.1 0 0 0-3.6-3.6L5 15.4 4 20Z"/></svg></span>
+    <div class="note-purple-popup-heading"><h2 id="noteEditHeading">Edit Note</h2><p class="note-purple-popup-subtitle">Update your saved note details</p></div>
+    <button type="button" class="note-edit-close" id="closeNoteEdit" aria-label="Close edit popup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg></button>
+  </header>
   <form id="noteEditForm" method="post" action="{% url 'admin_notepad' %}">
     {% csrf_token %}<input type="hidden" name="note_id" id="editNoteId">
     <label for="editNoteTitle">Title</label>
@@ -2143,8 +2565,12 @@ body.admin-notepad-page.note-popup-open { overflow:hidden!important; }
      aria-labelledby="noteDeleteTitle"
      onclick="if (event.target === this) closeNoteDeleteModal()">
     <div class="note-delete-box">
-        <h3 id="noteDeleteTitle">Delete note?</h3>
-        <p>Are you sure you want to delete this note? This action cannot be undone.</p>
+        <header class="note-purple-popup-header">
+            <span class="note-purple-popup-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 10v7m4-7v7"/></svg></span>
+            <div class="note-purple-popup-heading"><h3 id="noteDeleteTitle">Delete Note?</h3><p class="note-purple-popup-subtitle">Confirm note removal</p></div>
+            <button type="button" class="note-edit-close note-delete-close" onclick="closeNoteDeleteModal()" aria-label="Close delete confirmation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="m18 6-12 12M6 6l12 12"/></svg></button>
+        </header>
+        <p class="note-delete-description">Are you sure you want to delete this note? This action cannot be undone.</p>
 
         <div class="note-delete-buttons">
             <button type="button" onclick="closeNoteDeleteModal()">Cancel</button>
@@ -2157,6 +2583,30 @@ body.admin-notepad-page.note-popup-open { overflow:hidden!important; }
 {% endblock %}
 {% block extra_js %}
 <script>
+
+// Shared Toast remains the first choice. Give this page a safe, bottom-right fallback.
+if (typeof window.showToast !== 'function') {
+    window.showToast = function (message, type = 'success') {
+        let stack = document.getElementById('noteLocalToastStack');
+        if (!stack) {
+            stack = document.createElement('div');
+            stack.id = 'noteLocalToastStack';
+            stack.className = 'note-local-toast-stack';
+            stack.setAttribute('role', 'status');
+            stack.setAttribute('aria-live', 'polite');
+        }
+        const editDialog = document.getElementById('noteEditDialog');
+        const target = editDialog?.open ? editDialog : document.body;
+        if (stack.parentElement !== target) target.appendChild(stack);
+        const item = document.createElement('div');
+        item.className = 'note-local-toast';
+        item.dataset.type = ['success', 'warning', 'error'].includes(type) ? type : 'success';
+        item.textContent = String(message ?? '');
+        stack.appendChild(item);
+        setTimeout(() => item.remove(), 4200);
+    };
+}
+
 if(window.lucide)lucide.createIcons();
 
 let pendingNoteDeleteForm = null;
@@ -2322,6 +2772,8 @@ document.addEventListener("keydown", function (event) {
         // Return the reusable container when the popup leaves the top layer.
         const toasts = document.getElementById('toastContainer');
         if (toasts) document.body.appendChild(toasts);
+        const fallbackToasts = document.getElementById('noteLocalToastStack');
+        if (fallbackToasts) document.body.appendChild(fallbackToasts);
         document.body.classList.remove('note-popup-open');
         document.documentElement.classList.remove('note-popup-open');
         if (trigger?.isConnected) trigger.focus();
@@ -2482,6 +2934,42 @@ document.addEventListener("keydown", function (event) {
   if (typeof window.showToast === 'function') window.showToast(text,type);
   else document.getElementById('noteToolFeedback').textContent = text;
  };
+ // The custom purple menu controls the original native select, so FormData and AJAX stay unchanged.
+ const sortSelect = root.querySelector('.note-search-tools select[name="sort"]');
+ const sortDropdown = root.querySelector('.note-sort-dropdown');
+ function syncSortDropdown() {
+  if (!sortSelect || !sortDropdown) return;
+  const selected = sortSelect.selectedOptions[0];
+  const label = sortDropdown.querySelector('.note-sort-caption');
+  if (label) label.textContent = selected?.textContent.trim() || 'Recently updated';
+  sortDropdown.querySelectorAll('[data-note-sort]').forEach(button => {
+   button.setAttribute('aria-pressed', String(button.dataset.noteSort === sortSelect.value));
+  });
+ }
+ if (sortDropdown && sortSelect) {
+  root.addEventListener('click', event => {
+   const option = event.target.closest('[data-note-sort]');
+   if (!option || !sortDropdown.contains(option)) return;
+   event.preventDefault();
+   const changed = sortSelect.value !== option.dataset.noteSort;
+   sortSelect.value = option.dataset.noteSort;
+   sortDropdown.open = false;
+   syncSortDropdown();
+   sortDropdown.querySelector('summary')?.focus();
+   if (changed) sortSelect.dispatchEvent(new Event('change', {bubbles:true}));
+  });
+  document.addEventListener('click', event => {
+   if (sortDropdown.open && !sortDropdown.contains(event.target)) sortDropdown.open = false;
+  });
+  sortDropdown.addEventListener('keydown', event => {
+   if (event.key === 'Escape' && sortDropdown.open) {
+    event.preventDefault(); sortDropdown.open = false;
+    sortDropdown.querySelector('summary')?.focus();
+   }
+  });
+  sortSelect.addEventListener('change', syncSortDropdown);
+  syncSortDropdown();
+ }
  const modalOpen = () => document.getElementById('noteEditDialog').open || document.getElementById('noteViewDialog').open || document.getElementById('noteDeleteModal').classList.contains('open');
  function apply(doc,navigation) {
   const section = root.querySelector('.saved-notes-section'), next = doc.querySelector('.saved-notes-section');
@@ -2503,6 +2991,7 @@ document.addEventListener("keydown", function (event) {
   if (navigation) {
    const search = section.querySelector('.note-search-tools'), freshSearch = next.querySelector('.note-search-tools');
    for (const name of ['q','sort']) if (search?.elements[name] && freshSearch?.elements[name]) search.elements[name].value = freshSearch.elements[name].value;
+   syncSortDropdown();
   }
   // Keep subsequent edit/delete submissions consistent with the active list.
   const editor = document.getElementById('noteEditor');

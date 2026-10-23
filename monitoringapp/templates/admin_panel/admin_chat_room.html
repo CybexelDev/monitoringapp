@@ -197,6 +197,89 @@ body.admin-chat-page .chat-composer textarea, body.admin-chat-page .chat-compose
 }
 </style>
 {% endblock %}
+
+<style>
+/* Responsive-only safeguards for Admin Chat. Keep existing design, WebSocket,
+   AJAX updates, read receipts, and notification behavior unchanged. */
+body.admin-chat-page #adminMain,
+body.admin-chat-page .admin-chat-layout,
+body.admin-chat-page .admin-chat-layout > .dashboard-box,
+body.admin-chat-page #memberChatPage,
+body.admin-chat-page #memberChatPage .chat-main,
+body.admin-chat-page #memberChatPage .chat-shell {
+  min-width:0;
+  min-height:0;
+  max-width:100%;
+}
+body.admin-chat-page #memberChatPage .chat-shell,
+body.admin-chat-page #memberChatPage .chat-list-panel,
+body.admin-chat-page #memberChatPage .chat-conversation {
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+}
+body.admin-chat-page #memberChatPage .chat-list-scroll,
+body.admin-chat-page #memberChatPage .chat-messages {
+  min-width:0;
+  min-height:0;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+body.admin-chat-page #memberChatPage .chat-list-header,
+body.admin-chat-page #memberChatPage .chat-conversation-header,
+body.admin-chat-page #memberChatPage .conversation-user,
+body.admin-chat-page #memberChatPage .chat-user-info,
+body.admin-chat-page #memberChatPage .chat-group-name { min-width:0; }
+body.admin-chat-page #memberChatPage .chat-user-name,
+body.admin-chat-page #memberChatPage .chat-user-sub,
+body.admin-chat-page #memberChatPage .conversation-name,
+body.admin-chat-page #memberChatPage .conversation-sub { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+body.admin-chat-page #memberChatPage .message-row,
+body.admin-chat-page #memberChatPage .message-bubble { max-width:100%; }
+body.admin-chat-page #memberChatPage .message-text { overflow-wrap:anywhere; }
+body.admin-chat-page #memberChatPage .chat-composer {
+  min-width:0;
+  max-width:100%;
+  flex-shrink:0;
+  gap:8px;
+}
+body.admin-chat-page #memberChatPage .chat-composer input,
+body.admin-chat-page #memberChatPage .chat-composer textarea {
+  flex:1 1 auto;
+  min-width:0;
+  width:0;
+  max-width:100%;
+}
+body.admin-chat-page #memberChatPage .chat-composer .send-button { flex:0 0 auto; }
+body.admin-chat-page #memberChatPage .group-settings {
+  box-sizing:border-box;
+  max-width:100%;
+  overflow-x:hidden;
+}
+body.admin-chat-page #memberChatPage .group-member-row,
+body.admin-chat-page #memberChatPage .member-group-person { min-width:0; }
+body.admin-chat-page #groupModal .chat-modal-card,
+body.admin-chat-page .member-action-dialog {
+  box-sizing:border-box;
+  max-width:calc(100vw - 24px);
+  max-height:calc(100dvh - 24px);
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+@media (max-width:480px) {
+  body.admin-chat-page #memberChatPage .chat-conversation-header { min-width:0; }
+  body.admin-chat-page #memberChatPage .chat-composer { padding:10px;gap:7px; }
+  body.admin-chat-page #memberChatPage .chat-composer .send-button { min-width:42px; }
+  body.admin-chat-page #memberChatPage .member-message-tools { min-width:0; }
+  body.admin-chat-page #memberChatPage #memberMessageSearch { min-width:0; }
+  body.admin-chat-page #memberChatPage .message-bubble { max-width:88%; }
+}
+@media (max-height:520px) {
+  body.admin-chat-page #groupModal .chat-modal-card,
+  body.admin-chat-page .member-action-dialog { max-height:calc(100dvh - 14px); }
+}
+</style>
+
 {% block content %}
 
   
@@ -822,8 +905,8 @@ body.admin-chat-page .chat-composer textarea, body.admin-chat-page .chat-compose
 (() => {
  'use strict';
  const root = document.getElementById('memberChatPage');
- root.querySelectorAll('.chat-user-row,.chat-group-row').forEach(link=>{if(new URL(link.href,location.href).pathname===location.pathname){link.classList.add('mc-selected');link.setAttribute('aria-current','page');}});
  if(!root)return;
+ root.querySelectorAll('.chat-user-row,.chat-group-row').forEach(link=>{if(new URL(link.href,location.href).pathname===location.pathname){link.classList.add('mc-selected');link.setAttribute('aria-current','page');}});
  const currentId = Number(root.dataset.userId);
  const mode = root.dataset.mode;
  const modal = document.getElementById('groupModal');

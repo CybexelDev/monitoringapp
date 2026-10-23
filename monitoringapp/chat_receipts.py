@@ -132,8 +132,24 @@ def chat_meta(request, *, actor=None):
     for group_id in group_ids:
         group_filter |= Q(group_id=group_id, pk__gt=group_states.get(group_id, 0))
     group_counts = dict(GroupMessage.objects.filter(group_filter, deleted_for_everyone=False).exclude(sender=user).exclude(hidden_for=user).order_by().values("group_id").annotate(total=Count("pk")).values_list("group_id", "total"))
+    # Sidebar chat badge counts unique unread PEOPLE, never unread messages.
+    # Reuse the same canonical conversation/read-state and message visibility
+    # filters already used for the per-chat unread counts above.
+    unread_senders = {
+        peer_id for peer_id, conversation_id in canonical.items()
+        if personal_counts.get(conversation_id, 0) > 0
+    }
+    unread_senders.update(
+        GroupMessage.objects.filter(group_filter, deleted_for_everyone=False)
+        .exclude(sender=user)
+        .exclude(hidden_for=user)
+        .order_by()
+        .values_list("sender_id", flat=True)
+        .distinct()
+    )
     data = {
         "ok": True,
+        "unread_sender_count": len(unread_senders),
         "personal": [{"peer_id": peer, "conversation_id": cid, "unread": personal_counts.get(cid, 0)} for peer, cid in canonical.items()],
         "groups": [{"group_id": gid, "unread": group_counts.get(gid, 0)} for gid in group_ids],
         "receipts": [],
