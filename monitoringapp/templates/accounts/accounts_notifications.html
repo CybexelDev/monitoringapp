@@ -2,20 +2,56 @@
 {% block title %}Notifications - Accounts{% endblock %}
 {% block accounts_page_class %}accounts-notifications-page{% endblock %}
 {% block page_heading %}NOTIFICATIONS{% endblock %}
-{% block page_description %}Income, expenses, sales, payments, reminders and notes in one place.{% endblock %}
+{% block page_description %}Your Accounts updates, announcements, meetings and reminders in one place.{% endblock %}
+
+{% block extra_css %}<style>
+#ncaccountsNotificationsPage{min-width:0;width:100%;box-sizing:border-box;}
+#ncaccountsNotificationsPage *{box-sizing:border-box;}
+.notification-header-actions,.notification-toolbar,.notification-footer,.notification-tabs,.notification-actions,.notification-pagination{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.notification-header-actions,.notification-footer{justify-content:space-between;}
+.notification-toolbar{margin:18px 0;}.notification-search{flex:1 1 240px;display:flex;gap:10px;align-items:center;min-width:0;}
+.notification-search input{width:100%;min-width:0;background:transparent;color:inherit;border:0;outline-offset:3px;}
+.notification-search,.notification-category summary{padding:12px 14px;border:1px solid #ffffff21;border-radius:12px;background:#0c0b13;color:#eeebf5;}
+.notification-category{min-width:180px;position:relative;}.notification-category summary{display:flex;justify-content:space-between;gap:12px;cursor:pointer;list-style:none;}.notification-category summary::-webkit-details-marker{display:none;}
+.notification-category svg,.notification-button svg,.notification-icon-button svg,.notification-search svg,.notification-unread-count svg{width:18px;height:18px;flex-shrink:0;}
+.notification-category .category-menu{position:absolute;top:calc(100% + 7px);right:0;width:max(100%,210px);z-index:50;display:grid;padding:8px;max-height:300px;overflow:auto;border:1px solid #ffffff21;border-radius:14px;background:radial-gradient(circle at 90% 0%,#60a5fa21,transparent 32%),radial-gradient(circle at 0% 0%,#8b5cf633,transparent 38%),#0c0b14;box-shadow:0 20px 45px #0007;}
+.category-menu button{padding:10px 12px;border:0;border-radius:8px;background:transparent;color:#eeebf5;text-align:left;font:inherit;cursor:pointer;}.category-menu button:hover,.category-menu button:focus-visible{background:#8b5cf61f;}.category-menu button.selected{background:#8b5cf62e;color:#ede9fe;}.category-menu button.selected:after{content:'✓';float:right;}
+.notification-button,.notification-icon-button,.notification-tab{display:inline-flex;justify-content:center;align-items:center;gap:7px;min-height:40px;padding:9px 12px;border:1px solid #a78bfa40;border-radius:10px;background:#21192f;color:#eee7fa;cursor:pointer;text-decoration:none;}.notification-tab[aria-pressed=true]{background:#8b5cf633;}.notification-button:disabled{opacity:.5;cursor:default;}
+.notification-table-scroll{max-width:100%;overflow:auto;max-height:65vh;margin:16px 0;}.notification-table{width:100%;border-collapse:collapse;}.notification-table th{position:sticky;top:0;background:#21192f;z-index:1;text-align:left;}.notification-table :is(th,td){padding:14px;border-bottom:1px solid #ffffff15;}.notification-detail{display:flex;gap:12px;}.notification-content{min-width:0;overflow-wrap:anywhere;}.notification-content p{color:#afa5bc;}.notification-date time span{display:block;}.notification-actions{flex-wrap:nowrap;}.notification-row.unread{background:#8b5cf60d;}.notification-status{font-size:12px;color:#bfb2d2;}.notification-status.is-unread{color:#c4b5fd;}.notification-empty{text-align:center;padding:30px;}.notification-icon svg{width:22px;height:22px;}.accounts-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);}
+.nc-toast{position:fixed;bottom:20px;right:20px;padding:14px 18px;background:#21192f;border:1px solid #a78bfa80;color:white;border-radius:12px;z-index:99999;max-width:calc(100vw - 40px);}
+@media(max-width:640px){.notification-toolbar>*{width:100%;}.notification-search{flex-basis:100%;}.notification-search input,.category-menu button{font-size:16px;}.notification-category .category-menu{width:100%;}.notification-table{min-width:620px;}.notification-header-actions{align-items:stretch;}.notification-footer{align-items:flex-start;}}
+
+/* Notification preview stays on this page in the browser's modal top layer. */
+#ncPreview{box-sizing:border-box;inset:0;margin:auto;width:min(640px,calc(100vw - 28px));max-width:calc(100vw - 28px);max-height:calc(100dvh - 28px);padding:0;border:1px solid #ffffff21;border-radius:18px;color:#eeebf5;background:radial-gradient(circle at 90% 0%,#60a5fa21,transparent 32%),radial-gradient(circle at 0% 0%,#8b5cf633,transparent 38%),#0c0b14;box-shadow:0 24px 70px #0008;overflow:hidden;}
+#ncPreview[open]{display:flex;flex-direction:column;}
+#ncPreview::backdrop{background:rgba(5,4,12,.68);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);}
+#ncPreview *{box-sizing:border-box;}
+#ncPreview header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:24px;border-bottom:1px solid #ffffff15;flex-shrink:0;}
+#ncPreview h2{font-size:22px;line-height:1.4;margin:6px 0 0;color:#f5efff;overflow-wrap:anywhere;}
+#ncPreviewKind{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#c4b5fd;}
+#ncPreview .nc-preview-body{padding:22px 24px;overflow-y:auto;min-height:0;scrollbar-width:thin;scrollbar-color:#8b5cf680 transparent;}
+#ncPreviewDate{display:block;color:#b4a6c7;font-size:12px;margin-bottom:16px;}
+#ncPreviewMessage{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;font-size:14px;color:#e5ddec;}
+#ncPreviewFeedback{color:#fda4af;font-size:12px;white-space:pre-wrap;}
+#ncPreview footer{display:flex;justify-content:flex-end;padding:16px 24px;border-top:1px solid #ffffff15;flex-shrink:0;}
+#ncPreview button:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px;}
+body.nc-preview-open{overflow:hidden!important;}body.nc-preview-open .accounts-main{overflow:hidden!important;}
+@media(max-width:600px){#ncPreview header{padding:18px;}#ncPreview .nc-preview-body{padding:18px;}#ncPreview footer{padding:14px 18px;}#ncPreview h2{font-size:20px;}}
+</style>{% endblock %}
+
 {% block content %}
-<section id="accountsNotificationsPage" class="accounts-panel" data-feed-url="{% url 'accounts_notifications' %}" data-read-all-url="{% url 'accounts_notifications_read_all' %}">
-  <form id="notificationCsrfForm" hidden>{% csrf_token %}</form>
+<section id="ncaccountsNotificationsPage" class="accounts-panel" data-feed-url="{% url 'accounts_notifications' %}" data-read-all-url="{% url 'accounts_notifications_read_all' %}">
+  <form id="ncnotificationCsrfForm" hidden>{% csrf_token %}</form>
   <div class="notification-header-actions">
-    <span class="notification-unread-count"><i data-lucide="bell" aria-hidden="true"></i><span id="notificationUnreadCount">{{ unread_count }}</span> unread</span>
-    <button type="button" class="notification-button" id="notificationReadAll" {% if not unread_count %}disabled{% endif %}><i data-lucide="check-check" aria-hidden="true"></i>Mark all as read</button>
+    <span class="notification-unread-count"><i data-lucide="bell" aria-hidden="true"></i><span id="ncnotificationUnreadCount">{{ unread_count }}</span> unread</span>
+    <button type="button" class="notification-button" id="ncnotificationReadAll" {% if not unread_count %}disabled{% endif %}><i data-lucide="check-check" aria-hidden="true"></i>Mark all as read</button>
   </div>
-  <form id="notificationFilterForm" class="notification-toolbar" method="get" action="{% url 'accounts_notifications' %}" role="search">
-    <input type="hidden" id="notificationFilter" name="filter" value="{{ selected_filter }}">
-    <label class="notification-search"><i data-lucide="search" aria-hidden="true"></i><input id="notificationSearch" type="search" name="q" value="{{ query }}" placeholder="Search notifications…" aria-label="Search notifications" maxlength="200"></label>
+  <form id="ncnotificationFilterForm" class="notification-toolbar" method="get" action="{% url 'accounts_notifications' %}" role="search">
+    <input type="hidden" id="ncnotificationFilter" name="filter" value="{{ selected_filter }}">
+    <label class="notification-search"><i data-lucide="search" aria-hidden="true"></i><input id="ncnotificationSearch" type="search" name="q" value="{{ query }}" placeholder="Search notifications…" aria-label="Search notifications" maxlength="200"></label>
     <div class="notification-category">
-      <details id="notificationCategoryDropdown">
-        <summary><span id="notificationCategoryLabel">{% if selected_kind == 'income' %}Income{% elif selected_kind == 'expense' %}Expenses{% elif selected_kind == 'sale' %}Sales{% elif selected_kind == 'payment' %}Payments{% elif selected_kind == 'reminder' %}Reminders{% elif selected_kind == 'note' %}Notepad{% else %}All categories{% endif %}</span><i data-lucide="chevron-down" aria-hidden="true"></i></summary>
+      <details id="ncnotificationCategoryDropdown">
+        <summary><span id="ncnotificationCategoryLabel">{% if selected_kind == 'income' %}Income{% elif selected_kind == 'expense' %}Expenses{% elif selected_kind == 'sale' %}Sales{% elif selected_kind == 'payment' %}Payments{% elif selected_kind == 'reminder' %}Reminders{% elif selected_kind == 'note' %}Notepad{% elif selected_kind == 'announcement' %}Announcements{% elif selected_kind == 'meeting' %}Meetings{% else %}All categories{% endif %}</span><i data-lucide="chevron-down" aria-hidden="true"></i></summary>
         <div class="category-menu" role="group" aria-label="Notification categories">
           <button type="button" data-kind="" {% if not selected_kind %}class="selected"{% endif %}>All categories</button>
           <button type="button" data-kind="income" {% if selected_kind == 'income' %}class="selected"{% endif %}>Income</button>
@@ -24,31 +60,33 @@
           <button type="button" data-kind="payment" {% if selected_kind == 'payment' %}class="selected"{% endif %}>Payments</button>
           <button type="button" data-kind="reminder" {% if selected_kind == 'reminder' %}class="selected"{% endif %}>Reminders</button>
           <button type="button" data-kind="note" {% if selected_kind == 'note' %}class="selected"{% endif %}>Notepad</button>
+          <button type="button" data-kind="announcement" {% if selected_kind == 'announcement' %}class="selected"{% endif %}>Announcements</button>
+          <button type="button" data-kind="meeting" {% if selected_kind == 'meeting' %}class="selected"{% endif %}>Meetings</button>
         </div>
       </details>
-      <input type="hidden" name="kind" id="notificationKind" value="{{ selected_kind }}">
+      <input type="hidden" name="kind" id="ncnotificationKind" value="{{ selected_kind }}">
     </div>
     <button type="submit" class="notification-button">Search</button>
   </form>
   <div class="notification-tabs" role="group" aria-label="Notification folders">
-    <button type="button" class="notification-tab" data-folder="all" aria-pressed="{% if selected_filter == 'all' %}true{% else %}false{% endif %}">Inbox <span id="notificationTotalCount">{{ total_count }}</span></button>
-    <button type="button" class="notification-tab" data-folder="unread" aria-pressed="{% if selected_filter == 'unread' %}true{% else %}false{% endif %}">Unread <span id="notificationTabUnread">{{ unread_count }}</span></button>
-    <button type="button" class="notification-tab" data-folder="archived" aria-pressed="{% if selected_filter == 'archived' %}true{% else %}false{% endif %}">Archived <span id="notificationArchivedCount">{{ archived_count }}</span></button>
+    <button type="button" class="notification-tab" data-folder="all" aria-pressed="{% if selected_filter == 'all' %}true{% else %}false{% endif %}">Inbox <span id="ncnotificationTotalCount">{{ total_count }}</span></button>
+    <button type="button" class="notification-tab" data-folder="unread" aria-pressed="{% if selected_filter == 'unread' %}true{% else %}false{% endif %}">Unread <span id="ncnotificationTabUnread">{{ unread_count }}</span></button>
+    <button type="button" class="notification-tab" data-folder="archived" aria-pressed="{% if selected_filter == 'archived' %}true{% else %}false{% endif %}">Archived <span id="ncnotificationArchivedCount">{{ archived_count }}</span></button>
   </div>
-  <div class="notification-table-scroll" id="notificationScroll" tabindex="0" role="region" aria-label="Notifications table">
+  <div class="notification-table-scroll" id="ncnotificationScroll" tabindex="0" role="region" aria-label="Notifications table">
     <table class="notification-table">
       <caption class="accounts-sr-only">Notifications, latest first. Mark entries as read or move them to the archive.</caption>
       <thead><tr><th scope="col">Notification</th><th scope="col">Received</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead>
-      <tbody id="notificationList">
+      <tbody id="ncnotificationList">
         {% for item in page_obj %}
         <tr class="notification-row{% if not item.is_read %} unread{% endif %}" data-id="{{ item.pk }}" data-action-url="{% url 'accounts_notification_action' item.pk %}">
           <td><div class="notification-detail"><span class="notification-icon" aria-hidden="true"><i data-lucide="{% if item.kind == 'income' %}arrow-down-left{% elif item.kind == 'expense' %}arrow-up-right{% elif item.kind == 'sale' %}receipt-text{% elif item.kind == 'payment' %}wallet{% elif item.kind == 'reminder' %}calendar-clock{% elif item.kind == 'note' %}notebook-pen{% else %}bell{% endif %}"></i></span><div class="notification-content"><strong>{{ item.title }}</strong>{% if item.message %}<p>{{ item.message }}</p>{% endif %}</div></div></td>
           <td class="notification-date"><time datetime="{{ item.created_at|date:'c' }}">{{ item.created_at|date:'d M Y' }}<span>{{ item.created_at|date:'h:i A' }}</span></time></td>
           <td><span class="notification-status{% if not item.is_read %} is-unread{% endif %}">{% if item.is_read %}Read{% else %}Unread{% endif %}</span></td>
           <td class="notification-action"><div class="notification-actions">
-            <button type="button" class="notification-button" data-notification-action="open" aria-label="View {{ item.title }}">View<i data-lucide="arrow-up-right" aria-hidden="true"></i></button>
-            <button type="button" class="notification-icon-button" data-notification-action="{% if item.is_read %}unread{% else %}read{% endif %}" title="{% if item.is_read %}Mark as unread{% else %}Mark as read{% endif %}" aria-label="{% if item.is_read %}Mark as unread{% else %}Mark as read{% endif %}: {{ item.title }}"><i data-lucide="{% if item.is_read %}mail{% else %}mail-check{% endif %}" aria-hidden="true"></i></button>
-            <button type="button" class="notification-icon-button" data-notification-action="{% if item.is_archived %}restore{% else %}archive{% endif %}" title="{% if item.is_archived %}Restore to inbox{% else %}Archive{% endif %}" aria-label="{% if item.is_archived %}Restore{% else %}Archive{% endif %}: {{ item.title }}"><i data-lucide="{% if item.is_archived %}archive-restore{% else %}archive{% endif %}" aria-hidden="true"></i></button>
+            <button type="button" class="notification-button" data-notification-preview data-preview-kind="{{ item.kind }}" aria-label="View {{ item.title }}">View<i data-lucide="eye" aria-hidden="true"></i></button>
+            <button type="button" class="notification-icon-button" data-nc-action="{% if item.is_read %}unread{% else %}read{% endif %}" title="{% if item.is_read %}Mark as unread{% else %}Mark as read{% endif %}" aria-label="{% if item.is_read %}Mark as unread{% else %}Mark as read{% endif %}: {{ item.title }}"><i data-lucide="{% if item.is_read %}mail{% else %}mail-check{% endif %}" aria-hidden="true"></i></button>
+            <button type="button" class="notification-icon-button" data-nc-action="{% if item.is_archived %}restore{% else %}archive{% endif %}" title="{% if item.is_archived %}Restore to inbox{% else %}Archive{% endif %}" aria-label="{% if item.is_archived %}Restore{% else %}Archive{% endif %}: {{ item.title }}"><i data-lucide="{% if item.is_archived %}archive-restore{% else %}archive{% endif %}" aria-hidden="true"></i></button>
           </div></td>
         </tr>
         {% empty %}
@@ -58,13 +96,82 @@
     </table>
   </div>
   <div class="notification-footer">
-    <span id="notificationResultCount">{{ result_count }} notification{{ result_count|pluralize }} · Latest first</span>
-    <span id="notificationLiveStatus" role="status" aria-live="polite">Updates automatically</span>
-    <nav class="notification-pagination" id="notificationPagination" aria-label="Notification pages">
+    <span id="ncnotificationResultCount">{{ result_count }} notification{{ result_count|pluralize }} · Latest first</span>
+    <span id="ncnotificationLiveStatus" role="status" aria-live="polite">Updates automatically</span>
+    <nav class="notification-pagination" id="ncnotificationPagination" aria-label="Notification pages">
       {% if page_obj.has_previous %}<a class="notification-button" href="?{{ notification_query }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
       <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
       {% if page_obj.has_next %}<a class="notification-button" href="?{{ notification_query }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}
     </nav>
   </div>
 </section>
+<dialog id="ncPreview" aria-labelledby="ncPreviewTitle">
+ <header><div><span id="ncPreviewKind">Notification</span><h2 id="ncPreviewTitle"></h2></div><button type="button" class="notification-icon-button" data-preview-close aria-label="Close notification">×</button></header>
+ <div class="nc-preview-body"><time id="ncPreviewDate"></time><p id="ncPreviewMessage"></p><p id="ncPreviewFeedback" role="status" hidden></p></div>
+ <footer><button type="button" class="notification-button" data-preview-close>Close</button></footer>
+</dialog>
+
 {% endblock %}
+
+{% block extra_js %}<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const root=document.getElementById('ncaccountsNotificationsPage');if(!root)return;
+ const get=id=>document.getElementById('nc'+id),form=get('notificationFilterForm'),drop=get('notificationCategoryDropdown');
+ const preview=document.getElementById('ncPreview');let previewTrigger=null;
+ preview.querySelectorAll('[data-preview-close]').forEach(button=>button.addEventListener('click',()=>preview.close()));
+ preview.addEventListener('close',()=>{document.body.classList.remove('nc-preview-open');if(previewTrigger?.isConnected)previewTrigger.focus({preventScroll:true});refresh(current,true);});
+ let current=new URL(location.href),busy=false,controller=null,sequence=0,timer;
+ const toast=(message,type='success')=>{if(typeof window.showToast==='function')window.showToast(message,type);else{const n=document.createElement('div');n.className='nc-toast';n.setAttribute('role',type==='error'?'alert':'status');n.textContent=message;document.body.append(n);setTimeout(()=>n.remove(),5000);}};
+ const badge=count=>{document.dispatchEvent(new CustomEvent('accounts:notification-count',{detail:{count,unread_count:count}}));};
+ async function refresh(url=current,silent=false){
+  if(busy||preview.open||(silent&&(document.hidden||drop.open||root.contains(document.activeElement))))return;
+  controller?.abort();controller=new AbortController();const activeController=controller,id=++sequence,signal=controller.signal;
+  const timeout=setTimeout(()=>activeController.abort(),15000);
+  try{const response=await fetch(url,{credentials:'same-origin',cache:'no-store',signal,headers:{'X-Requested-With':'XMLHttpRequest'}});if(!response.ok||response.redirected)throw Error('Unable to load notifications. Check your login.');
+   const doc=new DOMParser().parseFromString(await response.text(),'text/html');if(!doc.getElementById('ncnotificationList'))throw Error('Notifications are unavailable.');if(id!==sequence||busy)return;
+   const scroll=get('notificationScroll'),top=scroll.scrollTop,left=scroll.scrollLeft;
+   for(const name of ['notificationList','notificationPagination','notificationResultCount','notificationUnreadCount','notificationTotalCount','notificationTabUnread','notificationArchivedCount']){const next=doc.getElementById('nc'+name);if(next)get(name).replaceChildren(...next.childNodes);}
+   get('notificationReadAll').disabled=Number(get('notificationUnreadCount').textContent)===0;
+   scroll.scrollTop=top;scroll.scrollLeft=left;current=new URL(url,location.href);if(!silent)history.replaceState(null,'',current.pathname+current.search);
+   badge(Number(get('notificationUnreadCount').textContent));get('notificationLiveStatus').textContent='Updates automatically';window.lucide?.createIcons();
+  }catch(e){if(e.name!=='AbortError'){get('notificationLiveStatus').textContent='Update failed · retrying';if(!silent)toast(e.message,'error');}}
+  finally{clearTimeout(timeout);}
+ }
+ async function post(url,action){const body=new FormData(get('notificationCsrfForm'));body.set('action',action);const response=await fetch(url,{method:'POST',body,keepalive:true,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});if(!(response.headers.get('content-type')||'').includes('application/json'))throw Error('Unable to update. Check your login.');const data=await response.json();if(!response.ok||!data.ok)throw Error(data.message||'Update failed.');badge(data.unread_count);return data;}
+ function filter(){const url=new URL(root.dataset.feedUrl,location.href);url.search=new URLSearchParams(new FormData(form));refresh(url);}
+ form.addEventListener('submit',e=>{e.preventDefault();clearTimeout(timer);filter();});
+ get('notificationSearch').addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(filter,350);});
+ root.addEventListener('click',async e=>{
+  const kind=e.target.closest('[data-kind]');if(kind){get('notificationKind').value=kind.dataset.kind;get('notificationCategoryLabel').textContent=kind.textContent;drop.querySelectorAll('[data-kind]').forEach(b=>b.classList.toggle('selected',b===kind));drop.open=false;filter();return;}
+  const folder=e.target.closest('[data-folder]');if(folder){get('notificationFilter').value=folder.dataset.folder;root.querySelectorAll('[data-folder]').forEach(b=>b.setAttribute('aria-pressed',String(b===folder)));filter();return;}
+  const view=e.target.closest('[data-notification-preview]');if(view){
+   if(busy)return;
+   const row=view.closest('[data-action-url]');previewTrigger=view;sequence++;controller?.abort();
+   document.getElementById('ncPreviewTitle').textContent=row.querySelector('.notification-content strong').textContent;
+   document.getElementById('ncPreviewKind').textContent=({announcement:'Announcement',meeting:'Meeting',income:'Income',expense:'Expense',sale:'Sale',payment:'Payment',reminder:'Reminder',note:'Notepad'})[view.dataset.previewKind]||'Notification';
+   document.getElementById('ncPreviewMessage').textContent=row.querySelector('.notification-content p')?.textContent||'No additional message.';
+   const date=row.querySelector('time'),previewDate=document.getElementById('ncPreviewDate');previewDate.textContent=date?Array.from(date.childNodes).map(n=>n.textContent.trim()).filter(Boolean).join(' · '):'';previewDate.dateTime=date?.dateTime||'';
+   const feedback=document.getElementById('ncPreviewFeedback');feedback.hidden=true;feedback.textContent='';
+   preview.showModal();document.body.classList.add('nc-preview-open');
+   if(row.classList.contains('unread')){
+    busy=true;
+    try{const result=await post(row.dataset.actionUrl,'read');row.classList.remove('unread');const label=row.querySelector('.notification-status');label.textContent='Read';label.classList.remove('is-unread');
+     const toggle=row.querySelector('[data-nc-action="read"]');if(toggle){toggle.dataset.ncAction='unread';toggle.title='Mark as unread';toggle.setAttribute('aria-label','Mark as unread');toggle.innerHTML='<i data-lucide="mail" aria-hidden="true"></i>';window.lucide?.createIcons();}
+     if(Number.isFinite(result.unread_count)){get('notificationUnreadCount').textContent=result.unread_count;get('notificationTabUnread').textContent=result.unread_count;get('notificationReadAll').disabled=result.unread_count===0;}
+    }catch(error){feedback.textContent='Could not mark as read. '+error.message;feedback.hidden=false;}
+    finally{busy=false;}
+   }return;
+  }
+  const page=e.target.closest('#ncnotificationPagination a');if(page&&e.button===0&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!e.altKey){e.preventDefault();refresh(new URL(page.href));return;}
+  const action=e.target.closest('[data-nc-action]'),all=e.target.closest('#ncnotificationReadAll');if(!action&&!all)return;if(busy)return;
+  busy=true;sequence++;controller?.abort();const button=action||all;button.disabled=true;
+  try{const result=await post(all?root.dataset.readAllUrl:action.closest('[data-action-url]').dataset.actionUrl,all?'read_all':action.dataset.ncAction);toast(result.message||'Notification updated.');busy=false;await refresh();}
+  catch(error){toast(error.message,'error');}finally{busy=false;button.disabled=false;get('notificationReadAll').disabled=Number(get('notificationUnreadCount').textContent)===0;}
+ });
+ document.addEventListener('click',e=>{if(!drop.contains(e.target))drop.open=false;});
+ drop.addEventListener('keydown',e=>{if(e.key==='Escape'){drop.open=false;drop.querySelector('summary').focus();}if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();drop.open=true;const buttons=[...drop.querySelectorAll('[data-kind]')];let i=buttons.indexOf(document.activeElement);i=e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;buttons[i].focus();}});
+ setInterval(()=>refresh(current,true),15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh(current,true);});window.addEventListener('focus',()=>refresh(current,true));window.addEventListener('pagehide',()=>controller?.abort());
+ window.addEventListener('popstate',()=>{current=new URL(location.href);const params=current.searchParams;get('notificationSearch').value=params.get('q')||'';get('notificationKind').value=params.get('kind')||'';get('notificationFilter').value=params.get('filter')||'all';refresh(current);});
+});
+
+</script>{% endblock %}

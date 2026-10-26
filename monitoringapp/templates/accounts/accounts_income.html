@@ -5,6 +5,177 @@
 {% block page_heading %}INCOME{% endblock %}
 {% block page_description %}Record income and keep track of your receipts.{% endblock %}
 {% block content %}
+<style>
+
+#accountsIncomePage { width:100%; min-width:0; max-width:100%; }
+#accountsIncomePage *, .income-dialog * { box-sizing:border-box; }
+#accountsIncomePage :is(.accounts-panel,.accounts-stat,.income-field) { min-width:0; }
+#accountsIncomePage .income-summary-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:22px; }
+#accountsIncomePage .accounts-stat-value { overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+#accountsIncomePage :is(.accounts-panel-heading,.income-heading-actions,.income-filter-footer,.income-filter-actions,.income-pagination) { display:flex;align-items:center;gap:12px;flex-wrap:wrap; }
+#accountsIncomePage :is(.accounts-panel-heading,.income-filter-footer,.income-pagination) { justify-content:space-between; }
+#accountsIncomePage .income-filter-grid { display:grid;grid-template-columns:minmax(240px,2fr) repeat(2,minmax(160px,1fr));gap:14px;align-items:end; }
+#accountsIncomePage [hidden], .income-dialog [hidden] { display:none!important; }
+#accountsIncomePage .income-field label { display:block;margin-bottom:8px; }
+#accountsIncomePage .income-field .accounts-input,#accountsIncomePage .finance-select-toggle { width:100%;min-width:0;height:46px;box-sizing:border-box; }
+#accountsIncomePage .income-search-input { position:relative; }
+#accountsIncomePage .income-search-input>svg { position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;pointer-events:none; }
+#accountsIncomePage .income-search-input>input { padding-left:40px; }
+#accountsIncomePage .income-filter-footer { margin-top:16px; }
+#accountsIncomePage .income-filter-description span { display:block;line-height:1.6; }
+#accountsIncomePage .accounts-table-scroll { max-width:100%;overflow:auto;max-height:min(460px,60vh);scrollbar-width:thin;scrollbar-color:#74559b transparent;overscroll-behavior:contain; }
+#accountsIncomePage .income-table { display:table;width:100%;min-width:1100px;table-layout:fixed;border-collapse:separate;border-spacing:0; }
+#accountsIncomePage .income-table thead { display:table-header-group;position:static; }
+#accountsIncomePage .income-table tbody { display:table-row-group; }
+#accountsIncomePage .income-table tr { display:table-row; }
+#accountsIncomePage .income-table :is(th,td) { display:table-cell;padding:13px 15px;text-align:left;vertical-align:middle;line-height:1.6;overflow-wrap:anywhere; }
+#accountsIncomePage .income-table th { position:sticky;top:0;z-index:2;background:#21192e;white-space:nowrap; }
+#accountsIncomePage .income-table :is(th,td):first-child { width:110px;white-space:nowrap; }
+#accountsIncomePage .income-table :is(th,td):nth-child(2) { width:250px; }
+#accountsIncomePage .income-table :is(th,td):nth-child(3) { width:120px; }
+#accountsIncomePage .income-table :is(th,td):nth-child(4) { width:140px; }
+#accountsIncomePage .income-table :is(th,td):nth-child(5) { width:150px; }
+#accountsIncomePage .income-table :is(th,td):nth-child(6) { width:140px; }
+#accountsIncomePage .income-table :is(th,td):last-child { width:190px;text-align:center; }
+#accountsIncomePage .income-table .amount { text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums; }
+#accountsIncomePage .income-table .description-cell { min-width:0;max-width:none; }
+#accountsIncomePage .income-table td[colspan] { width:auto;text-align:center; }
+#accountsIncomePage .income-row-actions { display:flex;justify-content:center;gap:8px;flex-wrap:nowrap; }
+#accountsIncomePage .income-row-actions>button { width:36px;height:36px;min-height:36px;flex:0 0 36px;padding:8px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px; }
+#accountsIncomePage .income-row-actions>button svg { width:17px;height:17px;flex-shrink:0; }
+#accountsIncomePage [data-income-view] { color:#c4b5fd;background:#8b5cf61a;border:1px solid #8b5cf640; }
+#accountsIncomePage [data-income-edit] { color:#93c5fd;background:#3b82f61a;border:1px solid #3b82f640; }
+#accountsIncomePage [data-income-history] { color:#6ee7b7;background:#10b9811a;border:1px solid #10b98140; }
+#accountsIncomePage [data-income-delete] { color:#fda4af;background:#f43f5e1a;border:1px solid #f43f5e40; }
+.income-dialog { box-sizing:border-box;width:min(680px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);padding:0!important;border:1px solid #453452;border-radius:22px;background:#0e0c15;color:#f6f1ff;overflow:hidden;color-scheme:dark;box-shadow:0 24px 80px #0008; }
+.income-dialog[open] { display:flex;flex-direction:column; }
+.income-dialog::backdrop { background:#09071099;backdrop-filter:blur(4px); }
+.income-dialog-small { width:min(460px,calc(100vw - 32px)); }
+.income-dialog>:is(.income-dialog-header,.accounts-panel-heading) { flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0;padding:24px;background:linear-gradient(110deg,#281b42,#100e19 58%,#171e2e);border-bottom:1px solid #382a48; }
+.income-popup-title { display:flex;align-items:center;gap:14px;min-width:0; }
+.income-popup-title>div { min-width:0; }
+.income-popup-badge { flex:0 0 48px;width:48px;height:48px;display:grid;place-items:center;border-radius:14px;background:#a78bfa18;border:1px solid #a78bfa40;color:#c4b5fd; }
+.income-popup-badge svg { width:23px;height:23px; }
+.income-dialog h2 { margin:4px 0 0;font-size:23px;color:#f6f1ff;line-height:1.3;overflow-wrap:anywhere; }
+.income-dialog .accounts-eyebrow { font-size:10px;letter-spacing:1.5px;color:#bba2eb; }
+.income-dialog [data-income-close].income-icon-button { flex:0 0 36px;width:36px;height:36px;display:grid;place-items:center;padding:8px;border-radius:10px;border:1px solid #ffffff20;background:#ffffff08;color:#c7bdcf; }
+.income-dialog>form { display:flex;flex-direction:column;min-height:0;overflow:hidden;padding:0;margin:0; }
+.income-dialog-body,#incomeViewContent { min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#7952a1 transparent;padding:24px; }
+.income-dialog .income-form-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px; }
+.income-dialog .income-field { min-width:0; }
+.income-dialog .income-field-wide { grid-column:1/-1; }
+.income-dialog .income-field label { display:block;margin:0 0 8px;color:#c2b5d0;font-size:12px; }
+.income-dialog .income-field :is(input:not([type=checkbox]):not([type=hidden]),select,textarea) { width:100%;min-width:0;max-width:100%;box-sizing:border-box;border:1px solid #352b43;border-radius:12px;background:#09080f;color:#f5efff;padding:12px 14px;font-size:14px;min-height:46px;color-scheme:dark; }
+.income-dialog .income-field textarea { min-height:96px;resize:vertical; }
+.income-dialog :is(input,textarea,select):focus-visible { outline:2px solid #a78bfa;outline-offset:2px; }
+.income-dialog input[type=checkbox] { accent-color:#8b5cf6; }
+.income-dialog :is(.income-form-footer,.income-dialog-footer) { flex:0 0 auto;display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:10px;margin:0;padding:18px 24px;border-top:1px solid #382a48;background:#120f1b; }
+.income-dialog :is(.income-form-footer,.income-dialog-footer) .accounts-muted { flex:1 1 180px; }
+.income-dialog .income-button { min-height:42px;border-radius:11px;background:#7c3aed;border:1px solid #9864ed;color:#fff;padding:10px 16px; }
+.income-dialog .income-button-secondary { background:#ffffff06;border-color:#ffffff25;color:#d0c4de; }
+.income-dialog .income-button-danger { background:#b82e49;border-color:#e45470;color:white; }
+.income-dialog .income-view-details { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0 0; }
+.income-dialog .income-view-details :is(div,dd) { min-width:0;overflow-wrap:anywhere; }
+.income-dialog .income-view-details dd { margin:6px 0 0;color:#eee7f8; }
+.income-dialog .income-view-details dt { color:#a898ba;font-size:12px; }
+.income-dialog .income-view-wide { grid-column:1/-1; }
+.income-dialog .income-view-amount { border:1px solid #49305d;border-radius:14px;padding:18px;background:#8b5cf612; }
+.income-dialog .income-view-amount strong { display:block;font-size:28px;margin-top:8px;overflow-wrap:anywhere; }
+.income-dialog :is(.income-form-error,.income-field-error) { color:#fda4af; }
+.income-dialog .income-delete-description { margin:0;line-height:1.8;overflow-wrap:anywhere; }
+.finance-choice { position:relative;min-width:0;width:100%; }
+.finance-choice .finance-native-choice { position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;opacity:0;pointer-events:none;clip-path:inset(50%); }
+.finance-select-toggle { display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;width:100%;min-height:46px;padding:11px 14px;border:1px solid #47346f;border-radius:12px;background:#0e0c16;color:#f6f1ff;font:inherit;font-size:14px;text-align:left;cursor:pointer; }
+.finance-select-toggle>span { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.finance-select-toggle::after { content:'';width:8px;height:8px;flex:0 0 8px;border-right:2px solid #c4b5fd;border-bottom:2px solid #c4b5fd;transform:rotate(45deg); }
+.finance-select-toggle[aria-expanded=true]::after { transform:rotate(225deg); }
+.finance-select-toggle:focus-visible { outline:2px solid #a78bfa;outline-offset:2px; }
+.finance-select-menu { position:fixed;box-sizing:border-box;z-index:100010;padding:8px;border:1px solid #49345c;border-radius:16px;background:linear-gradient(#1a142c,#0d0c17 70%);color:#eee7f8;box-shadow:0 18px 40px #0007;overflow:auto;scrollbar-width:thin; }
+.finance-select-menu[hidden] { display:none!important; }
+.finance-select-option { padding:12px 36px 12px 14px;min-height:44px;border-radius:9px;position:relative;white-space:nowrap;cursor:pointer;font-size:14px; }
+.finance-select-option:is(.is-active,:hover) { background:#231932; }
+.finance-select-option[aria-selected=true] { background:#30234f;color:#fff; }
+.finance-select-option[aria-selected=true]::after { content:'✓';position:absolute;right:12px; }
+.finance-select-option[aria-disabled=true] { opacity:.45;cursor:default; }
+@media(max-width:1000px) { #accountsIncomePage .income-filter-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } #accountsIncomePage .income-filter-grid>.income-field:first-child { grid-column:1/-1; } }
+@media(max-width:640px) { #accountsIncomePage .income-summary-grid,#accountsIncomePage .income-filter-grid,.income-dialog .income-form-grid,.income-dialog .income-view-details { grid-template-columns:minmax(0,1fr); } #accountsIncomePage .income-filter-actions { width:100%; } #accountsIncomePage .income-filter-actions>* { flex:1 1 100px;justify-content:center; } .income-dialog { max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px); } .income-dialog>:is(.income-dialog-header,.accounts-panel-heading),.income-dialog-body,#incomeViewContent { padding:18px; } .income-dialog :is(.income-form-footer,.income-dialog-footer) { padding:16px 18px; } .income-dialog h2 { font-size:20px; } #accountsIncomePage .accounts-input,.income-dialog .income-field :is(input,textarea),.finance-select-toggle { font-size:16px; } }
+
+
+/* Reset inherited search/period spans so filter controls stay aligned. */
+#accountsIncomePage #incomeSearchForm .income-filter-grid { display:grid!important;grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr))!important;gap:16px;align-items:end; }
+#accountsIncomePage #incomeSearchForm .income-filter-grid>.income-field { grid-column:auto!important;grid-row:auto!important;width:auto!important;min-width:0!important;max-width:none!important;margin:0!important; }
+#accountsIncomePage #incomeSearchForm .income-field>label { display:block;min-height:20px;line-height:20px;margin:0 0 8px; }
+#accountsIncomePage #incomeSearchForm :is(.accounts-input,.finance-select-toggle,.income-search-input) { width:100%;height:46px!important;min-height:46px!important;max-height:46px;box-sizing:border-box;margin:0; }
+#accountsIncomePage #incomeSearchForm .finance-select-toggle { padding:10px 14px; }
+#accountsIncomePage #incomeSearchForm .income-search-input { display:block; }
+#accountsIncomePage #incomeSearchForm .income-filter-footer { gap:16px;align-items:center; }
+#accountsIncomePage #incomeSearchForm .income-filter-actions { gap:10px; }
+#accountsIncomePage #incomeSearchForm .income-filter-actions>* { display:inline-flex;align-items:center;justify-content:center;min-height:42px;box-sizing:border-box;margin:0;white-space:nowrap; }
+#accountsIncomePage .income-row-actions>button svg { color:inherit;stroke:currentColor; }
+#accountsIncomePage [data-income-view]:hover { color:#ddd6fe;background:#8b5cf62e; }
+#accountsIncomePage [data-income-edit]:hover { color:#bfdbfe;background:#3b82f62e; }
+#accountsIncomePage [data-income-history]:hover { color:#a7f3d0;background:#10b9812e; }
+#accountsIncomePage [data-income-delete]:hover { color:#fecdd3;background:#f43f5e2e; }
+@media(max-width:1000px) {
+ #accountsIncomePage #incomeSearchForm .income-filter-grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+ #accountsIncomePage #incomeSearchForm .income-filter-grid>.income-field:first-child { grid-column:1/-1!important; }
+}
+@media(max-width:640px) {
+ #accountsIncomePage #incomeSearchForm .income-filter-grid { grid-template-columns:minmax(0,1fr)!important; }
+ #accountsIncomePage #incomeSearchForm .income-filter-footer { align-items:stretch; }
+ #accountsIncomePage #incomeSearchForm .income-filter-actions { display:flex;width:100%;flex-wrap:wrap; }
+ #accountsIncomePage #incomeSearchForm .income-filter-actions>* { flex:1 1 110px; }
+}
+
+
+
+/* Exact active Accounts Notepad popup tokens and dimensions. */
+:is(#incomeAddDialog,#incomeEditDialog,#incomeViewDialog,#incomeDeleteDialog,#incomeHistoryDialog).income-dialog {
+ position:fixed;inset:0;margin:auto!important;padding:0!important;
+ width:min(730px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);
+ background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),rgba(12,11,20,.98)!important;
+ border:1px solid rgba(255,255,255,.13)!important;border-radius:18px!important;color:#f7f3ff!important;
+ box-shadow:0 20px 45px #0007,inset 0 1px 0 #ffffff0f!important;
+}
+#incomeViewDialog.income-dialog{width:min(665px,calc(100vw - 32px));}
+#incomeDeleteDialog.income-dialog{width:min(485px,calc(100vw - 32px));}
+.income-dialog::backdrop{background:rgba(4,4,11,.78)!important;backdrop-filter:blur(5px)!important;-webkit-backdrop-filter:blur(5px)!important;}
+.income-dialog>:is(.income-dialog-header,.accounts-panel-heading){padding:24px!important;gap:16px;background:transparent!important;border:0;border-bottom:1px solid rgba(165,136,211,.15);}
+.income-dialog .income-popup-title{gap:17px;}
+.income-dialog .income-popup-badge{width:55px;height:55px;flex:0 0 55px;border-radius:16px;background:rgba(139,92,246,.14);border:1px solid rgba(167,139,250,.28);color:#c8aeff;}
+.income-dialog .income-popup-badge svg{width:23px;height:23px;stroke-width:1.9;}
+.income-dialog .accounts-eyebrow{display:block;margin:0 0 7px;color:#b997f8;font-size:10px;font-weight:800;letter-spacing:2px;}
+.income-dialog h2{margin:0!important;padding:0!important;font-size:22px!important;font-weight:800;line-height:1.3;color:#faf8ff;letter-spacing:-.4px;}
+.income-dialog [data-income-close].income-icon-button{width:40px;height:40px;min-height:40px;flex:0 0 40px;padding:8px;border:1px solid #343044!important;border-radius:12px;background:rgba(255,255,255,.04)!important;color:#a9a1b9!important;}
+.income-dialog [data-income-close].income-icon-button:hover{background:#292137!important;color:#f7f1ff!important;}
+.income-dialog [data-income-close].income-icon-button svg{width:19px;height:19px;stroke-width:1.8;}
+.income-dialog .income-dialog-body,#incomeViewContent{padding:25px 30px;background:transparent!important;scrollbar-width:thin;scrollbar-color:#7657a6 transparent;}
+.income-dialog .income-field label{margin:0 0 9px;color:#d6cce2;font-size:12px;font-weight:700;}
+.income-dialog .income-field :is(input:not([type=checkbox]):not([type=hidden]),select,textarea),.income-dialog .finance-select-toggle{background:#0c0b13!important;color:#eeebf5!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:10px!important;box-shadow:none!important;padding:12px 14px;font:inherit;font-size:14px;line-height:1.5;min-height:51px;}
+.income-dialog :is(input,textarea,select):focus-visible{border-color:#a78bfa!important;outline:2px solid #9676e5!important;outline-offset:1px!important;}
+.income-dialog :is(.income-form-footer,.income-dialog-footer){gap:12px;margin:0!important;padding:20px 30px!important;border-top:1px solid #2f293a;background:transparent!important;}
+.income-dialog :is(.income-form-footer,.income-dialog-footer) .income-button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;margin:0;padding:0 18px;border-radius:12px;font:inherit;font-size:12px;font-weight:750;white-space:nowrap;box-shadow:none;}
+.income-dialog .income-button:not(.income-button-secondary):not(.income-button-danger){border:1px solid #935fda;background:linear-gradient(115deg,#8047d2,#6232ab);color:#fff;}
+.income-dialog .income-button-secondary{background:#1a1821!important;border:1px solid #36313f!important;color:#d5cada!important;}
+.income-dialog .income-button-danger{background:#b53555!important;border:1px solid #d75776!important;color:#fff!important;}
+.income-dialog .income-button:hover{filter:brightness(1.13);}
+.income-dialog .income-button svg{width:17px;height:17px;}
+.income-dialog .income-view-amount{background:#0c0b13!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:10px;color:#eeebf5;}
+#incomeDeleteDialog .income-dialog-body{padding:22px 27px;}
+#incomeDeleteDialog .income-dialog-footer{padding:18px 27px!important;}
+#incomeDeleteDialog .income-delete-description{color:#c9bfce;font-size:13px;line-height:1.8;}
+.income-dialog button:focus-visible{outline:2px solid #c4b5fd;outline-offset:2px;}
+@media(max-width:640px){
+ :is(#incomeAddDialog,#incomeEditDialog,#incomeViewDialog,#incomeDeleteDialog,#incomeHistoryDialog).income-dialog{width:calc(100vw - 20px);max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px);}
+ .income-dialog>:is(.income-dialog-header,.accounts-panel-heading){gap:9px;}
+ .income-dialog .income-popup-title{gap:10px;}
+ .income-dialog .income-popup-badge{width:43px;height:43px;flex-basis:43px;border-radius:12px;}
+ .income-dialog .income-popup-badge svg{width:20px;height:20px;}
+ .income-dialog .income-dialog-body,#incomeViewContent,#incomeDeleteDialog .income-dialog-body{padding:19px 17px;}
+ .income-dialog :is(.income-form-footer,.income-dialog-footer),#incomeDeleteDialog .income-dialog-footer{padding:16px 17px!important;}
+ .income-dialog .income-field :is(input,textarea),.income-dialog .finance-select-toggle{font-size:16px;}
+}
+</style>
 <div id="accountsIncomePage">
   <div id="incomeFeedback" role="status" class="income-feedback" hidden></div>
   <div id="incomeSnapshot">
@@ -56,10 +227,10 @@
   </div>
 </div>
   <dialog id="incomeAddDialog" class="income-dialog" aria-labelledby="incomeEntryHeading" data-form-errors="{% if form.errors %}1{% else %}0{% endif %}">
-    <div class="accounts-panel-heading"><div><span class="accounts-eyebrow">NEW ENTRY</span><h2 id="incomeEntryHeading">Add Income</h2></div><button type="button" class="income-icon-button" data-income-close aria-label="Close Add Income"><i data-lucide="x" aria-hidden="true"></i></button></div>
+    <div class="accounts-panel-heading"><div class="income-popup-title"><span class="income-popup-badge" aria-hidden="true"><i data-lucide="plus"></i></span><div><span class="accounts-eyebrow">NEW ENTRY</span><h2 id="incomeEntryHeading">Add Income</h2></div></div><button type="button" class="income-icon-button" data-income-close aria-label="Close Add Income"><i data-lucide="x" aria-hidden="true"></i></button></div>
     <form id="accountsIncomeForm" method="post" enctype="multipart/form-data" action="{% url 'accounts_income' %}">
       {% csrf_token %}
-      <input type="hidden" name="confirm_duplicate" value="0">
+      <div class="income-dialog-body"><input type="hidden" name="confirm_duplicate" value="0">
       <div class="income-form-error" id="incomeFormError" role="alert" {% if not form.non_field_errors %}hidden{% endif %}>{{ form.non_field_errors }}</div>
       <div class="income-duplicate-box" role="alert" hidden><p data-income-duplicate-message></p><button type="button" class="income-button income-button-secondary" data-income-duplicate-cancel>Review Entry</button><button type="button" class="income-button" data-income-duplicate-confirm>Save Anyway</button></div>
       <div class="income-form-grid">
@@ -71,41 +242,97 @@
         </div>
         {% endfor %}
       </div>
-      <div class="income-form-footer"><span class="accounts-muted">Fields marked * are required.</span><button type="submit" class="income-button" id="incomeSaveButton"><i data-lucide="plus" aria-hidden="true"></i><span>Save Income</span></button></div>
+      </div><div class="income-form-footer"><span class="accounts-muted">Fields marked * are required.</span><button type="submit" class="income-button" id="incomeSaveButton"><i data-lucide="plus" aria-hidden="true"></i><span>Save Income</span></button></div>
     </form>
   </dialog>
 
 <dialog id="incomeEditDialog" class="income-dialog" aria-labelledby="incomeEditTitle">
-  <header class="income-dialog-header"><div><span class="accounts-eyebrow">INCOME ENTRY</span><h2 id="incomeEditTitle">Edit Income</h2></div><button type="button" class="income-icon-button" data-income-close aria-label="Close edit popup"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <header class="income-dialog-header"><div class="income-popup-title"><span class="income-popup-badge" aria-hidden="true"><i data-lucide="pencil"></i></span><div><span class="accounts-eyebrow">INCOME ENTRY</span><h2 id="incomeEditTitle">Edit Income</h2></div></div><button type="button" class="income-icon-button" data-income-close aria-label="Close edit popup"><i data-lucide="x" aria-hidden="true"></i></button></header>
   <form id="incomeEditForm" method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    <input type="hidden" name="confirm_duplicate" value="0">
+    <div class="income-dialog-body"><input type="hidden" name="confirm_duplicate" value="0">
     <div id="incomeEditError" class="income-form-error" role="alert" hidden></div>
     <div class="income-duplicate-box" role="alert" hidden><p data-income-duplicate-message></p><button type="button" class="income-button income-button-secondary" data-income-duplicate-cancel>Review Entry</button><button type="button" class="income-button" data-income-duplicate-confirm>Save Anyway</button></div>
     <div id="incomeCurrentReceipt" class="income-current-receipt" hidden><a class="income-button income-button-secondary" target="_blank" rel="noopener">View current receipt</a><label><input type="checkbox" name="remove_receipt" value="1"> Remove receipt</label></div>
     <div id="incomeEditFields" class="income-form-grid"></div>
-    <footer class="income-dialog-footer"><button type="button" class="income-button income-button-secondary" data-income-close>Cancel</button><button type="submit" class="income-button" id="incomeUpdateButton">Save Changes</button></footer>
+    </div><footer class="income-dialog-footer"><button type="button" class="income-button income-button-secondary" data-income-close>Cancel</button><button type="submit" class="income-button" id="incomeUpdateButton">Save Changes</button></footer>
   </form>
 </dialog>
 <dialog id="incomeDeleteDialog" class="income-dialog income-dialog-small" aria-labelledby="incomeDeleteTitle" aria-describedby="incomeDeleteDescription">
-  <header class="income-dialog-header"><div><span class="accounts-eyebrow">CONFIRM DELETE</span><h2 id="incomeDeleteTitle">Delete Income?</h2></div><button type="button" class="income-icon-button" data-income-close aria-label="Close delete confirmation"><i data-lucide="x" aria-hidden="true"></i></button></header>
-  <p id="incomeDeleteDescription" class="income-delete-description">Delete <strong id="incomeDeleteCategory"></strong>? This entry will be removed and income totals will change. This cannot be undone.</p>
-  <div id="incomeDeleteError" class="income-form-error" role="alert" hidden></div>
+  <header class="income-dialog-header"><div class="income-popup-title"><span class="income-popup-badge" aria-hidden="true"><i data-lucide="trash-2"></i></span><div><span class="accounts-eyebrow">CONFIRM DELETE</span><h2 id="incomeDeleteTitle">Delete Income?</h2></div></div><button type="button" class="income-icon-button" data-income-close aria-label="Close delete confirmation"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <div class="income-dialog-body"><p id="incomeDeleteDescription" class="income-delete-description">Delete <strong id="incomeDeleteCategory"></strong>? This entry will be removed and income totals will change. This cannot be undone.</p>
+  <div id="incomeDeleteError" class="income-form-error" role="alert" hidden></div></div>
   <footer class="income-dialog-footer"><button type="button" class="income-button income-button-secondary" data-income-close autofocus>Cancel</button><button type="button" class="income-button income-button-danger" id="incomeDeleteButton">Delete Income</button></footer>
 </dialog>
 
 <dialog id="incomeViewDialog" class="income-dialog income-view-dialog" aria-labelledby="incomeViewTitle">
   <header class="income-dialog-header">
-    <div><span class="accounts-eyebrow">INCOME ENTRY</span><h2 id="incomeViewTitle">Income Details</h2></div>
+    <div class="income-popup-title"><span class="income-popup-badge" aria-hidden="true"><i data-lucide="eye"></i></span><div><span class="accounts-eyebrow">INCOME ENTRY</span><h2 id="incomeViewTitle">Income Details</h2></div></div>
     <button type="button" class="income-icon-button" data-income-close aria-label="Close income details"><i data-lucide="x" aria-hidden="true"></i></button>
   </header>
   <div id="incomeViewContent"></div>
   <footer class="income-dialog-footer"><button type="button" class="income-button income-button-secondary" data-income-close>Close</button></footer>
 </dialog>
 <dialog id="incomeHistoryDialog" class="income-dialog" aria-labelledby="incomeHistoryTitle">
-  <header class="income-dialog-header"><div><span class="accounts-eyebrow">ACTIVITY LOG</span><h2 id="incomeHistoryTitle">Income History</h2></div><button type="button" class="income-icon-button" data-income-close aria-label="Close income history"><i data-lucide="x" aria-hidden="true"></i></button></header>
-  <p class="accounts-muted">Latest 50 changes · History starts after this upgrade.</p>
-  <div id="incomeHistoryContent" class="income-history-list"></div>
+  <header class="income-dialog-header"><div class="income-popup-title"><span class="income-popup-badge" aria-hidden="true"><i data-lucide="history"></i></span><div><span class="accounts-eyebrow">ACTIVITY LOG</span><h2 id="incomeHistoryTitle">Income History</h2></div></div><button type="button" class="income-icon-button" data-income-close aria-label="Close income history"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <div class="income-dialog-body"><p class="accounts-muted">Latest 50 changes · History starts after this upgrade.</p>
+  <div id="incomeHistoryContent" class="income-history-list"></div></div>
   <footer class="income-dialog-footer"><button type="button" class="income-button income-button-secondary" data-income-close>Close</button></footer>
 </dialog>
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script>
+/* Income-only purple dropdowns. Shared toast API stays unchanged. */
+(() => {
+ 'use strict';
+ if(window.accountsIncomeEnhancements)return;window.accountsIncomeEnhancements=true;
+ let current=null,active=-1,counter=0,typed='',typeTimer;
+ const entries=new Set();
+ function sync(entry){const text=entry.select.selectedOptions[0]?.textContent.trim()||'Select';if(entry.text.textContent!==text)entry.text.textContent=text;if(entry.button.disabled!==entry.select.disabled)entry.button.disabled=entry.select.disabled;entry.button.setAttribute('aria-required',String(entry.select.required));}
+ function close(){if(!current)return;current.menu.hidden=true;current.button.setAttribute('aria-expanded','false');current.button.removeAttribute('aria-activedescendant');current=null;}
+ function highlight(index){if(!current||!current.menu.children.length)return;const rows=[...current.menu.children];active=(index+rows.length)%rows.length;rows.forEach((row,i)=>row.classList.toggle('is-active',i===active));current.button.setAttribute('aria-activedescendant',rows[active].id);rows[active].scrollIntoView({block:'nearest'});}
+ function choose(index){if(!current)return;const entry=current,option=entry.select.options[index];if(!option||option.disabled)return;entry.select.selectedIndex=index;sync(entry);close();entry.select.dispatchEvent(new Event('change',{bubbles:true}));entry.button.removeAttribute('aria-invalid');entry.button.focus();}
+ function open(entry){close();sync(entry);if(entry.select.disabled)return;current=entry;const host=entry.select.closest('dialog')||document.body;host.append(entry.menu);entry.menu.replaceChildren();[...entry.select.options].forEach((option,index)=>{const row=document.createElement('div');row.id=entry.menu.id+'-'+index;row.className='finance-select-option';row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.selected));row.setAttribute('aria-disabled',String(option.disabled));row.textContent=option.textContent.trim();row.addEventListener('pointerdown',event=>event.preventDefault());row.addEventListener('click',()=>choose(index));entry.menu.append(row);});
+  const rect=entry.button.getBoundingClientRect(),below=innerHeight-rect.bottom-12,above=rect.top-12,width=Math.min(Math.max(rect.width,220),innerWidth-24);entry.menu.style.width=width+'px';entry.menu.style.left=Math.max(12,Math.min(rect.left,innerWidth-width-12))+'px';entry.menu.style.maxHeight=Math.min(280,Math.max(above,below))+'px';entry.menu.hidden=false;const height=entry.menu.getBoundingClientRect().height;entry.menu.style.top=(below>=height?rect.bottom+7:Math.max(12,rect.top-height-7))+'px';entry.button.setAttribute('aria-expanded','true');highlight(Math.max(0,entry.select.selectedIndex));
+ }
+ function init(){
+  for(const entry of entries){if(!entry.select.isConnected){if(current===entry)close();entry.observer.disconnect();entry.menu.remove();entries.delete(entry);}else sync(entry);}
+  document.querySelectorAll('#accountsIncomePage select:not([multiple]):not([data-finance-choice]),dialog.income-dialog select:not([multiple]):not([data-finance-choice])').forEach(select=>{
+   select.dataset.financeChoice='true';const wrap=document.createElement('div');wrap.className='finance-choice';select.before(wrap);wrap.append(select);select.classList.add('finance-native-choice');select.tabIndex=-1;
+   const button=document.createElement('button'),text=document.createElement('span'),menu=document.createElement('div');button.type='button';button.className='finance-select-toggle';button.append(text);button.setAttribute('role','combobox');button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');menu.id='finance-choice-'+counter++;menu.className='finance-select-menu';menu.hidden=true;menu.setAttribute('role','listbox');button.setAttribute('aria-controls',menu.id);
+   const label=select.labels?.[0];if(label){if(!label.id)label.id=menu.id+'-label';button.setAttribute('aria-labelledby',label.id);if(!label.contains(select))label.addEventListener('click',event=>{event.preventDefault();button.focus();});}else button.setAttribute('aria-label',select.name.replaceAll('_',' ')||'Select option');
+   wrap.append(button);(select.closest('dialog')||document.body).append(menu);
+   const entry={select,button,text,menu};entry.observer=new MutationObserver(()=>{sync(entry);if(current===entry)open(entry);});entry.observer.observe(select,{subtree:true,childList:true,attributes:true});entries.add(entry);sync(entry);
+   button.addEventListener('click',()=>current===entry?close():open(entry));select.addEventListener('change',()=>sync(entry));select.addEventListener('focus',()=>button.focus());select.addEventListener('invalid',()=>{button.setAttribute('aria-invalid','true');button.focus();});
+   button.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&current){event.preventDefault();event.stopPropagation();close();return;}if(event.key==='Tab'){close();return;}
+    if(['ArrowDown','ArrowUp','Home','End','Enter',' '].includes(event.key)){event.preventDefault();if(current!==entry){open(entry);return;}if(event.key==='Enter'||event.key===' '){choose(active);return;}const options=[...select.options];let index=event.key==='Home'?0:event.key==='End'?options.length-1:active+(event.key==='ArrowUp'?-1:1);const step=['ArrowUp','End'].includes(event.key)?-1:1;for(let n=0;n<options.length;n++){index=(index+options.length)%options.length;if(!options[index].disabled){highlight(index);break;}index+=step;}}
+    else if(event.key.length===1){typed+=event.key.toLowerCase();clearTimeout(typeTimer);typeTimer=setTimeout(()=>typed='',700);if(current!==entry)open(entry);const index=[...select.options].findIndex(option=>!option.disabled&&option.textContent.trim().toLowerCase().startsWith(typed));if(index>=0)highlight(index);}
+   });
+  });
+  if(current&&(!current.button.isConnected||current.select.closest('dialog')&&!current.select.closest('dialog').open))close();
+ }
+ let queued=false;const queue=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;init();});};
+ new MutationObserver(queue).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open']});
+ document.addEventListener('pointerdown',event=>{if(current&&!current.button.contains(event.target)&&!current.menu.contains(event.target))close();});document.addEventListener('scroll',event=>{if(current&&!current.menu.contains(event.target))close();},true);window.addEventListener('resize',close);document.addEventListener('reset',()=>setTimeout(init,0));
+ document.addEventListener('close',event=>{const dialog=event.target;if(current&&dialog.contains(current.select))close();},true);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+
+(() => {
+ function connectToasts() {
+  const host=document.getElementById('toastContainer')||document.getElementById('toast-container');
+  if(!host)return;
+  const home=host.parentNode;
+  const dialogs=[...document.querySelectorAll('dialog.income-dialog')];
+  function sync(){const opened=dialogs.filter(d=>d.open),target=opened.at(-1)||home||document.body;if(host.parentNode!==target)target.append(host);}
+  const observer=new MutationObserver(sync);
+  dialogs.forEach(dialog=>{observer.observe(dialog,{attributes:true,attributeFilter:['open']});dialog.addEventListener('close',sync);});
+  sync();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',connectToasts,{once:true});else connectToasts();
+})();
+
+</script>
 {% endblock %}

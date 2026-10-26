@@ -666,6 +666,33 @@ body.accounts-workspace .accounts-profile{min-width:0;max-width:100%}
  .accounts-profile .profile-content{padding-top:0}
 }
 @media(prefers-reduced-motion:reduce){.accounts-profile *{transition:none!important}.accounts-profile .profile-main-card:hover,.accounts-profile .profile-save-button:hover{transform:none}}
+
+/* Layout follows the available Accounts content width, including its sidebar. */
+.accounts-profile{container-type:inline-size;width:100%;min-width:0;}
+.accounts-profile .profile-main-card{align-items:start;}
+.accounts-profile .profile-form-grid{align-items:start;}
+.accounts-profile .profile-form-group:last-child{grid-column:1 / -1;}
+.accounts-profile .profile-form-error:empty{display:none;}
+.accounts-profile .profile-form-group label{line-height:1.5;min-height:15px;}
+.accounts-profile .profile-form-input{display:block;font:inherit;font-size:14px;}
+.accounts-profile .profile-save-wrapper{align-items:center;gap:12px;flex-wrap:wrap;}
+.accounts-profile .profile-image-hint{max-width:220px;overflow-wrap:anywhere;}
+.accounts-profile .profile-info-value{line-height:1.6;}
+.accounts-profile .profile-form-feedback{overflow-wrap:anywhere;line-height:1.6;}
+.accounts-profile .section-heading>div:first-child{min-width:0;}
+.accounts-profile .profile-main-card:hover{transform:none;}
+.profile-toast-stack{position:fixed;right:20px;bottom:20px;z-index:100000;display:grid;gap:10px;width:min(370px,calc(100vw - 32px));pointer-events:none;}
+.profile-toast{padding:14px 18px;background:#211a30;border:1px solid #73608e;border-radius:12px;box-shadow:0 12px 35px #0005;color:#f5f3ff;font-size:13px;line-height:1.6;overflow-wrap:anywhere;}
+.profile-toast[data-type=error]{border-color:#fb7185;}.profile-toast[data-type=success]{border-color:#7cbd98;}
+@container(max-width:620px){
+ .accounts-profile .profile-main-card{grid-template-columns:minmax(0,1fr);gap:20px;padding:18px;}
+ .accounts-profile .profile-info-grid,.accounts-profile .profile-form-grid{grid-template-columns:minmax(0,1fr);}
+ .accounts-profile .profile-edit-card{padding:18px;}
+ .accounts-profile .profile-form-group:last-child{grid-column:auto;}
+ .accounts-profile .profile-form-input{font-size:16px;}
+ .accounts-profile .profile-save-button{width:100%;}
+}
+@media(max-width:480px){.accounts-profile .profile-main-card,.accounts-profile .profile-edit-card{padding:15px;}.profile-toast-stack{right:16px;bottom:16px;}.accounts-profile .profile-form-grid{gap:16px;}}
 </style>{% endblock %}
 {% block content %}<div class="accounts-profile"><section class="profile-content">
 
@@ -994,7 +1021,7 @@ body.accounts-workspace .accounts-profile{min-width:0;max-width:100%}
 
                             <input
                                 type="text"
-                                name="name" id="profile-name" autocomplete="name" aria-describedby="profile-name-error"
+                                name="name" id="profile-name" required autocomplete="name" aria-describedby="profile-name-error"
                                 value="{{ profile_form.name.value|default_if_none:'' }}"
                                 class="profile-form-input"
                                 placeholder="Enter full name"
@@ -1083,9 +1110,18 @@ document.addEventListener('DOMContentLoaded', () => {
   let busy = false, statusBusy = false;
 
   function toast(message, type) {
-    if (window.showToast) window.showToast(message, type);
-    else feedback.textContent = message;
+    if (typeof window.showToast === 'function') { window.showToast(message, type); return; }
+    let host = document.getElementById('profileToastStack');
+    if (!host) { host = document.createElement('div'); host.id = 'profileToastStack'; host.className = 'profile-toast-stack'; document.body.append(host); }
+    const item = document.createElement('div'); item.className = 'profile-toast'; item.dataset.type = type || 'success';
+    item.setAttribute('role', type === 'error' ? 'alert' : 'status'); item.textContent = message; host.append(item);
+    while (host.children.length > 3) host.firstElementChild.remove();
+    setTimeout(() => item.remove(), 5000);
   }
+  let validationNotice = false;
+  form.addEventListener('invalid', event => { if(validationNotice)return; validationNotice=true; toast(event.target.validationMessage || 'Check the profile fields.', 'warning'); setTimeout(()=>validationNotice=false,0); }, true);
+  fields.forEach(field => form.elements[field].addEventListener('input', () => { form.elements[field].removeAttribute('aria-invalid'); document.getElementById('profile-' + field + '-error').textContent = ''; }));
+  photo.addEventListener('error', () => { photo.hidden = true; initial.hidden = false; });
   function errors(data = {}) {
     fields.forEach(field => {
       const messages = (data[field] || []).map(error => typeof error === 'string' ? error : error.message).join(' ');
@@ -1096,7 +1132,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function update(data) {
     fields.forEach(field => {
       const value = data[field] || '';
-      document.querySelector('[data-profile-value="' + field + '"]').textContent = value || 'Not provided';
+      const display = document.querySelector('[data-profile-value="' + field + '"]');
+      if (display) display.textContent = value || 'Not provided';
     });
     photo.hidden = !data.image_url;
     initial.hidden = !!data.image_url;
@@ -1109,7 +1146,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.image_url) {
         const image = document.createElement('img');
         image.src = data.image_url;
-        image.alt = '';
+        image.alt = 'Your profile photo';
+        image.addEventListener('error',()=>{avatar.textContent=data.initial || 'A';},{once:true});
         avatar.append(image);
       } else avatar.textContent = data.initial || 'A';
     }
@@ -1118,6 +1156,7 @@ document.addEventListener('DOMContentLoaded', () => {
     busy = value;
     form.setAttribute('aria-busy', String(value));
     save.disabled = value;
+    save.querySelector('span').textContent = value ? 'Saving…' : 'Save Changes';
     photoButton.disabled = value;
     input.disabled = value;
     fields.forEach(field => form.elements[field].disabled = value);

@@ -1062,6 +1062,285 @@ body.accounts-workspace .reminder-card-actions {flex-wrap:wrap}
  body.accounts-workspace .dialog-footer {flex-wrap:wrap}
  body.accounts-workspace .reminder-dialog :is(input,textarea,select) {font-size:16px}
 }
+/* Team Lead Reminders: Admin matching dropdown UI ONLY */
+/* Remind me dropdown — distinct, premium PURPLE theme (not bright violet). */
+#editDialog .reminder-purple-select {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    margin-top: 8px;
+}
+/* The existing select still controls the reminder timing logic. */
+#editDialog .reminder-purple-select .reminder-native-select {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    clip-path: inset(50%);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+#editDialog .reminder-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 47px;
+    padding: 0 14px;
+    border: 1px solid #674793;
+    border-radius: 11px;
+    background: linear-gradient(120deg, #2b193e 0%, #21162f 68%, #1b1429 100%);
+    box-shadow: inset 0 1px 0 rgba(225, 198, 255, .075), 0 5px 15px rgba(37, 19, 58, .13);
+    color: #f3eaff;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 650;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+#editDialog .reminder-select-trigger:hover {
+    background: linear-gradient(120deg, #352049, #261936 80%);
+    border-color: #9973c8;
+}
+#editDialog .reminder-select-trigger:focus-visible,
+#editDialog .reminder-select-trigger[aria-expanded="true"] {
+    outline: none;
+    border-color: #b68fe3;
+    background: linear-gradient(120deg, #37214f, #291b3c 75%);
+    box-shadow: 0 0 0 3px rgba(127, 77, 191, .17), inset 0 1px 0 rgba(225,198,255,.08);
+}
+#editDialog .reminder-select-trigger svg {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    color: #c6a2f4;
+    transition: transform .2s ease;
+}
+#editDialog .reminder-select-trigger[aria-expanded="true"] svg {transform: rotate(180deg);}
+#editDialog .reminder-select-menu {
+    position: relative;
+    z-index: 12;
+    display: grid;
+    gap: 4px;
+    margin-top: 7px;
+    padding: 7px;
+    max-height: 215px;
+    overflow-y: auto;
+    border: 1px solid #684697;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #2b1a3d 0%, #1b132a 80%, #171021 100%);
+    box-shadow: 0 16px 32px rgba(0,0,0,.40), inset 0 1px 0 rgba(218,190,255,.08);
+    scrollbar-width: thin;
+    scrollbar-color: #7952a9 transparent;
+}
+#editDialog .reminder-select-menu[hidden] {display:none !important;}
+#editDialog .reminder-select-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    min-height: 39px;
+    padding: 9px 12px;
+    text-align: left;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #d9c8ee;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+#editDialog .reminder-select-option:hover,
+#editDialog .reminder-select-option:focus-visible {
+    outline: none;
+    background: rgba(113, 67, 164, .35);
+    border-color: rgba(189, 149, 236, .25);
+    color: #fff;
+}
+#editDialog .reminder-select-option[aria-selected="true"] {
+    background: linear-gradient(110deg, #563076, #38234f);
+    border-color: #8560b4;
+    color: #fff;
+    font-weight: 700;
+}
+#editDialog .reminder-select-option[aria-selected="true"]::after {
+    content: "✓";
+    font-size: 13px;
+    color: #e0c2ff;
+    font-weight: 800;
+}
+
+/* ================================================================
+   Remind me: SAME UI AS TEAM LEAD DASHBOARD
+   Reference: Department / Team filter dropdown (final active styles).
+   Only appearance is updated; #reminderPreset remains source of truth.
+   ================================================================ */
+#editDialog #reminderPresetPicker {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* Match #filterForm .tl-dashboard-select-button */
+#editDialog #reminderPresetPicker .reminder-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    height: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(7,7,11,.72);
+    color: #f4f4f5;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
+    text-align: left;
+    box-shadow: none;
+    cursor: pointer;
+    transition: border-color .18s, box-shadow .18s, background .18s;
+}
+#editDialog #reminderPresetPicker .reminder-select-trigger:hover {
+    background: rgba(7,7,11,.72);
+    border-color: rgba(255,255,255,.16);
+    box-shadow: none;
+}
+#editDialog #reminderPresetPicker .reminder-select-trigger:focus-visible,
+#editDialog #reminderPresetPicker .reminder-select-trigger[aria-expanded="true"] {
+    outline: none;
+    background: rgba(10,9,15,.90);
+    border-color: rgba(139,92,246,.45);
+    box-shadow: 0 0 0 2px rgba(139,92,246,.06);
+}
+#editDialog #reminderPresetPicker #reminderPresetText {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Match Team Lead's CSS chevron (not a font or text "v"). */
+#editDialog #reminderPresetPicker .reminder-tl-arrow {
+    display: block;
+    width: 7px;
+    height: 7px;
+    flex: 0 0 7px;
+    margin: -4px 3px 0 0;
+    padding: 0;
+    border-right: 1.8px solid #a99cce;
+    border-bottom: 1.8px solid #a99cce;
+    transform: rotate(45deg);
+    transition: transform .18s ease, margin .18s ease;
+}
+#editDialog #reminderPresetPicker .reminder-select-trigger[aria-expanded="true"] .reminder-tl-arrow {
+    transform: rotate(225deg);
+    margin-top: 4px;
+}
+
+/* Match final .tl-dashboard-options styling on Team Lead Dashboard. */
+#editDialog #reminderPresetPicker .reminder-select-menu {
+    position: absolute;
+    inset: calc(100% + 7px) 0 auto 0;
+    z-index: 1000;
+    display: grid;
+    gap: 0;
+    max-height: min(260px, 40dvh);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 8px;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 90% 0%, rgba(96,165,250,.13), transparent 32%),
+        radial-gradient(circle at 0% 0%, rgba(139,92,246,.20), transparent 38%),
+        rgba(12,11,20,.98);
+    box-shadow:
+        0 20px 45px rgba(0,0,0,.45),
+        inset 0 1px 0 rgba(255,255,255,.06);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(139,92,246,.50) transparent;
+}
+#editDialog #reminderPresetPicker .reminder-select-menu[hidden] {
+    display: none !important;
+}
+#editDialog #reminderPresetPicker .reminder-select-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 40px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #eeebf5;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.45;
+    text-align: left;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+#editDialog #reminderPresetPicker .reminder-select-option:hover,
+#editDialog #reminderPresetPicker .reminder-select-option:focus-visible {
+    outline: none;
+    border: 0;
+    background: rgba(139,92,246,.12);
+    color: #fff;
+}
+#editDialog #reminderPresetPicker .reminder-select-option[aria-selected="true"] {
+    background: rgba(139,92,246,.18);
+    color: #ede9fe;
+    font-weight: 500;
+}
+#editDialog #reminderPresetPicker .reminder-select-option[aria-selected="true"]::after {
+    content: "✓";
+    flex: 0 0 auto;
+    font-size: 15px;
+    font-weight: 600;
+    color: #c4b5fd;
+}
+@media (max-width: 640px) {
+    #editDialog #reminderPresetPicker .reminder-select-trigger {
+        font-size: 16px;
+    }
+    #editDialog #reminderPresetPicker .reminder-select-option {
+        min-height: 44px;
+        font-size: 16px;
+    }
+}
+
+
+#editDialog,#deleteDialog{background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),rgba(12,11,20,.98);border:1px solid rgba(255,255,255,.13);border-radius:18px;box-shadow:0 20px 45px rgba(0,0,0,.45);color:#eeebf5;width:min(560px,calc(100vw - 24px));max-width:560px;max-height:calc(100dvh - 24px);padding:22px;box-sizing:border-box;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(139,92,246,.5) transparent;}
+#deleteDialog{max-width:420px;}
+#editDialog .reminder-field input,#editDialog .reminder-field textarea,#editDialog .reminder-field select,#editDialog .picker-trigger{background:#0c0b13;border:1px solid rgba(255,255,255,.13);color:#eeebf5;border-radius:12px;font-size:14px;}
+#editDialog .reminder-field select option{background:#171321;color:#eeebf5;}
+#editDialog .dialog-header{background:transparent;gap:12px;}
+#editDialog .dialog-header h2{font-size:20px;}
+#editDialog .dialog-footer,#deleteDialog .dialog-footer{flex-wrap:wrap;gap:10px;}
+.reminder-live-toast{position:fixed;bottom:18px;right:18px;max-width:calc(100vw - 36px);padding:14px 18px;background:#211a30;border:1px solid #73608e;border-radius:12px;color:white;z-index:200000;}
+.reminder-card h3,.reminder-card p{overflow-wrap:anywhere;}
+@media(max-width:600px){#editDialog,#deleteDialog{padding:16px;}#editDialog .reminder-field input,#editDialog .reminder-field textarea,#editDialog .reminder-field select,#editDialog .picker-trigger{font-size:16px;}#editDialog .datetime-buttons{flex-wrap:wrap;}.reminder-card-actions{flex-wrap:wrap;}}
+
+/* Keep the list inside the scrolling dialog, including short mobile screens. */
+#editDialog #reminderPresetPicker .reminder-select-menu{position:relative;inset:auto;margin-top:7px;max-height:min(240px,35dvh);}
+.reminder-main,.reminder-panel,.reminder-list-tools,.reminder-field{min-width:0;}
+#editDialog .reminder-select-trigger > span:first-child{min-width:0;}
+#deleteDescription{overflow-wrap:anywhere;}
+@media(max-width:480px){.reminder-dialog .dialog-footer > button{flex:1 1 120px;}.reminder-list-tools{flex-wrap:wrap;}.reminder-search{width:100%;min-width:0;}}
 </style>{% endblock %}
 {% block content %}<div class="reminder-main">
         <div class="reminder-shell">
@@ -1144,12 +1423,24 @@ body.accounts-workspace .reminder-card-actions {flex-wrap:wrap}
                     <div class="picker-panel" hidden></div>
                 </div>
             </div>
-            <label class="reminder-field">Remind me<select id="reminderPreset">
-                    <option value="1440">1 day before</option>
-                    <option value="60">1 hour before</option>
-                    <option value="0">At event time</option>
-                    <option value="custom">Custom date &amp; time</option>
-                </select></label>
+            <div class="reminder-field">
+                <span id="reminderPresetHeading">Remind me</span>
+                <div class="reminder-purple-select" id="reminderPresetPicker">
+                    <select id="reminderPreset" class="reminder-native-select" tabindex="-1" aria-hidden="true">
+                        <option value="1440">1 day before</option>
+                        <option value="60">1 hour before</option>
+                        <option value="0">At event time</option>
+                        <option value="custom">Custom date &amp; time</option>
+                    </select>
+                    <button type="button" id="reminderPresetTrigger" class="reminder-select-trigger"
+                            aria-haspopup="listbox" aria-controls="reminderPresetOptions"
+                            aria-labelledby="reminderPresetHeading reminderPresetText" aria-expanded="false">
+                        <span id="reminderPresetText">1 day before</span>
+                        <span class="reminder-tl-arrow" aria-hidden="true"></span>
+                    </button>
+                    <div class="reminder-select-menu" id="reminderPresetOptions" role="listbox" aria-label="Reminder timing" hidden></div>
+                </div>
+            </div>
             <div class="reminder-field"><span>Reminder date &amp; time</span><input type="hidden" name="remind_at"
                     id="remindAt">
                 <div class="datetime-control" data-input="remindAt">
@@ -1196,7 +1487,7 @@ body.accounts-workspace .reminder-card-actions {flex-wrap:wrap}
             const dateValue = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
             const dateLabel = d => new Date(d + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
             const timeLabel = d => new Date(d).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true });
-            function toast(message, type) { if (window.showToast) window.showToast(message, type); else { const box = document.getElementById('reminderFeedback'); box.textContent = message; box.hidden = false; } }
+            function toast(message, type = 'success') { message = message || 'Changes saved successfully.'; if (typeof window.showToast === 'function') window.showToast(message, type); else { const box = document.createElement('div'); box.className = 'reminder-live-toast'; box.setAttribute('role', type === 'error' ? 'alert' : 'status'); box.textContent = message; (document.querySelector('dialog[open]') || document.body).appendChild(box); setTimeout(() => box.remove(), 5000); } }
             function icons() { if (window.lucide) lucide.createIcons(); }
             function node(tag, cls, text) { const el = document.createElement(tag); el.className = cls; if (text !== undefined) el.textContent = text; return el; }
             function actionForm(item, action, label) {
@@ -1229,13 +1520,80 @@ body.accounts-workspace .reminder-card-actions {flex-wrap:wrap}
                 }); });
             const controls = Array.from(document.querySelectorAll('.datetime-control'));
             function closePickers() { controls.forEach(c => { c.querySelector('.picker-panel').hidden = true; c.querySelector('.picker-panel').replaceChildren(); c.querySelectorAll('.picker-trigger').forEach(b => b.setAttribute('aria-expanded', 'false')); }); }
+            const presetPicker = document.getElementById('reminderPresetPicker');
+            const presetTrigger = document.getElementById('reminderPresetTrigger');
+            const presetMenu = document.getElementById('reminderPresetOptions');
+            const presetText = document.getElementById('reminderPresetText');
+            function syncPresetPicker() {
+                const selectedOption = preset.options[preset.selectedIndex];
+                presetText.textContent = selectedOption ? selectedOption.textContent : 'Select timing';
+                presetMenu.querySelectorAll('[role="option"]').forEach(option => {
+                    option.setAttribute('aria-selected', String(option.dataset.value === preset.value));
+                });
+            }
+            function closePresetPicker(returnFocus = false) {
+                presetMenu.hidden = true;
+                presetTrigger.setAttribute('aria-expanded', 'false');
+                if (returnFocus) presetTrigger.focus();
+            }
+            function openPresetPicker() {
+                closePickers();
+                presetMenu.hidden = false;
+                presetTrigger.setAttribute('aria-expanded', 'true');
+                syncPresetPicker();
+                (presetMenu.querySelector('[aria-selected="true"]') || presetMenu.firstElementChild)?.focus();
+            }
+            Array.from(preset.options).forEach(option => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'reminder-select-option';
+                button.setAttribute('role', 'option');
+                button.dataset.value = option.value;
+                button.textContent = option.textContent;
+                button.addEventListener('click', () => {
+                    preset.value = option.value;
+                    preset.dispatchEvent(new Event('change', { bubbles: true }));
+                    syncPresetPicker();
+                    closePresetPicker(true);
+                });
+                presetMenu.appendChild(button);
+            });
+            presetTrigger.addEventListener('click', () => {
+                if (presetMenu.hidden) openPresetPicker();
+                else closePresetPicker();
+            });
+            presetPicker.addEventListener('focusout',()=>{setTimeout(()=>{if(!presetPicker.contains(document.activeElement))closePresetPicker();},0);});
+            presetPicker.addEventListener('keydown', event => {
+                if(['ArrowDown','ArrowUp'].includes(event.key) && presetMenu.hidden){event.preventDefault();openPresetPicker();return;}
+                if(['Home','End'].includes(event.key) && !presetMenu.hidden){event.preventDefault();(event.key==='Home'?presetMenu.firstElementChild:presetMenu.lastElementChild)?.focus();return;}
+                if (event.key === 'Escape' && !presetMenu.hidden) {
+                    event.preventDefault();event.stopPropagation();closePresetPicker(true);return;
+                }
+                if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && !presetMenu.hidden) {
+                    event.preventDefault();
+                    const options = Array.from(presetMenu.querySelectorAll('[role="option"]'));
+                    const index = options.indexOf(document.activeElement);
+                    const next = (index + (event.key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+                    options[next].focus();
+                }
+                if ((event.key === 'Enter' || event.key === ' ') && document.activeElement === presetTrigger && presetMenu.hidden) {
+                    event.preventDefault();openPresetPicker();
+                }
+            });
+            editDialog.addEventListener('click', event => {
+                if (!event.target.closest('#reminderPresetPicker')) closePresetPicker();
+            });
+            editDialog.addEventListener('close', () => closePresetPicker());
+            preset.addEventListener('change', syncPresetPicker);
+            syncPresetPicker();
+
             function syncDateControls() { controls.forEach(c => { const value = document.getElementById(c.dataset.input).value; const d = value ? new Date(value) : null; c.querySelector('.date-trigger span').textContent = d && !isNaN(d) ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Select date'; c.querySelector('.time-trigger span').textContent = d && !isNaN(d) ? d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }) : 'Select time'; }); }
             function setControl(c, date, time) { const input = document.getElementById(c.dataset.input); input.value = date + 'T' + time; input.dispatchEvent(new Event('input', { bubbles: true })); syncDateControls(); document.getElementById('pickerError').hidden = true; closePickers(); }
             function pickerButton(label, cls, click) { const b = node('button', cls, label); b.type = 'button'; b.addEventListener('click', click); return b; }
             controls.forEach(c => {
                 const panel = c.querySelector('.picker-panel'), input = document.getElementById(c.dataset.input);
                 const dateButton = c.querySelector('.date-trigger'), timeButton = c.querySelector('.time-trigger');
-                function show(trigger) { const wasOpen = trigger.getAttribute('aria-expanded') === 'true'; closePickers(); if (wasOpen) return false; panel.hidden = false; trigger.setAttribute('aria-expanded', 'true'); return true; }
+                function show(trigger) { const wasOpen = trigger.getAttribute('aria-expanded') === 'true'; closePresetPicker(); closePickers(); if (wasOpen) return false; panel.hidden = false; trigger.setAttribute('aria-expanded', 'true'); return true; }
                 dateButton.addEventListener('click', () => {
                     if (!show(dateButton)) return;
                     let base = input.value ? new Date(input.value) : new Date(selected + 'T09:00'); let year = base.getFullYear(), mon = base.getMonth();
@@ -1259,7 +1617,7 @@ body.accounts-workspace .reminder-card-actions {flex-wrap:wrap}
             editDialog.addEventListener('cancel', event => { if (controls.some(c => !c.querySelector('.picker-panel').hidden)) { event.preventDefault(); closePickers(); } });
             editDialog.addEventListener('close', closePickers);
             function updatePreset() { if (preset.value === 'custom' || !eventAt.value) return; const d = new Date(eventAt.value); d.setMinutes(d.getMinutes() - Number(preset.value)); remindAt.value = dateValue(d); remindAt.setCustomValidity(''); syncDateControls(); }
-            function edit(item) { if (mutating) return; form.reset(); document.getElementById('formAction').value = item ? 'update' : 'create'; document.getElementById('reminderId').value = item ? item.id : ''; document.getElementById('editHeading').textContent = item ? 'Edit reminder' : 'Add reminder'; title.value = item ? item.title : ''; description.value = item ? item.description : ''; eventAt.value = item ? item.event_at : selected + 'T09:00'; preset.value = item ? 'custom' : '1440'; remindAt.value = item ? item.remind_at : ''; if (!item) updatePreset(); remindAt.setCustomValidity(''); closePickers(); syncDateControls(); document.getElementById('pickerError').hidden = true; openDialog(editDialog); }
+            function edit(item) { if (mutating) return; form.reset(); document.getElementById('formAction').value = item ? 'update' : 'create'; document.getElementById('reminderId').value = item ? item.id : ''; document.getElementById('editHeading').textContent = item ? 'Edit reminder' : 'Add reminder'; title.value = item ? item.title : ''; description.value = item ? item.description : ''; eventAt.value = item ? item.event_at : selected + 'T09:00'; preset.value = item ? 'custom' : '1440'; remindAt.value = item ? item.remind_at : ''; if (!item) updatePreset(); remindAt.setCustomValidity(''); closePickers(); syncDateControls(); document.getElementById('pickerError').hidden = true; syncPresetPicker(); closePresetPicker(); openDialog(editDialog); }
             function render() {
                 document.getElementById('selectedDateLabel').textContent = dateLabel(selected);
                 document.querySelectorAll('.day[data-day]').forEach(button => { const date = month + '-' + pad(button.dataset.day); button.classList.toggle('selected', date === selected); button.classList.toggle('today', date === today); button.setAttribute('aria-pressed', String(date === selected)); const matches = items.filter(i => i.date === date); button.setAttribute('aria-label', dateLabel(date) + `, ${matches.length} reminder${matches.length === 1 ? '' : 's'}`); const old = button.querySelector('.dot'); if (old) old.remove(); if (matches.length) { const dot = node('span', 'dot' + (matches.every(i => i.is_completed) ? ' completed' : '')); dot.setAttribute('aria-hidden', 'true'); button.append(dot); } });
@@ -1338,7 +1696,7 @@ body.accounts-workspace .reminder-card-actions {flex-wrap:wrap}
                 loadMonth(value,true);
             });
             monthLinks();
-            document.getElementById('newReminder').addEventListener('click', () => edit(null)); document.getElementById('addSelected').addEventListener('click', () => edit(null)); preset.addEventListener('change', updatePreset); eventAt.addEventListener('input', () => { remindAt.setCustomValidity(''); updatePreset(); }); remindAt.addEventListener('input', () => { preset.value = 'custom'; remindAt.setCustomValidity(''); });
+            document.getElementById('newReminder').addEventListener('click', () => edit(null)); document.getElementById('addSelected').addEventListener('click', () => edit(null)); preset.addEventListener('change', updatePreset); eventAt.addEventListener('input', () => { remindAt.setCustomValidity(''); updatePreset(); }); remindAt.addEventListener('input', () => { preset.value = 'custom'; syncPresetPicker(); remindAt.setCustomValidity(''); });
             form.addEventListener('submit', async event => {
                 event.preventDefault(); if (mutating) return;
                 const remind = new Date(remindAt.value), start = new Date(eventAt.value); let error = '';
@@ -1353,6 +1711,7 @@ body.accounts-workspace .reminder-card-actions {flex-wrap:wrap}
     method: 'POST',
     body: new FormData(form)
 });
+                    if (!result.item || !result.item.id || !result.item.date) throw new Error('Save response incomplete. Check the reminder list before retrying.');
                     editDialog.close(); notifyCount(result); toast(result.message,'success');
                     const savedIndex=items.findIndex(i=>Number(i.id)===Number(result.item.id));
                     if(savedIndex>=0) items[savedIndex]=result.item; else items.push(result.item);

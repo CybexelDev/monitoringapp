@@ -5,6 +5,484 @@
 {% block page_heading %}SALES{% endblock %}
 {% block page_description %}Record sales and track customer payments.{% endblock %}
 {% block content %}
+
+<style>
+/* Accounts Sales only — match the Income & Expenses dark purple theme. */
+#accountsSalePage{--sale-purple:#a78bfa;--sale-border:rgba(167,139,250,.28);width:100%;max-width:100%;min-width:0}
+#accountsSalePage *,#accountsSalePage *::before,#accountsSalePage *::after,
+.sale-dialog,.sale-dialog *,.sale-dialog *::before,.sale-dialog *::after{box-sizing:border-box}
+#accountsSalePage [hidden],.sale-dialog [hidden],.sale-choice-menu[hidden]{display:none!important}
+#accountsSalePage :is(.accounts-panel,.accounts-stat,.sale-field,.sale-heading-actions){min-width:0}
+#accountsSalePage .sale-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:20px}
+#accountsSalePage .accounts-stat-value{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+#accountsSalePage .sale-period-totals{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;margin:0 0 24px;color:#a99bb9;line-height:1.6}
+#accountsSalePage .sale-period-totals strong{color:#d7c5fa}
+#accountsSalePage .accounts-panel-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+#accountsSalePage .sale-heading-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#accountsSalePage :is(.sale-button,.sale-reset){display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;border-radius:11px;text-align:center}
+#accountsSalePage .sale-button{background:linear-gradient(125deg,#7c4bd4,#633cae);border:1px solid #9370d3;color:#fff;box-shadow:none}
+#accountsSalePage .sale-button-secondary,#accountsSalePage .sale-reset{background:#211a30;border:1px solid #46365f;color:#decff6;padding:9px 14px;text-decoration:none;font-size:12px;font-weight:650}
+#accountsSalePage :is(.sale-button,.sale-reset):focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
+#accountsSalePage .sale-filter-grid{display:grid;grid-template-columns:minmax(240px,2fr) repeat(2,minmax(160px,1fr));gap:14px;align-items:end}
+#accountsSalePage .sale-field{min-width:0}
+#accountsSalePage .sale-field>label{display:block;min-height:20px;line-height:20px;margin:0 0 8px;font-size:12px;color:#c3b5d3}
+#accountsSalePage .sale-filter-grid .accounts-input,#accountsSalePage .sale-filter-grid .sale-choice-toggle{display:block;width:100%;height:46px;min-height:46px;max-height:46px;min-width:0;margin:0;border:1px solid #493568;border-radius:12px;background:#100d19;color:#f0eafa;font-size:13px}
+#accountsSalePage .sale-filter-grid .accounts-input:focus-visible{outline:2px solid #c4b5fd;outline-offset:2px}
+#accountsSalePage .sale-search-input{position:relative;width:100%;max-width:none;min-width:0}
+#accountsSalePage .sale-search-input>svg{position:absolute;top:50%;left:13px;transform:translateY(-50%);width:17px;height:17px;pointer-events:none;color:#baa8d0}
+#accountsSalePage .sale-search-input input{padding-left:40px}
+#accountsSalePage .sale-filter-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin:17px 0 18px}
+#accountsSalePage .sale-filter-description{min-width:0;flex:1 1 220px;color:#b4a6c2;font-size:12px;line-height:1.7}
+#accountsSalePage .sale-filter-description span{display:block;opacity:.8}
+#accountsSalePage .sale-filter-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#accountsSalePage .sale-filter-actions>*{white-space:nowrap;margin:0}
+#accountsSalePage .accounts-table-scroll{width:100%;max-width:100%;max-height:clamp(275px,55vh,485px);overflow:auto;overscroll-behavior:contain;border-radius:12px;border:1px solid #3b304f;scrollbar-color:#7655a3 transparent;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+#accountsSalePage .sale-table{width:100%;min-width:1400px;table-layout:fixed;border-collapse:separate;border-spacing:0}
+#accountsSalePage .sale-table :is(thead,tbody,tr){transform:none}
+#accountsSalePage .sale-table thead{position:static!important}
+#accountsSalePage .sale-table thead tr{position:static!important}
+#accountsSalePage .sale-table :is(th,td){display:table-cell;padding:13px 13px;vertical-align:middle;text-align:left;line-height:1.55;overflow-wrap:anywhere}
+#accountsSalePage .sale-table thead th{position:sticky;top:0;z-index:2;background:#241b36!important;color:#d4c0fa;border-bottom:1px solid #644891;font-size:10px;white-space:nowrap;letter-spacing:.06em}
+#accountsSalePage .sale-table tbody tr:hover td{background:rgba(139,92,246,.065)}
+#accountsSalePage .sale-table :is(th,td):nth-child(1){width:105px;white-space:nowrap}
+#accountsSalePage .sale-table :is(th,td):nth-child(2){width:228px}
+#accountsSalePage .sale-table :is(th,td):nth-child(3){width:125px}
+#accountsSalePage .sale-table :is(th,td):nth-child(4){width:143px}
+#accountsSalePage .sale-table :is(th,td):nth-child(5),#accountsSalePage .sale-table :is(th,td):nth-child(6),#accountsSalePage .sale-table :is(th,td):nth-child(7){width:128px}
+#accountsSalePage .sale-table :is(th,td):nth-child(8){width:115px}
+#accountsSalePage .sale-table :is(th,td):nth-child(9){width:140px}
+#accountsSalePage .sale-table :is(th,td):nth-child(10){width:210px;text-align:center}
+#accountsSalePage .sale-table :is(th.amount,td.amount){text-align:right!important;white-space:nowrap;font-variant-numeric:tabular-nums}
+#accountsSalePage .sale-table .description-cell{max-width:none;min-width:0}
+#accountsSalePage .sale-table .description-cell p{max-width:none;overflow-wrap:anywhere}
+#accountsSalePage .sale-table td[colspan]{width:auto!important;text-align:center!important}
+#accountsSalePage .sale-row-actions{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:nowrap;white-space:nowrap}
+#accountsSalePage .sale-row-actions .sale-icon-button{display:inline-grid;place-items:center;flex:0 0 36px;width:36px;height:36px;padding:8px;border-radius:10px;cursor:pointer}
+#accountsSalePage .sale-row-actions .sale-icon-button svg{width:17px;height:17px;color:inherit;stroke:currentColor}
+#accountsSalePage [data-sale-view]{color:#c4b5fd;background:#8b5cf61c;border:1px solid #8b5cf652}
+#accountsSalePage [data-sale-edit]{color:#93c5fd;background:#3b82f61c;border:1px solid #3b82f652}
+#accountsSalePage [data-sale-payments]{color:#6ee7b7;background:#10b9811c;border:1px solid #10b98152}
+#accountsSalePage [data-sale-delete]{color:#fda4af;background:#f43f5e1c;border:1px solid #f43f5e52}
+#accountsSalePage .sale-row-actions .sale-icon-button:hover{filter:brightness(1.18)}
+#accountsSalePage .sale-pagination{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+#accountsSalePage .sale-pagination>div{display:flex;gap:8px;flex-wrap:wrap}
+#accountsSalePage input:is([type=date],[type=month]){accent-color:#8b5cf6;color-scheme:dark}
+#accountsSalePage input:is([type=date],[type=month]):focus-visible{border-color:#a78bfa;outline:2px solid #a78bfa;outline-offset:1px}
+
+/* Shared Add, Edit, Delete, View and Payments/History modal style. */
+body.accounts-sales-page .sale-dialog{box-sizing:border-box;margin:auto;padding:0!important;width:min(735px,calc(100vw - 28px));max-width:calc(100vw - 28px);max-height:calc(100dvh - 28px);overflow:auto;overscroll-behavior:contain;background:#0e0b17!important;color:#f5efff!important;border:1px solid #53406d!important;border-radius:21px!important;box-shadow:0 28px 80px #000a;color-scheme:dark;scrollbar-color:#7655a3 transparent;scrollbar-width:thin}
+body.accounts-sales-page .sale-dialog-small{width:min(490px,calc(100vw - 28px))}
+.sale-dialog::backdrop{background:rgba(5,4,11,.72);backdrop-filter:blur(4px)}
+.sale-dialog>.sale-dialog-header,.sale-dialog>.accounts-panel-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;gap:14px;padding:23px 25px!important;margin:0!important;background:linear-gradient(110deg,#2a1d43,#171121 60%,#151c2b);border-bottom:1px solid #443256;border-radius:20px 20px 0 0}
+.sale-dialog .sale-popup-title{display:flex;align-items:center;gap:13px;min-width:0}
+.sale-dialog .sale-popup-title>div{min-width:0}
+.sale-dialog .sale-popup-badge{display:grid;place-items:center;flex:0 0 45px;width:45px;height:45px;border-radius:13px;background:rgba(139,92,246,.14);border:1px solid rgba(167,139,250,.35);color:#c4b5fd}
+.sale-dialog .sale-popup-badge svg{width:22px;height:22px}
+.sale-dialog .accounts-eyebrow{font-size:10px;color:#bb9ef4;letter-spacing:1.6px;font-weight:750}
+.sale-dialog h2{font-size:clamp(19px,2.3vw,25px);font-weight:780;letter-spacing:-.35px;margin:4px 0 0;color:#f7f2ff;line-height:1.35;overflow-wrap:anywhere}
+.sale-dialog>.sale-dialog-header .sale-icon-button,.sale-dialog>.accounts-panel-heading .sale-icon-button{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;padding:8px;border:1px solid #554468;border-radius:10px;color:#d2c4e0;background:#ffffff0b}
+.sale-dialog>.sale-dialog-header .sale-icon-button:hover,.sale-dialog>.accounts-panel-heading .sale-icon-button:hover{background:#30213f}
+.sale-dialog>form{margin:0!important;padding:22px 25px 0}
+.sale-dialog .sale-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}
+.sale-dialog .sale-field{min-width:0}
+.sale-dialog .sale-field-wide{grid-column:1/-1}
+.sale-dialog .sale-field label{display:block;margin:0 0 8px;font-size:12px;color:#c7b7d8;font-weight:600}
+.sale-dialog .sale-field label>span{color:#d2b2ff}
+.sale-dialog :is(input:not([type=hidden]):not([type=checkbox]),select,textarea){box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:46px;padding:11px 13px;background:#0d0a14;color:#f2ecfb;border:1px solid #473459;border-radius:11px;outline:none;font:inherit;font-size:13px;color-scheme:dark;box-shadow:none}
+.sale-dialog :is(input,select,textarea):focus-visible{outline:2px solid #a78bfa;outline-offset:1px;border-color:#a78bfa}
+.sale-dialog textarea{min-height:95px;resize:vertical}
+.sale-dialog input[type=checkbox]{accent-color:#8b5cf6}
+.sale-dialog input[type=file]{padding:10px;font-size:12px}
+.sale-dialog input::file-selector-button{background:#2b1d40;color:#e4d5fa;border:1px solid #634581;border-radius:8px;padding:6px 8px;margin-right:8px}
+.sale-dialog .sale-form-error{border:1px solid #7a3d60;background:#3a1d31;color:#ffb2c9;padding:12px;border-radius:11px;line-height:1.6;margin:0 0 16px}
+.sale-dialog .sale-field-error{color:#ffb2c9;font-size:12px}
+.sale-dialog .sale-duplicate-box{border:1px solid #776244;background:#2c231a;border-radius:11px;padding:14px;margin-bottom:15px;color:#f3d3a6;line-height:1.6}
+.sale-dialog .sale-duplicate-box p{margin:0 0 10px}
+.sale-dialog .sale-button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 15px;gap:8px;border:1px solid #9263d8;border-radius:11px;background:linear-gradient(120deg,#7c3aed,#6238a7);font:inherit;font-size:12px;font-weight:700;text-align:center;text-decoration:none;color:#fff;cursor:pointer;white-space:normal}
+.sale-dialog .sale-button:hover{filter:brightness(1.12)}
+.sale-dialog .sale-button-secondary{background:#211a2f;border:1px solid #4a3b5e;color:#e1d2f3}
+.sale-dialog .sale-button-danger{background:#ae3656;border-color:#cf526e;color:#fff}
+.sale-dialog :is(.sale-form-footer,.sale-dialog-footer){display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin:22px 0 0;padding:17px 25px;background:#171121;border-top:1px solid #3d2c51}
+.sale-dialog>form>:is(.sale-form-footer,.sale-dialog-footer){margin-left:-25px;margin-right:-25px}
+.sale-dialog .sale-form-footer .accounts-muted{margin-right:auto;white-space:normal}
+.sale-dialog .sale-delete-description{margin:0;padding:22px 25px 0;font-size:13px;line-height:1.8;color:#cfc1db;overflow-wrap:anywhere}
+.sale-dialog .sale-delete-description strong{color:#f7f2ff}
+#saleDeleteDialog>.sale-form-error{margin:15px 25px 0}
+#saleViewContent{padding:22px 25px 0;min-width:0}
+.sale-dialog .sale-view-amount{background:#1a1128;border:1px solid #574070;border-radius:14px;padding:19px;margin-bottom:14px}
+.sale-dialog .sale-view-amount span{display:block;color:#b7a5c7;font-size:12px}
+.sale-dialog .sale-view-amount strong{display:block;margin-top:7px;color:#e1c6ff;font-size:clamp(23px,4vw,30px);overflow-wrap:anywhere}
+.sale-dialog .sale-view-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px;margin:0}
+.sale-dialog .sale-view-details>div{min-width:0;padding:13px 0;border-bottom:1px solid #ffffff11}
+.sale-dialog .sale-view-details dt{font-size:12px;color:#a999bb;margin-bottom:7px}
+.sale-dialog .sale-view-details dd{margin:0;color:#f0e9f8;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+.sale-dialog .sale-view-wide{grid-column:1/-1}
+.sale-dialog .sale-invoice-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#saleEditDialog>form>.accounts-muted{white-space:normal;line-height:1.6;margin:2px 0 15px}
+#saleEditDialog .sale-invoice-actions{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:16px;color:#c6b5d6}
+#salePaymentSummary{margin:20px 25px 0;padding:15px 16px;background:#1b142a;border:1px solid #5b4374;border-radius:12px;color:#e2d4f6;font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+#salePaymentsDialog #salePaymentForm{padding-top:18px}
+#salePaymentsDialog .sale-payment-history-title{font-size:14px;margin:20px 25px 10px;color:#ddccfc}
+#salePaymentsDialog #salePaymentHistory{display:grid;gap:11px;margin:0 25px 5px;max-height:260px;overflow:auto;scrollbar-width:thin;scrollbar-color:#7655a3 transparent}
+#salePaymentsDialog .sale-payment-card{padding:14px;border-radius:12px;background:#1a1227;border:1px solid #4c3762}
+#salePaymentsDialog .sale-payment-card strong{color:#e8d7ff}
+#salePaymentsDialog .sale-payment-card p{color:#c1b2ce}
+#salePaymentsDialog>.sale-dialog-footer{margin-top:17px}
+.sale-dialog select option{background:#1b142a;color:#f0e7ff}
+
+/* Income-style true dark purple dropdown menu (not browser default blue/pink options). */
+.sale-choice{position:relative;width:100%;min-width:0}
+.sale-choice>.sale-choice-native{position:absolute!important;top:0;left:0;opacity:0!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;border:0!important;pointer-events:none!important;clip-path:inset(50%);z-index:-1}
+#accountsSalePage .sale-choice-toggle,.sale-dialog .sale-choice-toggle{width:100%;min-height:46px;height:46px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;box-sizing:border-box;text-align:left;background:#100d19;border:1px solid #47346f;border-radius:12px;color:#f5efff;font:inherit;font-size:13px;cursor:pointer}
+.sale-choice-toggle>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.sale-choice-toggle::after{content:'';flex:0 0 8px;width:8px;height:8px;border-right:2px solid #c4b5fd;border-bottom:2px solid #c4b5fd;transform:translateY(-2px) rotate(45deg)}
+.sale-choice-toggle[aria-expanded=true]::after{transform:translateY(2px) rotate(225deg)}
+.sale-choice-toggle:is(:hover,[aria-expanded=true]){border-color:#9470d1!important}
+.sale-choice-toggle:focus-visible{outline:2px solid #c4b5fd;outline-offset:2px}
+.sale-choice-toggle:disabled{opacity:.6;cursor:not-allowed}
+.sale-choice-menu{position:fixed;z-index:2147483000;box-sizing:border-box;max-width:calc(100vw - 24px);max-height:280px;overflow:auto;padding:7px;border:1px solid #49345c;border-radius:15px;background:linear-gradient(180deg,#1a142c,#0d0c17 70%);color:#eee7f8;box-shadow:0 18px 40px #0009;scrollbar-width:thin;scrollbar-color:#70519b transparent}
+.sale-choice-option{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:43px;width:100%;padding:10px 12px;border:0;border-radius:9px;background:transparent;color:#e9e2f4;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+.sale-choice-option:hover,.sale-choice-option.is-active:not([aria-selected=true]){background:#251a35}
+.sale-choice-option[aria-selected=true]{background:#30234f;color:#f8f2ff;font-weight:680}
+.sale-choice-option[aria-selected=true]::after{content:'✓';font-size:17px;color:#e8d9ff;margin-left:auto}
+.sale-choice-option:disabled{opacity:.4;cursor:not-allowed}
+
+@media(max-width:1100px){#accountsSalePage .sale-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#accountsSalePage .sale-filter-grid>.sale-field:first-child{grid-column:1/-1}#accountsSalePage .sale-summary-grid{gap:12px}}
+@media(max-width:640px){
+ #accountsSalePage .sale-summary-grid,#accountsSalePage .sale-filter-grid,.sale-dialog .sale-form-grid,.sale-dialog .sale-view-details{grid-template-columns:minmax(0,1fr)}
+ #accountsSalePage .sale-filter-grid>.sale-field:first-child{grid-column:auto}
+ #accountsSalePage .sale-period-totals{flex-direction:column;align-items:flex-start;gap:5px}
+ #accountsSalePage .accounts-panel-heading{align-items:flex-start;flex-direction:column}
+ #accountsSalePage .sale-heading-actions{width:100%;justify-content:space-between}
+ #accountsSalePage .sale-filter-footer{align-items:stretch;flex-direction:column}
+ #accountsSalePage .sale-filter-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+ #accountsSalePage .sale-filter-actions>*{width:100%;white-space:normal}
+ #accountsSalePage .sale-filter-actions .sale-button-export{grid-column:1/-1}
+ #accountsSalePage .accounts-table-scroll{max-height:min(420px,57vh)}
+ body.accounts-sales-page .sale-dialog,body.accounts-sales-page .sale-dialog.sale-dialog-small{width:calc(100vw - 20px);max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px);border-radius:17px!important}
+ .sale-dialog>.sale-dialog-header,.sale-dialog>.accounts-panel-heading{padding:17px!important;gap:8px;border-radius:16px 16px 0 0}
+ .sale-dialog .sale-popup-badge{flex-basis:39px;width:39px;height:39px;border-radius:11px}
+ .sale-dialog .sale-popup-title{gap:10px}
+ .sale-dialog>form{padding:17px 17px 0}
+ .sale-dialog :is(.sale-form-footer,.sale-dialog-footer){padding:15px 17px}
+ .sale-dialog>form>:is(.sale-form-footer,.sale-dialog-footer){margin-left:-17px;margin-right:-17px}
+ .sale-dialog .sale-field-wide,.sale-dialog .sale-view-wide{grid-column:auto}
+ .sale-dialog .sale-delete-description{padding:18px 17px 0}
+ #saleDeleteDialog>.sale-form-error{margin:15px 17px 0}
+ #saleViewContent{padding:17px 17px 0}
+ #salePaymentSummary{margin:17px 17px 0}
+ #salePaymentsDialog .sale-payment-history-title{margin:18px 17px 10px}
+ #salePaymentsDialog #salePaymentHistory{margin:0 17px 5px}
+ .sale-dialog .sale-form-footer .accounts-muted{flex-basis:100%}
+ .sale-dialog input:not([type=hidden]),.sale-dialog textarea,.sale-dialog .sale-choice-toggle{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){.sale-choice-toggle,.sale-choice-option,#accountsSalePage .sale-row-actions .sale-icon-button{transition:none}}
+
+/* Sales finishing adjustments: aligned filters, wider search and clear action colours. */
+#accountsSalePage #saleSearchForm .sale-filter-grid{
+  grid-template-columns:minmax(320px,2.5fr) repeat(2,minmax(175px,1fr));
+  align-items:end;gap:14px 16px;
+}
+#accountsSalePage #saleSearchForm .sale-filter-grid>.sale-field{
+  grid-column:auto;grid-row:auto;min-width:0;margin:0;width:auto;
+}
+#accountsSalePage #saleSearchForm .sale-field>label{min-height:20px;line-height:20px;margin-bottom:8px}
+#accountsSalePage #saleSearchForm .sale-search-input{width:100%;height:46px}
+#accountsSalePage #saleSearchForm .sale-search-input input{width:100%;height:46px;padding-left:42px!important}
+#accountsSalePage #saleSearchForm .sale-filter-grid :is(.accounts-input,.sale-choice-toggle){height:46px!important;min-height:46px!important;max-height:46px;margin:0}
+#accountsSalePage #saleSearchForm .sale-filter-footer{align-items:center;gap:12px 18px}
+#accountsSalePage #saleSearchForm .sale-filter-actions{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px}
+#accountsSalePage #saleSearchForm .sale-filter-actions>*{display:inline-flex;align-items:center;justify-content:center;height:44px;min-height:44px;box-sizing:border-box;padding:0 17px;line-height:1.2}
+/* Excel export is deliberately green; other action buttons keep the purple palette. */
+#accountsSalePage #saleSearchForm #saleExportButton{
+  background:#166534!important;border:1px solid #22a463!important;color:#f0fdf4!important;
+  box-shadow:none!important;font-weight:700;gap:9px;
+}
+#accountsSalePage #saleSearchForm #saleExportButton:hover{background:#15803d!important;border-color:#34d399!important}
+#accountsSalePage #saleSearchForm #saleExportButton :is(svg,span){color:inherit!important;stroke:currentColor}
+/* Opaque, clean button surfaces; no inherited grey wash or shadows on the four icons. */
+#accountsSalePage .sale-row-actions .sale-icon-button{box-shadow:none!important;filter:none!important;opacity:1;background-image:none!important;transition:background-color .15s,border-color .15s,color .15s}
+#accountsSalePage .sale-row-actions [data-sale-view]{background:#241936!important;border-color:#7753b6!important;color:#c4b5fd!important}
+#accountsSalePage .sale-row-actions [data-sale-edit]{background:#15243e!important;border-color:#3467b2!important;color:#93c5fd!important}
+#accountsSalePage .sale-row-actions [data-sale-payments]{background:#112d27!important;border-color:#20876a!important;color:#6ee7b7!important}
+#accountsSalePage .sale-row-actions [data-sale-delete]{background:#351820!important;border-color:#a9425d!important;color:#fda4af!important}
+#accountsSalePage .sale-row-actions .sale-icon-button:hover{filter:none!important;box-shadow:none!important;transform:none}
+#accountsSalePage .sale-row-actions [data-sale-view]:hover{background:#34224f!important}
+#accountsSalePage .sale-row-actions [data-sale-edit]:hover{background:#1d3556!important}
+#accountsSalePage .sale-row-actions [data-sale-payments]:hover{background:#174237!important}
+#accountsSalePage .sale-row-actions [data-sale-delete]:hover{background:#4d202d!important}
+@media(max-width:1100px){
+ #accountsSalePage #saleSearchForm .sale-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #accountsSalePage #saleSearchForm .sale-filter-grid>.sale-field:first-child{grid-column:1/-1}
+}
+@media(max-width:640px){
+ #accountsSalePage #saleSearchForm .sale-filter-grid{grid-template-columns:minmax(0,1fr)}
+ #accountsSalePage #saleSearchForm .sale-filter-grid>.sale-field:first-child{grid-column:auto}
+ #accountsSalePage #saleSearchForm .sale-filter-footer{align-items:stretch}
+ #accountsSalePage #saleSearchForm .sale-filter-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+ #accountsSalePage #saleSearchForm .sale-filter-actions>*{width:100%;padding:0 9px}
+ #accountsSalePage #saleSearchForm #saleExportButton{grid-column:1/-1}
+}
+
+/* FINAL REFERENCE MATCH — Google Meet-style true modal cards, no sheet appearance. */
+body.accounts-sales-page dialog.sale-dialog {
+  position:fixed;inset:0;margin:auto!important;
+  width:min(850px,calc(100vw - 32px));max-width:calc(100vw - 32px);
+  max-height:calc(100dvh - 34px);padding:0!important;
+  border:1px solid #3c3451!important;border-radius:23px!important;
+  background:linear-gradient(160deg,#151020 0%,#0c0b14 66%,#0e0b16 100%)!important;
+  color:#f5f1ff!important;box-shadow:0 30px 90px rgba(0,0,0,.62)!important;
+  overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+}
+body.accounts-sales-page dialog.sale-dialog.sale-dialog-small {width:min(500px,calc(100vw - 32px))}
+body.accounts-sales-page dialog.sale-dialog::backdrop {background:rgba(5,5,11,.80);backdrop-filter:blur(5px)}
+body.accounts-sales-page .sale-dialog>.sale-dialog-header,
+body.accounts-sales-page .sale-dialog>.accounts-panel-heading {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:28px 31px!important;margin:0!important;gap:16px;
+  background:linear-gradient(108deg,#231834 0%,#12111c 52%,#141b2b 100%)!important;
+  border-bottom:1px solid rgba(174,143,228,.12)!important;
+  border-radius:22px 22px 0 0!important;
+}
+body.accounts-sales-page .sale-dialog .sale-popup-title {gap:18px}
+body.accounts-sales-page .sale-dialog .sale-popup-badge {
+  width:58px;height:58px;flex:0 0 58px;border-radius:16px;
+  background:linear-gradient(140deg,#432577,#261744)!important;
+  border:1px solid #65409a!important;color:#c6adff!important;
+}
+body.accounts-sales-page .sale-dialog .sale-popup-badge svg {width:25px;height:25px}
+body.accounts-sales-page .sale-dialog .accounts-eyebrow {color:#b998fb;letter-spacing:2px;font-size:10px;font-weight:800}
+body.accounts-sales-page .sale-dialog h2 {font-size:clamp(22px,3vw,29px);font-weight:800;color:#faf8ff;line-height:1.25}
+body.accounts-sales-page .sale-dialog .sale-field label {color:#d4cddd;font-weight:650}
+body.accounts-sales-page .sale-dialog :is(input:not([type=hidden]):not([type=checkbox]),select,textarea,.sale-choice-toggle) {
+  background:#0c0b13!important;border:1px solid #393145!important;
+  border-radius:12px!important;color:#eee9fa!important;
+}
+body.accounts-sales-page .sale-dialog :is(input,textarea,select,.sale-choice-toggle):focus-visible {border-color:#9e7ae8!important;outline:2px solid #a78bfa;outline-offset:1px}
+body.accounts-sales-page .sale-dialog .sale-button:not(.sale-button-secondary):not(.sale-button-danger) {background:linear-gradient(105deg,#7d45d2,#6032ab)!important;border-color:#8f65d3!important}
+body.accounts-sales-page .sale-dialog :is(.sale-form-footer,.sale-dialog-footer) {background:#0e0c16!important;border-top:1px solid #342a43!important;gap:10px}
+body.accounts-sales-page .sale-dialog .sale-view-details>div {border-bottom-color:#2b2436}
+body.accounts-sales-page .sale-dialog .sale-view-amount,
+body.accounts-sales-page #salePaymentSummary,
+body.accounts-sales-page #salePaymentsDialog .sale-payment-card {background:#181122;border-color:#49345f}
+/* The requested Excel style: muted dark green, not a solid bright-green fill. */
+#accountsSalePage #saleSearchForm #saleExportButton {
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  height:48px!important;min-height:48px!important;padding:0 19px!important;
+  background:#192926!important;background-image:none!important;
+  border:1px solid #245343!important;border-radius:15px!important;
+  box-shadow:none!important;color:#a1efc8!important;
+  font-size:12px;font-weight:750;line-height:1.2;
+}
+#accountsSalePage #saleSearchForm #saleExportButton:hover {background:#213b32!important;border-color:#327357!important;color:#bbffda!important}
+#accountsSalePage #saleSearchForm #saleExportButton svg {height:19px;width:19px;stroke-width:2;stroke:currentColor}
+#accountsSalePage #saleSearchForm .sale-filter-actions{gap:11px}
+#accountsSalePage #saleSearchForm .sale-filter-actions :is(.sale-reset,.sale-button-secondary){height:48px;min-height:48px}
+#accountsSalePage #saleSearchForm .sale-filter-grid>.sale-field{align-self:end}
+#accountsSalePage .sale-table :is(th,td){vertical-align:middle}
+#accountsSalePage .sale-table .sale-row-actions{min-height:36px}
+@media(max-width:640px){
+ body.accounts-sales-page dialog.sale-dialog,body.accounts-sales-page dialog.sale-dialog.sale-dialog-small {width:calc(100vw - 20px);max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px);border-radius:18px!important}
+ body.accounts-sales-page .sale-dialog>.sale-dialog-header,body.accounts-sales-page .sale-dialog>.accounts-panel-heading {padding:19px!important;gap:10px;border-radius:17px 17px 0 0!important}
+ body.accounts-sales-page .sale-dialog .sale-popup-title {gap:10px}
+ body.accounts-sales-page .sale-dialog .sale-popup-badge {width:42px;height:42px;flex-basis:42px;border-radius:12px}
+ body.accounts-sales-page .sale-dialog .sale-popup-badge svg {width:20px;height:20px}
+ body.accounts-sales-page .sale-dialog h2 {font-size:21px}
+ #accountsSalePage #saleSearchForm .sale-filter-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+ #accountsSalePage #saleSearchForm #saleExportButton {grid-column:1/-1;width:100%}
+}
+
+/* Sales filter alignment ONLY: normalize the custom select buttons and remove text caret. */
+#accountsSalePage #saleSearchForm .sale-filter-grid {
+  display:grid!important;
+  grid-template-columns:minmax(0,2.5fr) repeat(2,minmax(0,1fr))!important;
+  gap:16px!important;
+  align-items:end!important;
+}
+#accountsSalePage #saleSearchForm .sale-filter-grid > .sale-field {
+  flex-direction:column!important;
+  justify-content:flex-end;
+  align-self:end!important;
+  min-width:0!important;
+  width:100%!important;
+  margin:0!important;
+}
+#accountsSalePage #saleSearchForm .sale-filter-grid > .sale-field > label {
+  display:block;
+  flex:none;
+  width:100%;
+  height:20px!important;
+  min-height:20px!important;
+  margin:0 0 8px!important;
+  line-height:20px!important;
+  text-align:left;
+}
+#accountsSalePage #saleSearchForm .sale-search-input,
+#accountsSalePage #saleSearchForm .sale-choice {
+  display:block;
+  flex:none;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:46px!important;
+  margin:0!important;
+}
+#accountsSalePage #saleSearchForm #saleSearch {
+  display:block!important;
+  width:100%!important;
+  height:46px!important;
+  min-height:46px!important;
+  max-height:46px!important;
+  box-sizing:border-box;
+  padding:0 14px 0 43px!important;
+  line-height:normal;
+  cursor:text!important;
+  caret-color:#c4b5fd;
+}
+#accountsSalePage #saleSearchForm .sale-search-input>svg {
+  left:14px!important;
+  top:50%!important;
+  transform:translateY(-50%)!important;
+  pointer-events:none;
+}
+#accountsSalePage #saleSearchForm .sale-filter-grid .sale-choice-toggle {
+  display:flex!important; /* overrides a previous display:block rule that hid/misplaced the arrow */
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  width:100%!important;
+  min-width:0!important;
+  height:46px!important;
+  min-height:46px!important;
+  max-height:46px!important;
+  margin:0!important;
+  padding:0 15px!important;
+  gap:12px!important;
+  line-height:1.4;
+  text-align:left!important;
+  cursor:pointer!important;
+  caret-color:transparent!important;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
+#accountsSalePage #saleSearchForm .sale-choice-toggle>span {
+  display:block!important;
+  flex:1 1 auto;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  cursor:pointer!important;
+  caret-color:transparent!important;
+  user-select:none!important;
+  -webkit-user-select:none!important;
+}
+#accountsSalePage #saleSearchForm .sale-choice-toggle::after {
+  display:block!important;
+  content:'';
+  flex:0 0 8px;
+  width:8px;
+  height:8px;
+  border-right:2px solid #c4b5fd;
+  border-bottom:2px solid #c4b5fd;
+  transform:translateY(-2px) rotate(45deg);
+  pointer-events:none;
+}
+#accountsSalePage #saleSearchForm .sale-choice-toggle[aria-expanded="true"]::after {
+  transform:translateY(2px) rotate(225deg);
+}
+@media (max-width:1100px) {
+  #accountsSalePage #saleSearchForm .sale-filter-grid {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  #accountsSalePage #saleSearchForm .sale-filter-grid>.sale-field:first-child {
+    grid-column:1/-1!important;
+  }
+}
+@media (max-width:640px) {
+  #accountsSalePage #saleSearchForm .sale-filter-grid {
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:13px!important;
+  }
+  #accountsSalePage #saleSearchForm .sale-filter-grid>.sale-field:first-child {
+    grid-column:auto!important;
+  }
+}
+/* Accounts Notepad purple modal style. */
+
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog):is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog {
+ position:fixed;inset:0;margin:auto!important;padding:0!important;
+ width:min(730px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);
+ background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),rgba(12,11,20,.98)!important;
+ border:1px solid rgba(255,255,255,.13)!important;border-radius:18px!important;color:#f7f3ff!important;
+ box-shadow:0 20px 45px #0007,inset 0 1px 0 #ffffff0f!important;
+}
+#saleViewDialog:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog{width:min(665px,calc(100vw - 32px));}
+#saleDeleteDialog:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog{width:min(485px,calc(100vw - 32px));}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog::backdrop{background:rgba(4,4,11,.78)!important;backdrop-filter:blur(5px)!important;-webkit-backdrop-filter:blur(5px)!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog>:is(.sale-dialog-header,.accounts-panel-heading){padding:24px!important;gap:16px;background:transparent!important;border:0;border-bottom:1px solid rgba(165,136,211,.15);}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-popup-title{gap:17px;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-popup-badge{width:55px;height:55px;flex:0 0 55px;border-radius:16px;background:rgba(139,92,246,.14);border:1px solid rgba(167,139,250,.28);color:#c8aeff;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-popup-badge svg{width:23px;height:23px;stroke-width:1.9;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .accounts-eyebrow{display:block;margin:0 0 7px;color:#b997f8;font-size:10px;font-weight:800;letter-spacing:2px;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog h2{margin:0!important;padding:0!important;font-size:22px!important;font-weight:800;line-height:1.3;color:#faf8ff;letter-spacing:-.4px;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog [data-sale-close].sale-icon-button{width:40px;height:40px;min-height:40px;flex:0 0 40px;padding:8px;border:1px solid #343044!important;border-radius:12px;background:rgba(255,255,255,.04)!important;color:#a9a1b9!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog [data-sale-close].sale-icon-button:hover{background:#292137!important;color:#f7f1ff!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog [data-sale-close].sale-icon-button svg{width:19px;height:19px;stroke-width:1.8;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-dialog-body,#saleViewContent{padding:25px 30px;background:transparent!important;scrollbar-width:thin;scrollbar-color:#7657a6 transparent;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-field label{margin:0 0 9px;color:#d6cce2;font-size:12px;font-weight:700;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-field :is(input:not([type=checkbox]):not([type=hidden]),select,textarea),:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-choice-toggle{background:#0c0b13!important;color:#eeebf5!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:10px!important;box-shadow:none!important;padding:12px 14px;font:inherit;font-size:14px;line-height:1.5;min-height:51px;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog :is(input,textarea,select):focus-visible{border-color:#a78bfa!important;outline:2px solid #9676e5!important;outline-offset:1px!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog :is(.sale-form-footer,.sale-dialog-footer){gap:12px;margin:0!important;padding:20px 30px!important;border-top:1px solid #2f293a;background:transparent!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog :is(.sale-form-footer,.sale-dialog-footer) .sale-button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;margin:0;padding:0 18px;border-radius:12px;font:inherit;font-size:12px;font-weight:750;white-space:nowrap;box-shadow:none;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-button:not(.sale-button-secondary):not(.sale-button-danger){border:1px solid #935fda;background:linear-gradient(115deg,#8047d2,#6232ab);color:#fff;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-button-secondary{background:#1a1821!important;border:1px solid #36313f!important;color:#d5cada!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-button-danger{background:#b53555!important;border:1px solid #d75776!important;color:#fff!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-button:hover{filter:brightness(1.13);}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-button svg{width:17px;height:17px;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-view-amount{background:#0c0b13!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:10px;color:#eeebf5;}
+#saleDeleteDialog .sale-dialog-body{padding:22px 27px;}
+#saleDeleteDialog .sale-dialog-footer{padding:18px 27px!important;}
+#saleDeleteDialog .sale-delete-description{color:#c9bfce;font-size:13px;line-height:1.8;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog button:focus-visible{outline:2px solid #c4b5fd;outline-offset:2px;}
+@media(max-width:640px){
+ :is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog):is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog{width:calc(100vw - 20px);max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px);}
+ :is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog>:is(.sale-dialog-header,.accounts-panel-heading){gap:9px;}
+ :is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-popup-title{gap:10px;}
+ :is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-popup-badge{width:43px;height:43px;flex-basis:43px;border-radius:12px;}
+ :is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-popup-badge svg{width:20px;height:20px;}
+ :is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-dialog-body,#saleViewContent,#saleDeleteDialog .sale-dialog-body{padding:19px 17px;}
+ :is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog :is(.sale-form-footer,.sale-dialog-footer),#saleDeleteDialog .sale-dialog-footer{padding:16px 17px!important;}
+ :is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-field :is(input,textarea),:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-choice-toggle{font-size:16px;}
+}
+
+/* Override older sale-specific popup spacing without altering page controls. */
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-dialog-body,#saleViewContent{padding:25px 30px!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-popup-badge{display:grid;place-items:center;}
+#saleDeleteDialog .sale-delete-description{margin:0;padding:22px 27px;box-sizing:border-box;}
+#saleDeleteDialog .sale-dialog-body{padding:22px 27px!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-field :is(input:not([type=checkbox]):not([type=hidden]),select,textarea){border-radius:10px!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-field label{font-weight:700;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-dialog-footer>*{flex:0 1 auto;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-button{font-weight:750;}
+@media(max-width:640px){#saleDeleteDialog .sale-delete-description{padding:19px 17px;}#saleDeleteDialog>.sale-form-error{margin:0 17px 16px;}:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-dialog-body,#saleViewContent,#saleDeleteDialog .sale-dialog-body{padding:19px 17px!important;}:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog>.accounts-panel-heading{flex-direction:row!important;align-items:center!important;}}
+
+/* Sales forms contain their footer directly; keep the body and footer aligned. */
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog>form{padding:25px 30px 0!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog>form>:is(.sale-form-footer,.sale-dialog-footer){margin:25px -30px 0!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog>.sale-dialog-header,:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog>.accounts-panel-heading{border-radius:17px 17px 0 0!important;border-bottom:1px solid rgba(165,136,211,.15)!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-popup-badge{background:rgba(139,92,246,.14)!important;border:1px solid rgba(167,139,250,.28)!important;color:#c8aeff!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-button:not(.sale-button-secondary):not(.sale-button-danger){background:linear-gradient(115deg,#8047d2,#6232ab)!important;border-color:#935fda!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog :is(.sale-form-footer,.sale-dialog-footer){border-top:1px solid #2f293a!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog .sale-choice-toggle{height:auto;min-height:51px;}
+#saleDeleteDialog>.sale-form-error{margin:0 27px 16px;}
+@media(max-width:640px){
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog>form{padding:19px 17px 0!important;}
+:is(#saleAddDialog,#saleEditDialog,#saleViewDialog,#saleDeleteDialog,#salePaymentsDialog).sale-dialog>form>:is(.sale-form-footer,.sale-dialog-footer){margin:19px -17px 0!important;}
+#saleDeleteDialog>.sale-form-error{margin:0 17px 16px;}
+}
+
+</style>
 <div id="accountsSalePage">
   <div id="saleFeedback" role="status" class="sale-feedback" hidden></div>
   <div id="saleSnapshot">
@@ -60,7 +538,7 @@
   </div>
 </div>
   <dialog id="saleAddDialog" class="sale-dialog" aria-labelledby="saleEntryHeading" data-form-errors="{% if form.errors %}1{% else %}0{% endif %}">
-    <div class="accounts-panel-heading"><div><span class="accounts-eyebrow">NEW ENTRY</span><h2 id="saleEntryHeading">Add Sale</h2></div><button type="button" class="sale-icon-button" data-sale-close aria-label="Close Add Sale"><i data-lucide="x" aria-hidden="true"></i></button></div>
+    <div class="accounts-panel-heading"><div class="sale-popup-title"><span class="sale-popup-badge" aria-hidden="true"><i data-lucide="plus"></i></span><div><span class="accounts-eyebrow">NEW ENTRY</span><h2 id="saleEntryHeading">Add Sale</h2></div></div><button type="button" class="sale-icon-button" data-sale-close aria-label="Close Add Sale"><i data-lucide="x" aria-hidden="true"></i></button></div>
     <form id="accountsSaleForm" method="post" enctype="multipart/form-data" action="{% url 'accounts_sales' %}">
       {% csrf_token %}
       <input type="hidden" name="confirm_duplicate" value="0">
@@ -80,7 +558,7 @@
   </dialog>
 
 <dialog id="saleEditDialog" class="sale-dialog" aria-labelledby="saleEditTitle">
-  <header class="sale-dialog-header"><div><span class="accounts-eyebrow">SALES ENTRY</span><h2 id="saleEditTitle">Edit Sale</h2></div><button type="button" class="sale-icon-button" data-sale-close aria-label="Close edit popup"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <header class="sale-dialog-header"><div class="sale-popup-title"><span class="sale-popup-badge" aria-hidden="true"><i data-lucide="pencil"></i></span><div><span class="accounts-eyebrow">SALES ENTRY</span><h2 id="saleEditTitle">Edit Sale</h2></div></div><button type="button" class="sale-icon-button" data-sale-close aria-label="Close edit popup"><i data-lucide="x" aria-hidden="true"></i></button></header>
   <form id="saleEditForm" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="hidden" name="confirm_duplicate" value="0">
@@ -93,7 +571,7 @@
   </form>
 </dialog>
 <dialog id="saleDeleteDialog" class="sale-dialog sale-dialog-small" aria-labelledby="saleDeleteTitle" aria-describedby="saleDeleteDescription">
-  <header class="sale-dialog-header"><div><span class="accounts-eyebrow">CONFIRM DELETE</span><h2 id="saleDeleteTitle">Delete Sale?</h2></div><button type="button" class="sale-icon-button" data-sale-close aria-label="Close delete confirmation"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <header class="sale-dialog-header"><div class="sale-popup-title"><span class="sale-popup-badge" aria-hidden="true"><i data-lucide="trash-2"></i></span><div><span class="accounts-eyebrow">CONFIRM DELETE</span><h2 id="saleDeleteTitle">Delete Sale?</h2></div></div><button type="button" class="sale-icon-button" data-sale-close aria-label="Close delete confirmation"><i data-lucide="x" aria-hidden="true"></i></button></header>
   <p id="saleDeleteDescription" class="sale-delete-description">Delete <strong id="saleDeleteCategory"></strong>? This sale and its payment history will be removed, and sales totals will change. This cannot be undone.</p>
   <div id="saleDeleteError" class="sale-form-error" role="alert" hidden></div>
   <footer class="sale-dialog-footer"><button type="button" class="sale-button sale-button-secondary" data-sale-close autofocus>Cancel</button><button type="button" class="sale-button sale-button-danger" id="saleDeleteButton">Delete Sale</button></footer>
@@ -101,7 +579,7 @@
 
 <dialog id="saleViewDialog" class="sale-dialog sale-view-dialog" aria-labelledby="saleViewTitle">
   <header class="sale-dialog-header">
-    <div><span class="accounts-eyebrow">SALES ENTRY</span><h2 id="saleViewTitle">Sale Details</h2></div>
+    <div class="sale-popup-title"><span class="sale-popup-badge" aria-hidden="true"><i data-lucide="eye"></i></span><div><span class="accounts-eyebrow">SALES ENTRY</span><h2 id="saleViewTitle">Sale Details</h2></div></div>
     <button type="button" class="sale-icon-button" data-sale-close aria-label="Close sale details"><i data-lucide="x" aria-hidden="true"></i></button>
   </header>
   <div id="saleViewContent"></div>
@@ -109,7 +587,7 @@
 </dialog>
 
 <dialog id="salePaymentsDialog" class="sale-dialog" aria-labelledby="salePaymentsTitle">
-  <header class="sale-dialog-header"><div><span class="accounts-eyebrow">CUSTOMER PAYMENTS</span><h2 id="salePaymentsTitle">Payments</h2></div><button type="button" class="sale-icon-button" data-sale-close aria-label="Close Payments"><i data-lucide="x" aria-hidden="true"></i></button></header>
+  <header class="sale-dialog-header"><div class="sale-popup-title"><span class="sale-popup-badge" aria-hidden="true"><i data-lucide="wallet"></i></span><div><span class="accounts-eyebrow">CUSTOMER PAYMENTS</span><h2 id="salePaymentsTitle">Payments & History</h2></div></div><button type="button" class="sale-icon-button" data-sale-close aria-label="Close Payments"><i data-lucide="x" aria-hidden="true"></i></button></header>
   <div id="salePaymentSummary" class="sale-payment-summary"></div>
   <form id="salePaymentForm" method="post">
     {% csrf_token %}<input type="hidden" name="request_token">
@@ -127,4 +605,236 @@
   <div id="salePaymentHistory" class="sale-payment-history"></div>
   <footer class="sale-dialog-footer"><button type="button" class="sale-button sale-button-secondary" data-sale-close>Close</button></footer>
 </dialog>
+{% endblock %}
+
+
+{% block extra_js %}{{ block.super }}
+<script>
+/* Sales-only progressive enhancement: custom Income-style purple select menus.
+   Existing accounts.js owns CRUD, filters, pagination, payments, exports and live refresh. */
+(() => {
+  'use strict';
+  if (window.accountsSalesPurpleDropdowns) return;
+  window.accountsSalesPurpleDropdowns = true;
+  const entries = new Set();
+  let active = null;
+  let serial = 0;
+  let queuePending = false;
+  let typePrefix = '';
+  let typeTimer = null;
+
+  function sync(entry) {
+    const label = entry.select.selectedOptions[0]?.textContent.trim() || 'Select option';
+    if (entry.label.textContent !== label) entry.label.textContent = label;
+    if (entry.toggle.disabled !== entry.select.disabled) entry.toggle.disabled = entry.select.disabled;
+  }
+  function closeMenu(restoreFocus = false) {
+    if (!active) return;
+    const old = active;
+    old.menu.hidden = true;
+    old.toggle.setAttribute('aria-expanded', 'false');
+    old.toggle.removeAttribute('aria-activedescendant');
+    active = null;
+    if (restoreFocus && old.toggle.isConnected) old.toggle.focus({preventScroll:true});
+  }
+  function highlight(index) {
+    if (!active) return;
+    const rows = [...active.menu.children];
+    if (!rows.length) return;
+    const normalized = (index + rows.length) % rows.length;
+    active.index = normalized;
+    rows.forEach((row, i) => row.classList.toggle('is-active', i === normalized));
+    active.toggle.setAttribute('aria-activedescendant', rows[normalized].id);
+    const item=rows[normalized];
+    const top=item.offsetTop, bottom=top+item.offsetHeight;
+    if(top < active.menu.scrollTop) active.menu.scrollTop=top;
+    else if(bottom > active.menu.scrollTop+active.menu.clientHeight) active.menu.scrollTop=bottom-active.menu.clientHeight;
+  }
+  function choose(entry, index) {
+    const option = entry.select.options[index];
+    if (!option || option.disabled) return;
+    const changed = entry.select.selectedIndex !== index;
+    entry.select.selectedIndex = index;
+    sync(entry);
+    closeMenu(true);
+    if (changed) entry.select.dispatchEvent(new Event('change', {bubbles:true}));
+    entry.toggle.removeAttribute('aria-invalid');
+  }
+  function positionMenu(entry) {
+    const box = entry.toggle.getBoundingClientRect();
+    const width = Math.min(Math.max(box.width, 185), innerWidth - 24);
+    const below = innerHeight - box.bottom - 12;
+    const above = box.top - 12;
+    entry.menu.style.width = `${width}px`;
+    entry.menu.style.left = `${Math.max(12,Math.min(box.left,innerWidth-width-12))}px`;
+    entry.menu.style.maxHeight = `${Math.max(65,Math.min(280,Math.max(below,above)))}px`;
+    const measured = entry.menu.getBoundingClientRect().height;
+    entry.menu.style.top = `${below >= measured || below >= above ? Math.min(box.bottom + 7,innerHeight-70) : Math.max(10,box.top-measured-7)}px`;
+  }
+  function openMenu(entry) {
+    closeMenu();
+    sync(entry);
+    if (entry.select.disabled) return;
+    active = entry;
+    const host = entry.select.closest('dialog') || document.body;
+    host.append(entry.menu);
+    entry.menu.replaceChildren();
+    [...entry.select.options].forEach((option,index) => {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'sale-choice-option';
+      row.id = `${entry.menu.id}-item-${index}`;
+      row.setAttribute('role','option');
+      row.setAttribute('aria-selected',String(option.selected));
+      row.disabled = option.disabled;
+      const label = document.createElement('span');
+      label.textContent = option.textContent.trim();
+      row.append(label);
+      row.addEventListener('pointerdown',event => event.preventDefault());
+      row.addEventListener('click',() => choose(entry,index));
+      entry.menu.append(row);
+    });
+    entry.menu.hidden = false;
+    entry.toggle.setAttribute('aria-expanded','true');
+    positionMenu(entry);
+    highlight(Math.max(0,entry.select.selectedIndex));
+  }
+  function init() {
+    for (const entry of [...entries]) {
+      if (!entry.select.isConnected) {
+        if (active === entry) closeMenu();
+        entry.menu.remove();
+        entries.delete(entry);
+      } else sync(entry);
+    }
+    document.querySelectorAll('#accountsSalePage select:not([multiple]):not([data-sale-choice]),.sale-dialog select:not([multiple]):not([data-sale-choice])').forEach(select => {
+      select.dataset.saleChoice='1';
+      const wrapper = document.createElement('div');
+      wrapper.className = 'sale-choice';
+      select.before(wrapper);
+      wrapper.append(select);
+      select.classList.add('sale-choice-native');
+      select.tabIndex = -1;
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'sale-choice-toggle';
+      toggle.setAttribute('role','combobox');
+      toggle.setAttribute('aria-haspopup','listbox');
+      toggle.setAttribute('aria-expanded','false');
+      const label = document.createElement('span');
+      toggle.append(label);
+      const menu = document.createElement('div');
+      menu.id = `sale-choice-menu-${serial++}`;
+      menu.className = 'sale-choice-menu';
+      menu.hidden = true;
+      menu.setAttribute('role','listbox');
+      toggle.setAttribute('aria-controls',menu.id);
+      const formLabel = select.labels?.[0];
+      if (formLabel) {
+        if (!formLabel.id) formLabel.id = `${menu.id}-label`;
+        toggle.setAttribute('aria-labelledby',formLabel.id);
+        formLabel.addEventListener('click',event => {event.preventDefault();toggle.focus();});
+      } else toggle.setAttribute('aria-label',(select.name || 'Select').replaceAll('_',' '));
+      wrapper.append(toggle);
+      (select.closest('dialog') || document.body).append(menu);
+      const entry = {select,toggle,label,menu,index:0};
+      entries.add(entry);
+      sync(entry);
+      toggle.addEventListener('click',() => active === entry ? closeMenu() : openMenu(entry));
+      select.addEventListener('change',() => sync(entry));
+      select.addEventListener('invalid',() => {toggle.setAttribute('aria-invalid','true');toggle.focus();});
+      select.addEventListener('focus',() => toggle.focus());
+      toggle.addEventListener('keydown',event => {
+        const key = event.key;
+        if (key === 'Escape' && active) {event.preventDefault();event.stopPropagation();closeMenu(true);return;}
+        if (key === 'Tab') {closeMenu();return;}
+        if (['ArrowDown','ArrowUp','Home','End','Enter',' '].includes(key)) {
+          event.preventDefault();
+          if (active !== entry) {openMenu(entry);return;}
+          if (key === 'Enter' || key === ' ') {choose(entry,entry.index);return;}
+          let next = key==='Home'?0:key==='End'?select.options.length-1:entry.index+(key==='ArrowUp'?-1:1);
+          const step = key==='ArrowUp'||key==='End'?-1:1;
+          for(let i=0;i<select.options.length;i++){
+            next=(next+select.options.length)%select.options.length;
+            if(!select.options[next].disabled){highlight(next);break;}
+            next+=step;
+          }
+        } else if (key.length === 1 && !event.ctrlKey && !event.metaKey) {
+          typePrefix += key.toLocaleLowerCase();
+          clearTimeout(typeTimer);
+          typeTimer = setTimeout(() => {typePrefix='';},600);
+          if (active!==entry) openMenu(entry);
+          const target=[...select.options].findIndex(opt=>!opt.disabled&&opt.textContent.trim().toLocaleLowerCase().startsWith(typePrefix));
+          if(target>=0) highlight(target);
+        }
+      });
+    });
+    if(active && (!active.toggle.isConnected || (active.select.closest('dialog') && !active.select.closest('dialog').open))) closeMenu();
+  }
+  const queueInit = () => {
+    if(queuePending) return;
+    queuePending=true;
+    queueMicrotask(()=>{queuePending=false;init();});
+  };
+  function start() {
+    init();
+    new MutationObserver(queueInit).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['open']});
+    document.addEventListener('pointerdown',event=>{
+      if(active && !active.toggle.contains(event.target) && !active.menu.contains(event.target))closeMenu();
+    });
+    document.addEventListener('scroll',event=>{
+      if(active && !active.menu.contains(event.target))positionMenu(active);
+    },true);
+    window.addEventListener('resize',closeMenu);
+    document.addEventListener('reset',()=>setTimeout(init,0));
+    document.addEventListener('close',event=>{if(active && event.target.contains(active.select))closeMenu();},true);
+    document.addEventListener('change',event=>{
+      if(event.target.matches('#accountsSalePage select,.sale-dialog select')){
+        for(const entry of entries) if(entry.select===event.target){sync(entry);break;}
+      }
+    },true);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
+  else start();
+})();
+
+/* Shared toast is reused; show the toast above dialogs and cover Edit/Delete/Payment failures. */
+(() => {
+  'use strict';
+  function initialize() {
+    const host = document.getElementById('toastContainer') || document.getElementById('toast-container');
+    const dialogs = [...document.querySelectorAll('dialog.sale-dialog')];
+    const home = host?.parentNode;
+    function alignHost() {
+      if(!host) return;
+      const opened=dialogs.filter(d=>d.open);
+      const target=opened.at(-1)||home||document.body;
+      if(host.parentNode !== target)target.append(host);
+    }
+    if(host){
+      dialogs.forEach(dialog=>{
+        new MutationObserver(alignHost).observe(dialog,{attributes:true,attributeFilter:['open']});
+        dialog.addEventListener('close',alignHost);
+      });
+      alignHost();
+    }
+    ['saleEditError','saleDeleteError','salePaymentError'].forEach(id=>{
+      const area=document.getElementById(id);
+      if(!area) return;
+      let previous='';
+      const notify=()=>{
+        const message=area.textContent.trim();
+        if(area.hidden||!message){if(area.hidden)previous='';return;}
+        if(previous===message)return;
+        previous=message;
+        alignHost();
+        if(typeof window.showToast==='function')window.showToast(message,'error');
+      };
+      new MutationObserver(notify).observe(area,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['hidden']});
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize,{once:true});
+  else initialize();
+})();
+</script>
 {% endblock %}

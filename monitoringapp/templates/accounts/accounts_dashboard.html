@@ -4,12 +4,414 @@
 {% block page_heading %}ACCOUNTS DASHBOARD{% endblock %}
 {% block page_description %}Your income, expenses and sales at a glance.{% endblock %}
 {% block content %}
-<div id="accountsDashboardPage">
+<style>
+  /* Accounts Dashboard: small, page-local refinements. Other Accounts pages are untouched. */
+  #accountsDashboardView {
+    --dashboard-purple: #a78bfa;
+    --dashboard-purple-strong: #8b5cf6;
+    --dashboard-purple-line: rgba(167, 139, 250, .30);
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  #accountsDashboardView *,
+  #accountsDashboardView *::before,
+  #accountsDashboardView *::after { box-sizing: border-box; }
+  #accountsDashboardView .accounts-panel,
+  #accountsDashboardView .dashboard-controls,
+  #accountsDashboardView .accounts-stats-grid,
+  #accountsDashboardView .dashboard-sales-stats { min-width: 0; max-width: 100%; }
+  #accountsDashboardView .dashboard-field[hidden] { display: none !important; }
+  #accountsDashboardView .dashboard-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    align-items: end;
+  }
+  #accountsDashboardView .dashboard-field { min-width: 0; }
+  #accountsDashboardView .dashboard-field > label {
+    display: block;
+    min-height: 20px;
+    margin-bottom: 8px;
+    line-height: 20px;
+  }
+  #accountsDashboardView .dashboard-filter-grid { align-items: end; }
+  #accountsDashboardView .dashboard-field > .accounts-input,
+  #accountsDashboardView .dashboard-field .dashboard-period-trigger,
+  #accountsDashboardView .dashboard-field .dashboard-select-wrap > select {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px;
+    margin: 0;
+    padding: 10px 16px;
+    border: 1px solid #47346f;
+    border-radius: 13px;
+    background-color: #0e0c16;
+    color: #f6f3ff;
+    font: inherit;
+    font-size: 14px;
+    line-height: 24px;
+    box-shadow: inset 0 1px rgba(255, 255, 255, .025);
+  }
+  #accountsDashboardView .dashboard-field input[type="date"],
+  #accountsDashboardView .dashboard-field input[type="month"] {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    color-scheme: dark;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  /* Only the Month / Date controls beside Period: keep the native calendar unchanged. */
+  #accountsDashboardView .dashboard-field input:is([type="date"], [type="month"]) {
+    accent-color: #8b5cf6;
+    caret-color: #a78bfa;
+  }
+  #accountsDashboardView .dashboard-field input:is([type="date"], [type="month"]):hover {
+    border-color: #7250b7;
+  }
+  #accountsDashboardView .dashboard-field input:is([type="date"], [type="month"]):focus {
+    border-color: #8b5cf6;
+    outline: 2px solid #a78bfa;
+    outline-offset: 1px;
+  }
+  #accountsDashboardView .dashboard-field input:is([type="date"], [type="month"])::selection {
+    background-color: #38285c;
+    color: #f7f2ff;
+  }
+  #accountsDashboardView .dashboard-field input[type="date"]::-webkit-calendar-picker-indicator,
+  #accountsDashboardView .dashboard-field input[type="month"]::-webkit-calendar-picker-indicator {
+    opacity: .9;
+    cursor: pointer;
+    width: 17px;
+    height: 17px;
+    margin: 0 0 0 10px;
+    filter: invert(76%) sepia(23%) saturate(970%) hue-rotate(207deg) brightness(100%);
+  }
+  #accountsDashboardView .dashboard-field input[type="date"]::-webkit-datetime-edit,
+  #accountsDashboardView .dashboard-field input[type="month"]::-webkit-datetime-edit { padding: 0; line-height: 24px; }
+  #accountsDashboardView .dashboard-field input:focus-visible {
+    outline: 2px solid #a78bfa;
+    outline-offset: 1px;
+  }
+  @media (min-width: 900px) {
+    /* Period, From and To share one row on spacious screens. */
+    #accountsDashboardView .dashboard-filter-grid:has(> [data-dashboard-period="custom"]:not([hidden])) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  #accountsDashboardView .dashboard-field > .accounts-input,
+  #accountsDashboardView .dashboard-select-wrap,
+  #accountsDashboardView .dashboard-select-wrap > select { width: 100%; max-width: 100%; min-width: 0; }
+  #accountsDashboardView .dashboard-select-wrap { position: relative; display: block; }
+  #accountsDashboardView .dashboard-select-wrap > select {
+    display: block;
+    padding-right: 45px !important;
+    appearance: none;
+    -webkit-appearance: none;
+    color: #ebe7f5;
+    background-color: #100d19;
+    border: 1px solid #45335e;
+    border-radius: 11px;
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  #accountsDashboardView .dashboard-select-wrap > select:hover { border-color: #8c6dc6; }
+  #accountsDashboardView .dashboard-select-wrap > select:focus-visible {
+    outline: none;
+    border-color: var(--dashboard-purple);
+    box-shadow: 0 0 0 3px rgba(167,139,250,.18);
+  }
+  #accountsDashboardView .dashboard-select-wrap > select > option {
+    background-color: #191326;
+    color: #f3eaff;
+  }
+  #accountsDashboardView .dashboard-select-chevron {
+    pointer-events: none;
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #c3a8ff;
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+  }
+  #accountsDashboardView .dashboard-select-chevron::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+  }
+  #accountsDashboardView .dashboard-filter-footer,
+  #accountsDashboardView .dashboard-filter-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  #accountsDashboardView .dashboard-filter-footer { justify-content: space-between; }
+  #accountsDashboardView .dashboard-filter-actions .dashboard-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  #accountsDashboardView .dashboard-filter-actions .dashboard-button[disabled] { opacity: .65; cursor: wait; }
+  #accountsDashboardView .dashboard-live-status { white-space: normal; text-align: right; }
+  #accountsDashboardView .dashboard-period-heading,
+  #accountsDashboardView .accounts-panel-heading { gap: 10px; flex-wrap: wrap; }
+  #accountsDashboardView .dashboard-primary-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+  #accountsDashboardView .dashboard-sales-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+  #accountsDashboardView .accounts-stat { min-width: 0; }
+  #accountsDashboardView .accounts-stat-value { overflow-wrap: anywhere; }
+  #accountsDashboardView .dashboard-table-scroll {
+    max-width: 100%;
+    width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-color: #685184 transparent;
+  }
+  #accountsDashboardView .dashboard-table-scroll:focus-visible {
+    outline: 2px solid var(--dashboard-purple);
+    outline-offset: 2px;
+  }
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table th,
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table td { vertical-align: middle; }
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table thead th {
+    color: #c8b5fc;
+    background: rgba(110, 67, 176, .13);
+    border-bottom: 1px solid var(--dashboard-purple-line);
+    white-space: nowrap;
+  }
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table tbody tr:hover td {
+    background-color: rgba(139, 92, 246, .055);
+  }
+  #accountsDashboardView .dashboard-table-scroll .amount { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #accountsDashboardView .dashboard-table-scroll .description-cell { min-width: 190px; overflow-wrap: anywhere; }
+  #accountsDashboardView .dashboard-table-scroll .description-cell p { overflow-wrap: anywhere; }
+  #accountsDashboardView .dashboard-overdue-badge { display: inline-block; margin-left: 8px; }
+  #accountsDashboardView .dashboard-icon-button:focus-visible,
+  #accountsDashboardView .dashboard-button:focus-visible {
+    outline: 2px solid var(--dashboard-purple);
+    outline-offset: 3px;
+  }
+  #accountsDashboardView .dashboard-shortcut:focus-visible { outline: 2px solid var(--dashboard-purple); outline-offset: 2px; }
+  @media (max-width: 1100px) {
+    #accountsDashboardView .dashboard-primary-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #accountsDashboardView .dashboard-sales-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    #accountsDashboardView .dashboard-filter-grid,
+    #accountsDashboardView .dashboard-primary-stats,
+    #accountsDashboardView .dashboard-sales-stats { grid-template-columns: minmax(0, 1fr); }
+    #accountsDashboardView .dashboard-filter-footer { align-items: stretch; }
+    #accountsDashboardView .dashboard-filter-actions { width: 100%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #accountsDashboardView .dashboard-filter-actions .dashboard-button:last-child { grid-column: 1 / -1; }
+    #accountsDashboardView .dashboard-filter-actions .dashboard-button { min-height: 42px; text-align: center; }
+    #accountsDashboardView .dashboard-live-status { text-align: left; }
+    #accountsDashboardView .dashboard-shortcuts { display: grid; grid-template-columns: minmax(0, 1fr); }
+    #accountsDashboardView .dashboard-period-heading { align-items: flex-start; }
+    #accountsDashboardView .dashboard-table-scroll { max-height: min(360px, 55vh); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #accountsDashboardView .dashboard-select-wrap > select { transition: none; }
+  }
+
+  /* Same dark-purple custom dropdown as the supplied reference. Native select remains as a fallback. */
+  #accountsDashboardView .dashboard-select-wrap.dashboard-custom-ready > select.dashboard-select-native-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    border: 0 !important;
+    clip-path: inset(50%);
+  }
+  #accountsDashboardView .dashboard-select-wrap.dashboard-custom-ready > .dashboard-select-chevron { display: none; }
+  #accountsDashboardView .dashboard-period-trigger {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    padding: 10px 16px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid #47346f;
+    border-radius: 13px;
+    color: #f6f3ff;
+    background: #0e0c16;
+    font: inherit;
+    line-height: 1.4;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: inset 0 1px rgba(255,255,255,.025);
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  #accountsDashboardView .dashboard-period-trigger:hover,
+  #accountsDashboardView .dashboard-period-trigger[aria-expanded="true"] {
+    border-color: #7250b7;
+  }
+  #accountsDashboardView .dashboard-period-trigger:focus-visible {
+    outline: 2px solid #a78bfa;
+    outline-offset: 2px;
+  }
+  #accountsDashboardView .dashboard-period-trigger-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #accountsDashboardView .dashboard-period-trigger-arrow {
+    flex: 0 0 auto;
+    height: 9px;
+    width: 9px;
+    border-right: 2px solid #cab5f4;
+    border-bottom: 2px solid #cab5f4;
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform .16s ease;
+  }
+  #accountsDashboardView .dashboard-period-trigger[aria-expanded="true"] .dashboard-period-trigger-arrow {
+    transform: rotate(225deg) translate(-1px, -1px);
+  }
+  /* Positioned outside the dashboard panel so the dropdown cannot get clipped by table/panel overflow. */
+  /* Match the All Departments reference: dark purple bordered menu with a quiet gradient. */
+  #dashboardPeriodPopover {
+    position: fixed;
+    z-index: 2147483000;
+    display: none;
+    padding: 10px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid #393348;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #1a142c 0%, #0d0c17 57%);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(189, 165, 245, .035);
+    scrollbar-width: thin;
+    scrollbar-color: #654d8c transparent;
+  }
+  #dashboardPeriodPopover[data-open="true"] { display: block; }
+  #dashboardPeriodPopover .dashboard-period-option {
+    display: flex;
+    width: 100%;
+    min-height: 50px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: #e7e3ed;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 400;
+    text-align: left;
+    cursor: pointer;
+  }
+  #dashboardPeriodPopover .dashboard-period-option[aria-selected="true"] {
+    background: #30234f;
+    color: #f7f2ff;
+    font-weight: 700;
+  }
+  #dashboardPeriodPopover .dashboard-period-option:is(:hover, [data-active="true"]):not([aria-selected="true"]) {
+    background: #20182f;
+  }
+  #dashboardPeriodPopover .dashboard-period-option:focus-visible {
+    outline: 2px solid #a78bfa;
+    outline-offset: -2px;
+  }
+  #dashboardPeriodPopover .dashboard-period-check {
+    flex-shrink: 0;
+    font-size: 21px;
+    line-height: 1;
+    color: #e5ddf8;
+  }
+  /* Scrolling is confined to the table. The header alone stays pinned INSIDE that region. */
+  #accountsDashboardView .dashboard-table-scroll {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    max-height: clamp(265px, 55vh, 440px);
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #685184 transparent;
+    isolation: isolate;
+    border-radius: 10px;
+  }
+  /* Global Accounts styles may stick the entire thead; avoid competing sticky layers. */
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table thead,
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table thead tr {
+    position: static !important;
+    top: auto !important;
+    inset-block-start: auto !important;
+    z-index: auto !important;
+    transform: none !important;
+  }
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table thead th {
+    position: sticky !important;
+    top: 0 !important;
+    inset-block-start: 0 !important;
+    z-index: 2 !important;
+    transform: none !important;
+    color: #d7c6ff;
+    background: #241b36 !important; /* Opaque so scrolling rows never show through. */
+    background-image: none !important;
+    background-clip: padding-box;
+    border-bottom: 1px solid #503a76;
+    box-shadow: inset 0 -1px 0 #503a76;
+    vertical-align: middle;
+  }
+  /* Keep the scroller below popovers/modals from the base layout. */
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table tbody td {
+    position: relative;
+    z-index: 0;
+  }
+  @media (max-width: 640px) {
+    #accountsDashboardView .dashboard-table-scroll {
+      max-height: min(360px, 55vh);
+    }
+  }
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table th.amount,
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table td.amount { text-align: right; }
+  @media (prefers-reduced-motion: reduce) {
+    #accountsDashboardView .dashboard-period-trigger,
+    #accountsDashboardView .dashboard-period-trigger-arrow { transition: none; }
+  }
+
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table { display:table; }
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table thead { display:table-header-group; }
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table tbody { display:table-row-group; }
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table tr { display:table-row; }
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table :is(th,td) { display:table-cell; padding:13px 15px; line-height:1.6; text-align:left; }
+  #accountsDashboardView .dashboard-table-scroll > .accounts-table .amount { text-align:right; }
+  #accountsDashboardView .accounts-panel-heading>div,
+  #accountsDashboardView .dashboard-filter-footer>p { min-width:0; overflow-wrap:anywhere; }
+  #dashboardPeriodPopover .dashboard-period-option>span:first-child { min-width:0; white-space:nowrap; }
+  @media(max-width:640px) {
+    #accountsDashboardView .dashboard-field > .accounts-input,
+    #accountsDashboardView .dashboard-period-trigger { font-size:16px; }
+  }
+
+</style>
+<div id="accountsDashboardView">
   <section class="accounts-panel dashboard-controls" aria-labelledby="dashboardOverviewHeading">
     <div class="accounts-panel-heading"><div><span class="accounts-eyebrow">FINANCIAL OVERVIEW</span><h2 id="dashboardOverviewHeading">Accounts Overview</h2></div><span id="dashboardLiveStatus" class="dashboard-live-status" role="status">Updates every 30 seconds</span></div>
     <form id="dashboardFilterForm" method="get" action="{% url 'accounts_dashboard' %}" class="dashboard-filter-form">
       <div class="dashboard-filter-grid">
-        <div class="dashboard-field"><label for="dashboardPeriod">Period</label><select id="dashboardPeriod" name="period" class="accounts-input"><option value="monthly"{% if period == 'monthly' %} selected{% endif %}>Monthly</option><option value="weekly"{% if period == 'weekly' %} selected{% endif %}>Weekly</option><option value="custom"{% if period == 'custom' %} selected{% endif %}>Custom range</option><option value="all"{% if period == 'all' %} selected{% endif %}>All dates</option></select></div>
+        <div class="dashboard-field"><label for="dashboardPeriod">Period</label><span class="dashboard-select-wrap"><select id="dashboardPeriod" name="period" class="accounts-input"><option value="monthly"{% if period == 'monthly' %} selected{% endif %}>Monthly</option><option value="weekly"{% if period == 'weekly' %} selected{% endif %}>Weekly</option><option value="custom"{% if period == 'custom' %} selected{% endif %}>Custom range</option><option value="all"{% if period == 'all' %} selected{% endif %}>All dates</option></select><span class="dashboard-select-chevron" aria-hidden="true"></span></span></div>
         <div class="dashboard-field" data-dashboard-period="monthly"{% if period != 'monthly' %} hidden{% endif %}><label for="dashboardMonth">Month</label><input id="dashboardMonth" name="month" type="month" class="accounts-input" value="{{ selected_month }}"></div>
         <div class="dashboard-field" data-dashboard-period="weekly"{% if period != 'weekly' %} hidden{% endif %}><label for="dashboardWeek">Date within the week</label><input id="dashboardWeek" name="date" type="date" class="accounts-input" value="{{ selected_date }}"></div>
         <div class="dashboard-field" data-dashboard-period="custom"{% if period != 'custom' %} hidden{% endif %}><label for="dashboardFrom">From Date</label><input id="dashboardFrom" name="start" type="date" class="accounts-input" value="{{ from_date }}"></div>
@@ -40,4 +442,429 @@
     <section class="accounts-panel dashboard-overdue-panel" aria-labelledby="dashboardOverdueHeading"><div class="accounts-panel-heading"><div><span class="accounts-eyebrow">PAYMENT FOLLOW-UP</span><h2 id="dashboardOverdueHeading">Overdue Sales</h2></div><a class="dashboard-button dashboard-button-secondary" href="{% url 'accounts_sales' %}?status=overdue">Manage Sales</a></div><p class="dashboard-note">Sales dated within the selected period, with due dates before today and unpaid balances. Showing up to 10.</p><div class="accounts-table-scroll dashboard-table-scroll" tabindex="0" role="region" aria-label="Overdue sales"><table class="accounts-table dashboard-overdue-table"><thead><tr><th scope="col">Customer</th><th scope="col">Invoice</th><th scope="col">Due Date</th><th scope="col" class="amount">Sale Amount</th><th scope="col" class="amount">Received</th><th scope="col" class="amount">Balance</th></tr></thead><tbody>{% for sale in overdue_sales %}<tr><td>{{ sale.customer_name }}</td><td>{{ sale.invoice_number|default:'—' }}</td><td class="nowrap">{{ sale.due_date|date:'d M Y' }}<span class="dashboard-overdue-badge">Overdue</span></td><td class="amount">₹{{ sale.amount|floatformat:2 }}</td><td class="amount">₹{{ sale.received_amount|floatformat:2 }}</td><td class="amount">₹{{ sale.balance_amount|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="6"><div class="accounts-empty"><i data-lucide="check-circle-2" aria-hidden="true"></i><h3>No overdue sales for these dates</h3></div></td></tr>{% endfor %}</tbody></table></div></section>
   </div>
 </div>
+
+{% if messages %}
+<div id="accountsDashboardServerToasts" hidden>
+  {% for message in messages %}
+    {% if message.level %}<span data-type="{{ message.tags|default:'info' }}">{{ message }}</span>{% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+<script>
+/* Bridge to the existing reusable toast component. */
+(function () {
+  'use strict';
+  window.accountsDashboardNotify = (message, type = 'success') => {
+    const tags = String(type).toLowerCase().split(/\s+/);
+    const tone = tags.find(tag => ['success','error','warning','info'].includes(tag)) || (tags.includes('danger') ? 'error' : 'info');
+    if (typeof window.showToast === 'function') {
+      window.showToast(message, tone);
+    } else {
+      const status = document.getElementById('dashboardLiveStatus');
+      if (status) { status.textContent = message; status.classList.toggle('is-error', tone === 'error'); }
+    }
+  };
+
+  function serverMessages(root) {
+    const items = root.querySelectorAll('#accountsDashboardServerToasts [data-type]');
+    if (!items.length) return 0;
+    // The reusable Team Lead component already consumes these Django messages
+    // when it is included by the base layout. Avoid showing the same alert twice.
+    if (document.getElementById('toast-django-messages')) return 0;
+    items.forEach(item => {
+      const content = item.textContent.trim();
+      if (content) window.accountsDashboardNotify(content, item.dataset.type);
+    });
+    return items.length;
+  }
+  window.accountsDashboardShowServerMessages = serverMessages;
+  const displayInitial = () => {
+    serverMessages(document);
+    const initialError = document.querySelector('#dashboardSnapshot .dashboard-error');
+    if (initialError && initialError.textContent.trim()) {
+      window.accountsDashboardNotify(initialError.textContent.trim(), 'error');
+      initialError.hidden = true;
+    }
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', displayInitial, { once: true });
+  } else {
+    displayInitial();
+  }
+})();
+</script>
+
+<script>
+/* Self-contained enhancements for the Accounts dashboard only. Backend data stays authoritative. */
+(() => {
+  'use strict';
+  const page = document.getElementById('accountsDashboardView');
+  if (!page || page.dataset.dashboardEnhanced === '1') return;
+  page.dataset.dashboardEnhanced = '1';
+
+  const form = page.querySelector('#dashboardFilterForm');
+  const period = page.querySelector('#dashboardPeriod');
+  const resetButton = page.querySelector('#dashboardReset');
+  const refreshButton = page.querySelector('#dashboardRefresh');
+  const liveStatus = page.querySelector('#dashboardLiveStatus');
+  if (!form || !period || !resetButton || !refreshButton || !liveStatus) return;
+
+  let currentUrl = window.location.href;
+  let activeRequest = null;
+  let lastUpdated = Date.now();
+  let isUpdating = false;
+  let paused = false;
+  let sessionExpired = false;
+
+  /* Custom, keyboard-accessible period dropdown; original select keeps form/backend behavior intact. */
+  function enhancePeriodDropdown(select) {
+    const wrap = select.closest('.dashboard-select-wrap');
+    if (!wrap || wrap.classList.contains('dashboard-custom-ready')) return null;
+
+    const label = form.querySelector('label[for="dashboardPeriod"]');
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.id = 'dashboardPeriodTrigger';
+    trigger.className = 'dashboard-period-trigger';
+    trigger.setAttribute('role', 'combobox');
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-controls', 'dashboardPeriodPopover');
+    if (label) {
+      label.id = label.id || 'dashboardPeriodLabel';
+      label.htmlFor = trigger.id;
+      trigger.setAttribute('aria-labelledby', label.id + ' dashboardPeriodTriggerText');
+    } else {
+      trigger.setAttribute('aria-label', 'Period');
+    }
+    const valueText = document.createElement('span');
+    valueText.id = 'dashboardPeriodTriggerText';
+    valueText.className = 'dashboard-period-trigger-label';
+    const arrow = document.createElement('span');
+    arrow.className = 'dashboard-period-trigger-arrow';
+    arrow.setAttribute('aria-hidden', 'true');
+    trigger.append(valueText, arrow);
+
+    const popup = document.createElement('div');
+    popup.id = 'dashboardPeriodPopover';
+    popup.setAttribute('role', 'listbox');
+    popup.setAttribute('aria-labelledby', label?.id || trigger.id);
+    popup.setAttribute('data-open', 'false');
+    const options = Array.from(select.options).filter(option => !option.disabled);
+    let activeIndex = 0;
+    const optionButtons = options.map((option, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.id = 'dashboardPeriodOption' + index;
+      button.className = 'dashboard-period-option';
+      button.setAttribute('role', 'option');
+      button.setAttribute('aria-selected', 'false');
+      button.tabIndex = -1;
+      const text = document.createElement('span');
+      text.textContent = option.textContent.trim();
+      const check = document.createElement('span');
+      check.className = 'dashboard-period-check';
+      check.setAttribute('aria-hidden', 'true');
+      button.append(text, check);
+      button.addEventListener('pointerenter', () => {
+        activeIndex = index;
+        updateOptions();
+      });
+      button.addEventListener('click', () => selectOption(index));
+      popup.append(button);
+      return button;
+    });
+
+    function sync() {
+      const selected = options.findIndex(option => option.value === select.value);
+      if (selected >= 0) activeIndex = selected;
+      valueText.textContent = select.selectedOptions[0]?.textContent.trim() || 'Select period';
+      updateOptions();
+    }
+    function updateOptions() {
+      optionButtons.forEach((button, index) => {
+        const selected = options[index].value === select.value;
+        button.dataset.active = String(index === activeIndex);
+        button.setAttribute('aria-selected', String(selected));
+        button.querySelector('.dashboard-period-check').textContent = selected ? '✓' : '';
+      });
+      if (optionButtons[activeIndex]) {
+        trigger.setAttribute('aria-activedescendant', optionButtons[activeIndex].id);
+      }
+    }
+    function positionPopup() {
+      if (popup.dataset.open !== 'true') return;
+      const rect = trigger.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom - 12;
+      const spaceAbove = rect.top - 12;
+      const desiredHeight = Math.min(options.length * 50 + 20, 280);
+      const openAbove = spaceBelow < Math.min(desiredHeight, 130) && spaceAbove > spaceBelow;
+      const width = Math.min(Math.max(rect.width, 220), window.innerWidth - 16);
+      popup.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8)) + 'px';
+      popup.style.width = width + 'px';
+      popup.style.maxHeight = Math.max(82, Math.min(280, openAbove ? spaceAbove : spaceBelow)) + 'px';
+      popup.style.top = openAbove ? 'auto' : (rect.bottom + 8) + 'px';
+      popup.style.bottom = openAbove ? (window.innerHeight - rect.top + 8) + 'px' : 'auto';
+    }
+    function closePopup(returnFocus = false) {
+      if (popup.dataset.open !== 'true') return;
+      popup.dataset.open = 'false';
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.removeAttribute('aria-activedescendant');
+      if (returnFocus) trigger.focus();
+    }
+    function openPopup() {
+      sync();
+      popup.dataset.open = 'true';
+      trigger.setAttribute('aria-expanded', 'true');
+      positionPopup();
+      optionButtons[activeIndex]?.scrollIntoView({block:'nearest'});
+    }
+    function selectOption(index) {
+      if (!options[index]) return;
+      const oldValue = select.value;
+      select.value = options[index].value;
+      activeIndex = index;
+      sync();
+      closePopup(true);
+      if (oldValue !== select.value) select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    trigger.addEventListener('click', () => {
+      if (popup.dataset.open === 'true') closePopup();
+      else openPopup();
+    });
+    trigger.addEventListener('keydown', (event) => {
+      const key = event.key;
+      const isOpen = popup.dataset.open === 'true';
+      if (key === 'Escape' && isOpen) {
+        event.preventDefault();
+        closePopup(true);
+      } else if (key === 'Tab' && isOpen) {
+        closePopup();
+      } else if (key === 'ArrowDown' || key === 'ArrowUp' || key === 'Home' || key === 'End') {
+        event.preventDefault();
+        if (!isOpen) { openPopup(); return; }
+        if (key === 'Home') activeIndex = 0;
+        else if (key === 'End') activeIndex = options.length - 1;
+        else activeIndex = (activeIndex + (key === 'ArrowDown' ? 1 : -1) + options.length) % options.length;
+        updateOptions();
+        optionButtons[activeIndex]?.scrollIntoView({block:'nearest'});
+      } else if ((key === 'Enter' || key === ' ') && isOpen) {
+        event.preventDefault();
+        selectOption(activeIndex);
+      } else if ((key === 'Enter' || key === ' ') && !isOpen) {
+        event.preventDefault();
+        openPopup();
+      }
+    });
+    document.addEventListener('pointerdown', (event) => {
+      if (!wrap.contains(event.target) && !popup.contains(event.target)) closePopup();
+    });
+    window.addEventListener('resize', positionPopup);
+    window.addEventListener('scroll', (event) => {
+      if (popup.dataset.open !== 'true') return;
+      if (event.target === popup || popup.contains(event.target)) return;
+      positionPopup();
+    }, true);
+    select.addEventListener('change', sync);
+
+    // Activate only after all replacement controls exist; original select remains a graceful fallback.
+    wrap.append(trigger);
+    document.body.append(popup);
+    select.tabIndex = -1;
+    select.setAttribute('aria-hidden', 'true');
+    select.classList.add('dashboard-select-native-hidden');
+    wrap.classList.add('dashboard-custom-ready');
+    sync();
+    return { sync, closePopup };
+  }
+
+  const customDropdown = enhancePeriodDropdown(period);
+
+  function toast(message, tone = 'success') {
+    window.accountsDashboardNotify?.(message, tone);
+  }
+
+  function togglePeriodFields() {
+    const selected = period.value;
+    form.querySelectorAll('[data-dashboard-period]').forEach((field) => {
+      const show = field.dataset.dashboardPeriod === selected;
+      field.hidden = !show;
+      field.querySelectorAll('input').forEach((input) => { input.disabled = !show; });
+    });
+  }
+
+  function validateRange() {
+    if (period.value !== 'custom') return true;
+    const start = form.querySelector('#dashboardFrom')?.value;
+    const end = form.querySelector('#dashboardTo')?.value;
+    if (!start || !end) {
+      toast('Please select both From Date and To Date.', 'error');
+      return false;
+    }
+    if (start > end) {
+      toast('From Date cannot be later than To Date.', 'error');
+      return false;
+    }
+    return true;
+  }
+
+  function setBusy(busy) {
+    isUpdating = busy;
+    refreshButton.disabled = busy;
+    form.querySelector('button[type="submit"]').disabled = busy;
+    page.setAttribute('aria-busy', String(busy));
+    if (busy) liveStatus.textContent = 'Updating dashboard…';
+  }
+
+  function syncFilterInputs(newDocument) {
+    const remoteForm = newDocument.querySelector('#dashboardFilterForm');
+    if (!remoteForm) return;
+    form.querySelectorAll('input[name], select[name]').forEach((input) => {
+      const remoteInput = remoteForm.elements.namedItem(input.name);
+      if (remoteInput && 'value' in remoteInput) input.value = remoteInput.value;
+    });
+    togglePeriodFields();
+    customDropdown?.sync();
+  }
+
+  function renderIcons() {
+    try { window.lucide?.createIcons?.(); } catch (_) { /* optional icon library */ }
+  }
+
+  async function loadDashboard(url, { notify = false, updateHistory = false, syncFilters = false, message = 'Dashboard updated successfully.' } = {}) {
+    if (paused || sessionExpired || !page.isConnected) return;
+    if (activeRequest) activeRequest.abort();
+    const controller = new AbortController();
+    activeRequest = controller;
+    setBusy(true);
+    const timeout = window.setTimeout(() => controller.abort(), 15000);
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: { 'Accept': 'text/html' },
+        signal: controller.signal
+      });
+      if (activeRequest !== controller || controller.signal.aborted || paused) return;
+      if (response.redirected || response.status === 401 || response.status === 403) {
+        sessionExpired = true;
+        throw new Error('Your session or access has changed. Sign in again to continue.');
+      }
+      if (!response.ok && response.status !== 400) throw new Error('Dashboard could not be loaded (' + response.status + ').');
+      const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+      const newSnapshot = doc.querySelector('#dashboardSnapshot');
+      if (!newSnapshot) throw new Error('Dashboard data was not returned. Check your login session.');
+      if (controller.signal.aborted || activeRequest !== controller || paused || !page.isConnected) return;
+
+      const oldSnapshot = page.querySelector('#dashboardSnapshot');
+      const preserveScroll = !updateHistory && !syncFilters;
+      const scrollPositions = preserveScroll
+        ? Array.from(oldSnapshot.querySelectorAll('.dashboard-table-scroll'),
+          table => ({ top: table.scrollTop, left: table.scrollLeft }))
+        : [];
+      const importedSnapshot = document.importNode(newSnapshot, true);
+      oldSnapshot.replaceWith(importedSnapshot);
+      importedSnapshot.querySelectorAll('.dashboard-table-scroll').forEach((table, index) => {
+        const previous = scrollPositions[index];
+        if (previous) {
+          table.scrollTop = previous.top;
+          table.scrollLeft = previous.left;
+        }
+      });
+      if (syncFilters) syncFilterInputs(doc);
+      const finalUrl = new URL(url, window.location.href).href;
+      currentUrl = finalUrl;
+      if (updateHistory && finalUrl !== window.location.href) {
+        window.history.pushState({ accountsDashboard: true }, '', finalUrl);
+      }
+      renderIcons();
+      lastUpdated = Date.now();
+      const serverNotices = window.accountsDashboardShowServerMessages?.(doc) || 0;
+      const valid = newSnapshot.dataset.filterValid !== '0';
+      if (!valid) {
+        const error = newSnapshot.querySelector('.dashboard-error')?.textContent?.trim();
+        liveStatus.textContent = 'Please check the selected date filters';
+        toast(error || 'Please check the selected filters.', 'error');
+        importedSnapshot.querySelector('.dashboard-error')?.setAttribute('hidden', '');
+      } else {
+        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        liveStatus.textContent = 'Updated ' + now + ' · auto-refreshes every 30 seconds';
+        if (notify && !serverNotices) toast(message);
+      }
+    } catch (error) {
+      if (activeRequest !== controller || paused || !page.isConnected) return;
+      if (error.name === 'AbortError') error = new Error('Update timed out. Try Update Now.');
+      liveStatus.textContent = 'Update failed · previous data retained';
+      if (notify || sessionExpired) toast(error.message || 'Unable to update. Please try again.', 'error');
+      // Automatic updates avoid repeated notifications when the network is down.
+    } finally {
+      window.clearTimeout(timeout);
+      if (activeRequest === controller) {
+        activeRequest = null;
+        setBusy(false);
+      }
+    }
+  }
+
+  // Capture handlers keep the filter buttons on this page without a full navigation.
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    togglePeriodFields();
+    if (!validateRange()) return;
+    const url = new URL(form.action, window.location.href);
+    url.search = new URLSearchParams(new FormData(form)).toString();
+    loadDashboard(url.href, { notify: true, updateHistory: true, message: 'Filters applied successfully.' });
+  }, true);
+
+  resetButton.addEventListener('click', (event) => {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+    customDropdown?.closePopup();
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    loadDashboard(resetButton.href, {
+      notify: true, updateHistory: true, syncFilters: true, message: 'Filters reset successfully.'
+    });
+  }, true);
+
+  refreshButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    loadDashboard(currentUrl, { notify: true, message: 'Dashboard updated successfully.' });
+  }, true);
+
+  period.addEventListener('change', togglePeriodFields);
+  togglePeriodFields();
+
+  window.addEventListener('popstate', () => {
+    loadDashboard(window.location.href, { syncFilters: true });
+  });
+  const refreshTimer = window.setInterval(() => {
+    if (!page.isConnected) { clearInterval(refreshTimer); activeRequest?.abort(); return; }
+    if (!paused && !sessionExpired && !document.hidden && !isUpdating && page.querySelector('#dashboardSnapshot')?.dataset.filterValid !== '0') {
+      loadDashboard(currentUrl);
+    }
+  }, 30000);
+  document.addEventListener('visibilitychange', () => {
+    if (!paused && !sessionExpired && !document.hidden && Date.now() - lastUpdated > 30000 && !isUpdating) {
+      loadDashboard(currentUrl);
+    }
+  });
+  window.addEventListener('online', () => {
+    if (!document.hidden && !isUpdating) loadDashboard(currentUrl);
+  });
+  window.addEventListener('pagehide', () => {
+    paused = true;
+    activeRequest?.abort();
+  });
+  window.addEventListener('pageshow', (event) => {
+    paused = false;
+    if (event.persisted) loadDashboard(currentUrl);
+  });
+
+})();
+</script>
 {% endblock %}

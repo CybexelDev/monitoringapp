@@ -1868,6 +1868,403 @@ body.accounts-workspace :is(.saved-note-title,.note-preview,#noteViewContent) {o
  body.accounts-workspace :is(#noteEditDialog,#noteViewDialog) {width:calc(100vw - 24px);max-height:calc(100dvh - 32px)}
  body.accounts-workspace .note-delete-box {width:calc(100vw - 32px);max-width:430px}
 }
+
+
+/* Accounts Notepad — unified Purple controls and responsive Saved Notes rows. */
+.accounts-notepad { width:100%; min-width:0; max-width:100%; }
+.accounts-notepad .notepad-page,
+.accounts-notepad .notepad-editor-card,
+.accounts-notepad .saved-notes-section,
+.accounts-notepad .notes-grid { min-width:0; max-width:100%; }
+.accounts-notepad .project-card { border-color:rgba(167,139,250,.16); }
+.accounts-notepad .note-search-tools {
+  display:grid;grid-template-columns:minmax(0,2fr) minmax(185px,1fr) auto auto;
+  gap:12px;align-items:end;padding:18px;margin:0;max-width:100%;
+}
+.accounts-notepad .note-search-tools > * { box-sizing:border-box;min-width:0;max-width:100%;margin:0; }
+.accounts-notepad .note-search-tools input[type=search] {
+  display:block;width:100%;height:46px;min-height:46px;flex:none;
+  border:1px solid #45345f;border-radius:12px;padding:0 14px;
+  font-size:13px;background:#0e0c16;color:#f6f1ff;outline:none;
+}
+.accounts-notepad .note-search-tools input[type=search]:focus {
+  border-color:#a78bfa;box-shadow:0 0 0 3px rgba(139,92,246,.13);
+}
+.accounts-notepad .note-search-tools :is(button[type=submit],a.notepad-new-button) {
+  min-height:46px;height:46px;padding:0 18px;white-space:nowrap;justify-content:center;
+  border:1px solid #48365f;border-radius:12px;
+}
+.accounts-notepad .note-search-tools button[type=submit] {
+  background:linear-gradient(120deg,#7640c8,#57349e);color:#fff;
+}
+.accounts-notepad .note-search-tools a.notepad-new-button { background:#211a2c;color:#e7d9fa; }
+.accounts-notepad .note-search-summary { margin:0 18px 12px;min-height:18px; }
+/* Keep the real select in the form for FormData, Django filters and accessibility. */
+.accounts-notepad .note-sort-choice {position:relative;min-width:0;}
+.accounts-notepad .note-sort-choice .note-sort-native {
+  position:absolute!important;left:0;top:0;width:1px!important;height:1px!important;
+  opacity:0!important;min-height:0!important;pointer-events:none!important;
+  padding:0!important;clip-path:inset(50%);border:0!important;
+}
+.accounts-notepad .note-sort-toggle {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  width:100%;height:46px;min-height:46px;margin:0;padding:0 14px;
+  color:#f4edff;background:#0e0c16;border:1px solid #47346f;border-radius:12px;
+  cursor:pointer;text-align:left;font:inherit;font-size:13px;caret-color:transparent;
+}
+.accounts-notepad .note-sort-toggle > span {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:none;}
+.accounts-notepad .note-sort-toggle::after {
+  content:"";flex:0 0 8px;width:8px;height:8px;border-right:2px solid #c4b5fd;
+  border-bottom:2px solid #c4b5fd;transform:translateY(-2px) rotate(45deg);
+}
+.accounts-notepad .note-sort-toggle[aria-expanded=true]::after{transform:translateY(2px) rotate(225deg)}
+.accounts-notepad .note-sort-toggle:hover,.accounts-notepad .note-sort-toggle[aria-expanded=true]{border-color:#a78bfa;}
+.accounts-notepad .note-sort-toggle:focus-visible{outline:2px solid #c4b5fd;outline-offset:2px;}
+.accounts-note-sort-menu {
+  position:fixed;z-index:2147483000;display:grid;gap:3px;box-sizing:border-box;
+  padding:7px;max-height:min(270px,65dvh);overflow-y:auto;
+  border:1px solid #4e3a63;border-radius:15px;
+  background:linear-gradient(180deg,#1a142b,#0e0c17 78%);box-shadow:0 18px 44px #000a;
+  color:#eee7fa;scrollbar-color:#73569c transparent;scrollbar-width:thin;
+}
+.accounts-note-sort-menu[hidden]{display:none!important;}
+.accounts-note-sort-option {
+  position:relative;box-sizing:border-box;display:flex;align-items:center;
+  justify-content:space-between;width:100%;min-height:43px;padding:10px 13px;
+  text-align:left;font:inherit;font-size:13px;background:transparent;
+  color:#eee8f8;border:0;border-radius:9px;cursor:pointer;
+}
+.accounts-note-sort-option:hover,.accounts-note-sort-option.is-active:not([aria-selected=true]){background:#251a36;}
+.accounts-note-sort-option[aria-selected=true]{background:#30234f;color:#fff;font-weight:650;}
+.accounts-note-sort-option[aria-selected=true]::after{content:"✓";color:#e0d0ff;font-size:16px;}
+.accounts-notepad .saved-notes-section .notes-grid {
+  display:grid;grid-template-columns:minmax(0,1fr);gap:10px;
+  width:100%;max-height:min(540px,62vh);overflow-x:hidden;overflow-y:auto;
+  padding:14px!important;scrollbar-color:#73549d transparent;
+}
+.accounts-notepad .saved-notes-section .saved-note {
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+  width:100%;min-width:0;max-width:100%;gap:16px;padding:16px;
+  border:1px solid rgba(167,139,250,.18);border-radius:13px;
+  background:rgba(22,17,31,.66);
+}
+.accounts-notepad .saved-notes-section .saved-note-main {min-width:0;display:flex;align-items:center;gap:13px;}
+.accounts-notepad .saved-note-content {min-width:0;max-width:100%;}
+.accounts-notepad .saved-note-title {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+.accounts-notepad .note-preview {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
+.accounts-notepad .saved-note-actions {
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:nowrap;
+  justify-self:end;min-width:max-content;padding:0;border:0;
+}
+.accounts-notepad .saved-note-actions button {width:36px;height:36px;flex:0 0 36px;box-shadow:none;}
+.accounts-notepad .saved-note-actions button svg {stroke:currentColor;}
+.accounts-notepad .saved-notes-header,.accounts-notepad .notepad-toolbar,
+.accounts-notepad .notepad-form-header,.accounts-notepad .notepad-form-header-left,
+.accounts-notepad .note-editor-status {min-width:0;gap:12px;}
+.accounts-notepad .note-editor-tools,.accounts-notepad .notepad-submit-row{flex-wrap:wrap;}
+.accounts-notepad .notepad-textarea {max-width:100%;}
+.accounts-notepad .note-count{white-space:nowrap;}
+/* Match existing purple modal palette without changing popup actions. */
+body.accounts-workspace :is(#noteEditDialog,#noteViewDialog) {
+  box-sizing:border-box;margin:auto;width:min(620px,calc(100vw - 28px));
+  max-width:calc(100vw - 28px);max-height:calc(100dvh - 28px);overflow-y:auto;
+  border-radius:20px;border:1px solid #4b385e;
+  background:linear-gradient(155deg,#171123,#0e0c17 75%);color:#f7f1ff;
+  box-shadow:0 26px 75px #000a;scrollbar-color:#74569f transparent;
+}
+body.accounts-workspace :is(#noteEditDialog,#noteViewDialog)::backdrop{
+  background:rgba(6,5,12,.76);backdrop-filter:blur(4px);
+}
+body.accounts-workspace .note-delete-overlay{background:rgba(6,5,12,.76);backdrop-filter:blur(4px);}
+body.accounts-workspace .note-delete-box{border-color:#584174;background:linear-gradient(150deg,#241730,#100e18);}
+body.accounts-workspace #noteEditDialog :is(input,textarea):focus-visible{border-color:#a78bfa;outline:2px solid #a78bfa;outline-offset:1px;}
+@media(max-width:980px){
+  .accounts-notepad .note-search-tools{grid-template-columns:minmax(0,1fr) minmax(185px,1fr);}
+  .accounts-notepad .note-search-tools :is(button[type=submit],a.notepad-new-button){width:100%;}
+}
+@media(max-width:640px){
+  .accounts-notepad .note-search-tools{grid-template-columns:minmax(0,1fr);gap:10px;padding:14px;}
+  .accounts-notepad .note-search-tools :is(input[type=search],.note-sort-toggle){width:100%;height:46px;font-size:16px;}
+  .accounts-notepad .note-search-tools :is(button[type=submit],a.notepad-new-button){width:100%;}
+  .accounts-notepad .saved-notes-section .notes-grid{padding:10px!important;max-height:min(520px,55vh);}
+  .accounts-notepad .saved-notes-section .saved-note{gap:12px;padding:13px;}
+  .accounts-notepad .saved-note-actions{gap:6px;}
+  .accounts-notepad .saved-note-actions button{width:34px;height:34px;flex-basis:34px;}
+  .accounts-notepad .saved-note-icon{width:36px;height:36px;flex-basis:36px;}
+  .accounts-notepad .notepad-toolbar{flex-wrap:wrap;align-items:flex-start;}
+  .accounts-notepad .notepad-editor-card{padding:16px;}
+  .accounts-notepad .notepad-form-header-left{min-width:0;}
+  .accounts-notepad .note-editor-status{flex-wrap:wrap;}
+  body.accounts-workspace :is(#noteEditDialog,#noteViewDialog){width:calc(100vw - 20px);max-width:calc(100vw - 20px);padding:18px;}
+}
+@media(max-width:390px){
+  .accounts-notepad .saved-notes-section .saved-note{grid-template-columns:minmax(0,1fr);}
+  .accounts-notepad .saved-note-actions{width:100%;justify-self:stretch;justify-content:flex-end;padding:10px 0 0;border-top:1px solid #ffffff12;}
+  .accounts-notepad .note-search-tools{padding:12px;}
+}
+
+
+/* ========================================================================
+   ACCOUNTS NOTEPAD — GOOGLE MEET-STYLE PURPLE POPUPS (VIEW / EDIT / DELETE)
+   Scoped to the 3 existing popups; the shared Accounts theme is untouched.
+   ======================================================================== */
+#noteEditDialog.accounts-note-popup,
+#noteViewDialog.accounts-note-popup {
+  box-sizing:border-box!important;
+  position:fixed!important;
+  inset:0!important;
+  margin:auto!important;
+  padding:0!important;
+  width:min(730px,calc(100vw - 32px))!important;
+  max-width:calc(100vw - 32px)!important;
+  max-height:calc(100dvh - 32px)!important;
+  overflow:hidden!important;
+  border:1px solid #40344f!important;
+  border-radius:22px!important;
+  background:#0c0b14!important;
+  color:#f7f3ff!important;
+  box-shadow:0 28px 85px rgba(0,0,0,.65)!important;
+  color-scheme:dark;
+}
+#noteViewDialog.accounts-note-popup {width:min(665px,calc(100vw - 32px))!important}
+#noteEditDialog.accounts-note-popup[open],
+#noteViewDialog.accounts-note-popup[open] {display:flex!important;flex-direction:column}
+#noteEditDialog.accounts-note-popup::backdrop,
+#noteViewDialog.accounts-note-popup::backdrop {
+  background:rgba(4,4,11,.78)!important;
+  backdrop-filter:blur(5px)!important;
+  -webkit-backdrop-filter:blur(5px)!important;
+}
+#noteEditDialog .note-popup-header,
+#noteViewDialog .note-popup-header,
+#noteDeleteModal .note-popup-header {
+  box-sizing:border-box;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  flex:0 0 auto;
+  margin:0!important;
+  padding:27px 30px!important;
+  border:0;border-bottom:1px solid rgba(165,136,211,.15);
+  background:linear-gradient(108deg,#251936 0%,#14111e 52%,#161c2d 100%);
+}
+#noteEditDialog .note-popup-heading,
+#noteViewDialog .note-popup-heading,
+#noteDeleteModal .note-popup-heading {
+  min-width:0;display:flex;align-items:center;gap:17px;
+}
+#noteEditDialog .note-popup-heading-copy,
+#noteViewDialog .note-popup-heading-copy,
+#noteDeleteModal .note-popup-heading-copy {min-width:0}
+#noteEditDialog .note-popup-icon,
+#noteViewDialog .note-popup-icon,
+#noteDeleteModal .note-popup-icon {
+  box-sizing:border-box;flex:0 0 55px;width:55px;height:55px;
+  display:grid;place-items:center;border-radius:16px;
+  background:#322051;border:1px solid #65438e;color:#c8aeff;
+}
+#noteEditDialog .note-popup-icon svg,
+#noteViewDialog .note-popup-icon svg,
+#noteDeleteModal .note-popup-icon svg {width:23px;height:23px;stroke-width:1.9}
+#noteEditDialog .note-popup-eyebrow,
+#noteViewDialog .note-popup-eyebrow,
+#noteDeleteModal .note-popup-eyebrow {
+  margin:0 0 7px;color:#b997f8;font-size:10px;font-weight:800;letter-spacing:2px;
+}
+#noteEditDialog .note-popup-header h2,
+#noteViewDialog .note-popup-header h2,
+#noteDeleteModal .note-popup-header h2 {
+  margin:0!important;padding:0!important;
+  font-size:clamp(20px,2.8vw,27px)!important;line-height:1.3;font-weight:800;
+  color:#faf8ff;letter-spacing:-.4px;overflow-wrap:anywhere;
+}
+#noteEditDialog .note-popup-subtitle,
+#noteViewDialog .note-popup-subtitle,
+#noteDeleteModal .note-popup-subtitle {
+  margin:7px 0 0!important;color:#90869e;font-size:12px;line-height:1.5;
+}
+#noteEditDialog .note-edit-close,
+#noteViewDialog .note-edit-close,
+#noteDeleteModal .note-edit-close {
+  box-sizing:border-box;flex:0 0 40px;display:grid;place-items:center;
+  width:40px;height:40px;min-height:40px;padding:8px;
+  border:1px solid #343044!important;border-radius:12px;
+  background:rgba(255,255,255,.04)!important;color:#a9a1b9!important;
+  font-size:0;cursor:pointer;
+}
+#noteEditDialog .note-edit-close:hover,
+#noteViewDialog .note-edit-close:hover,
+#noteDeleteModal .note-edit-close:hover {background:#292137!important;color:#f7f1ff!important}
+#noteEditDialog .note-edit-close svg,
+#noteViewDialog .note-edit-close svg,
+#noteDeleteModal .note-edit-close svg {width:19px;height:19px;stroke-width:1.8}
+#noteEditDialog .note-popup-content,
+#noteViewDialog .note-popup-content,
+#noteDeleteModal .note-popup-content {
+  box-sizing:border-box;min-width:0;min-height:0;
+  padding:25px 30px;overflow-y:auto;overscroll-behavior:contain;
+  background:#0e0c16;scrollbar-color:#7657a6 transparent;scrollbar-width:thin;
+}
+#noteEditDialog #noteEditForm {
+  display:flex;flex-direction:column;min-height:0;overflow:hidden;
+  margin:0!important;padding:0!important;
+}
+#noteEditDialog .note-popup-content {flex:1 1 auto}
+#noteEditDialog .note-popup-content label {
+  display:block;margin:0 0 9px;color:#d6cce2;font-weight:700;font-size:12px;
+}
+#noteEditDialog .note-popup-content label:not(:first-of-type) {margin-top:20px}
+#noteEditDialog .note-popup-content label span {color:#b997f8}
+#noteEditDialog #editNoteTitle,
+#noteEditDialog #editNoteContent {
+  box-sizing:border-box;width:100%;min-width:0;max-width:100%;
+  background:#0b0a12!important;color:#f6f2ff!important;
+  border:1px solid #383143!important;border-radius:12px!important;
+  box-shadow:none!important;padding:12px 14px!important;
+  font:inherit;font-size:14px;line-height:1.5;color-scheme:dark;
+}
+#noteEditDialog #editNoteTitle {min-height:51px}
+#noteEditDialog #editNoteContent {
+  min-height:170px;max-height:35dvh;resize:vertical;
+}
+#noteEditDialog :is(#editNoteTitle,#editNoteContent):focus-visible {
+  border-color:#a78bfa!important;outline:2px solid #9676e5!important;outline-offset:1px!important;
+}
+#noteEditDialog .note-edit-feedback {margin:10px 0 0;min-height:0;font-size:12px;line-height:1.5}
+#noteEditDialog .note-popup-footer,
+#noteViewDialog .note-popup-footer,
+#noteDeleteModal .note-popup-footer {
+  box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;
+  gap:12px;flex:0 0 auto;flex-wrap:wrap;
+  margin:0!important;padding:20px 30px!important;
+  border-top:1px solid #2f293a;
+  background:#0e0c16;
+}
+#noteEditDialog .note-popup-footer button,
+#noteViewDialog .note-popup-footer button,
+#noteDeleteModal .note-popup-footer button {
+  box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;
+  gap:9px;min-height:46px;margin:0;padding:0 18px;
+  border-radius:12px;font:inherit;font-size:12px;font-weight:750;cursor:pointer;
+  white-space:nowrap;box-shadow:none;
+}
+#noteEditDialog .note-popup-footer .notepad-new-button,
+#noteViewDialog .note-popup-footer .notepad-new-button,
+#noteDeleteModal .note-popup-footer button:not(.note-delete-confirm) {
+  background:#1a1821!important;border:1px solid #36313f!important;color:#d5cada!important;
+}
+#noteEditDialog .note-popup-footer .notepad-save {
+  border:1px solid #935fda;background:linear-gradient(115deg,#8047d2,#6232ab);
+  color:#fff;
+}
+#noteEditDialog .note-popup-footer button:hover,
+#noteViewDialog .note-popup-footer button:hover,
+#noteDeleteModal .note-popup-footer button:hover {filter:brightness(1.13)}
+#noteEditDialog .note-popup-footer button svg,
+#noteDeleteModal .note-popup-footer button svg {width:17px;height:17px}
+#noteViewDialog .note-popup-view-content {flex:1 1 auto}
+#noteViewDialog .note-popup-info-line {
+  display:flex;align-items:center;gap:9px;min-width:0;margin:0 0 17px;
+  color:#ab9db8;font-size:12px;
+}
+#noteViewDialog .note-popup-info-line svg {width:15px;height:15px;color:#ba9aef}
+#noteViewDialog #noteViewUpdated {display:block;margin:0;color:inherit;font-size:inherit}
+#noteViewDialog #noteViewContent {
+  box-sizing:border-box;width:100%;max-width:100%;min-width:0;
+  min-height:155px;max-height:min(40dvh,360px);margin:0;
+  padding:18px 19px;
+  white-space:pre-wrap;overflow-wrap:anywhere;overflow-y:auto;
+  background:#0a0912!important;border:1px solid #393044!important;
+  border-radius:13px;color:#e6ddeb;font-size:14px;line-height:1.8;
+}
+#noteDeleteModal.note-delete-overlay {
+  position:fixed;inset:0;z-index:100050;
+  align-items:center;justify-content:center;
+  background:rgba(4,4,11,.78)!important;
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  padding:16px;overflow-y:auto;
+}
+#noteDeleteModal.note-delete-overlay:not(.open) {display:none!important}
+#noteDeleteModal.note-delete-overlay.open {display:flex!important}
+#noteDeleteModal .note-delete-box {
+  box-sizing:border-box;width:min(485px,100%);max-width:100%;
+  max-height:calc(100dvh - 32px);overflow-y:auto;
+  margin:auto;padding:0!important;
+  border:1px solid #40344f!important;border-radius:22px!important;
+  background:#0e0c16!important;color:#f7f3ff!important;
+  box-shadow:0 28px 85px rgba(0,0,0,.65)!important;
+}
+#noteDeleteModal .note-popup-content {padding:22px 27px}
+#noteDeleteModal .note-popup-delete-message {
+  margin:0;color:#c9bfce;line-height:1.8;font-size:13px;
+}
+#noteDeleteModal .note-popup-footer {padding:18px 27px!important}
+#noteDeleteModal .note-popup-footer .note-delete-confirm {
+  background:#b53555!important;border:1px solid #d75776!important;color:#fff!important;
+}
+#noteDeleteModal button:focus-visible,
+#noteViewDialog button:focus-visible,
+#noteEditDialog button:focus-visible {outline:2px solid #c4b5fd;outline-offset:2px}
+/* On a delete failure, keep the shared bottom-right toast above the overlay. */
+#noteDeleteModal #toastContainer,
+#noteDeleteModal #toast-container {z-index:100060!important}
+@media(max-width:640px) {
+  #noteEditDialog.accounts-note-popup,
+  #noteViewDialog.accounts-note-popup {width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important;max-height:calc(100dvh - 20px)!important;border-radius:18px!important}
+  #noteDeleteModal .note-delete-box {border-radius:18px!important}
+  #noteEditDialog .note-popup-header,#noteViewDialog .note-popup-header,#noteDeleteModal .note-popup-header {padding:19px 17px!important;gap:9px}
+  #noteEditDialog .note-popup-heading,#noteViewDialog .note-popup-heading,#noteDeleteModal .note-popup-heading {gap:10px}
+  #noteEditDialog .note-popup-icon,#noteViewDialog .note-popup-icon,#noteDeleteModal .note-popup-icon {width:43px;height:43px;flex-basis:43px;border-radius:12px}
+  #noteEditDialog .note-popup-icon svg,#noteViewDialog .note-popup-icon svg,#noteDeleteModal .note-popup-icon svg {width:20px;height:20px}
+  #noteEditDialog .note-popup-header h2,#noteViewDialog .note-popup-header h2,#noteDeleteModal .note-popup-header h2 {font-size:20px!important}
+  #noteEditDialog .note-popup-subtitle,#noteViewDialog .note-popup-subtitle,#noteDeleteModal .note-popup-subtitle {font-size:11px}
+  #noteEditDialog .note-popup-content,#noteViewDialog .note-popup-content,#noteDeleteModal .note-popup-content {padding:19px 17px}
+  #noteEditDialog .note-popup-footer,#noteViewDialog .note-popup-footer,#noteDeleteModal .note-popup-footer {padding:16px 17px!important}
+  #noteEditDialog :is(#editNoteTitle,#editNoteContent) {font-size:16px}
+  #noteDeleteModal .note-popup-footer button {flex:0 1 auto}
+  #noteEditDialog .note-popup-footer button,
+  #noteViewDialog .note-popup-footer button {width:auto!important;flex:0 1 auto!important}
+}
+@media(max-width:360px) {
+  #noteEditDialog .note-popup-subtitle,#noteViewDialog .note-popup-subtitle,#noteDeleteModal .note-popup-subtitle {display:none}
+  #noteEditDialog .note-popup-footer button {flex:1 1 auto}
+}
+
+
+/* Match the supplied Team Lead notepad surface across every Accounts popup. */
+.accounts-notepad, .accounts-note-popup, #noteDeleteModal {
+ --note-surface:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),rgba(12,11,20,.98);
+}
+#noteEditDialog.accounts-note-popup,#noteViewDialog.accounts-note-popup,#noteDeleteModal .note-delete-box {
+ background:var(--note-surface)!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:18px!important;
+ box-shadow:0 20px 45px #0007,inset 0 1px 0 #ffffff0f!important;
+}
+:is(#noteEditDialog,#noteViewDialog,#noteDeleteModal) :is(.note-popup-header,.note-popup-content,.note-popup-footer){background:transparent!important;}
+:is(#noteEditDialog,#noteViewDialog,#noteDeleteModal) .note-popup-header{padding:24px!important;}
+:is(#noteEditDialog,#noteViewDialog,#noteDeleteModal) .note-popup-icon{background:rgba(139,92,246,.14);border-color:rgba(167,139,250,.28);}
+:is(#noteEditDialog,#noteViewDialog,#noteDeleteModal) .note-popup-header h2{font-size:22px!important;}
+#noteEditDialog #editNoteTitle,#noteEditDialog #editNoteContent,#noteViewDialog #noteViewContent{background:#0c0b13!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:10px!important;color:#eeebf5!important;}
+.accounts-notepad .note-sort-toggle{background:#0c0b13;border-color:rgba(255,255,255,.13);font-size:14px;font-weight:400;}
+.accounts-note-sort-menu{padding:8px;border:1px solid #ffffff21;border-radius:14px;background:radial-gradient(circle at 90% 0%,rgba(96,165,250,.13),transparent 32%),radial-gradient(circle at 0% 0%,rgba(139,92,246,.20),transparent 38%),rgba(12,11,20,.98);box-shadow:0 20px 45px #0007,inset 0 1px 0 #ffffff0f;}
+.accounts-note-sort-option{font-size:14px;color:#eeebf5;border-radius:8px;}
+.accounts-note-sort-option:hover,.accounts-note-sort-option.is-active:not([aria-selected=true]){background:rgba(139,92,246,.12);}
+.accounts-note-sort-option[aria-selected=true]{background:rgba(139,92,246,.18);color:#ede9fe;font-weight:500;}
+.note-toast-fallback{position:fixed;bottom:24px;right:24px;z-index:2147483647;max-width:min(360px,calc(100vw - 32px));padding:14px 18px;background:#21192f;border:1px solid #a78bfa80;border-radius:12px;color:#fff;box-shadow:0 12px 35px #0006;}
+@media(max-width:640px){
+ .accounts-note-sort-option{font-size:16px;min-height:44px;}
+}
+
+
+/* Inline new-note form: fluid fields and wrapping actions at narrow widths. */
+.accounts-notepad .notepad-editor-card {width:100%;box-sizing:border-box;min-width:0;}
+.accounts-notepad #noteEditor {min-width:0;}
+.accounts-notepad #noteEditor :is(input:not([type=hidden]),textarea){box-sizing:border-box;width:100%;min-width:0;max-width:100%;}
+.accounts-notepad .notepad-form-header-left > div {min-width:0;}
+.accounts-notepad .note-editor-tools {display:flex;flex-wrap:wrap;gap:10px;}
+@media(max-width:640px){
+ .accounts-notepad #noteEditor :is(input,textarea){font-size:16px;}
+ .accounts-notepad .notepad-submit-row{display:flex;flex-wrap:wrap;gap:10px;}
+ .accounts-notepad .notepad-submit-row > * {flex:1 1 130px;justify-content:center;}
+ .accounts-notepad .note-editor-status{display:flex;flex-wrap:wrap;}
+}
 </style>{% endblock %}
 {% block content %}<div class="accounts-notepad"><div class="main-area">
 
@@ -1912,6 +2309,7 @@ body.accounts-workspace :is(.saved-note-title,.note-preview,#noteViewContent) {o
                             </div>
 
                         </div>
+
 
                     </div>
 
@@ -2013,6 +2411,7 @@ body.accounts-workspace :is(.saved-note-title,.note-preview,#noteViewContent) {o
                     </form>
 
                 </div>
+
 
                 <!-- =================================================
                      SAVED NOTES HEADER
@@ -2198,56 +2597,78 @@ body.accounts-workspace :is(.saved-note-title,.note-preview,#noteViewContent) {o
 
 
 <!-- Read-only preview; the main form remains exclusively for new notes. -->
-<dialog id="noteViewDialog" aria-labelledby="noteViewTitle">
-    <div class="note-edit-heading">
-        <div>
-            <p class="note-view-label">Saved note</p>
-            <h2 id="noteViewTitle"></h2>
-        </div>
-        <button type="button" class="note-edit-close" id="closeNoteView" aria-label="Close note preview">×</button>
+<dialog id="noteViewDialog" class="accounts-note-popup" aria-labelledby="noteViewTitle">
+  <header class="note-popup-header">
+    <div class="note-popup-heading">
+      <span class="note-popup-icon" aria-hidden="true"><i data-lucide="eye"></i></span>
+      <div class="note-popup-heading-copy">
+        <p class="note-popup-eyebrow">SAVED NOTE</p>
+        <h2 id="noteViewTitle">Note Details</h2>
+        <p class="note-popup-subtitle">View your saved note details.</p>
+      </div>
     </div>
-    <time id="noteViewUpdated"></time>
+    <button type="button" class="note-edit-close" id="closeNoteView" aria-label="Close note preview"><i data-lucide="x" aria-hidden="true"></i></button>
+  </header>
+  <div class="note-popup-content note-popup-view-content">
+    <div class="note-popup-info-line"><i data-lucide="clock-3" aria-hidden="true"></i><time id="noteViewUpdated"></time></div>
     <div id="noteViewContent" tabindex="0" role="region" aria-label="Note content"></div>
-    <div class="note-edit-actions">
-        <button type="button" class="notepad-new-button" id="dismissNoteView">Close</button>
-    </div>
+  </div>
+  <footer class="note-popup-footer">
+    <button type="button" class="notepad-new-button" id="dismissNoteView">Close</button>
+  </footer>
 </dialog>
 
-<dialog id="noteEditDialog" aria-labelledby="noteEditHeading">
-  <div class="note-edit-heading">
-<h2 id="noteEditHeading">Edit Note</h2>
-<button type="button" class="note-edit-close" id="closeNoteEdit" aria-label="Close edit popup">×</button>
-</div>
+<dialog id="noteEditDialog" class="accounts-note-popup" aria-labelledby="noteEditHeading">
+  <header class="note-popup-header">
+    <div class="note-popup-heading">
+      <span class="note-popup-icon" aria-hidden="true"><i data-lucide="pencil"></i></span>
+      <div class="note-popup-heading-copy">
+        <p class="note-popup-eyebrow">SAVED NOTE</p>
+        <h2 id="noteEditHeading">Edit Note</h2>
+        <p class="note-popup-subtitle">Update your note and save changes.</p>
+      </div>
+    </div>
+    <button type="button" class="note-edit-close" id="closeNoteEdit" aria-label="Close edit popup"><i data-lucide="x" aria-hidden="true"></i></button>
+  </header>
   <form id="noteEditForm" method="post" action="{% url 'accounts_notepad' %}">
     {% csrf_token %}<input type="hidden" name="note_id" id="editNoteId">
-    <label for="editNoteTitle">Title</label>
-<input type="text" name="title" id="editNoteTitle" maxlength="255">
-    <label for="editNoteContent">Note</label>
-<textarea name="content" id="editNoteContent" required>
-</textarea>
-    <p class="note-edit-feedback" id="noteEditFeedback" role="status" aria-live="polite">
-</p>
-    <div class="note-edit-actions">
-<button type="button" class="notepad-new-button" id="cancelNoteEdit">Cancel</button>
-<button type="submit" class="notepad-save" id="updateNoteButton">Update Note</button>
-</div>
+    <div class="note-popup-content">
+      <label for="editNoteTitle">Note Title</label>
+      <input type="text" name="title" id="editNoteTitle" maxlength="255" placeholder="Enter note title">
+      <label for="editNoteContent">Note Content <span aria-hidden="true">*</span></label>
+      <textarea name="content" id="editNoteContent" required placeholder="Write your note here..."></textarea>
+      <p class="note-edit-feedback" id="noteEditFeedback" role="status" aria-live="polite"></p>
+    </div>
+    <footer class="note-popup-footer">
+      <button type="button" class="notepad-new-button" id="cancelNoteEdit">Cancel</button>
+      <button type="submit" class="notepad-save" id="updateNoteButton"><i data-lucide="save" aria-hidden="true"></i>Save Changes</button>
+    </footer>
   </form>
 </dialog>
 
-<div id="noteDeleteModal" class="note-delete-overlay"
-     role="dialog" aria-modal="true" aria-hidden="true"
-     aria-labelledby="noteDeleteTitle"
+<div id="noteDeleteModal" class="note-delete-overlay" role="dialog" aria-modal="true" aria-hidden="true"
+     aria-labelledby="noteDeleteTitle" aria-describedby="noteDeleteDescription"
      onclick="if (event.target === this) closeNoteDeleteModal()">
-    <div class="note-delete-box">
-        <h3 id="noteDeleteTitle">Delete note?</h3>
-        <p>Are you sure you want to delete this note? This action cannot be undone.</p>
-
-        <div class="note-delete-buttons">
-            <button type="button" onclick="closeNoteDeleteModal()">Cancel</button>
-            <button type="button" class="note-delete-confirm"
-                    onclick="submitNoteDelete()">Delete Note</button>
+  <div class="note-delete-box" role="document">
+    <header class="note-popup-header">
+      <div class="note-popup-heading">
+        <span class="note-popup-icon note-popup-icon-delete" aria-hidden="true"><i data-lucide="trash-2"></i></span>
+        <div class="note-popup-heading-copy">
+          <p class="note-popup-eyebrow">CONFIRM DELETE</p>
+          <h2 id="noteDeleteTitle">Delete Note?</h2>
+          <p class="note-popup-subtitle">This action cannot be undone.</p>
         </div>
+      </div>
+      <button type="button" class="note-edit-close" onclick="closeNoteDeleteModal()" aria-label="Close delete popup"><i data-lucide="x" aria-hidden="true"></i></button>
+    </header>
+    <div class="note-popup-content">
+      <p id="noteDeleteDescription" class="note-popup-delete-message">Are you sure you want to delete this note? It will be permanently removed from your saved notes.</p>
     </div>
+    <footer class="note-popup-footer note-delete-buttons">
+      <button type="button" onclick="closeNoteDeleteModal()">Cancel</button>
+      <button type="button" class="note-delete-confirm" onclick="submitNoteDelete()"><i data-lucide="trash-2" aria-hidden="true"></i>Delete Note</button>
+    </footer>
+  </div>
 </div>
     </div></div>{% endblock %}
 {% block extra_js %}<script>
@@ -2269,9 +2690,100 @@ document.addEventListener('DOMContentLoaded', () => {
     const dirty = () => JSON.stringify([title.value, content.value]) !== baseline;
     const popupOpen = () => editDialog.open || viewDialog.open || deleteModal.classList.contains('open');
     const icons = () => window.lucide?.createIcons();
+
+    /* Income/Sales-style dark purple sort dropdown; the native select retains its form value. */
+    let sortControl = null;
+    function closeSortMenu(restoreFocus=false) {
+        if (!sortControl) return;
+        const {menu,toggle} = sortControl;
+        menu.hidden = true;
+        toggle.setAttribute('aria-expanded','false');
+        if (restoreFocus && toggle.isConnected) toggle.focus({preventScroll:true});
+    }
+    function initSortMenu() {
+        if(sortControl && !sortControl.select.isConnected){
+            sortControl.menu.remove();sortControl=null;
+        }
+        const select = document.querySelector('.saved-notes-section .note-search-tools select[name="sort"]');
+        if(!select) return;
+        if(sortControl && sortControl.select===select){
+            sortControl.label.textContent=select.selectedOptions[0]?.textContent.trim()||'Sort notes';
+            return;
+        }
+        const wrapper=document.createElement('div');wrapper.className='note-sort-choice';
+        select.before(wrapper);wrapper.appendChild(select);
+        select.classList.add('note-sort-native');select.tabIndex=-1;
+        const toggle=document.createElement('button');toggle.type='button';toggle.className='note-sort-toggle';
+        toggle.setAttribute('role','combobox');toggle.setAttribute('aria-label','Sort notes');
+        toggle.setAttribute('aria-haspopup','listbox');toggle.setAttribute('aria-expanded','false');
+        const label=document.createElement('span');toggle.appendChild(label);wrapper.appendChild(toggle);
+        const menu=document.createElement('div');menu.className='accounts-note-sort-menu';
+        menu.setAttribute('role','listbox');menu.hidden=true;
+        menu.id='accounts-note-sort-menu';toggle.setAttribute('aria-controls',menu.id);
+        document.body.appendChild(menu);
+        const sync=()=>label.textContent=select.selectedOptions[0]?.textContent.trim()||'Sort notes';
+        const choices=[];let highlightIndex=Math.max(0,select.selectedIndex);
+        const highlight=(index)=>{
+            highlightIndex=index;
+            choices.forEach((node,i)=>node.classList.toggle('is-active',i===index));
+            if(choices[index])choices[index].scrollIntoView({block:'nearest'});
+        };
+        const choose=(index)=>{
+            if(!select.options[index]||select.options[index].disabled)return;
+            const changed=select.selectedIndex!==index;
+            select.selectedIndex=index;sync();closeSortMenu(true);
+            if(changed)select.dispatchEvent(new Event('change',{bubbles:true}));
+        };
+        [...select.options].forEach((option,index)=>{
+            const node=document.createElement('button');node.type='button';node.className='accounts-note-sort-option';
+            node.textContent=option.textContent.trim();node.disabled=option.disabled;
+            node.setAttribute('role','option');node.dataset.option=String(index);
+            node.addEventListener('pointerdown',event=>event.preventDefault());
+            node.addEventListener('click',()=>choose(index));
+            menu.appendChild(node);choices.push(node);
+        });
+        const position=()=>{
+            if(menu.hidden||!toggle.isConnected){return;}
+            const box=toggle.getBoundingClientRect();const width=Math.min(innerWidth-24,Math.max(185,box.width));
+            menu.style.width=`${width}px`;
+            menu.style.left=`${Math.max(12,Math.min(innerWidth-width-12,box.left))}px`;
+            const below=innerHeight-box.bottom-12,above=box.top-12;
+            menu.style.maxHeight=`${Math.max(50,Math.min(270,Math.max(below,above)))}px`;
+            const height=menu.getBoundingClientRect().height;
+            menu.style.top=`${below>=height||below>=above?Math.min(innerHeight-height-10,box.bottom+7):Math.max(8,box.top-height-7)}px`;
+        };
+        const open=()=>{
+            if(sortControl?.menu!==menu)return;
+            menu.replaceChildren(...choices);
+            choices.forEach((node,index)=>node.setAttribute('aria-selected',String(index===select.selectedIndex)));
+            menu.hidden=false;toggle.setAttribute('aria-expanded','true');position();
+            highlight(Math.max(0,select.selectedIndex));
+        };
+        toggle.addEventListener('click',()=>menu.hidden?open():closeSortMenu());
+        toggle.addEventListener('keydown',event=>{
+            if(event.key==='Escape'){if(!menu.hidden){event.preventDefault();closeSortMenu(true);}return;}
+            if(event.key==='Tab'){closeSortMenu();return;}
+            if(['Enter',' ','ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+                event.preventDefault();if(menu.hidden){open();return;}
+                if(event.key==='Enter'||event.key===' '){choose(highlightIndex);return;}
+                if(event.key==='Home')highlight(0);
+                else if(event.key==='End')highlight(choices.length-1);
+                else highlight((highlightIndex+(event.key==='ArrowDown'?1:-1)+choices.length)%choices.length);
+            }
+        });
+        select.addEventListener('change',sync);
+        select.addEventListener('focus',()=>toggle.focus({preventScroll:true}));
+        sortControl={select,toggle,label,menu,position};sync();
+    }
+    document.addEventListener('pointerdown',event=>{
+        if(sortControl&&!sortControl.menu.hidden&&!sortControl.menu.contains(event.target)&&!sortControl.toggle.contains(event.target))closeSortMenu();
+    });
+    document.addEventListener('scroll',()=>sortControl?.position(),true);
+    window.addEventListener('resize',()=>sortControl?.position());
+
     function toast(message, type = 'success') {
         if (typeof window.showToast === 'function') window.showToast(message, type);
-        else {toolFeedback.textContent = message;}
+        else {const node=document.createElement('div');node.className='note-toast-fallback';node.setAttribute('role',type==='error'?'alert':'status');node.textContent=message;(document.querySelector('dialog[open]')||document.body).appendChild(node);setTimeout(()=>node.remove(),5000);}
     }
     function wordCount() {
         const words = content.value.trim() ? content.value.trim().split(/\s+/).length : 0;
@@ -2299,6 +2811,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
             if (!response.ok) throw new Error(doc.querySelector('.note-editor-error')?.textContent.trim() || 'Could not save the note. Check the fields and try again.');
             if (!doc.querySelector('.saved-notes-section') || !doc.getElementById('noteEditor')) throw new Error('Notepad unavailable. Please check your login.');
+            const validation=doc.querySelector('.note-editor-error');
+            if(options.method==='POST' && validation?.textContent.trim())throw new Error(validation.textContent.trim());
             return {doc, response};
         } catch(error) {
             if (error.name === 'AbortError' && !options.signal?.aborted) throw new Error(options.method === 'POST' ? 'Unable to confirm the save. Check your saved notes before retrying.' : 'Notepad update timed out. Please try again.');
@@ -2319,7 +2833,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const destination = new URL(url, location.href);
             if (destination.origin === location.origin) history.replaceState(null,'',destination.pathname + destination.search);
         }
-        icons();return true;
+        initSortMenu();icons();return true;
     }
     async function refreshList(url = location.href, navigate = false, silent = false) {
         if (mutating || (silent && (loading || popupOpen() || section().contains(document.activeElement)))) return false;
@@ -2356,12 +2870,15 @@ document.addEventListener('DOMContentLoaded', () => {
         inertStates=[document.getElementById('accountsMain'),document.getElementById('accountsSidebar')].filter(Boolean).map(node=>({node,inert:node.inert}));
         inertStates.forEach(({node})=>node.inert=true);
         deleteModal.classList.add('open');deleteModal.setAttribute('aria-hidden','false');
+        moveToasts(deleteModal);
         document.body.classList.add('note-delete-open');document.documentElement.classList.add('note-delete-open');
         deleteModal.querySelector('button').focus();return false;
     }
     function closeDelete(force = false) {
         if(mutating&&!force)return;
         deleteModal.classList.remove('open');deleteModal.setAttribute('aria-hidden','true');
+        const toastHost=document.getElementById('toastContainer');
+        if(toastHost && toastHost.parentNode===deleteModal)document.body.appendChild(toastHost);
         document.body.classList.remove('note-delete-open');document.documentElement.classList.remove('note-delete-open');
         inertStates.forEach(({node,inert})=>node.inert=inert);inertStates=[];pendingDelete=null;
         if(trigger?.isConnected)trigger.focus();
@@ -2412,6 +2929,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 editContent.setCustomValidity('');editFeedback.textContent='';showDialog(editDialog,button);editTitle.focus();
             }
             return;
+        }
+        const newNoteLink=event.target.closest('.notepad-submit-row a.notepad-new-button');
+        if(newNoteLink && event.button===0&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey){
+            event.preventDefault();
+            if(mutating)return;
+            if(dirty()&&!window.confirm('Discard unsaved changes and start a new note?'))return;
+            title.value='';content.value='';content.setCustomValidity('');
+            baseline=JSON.stringify(['','']);wordCount();
+            refreshList(newNoteLink.href,true);
+            title.focus({preventScroll:true});return;
         }
         const link=event.target.closest('.notepad-pagination a,.note-search-tools a');
         if(link&&event.button===0&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey) {event.preventDefault();refreshList(link.href,true);}
@@ -2478,7 +3005,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const liveUpdate=()=>{if(!document.hidden&&!popupOpen())refreshList(location.href,false,true);};
     setInterval(liveUpdate,15000);document.addEventListener('visibilitychange',liveUpdate);window.addEventListener('focus',liveUpdate);
     window.addEventListener('pagehide',cancelRead);
-    wordCount();icons();
+    initSortMenu();wordCount();icons();
 });
 
 </script>{% endblock %}
