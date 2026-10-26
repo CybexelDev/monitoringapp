@@ -226,8 +226,8 @@ def admin_incoming_personal_chat(sender, instance, created, **kwargs):
     if not User.objects.filter(pk=peer_id, job_Position__iexact="Management").exists():
         return
     _commit_notification([{"management_owner_id": peer_id}], kind="chat",
-                         title="New personal chat message",
-                         message=f"From {_person(instance.sender)}",
+                         title=f"Message from {_person(instance.sender)}",
+                         message=(str(getattr(instance, "message", "") or "").strip()[:160] or "Sent you a message"),
                          url=_safe_reverse("admin_chat_room", instance.sender_id),
                          event_key=f"personalchat:{instance.pk}")
 
@@ -239,8 +239,8 @@ def admin_incoming_group_chat(sender, instance, created, **kwargs):
     recipient_ids = GroupMember.objects.filter(group_id=instance.group_id,
                      user__job_Position__iexact="Management").exclude(user_id=instance.sender_id).values_list("user_id", flat=True)
     owners = [{"management_owner_id": pk} for pk in recipient_ids]
-    _commit_notification(owners, kind="chat", title="New group chat message",
-                         message=f"{_person(instance.sender)} · {instance.group.name}",
+    _commit_notification(owners, kind="chat", title=f"New message in {instance.group.name}",
+                         message=f"{_person(instance.sender)}: {(instance.message or '').strip()[:150] or 'Sent a message'}",
                          url=_safe_reverse("admin_group_chat", instance.group_id), event_key=f"groupchat:{instance.pk}")
 
 
@@ -262,3 +262,223 @@ def admin_announcement_was_seen(announcement, viewer):
                          message=f"{_person(viewer)} viewed your announcement: {announcement.title}",
                          url=_safe_reverse("admin_announcements"),
                          event_key=f"announcement:{announcement.pk}:seen:{viewer.pk}")
+
+
+# ==============================================================
+# ADMIN WINDOWS PUSH - SUBMITTED MORNING / EVENING REPORTS ONLY
+# Reuses existing AdminNotification feed records; no duplicate feed.
+# ==============================================================
+@receiver(
+    post_save,
+    sender=AdminNotification,
+    dispatch_uid="cybexel_admin_report_windows_push_v1",
+)
+def admin_report_windows_push_created(sender, instance, created, **kwargs):
+    if not created or instance.kind != "report" or not instance.management_owner_id:
+        return
+
+    # Only newly submitted reports; not routine report edits.
+    event_key = instance.event_key or ""
+    if not (
+        (event_key.startswith("feed:morningreport:") or
+         event_key.startswith("feed:eveningreport:"))
+        and ":created:" in event_key
+    ):
+        return
+
+    notification_id = instance.pk
+
+    def deliver():
+        try:
+            from .components.windows_push.delivery import send_windows_push
+
+            notification = (
+                AdminNotification.objects.select_related("management_owner")
+                .filter(pk=notification_id, kind="report")
+                .first()
+            )
+            if notification is None or notification.management_owner_id is None:
+                return
+
+            recipient = notification.management_owner
+            if str(recipient.job_Position or "").strip().lower().replace(" ", "_") != "management":
+                return
+
+            result = send_windows_push(
+                recipient=recipient,
+                portal="management",
+                title=notification.title,
+                message=notification.message,
+                url=_safe_reverse("admin_reports"),
+                tag=f"admin-report-{notification.pk}",
+            )
+            logger.info("Admin report Windows Push %s: %s", notification.pk, result)
+        except Exception:
+            logger.exception("Admin report Windows Push failed for %s", notification_id)
+
+    transaction.on_commit(deliver)
+
+
+# ==============================================================
+# ADMIN WINDOWS PUSH - INCOMING PERSONAL / GROUP CHAT ONLY
+# Reuses the existing AdminNotification chat feed events.
+# ==============================================================
+@receiver(
+    post_save,
+    sender=AdminNotification,
+    dispatch_uid="cybexel_admin_chat_windows_push_v1",
+)
+def admin_chat_windows_push_created(sender, instance, created, **kwargs):
+    if not created or instance.kind != "chat" or not instance.management_owner_id:
+        return
+
+    # Only incoming personal/group messages, not other chat feed activity.
+    event_key = instance.event_key or ""
+    if not (event_key.startswith("feed:personalchat:") or
+            event_key.startswith("feed:groupchat:")):
+        return
+
+    notification_id = instance.pk
+
+    def deliver():
+        try:
+            from .components.windows_push.delivery import send_windows_push
+
+            notification = (
+                AdminNotification.objects.select_related("management_owner")
+                .filter(pk=notification_id, kind="chat")
+                .first()
+            )
+            if notification is None or not notification.management_owner_id:
+                return
+
+            recipient = notification.management_owner
+            if str(recipient.job_Position or "").strip().lower().replace(" ", "_") != "management":
+                return
+
+            # The in-app chat signal already stores the correct chat-room link.
+            destination = notification.url or _safe_reverse("admin_chat")
+            if not destination.startswith("/") or destination.startswith("//") or "\\" in destination:
+                destination = _safe_reverse("admin_chat")
+            if not destination:
+                logger.warning("No Admin Chat URL for Windows Push %s", notification_id)
+                return
+
+            result = send_windows_push(
+                recipient=recipient,
+                portal="management",
+                title=notification.title,
+                message=notification.message,
+                url=destination,
+                tag=f"admin-chat-{notification.pk}",
+            )
+            logger.info("Admin Chat Windows Push %s: %s", notification.pk, result)
+        except Exception:
+            logger.exception("Admin Chat Windows Push failed for %s", notification_id)
+
+    transaction.on_commit(deliver)
+
+# ==============================================================
+# ADMIN WINDOWS PUSH - NEW GOOGLE MEET SCHEDULED
+# Reuses the existing AdminNotification in-app event.
+# ==============================================================
+@receiver(
+    post_save,
+    sender=AdminNotification,
+    dispatch_uid="cybexel_admin_meeting_windows_push_v1",
+)
+def admin_meeting_windows_push_created(sender, instance, created, **kwargs):
+    if not created or instance.kind != "meeting" or not instance.management_owner_id:
+        return
+
+    # Only new Google Meet schedules. Meeting edits stay in the Admin feed.
+    event_key = instance.event_key or ""
+    if not (event_key.startswith("feed:meeting:") and
+            ":scheduled:management_owner_id:" in event_key):
+        return
+
+    notification_id = instance.pk
+
+    def deliver():
+        try:
+            from .components.windows_push.delivery import send_windows_push
+
+            notification = (
+                AdminNotification.objects.select_related("management_owner")
+                .filter(pk=notification_id, kind="meeting")
+                .first()
+            )
+            if notification is None or not notification.management_owner_id:
+                return
+
+            recipient = notification.management_owner
+            role = str(recipient.job_Position or "").strip().lower().replace(" ", "_")
+            if role != "management":
+                return
+
+            destination = _safe_reverse("admin_google_meet")
+            if not destination:
+                logger.warning("Admin Google Meet push URL unavailable: %s", notification_id)
+                return
+
+            result = send_windows_push(
+                recipient=recipient,
+                portal="management",
+                title=notification.title,
+                message=notification.message,
+                url=destination,
+                tag=f"admin-meeting-{notification.pk}",
+            )
+            logger.info("Admin Google Meet Windows Push %s: %s", notification.pk, result)
+        except Exception:
+            logger.exception("Admin Google Meet Windows Push failed for %s", notification_id)
+
+    transaction.on_commit(deliver)
+
+
+# ==============================================================
+# ADMIN WINDOWS PUSH — DUE REMINDER ONLY
+# Existing AdminReminder worker creates AdminNotification with
+# event_key: admin-reminder:<id>:<schedule_version>.
+# ==============================================================
+@receiver(
+    post_save,
+    sender=AdminNotification,
+    dispatch_uid="cybexel_admin_due_reminder_windows_push_v1",
+)
+def admin_due_reminder_windows_push(sender, instance, created, **kwargs):
+    if (not created or instance.kind != "reminder"
+            or not instance.management_owner_id
+            or not (instance.event_key or "").startswith("admin-reminder:")):
+        return
+
+    notification_id = instance.pk
+
+    def deliver():
+        try:
+            notification = (
+                AdminNotification.objects.select_related("management_owner")
+                .filter(pk=notification_id, kind="reminder").first()
+            )
+            if notification is None or not notification.management_owner_id:
+                return
+            user = notification.management_owner
+            if str(user.job_Position or "").strip().lower().replace(" ", "_") != "management":
+                return
+            destination = _safe_reverse("admin_reminders")
+            if not destination:
+                return
+            from .components.windows_push.delivery import send_windows_push
+            result = send_windows_push(
+                recipient=user,
+                portal="management",
+                title=f"Reminder: {notification.title}",
+                message=notification.message,
+                url=destination,
+                tag=f"admin-due-reminder-{notification.pk}",
+            )
+            logger.info("Admin due reminder Windows Push %s: %s", notification.pk, result)
+        except Exception:
+            logger.exception("Admin due reminder Windows Push failed for %s", notification_id)
+
+    transaction.on_commit(deliver)

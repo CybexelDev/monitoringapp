@@ -666,3 +666,96 @@ def teammember_google_meet_push(
 
 # Admin in-app feed events; does not alter existing Team Lead/Member signals or push.
 from . import admin_notification_events  # noqa: F401
+
+
+@receiver(
+    post_save,
+    sender=Announcement,
+    dispatch_uid="cybexel_management_announcement_windows_push_v1",
+)
+def management_announcement_windows_push(sender, instance, created, **kwargs):
+    # Only newly published announcements; no push on every edit/save.
+    if not created or not getattr(instance, "is_active", True):
+        return
+
+    announcement_id = instance.pk
+
+    def deliver_to_management():
+        try:
+            announcement = Announcement.objects.filter(
+                pk=announcement_id, is_active=True
+            ).first()
+            if announcement is None:
+                return
+
+            destination = reverse("admin_announcements")
+            recipients = User.objects.filter(job_Position__iexact="Management")
+
+            for admin in recipients.iterator():
+                result = send_windows_push(
+                    recipient=admin,
+                    portal="management",
+                    title="New Announcement",
+                    message=str(announcement.title),
+                    url=destination,
+                    tag=f"admin-announcement-{announcement.pk}",
+                )
+                logger.info(
+                    "Admin announcement push: announcement=%s recipient=%s result=%s",
+                    announcement.pk, admin.pk, result,
+                )
+        except Exception:
+            logger.exception(
+                "Admin announcement Windows Push failed: announcement=%s",
+                announcement_id,
+            )
+
+    transaction.on_commit(deliver_to_management)
+
+
+
+def queue_announcement_recipient_notifications(announcement_id):
+    from .models import AnnouncementRecipient
+
+    def deliver():
+        announcement = Announcement.objects.filter(
+            pk=announcement_id,
+            is_active=True,
+        ).first()
+
+        if not announcement or announcement.is_master_admin_announcement:
+            return
+
+        author = (
+            "Admin" if announcement.is_admin_announcement
+            else announcement.created_by.name
+            if announcement.created_by else "Team Lead"
+        )
+
+        recipients = AnnouncementRecipient.objects.filter(
+            announcement_id=announcement_id,
+            recipient__job_Position__in=["Team Lead", "Team Member"],
+        ).select_related("recipient")
+
+        for item in recipients.iterator():
+            role = item.recipient.job_Position.strip().lower()
+
+            if role == "team lead":
+                page = "teamlead_announcements"
+            elif role == "team member":
+                page = "teammember_announcements"
+            else:
+                continue
+
+            TeamLeadNotification.objects.get_or_create(
+                event_key=f"announcement-invite:{announcement.pk}:{item.recipient_id}",
+                defaults={
+                    "recipient": item.recipient,
+                    "kind": "announcement",
+                    "title": "New Announcement",
+                    "message": f"From {author}: {announcement.message[:250]}",
+                    "url": reverse(page),
+                },
+            )
+
+    transaction.on_commit(deliver)
