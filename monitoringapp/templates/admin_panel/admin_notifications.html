@@ -362,6 +362,82 @@ body.admin-notifications-page .notification-category .category-menu {max-width:m
  body.admin-notifications-page .category-menu{left:0;right:auto;width:100%;}
  body.admin-notifications-page .notification-header-actions{gap:8px;}
 }
+
+/* === Admin Notifications / Categories: Team Lead dashboard-style dropdown ===
+   Visual-only CSS: the existing #notificationKind and data-value click handler stay intact. */
+body.admin-notifications-page .notification-category summary {
+    background: #0e0c16;
+    border: 1px solid #393348;
+    border-radius: 12px;
+    color: #f1eafb;
+    font-weight: 550;
+    transition: border-color .18s ease, background .18s ease;
+}
+body.admin-notifications-page .notification-category summary:hover,
+body.admin-notifications-page .notification-category details[open] > summary {
+    background: #171120;
+    border-color: #7e5aa9;
+}
+body.admin-notifications-page .notification-category summary svg {
+    color: #baa3e6;
+}
+body.admin-notifications-page .notification-category .category-menu {
+    box-sizing: border-box;
+    width: max(220px, 100%);
+    padding: 9px;
+    border: 1px solid #3a344a;
+    border-radius: 17px;
+    background: linear-gradient(180deg, #1a142b 0%, #0e0c17 60%, #0b0a14 100%);
+    box-shadow: 0 16px 35px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(190, 170, 245, .045);
+    scrollbar-color: #5b467a transparent;
+}
+body.admin-notifications-page .notification-category .category-menu button {
+    display: flex;
+    width: 100%;
+    min-height: 45px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 11px 15px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: #e6e1ee;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 450;
+    line-height: 1.35;
+    transition: background-color .14s ease, color .14s ease;
+}
+body.admin-notifications-page .notification-category .category-menu button:hover,
+body.admin-notifications-page .notification-category .category-menu button:focus-visible {
+    background: #211930;
+    color: #fff;
+    outline: none;
+}
+body.admin-notifications-page .notification-category .category-menu button.selected,
+body.admin-notifications-page .notification-category .category-menu button.selected:hover,
+body.admin-notifications-page .notification-category .category-menu button.selected:focus-visible {
+    background: #30234f;
+    color: #f9f5ff;
+    font-weight: 650;
+}
+body.admin-notifications-page .notification-category .category-menu button.selected::after {
+    content: "\2713";
+    flex: 0 0 auto;
+    color: #f0eaff;
+    font-size: 17px;
+    font-weight: 650;
+    line-height: 1;
+}
+@media (max-width: 768px) {
+    body.admin-notifications-page .notification-category .category-menu {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+/* === End Category dropdown theme === */
+
 </style>{% endblock %}
 {% block content %}<div class="notification-main">
         <section class="notification-shell" aria-labelledby="notificationHeading">

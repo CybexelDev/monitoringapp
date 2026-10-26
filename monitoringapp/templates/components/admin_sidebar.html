@@ -69,15 +69,50 @@
         </a>
     </nav>
     <div class="sidebar-bottom">
+        <hr class="admin-logout-divider" aria-hidden="true">
         <a href="{% url 'admin_logout' %}" class="sidebar-logout">
             <span class="sidebar-icon"><i data-lucide="log-out" aria-hidden="true"></i></span><span>Logout</span>
         </a>
+        <div class="admin-windows-alerts-bottom">
+            {# Reuse existing browser push UI and Management subscription. #}
+            {% include "components/windows_push.html" with portal="management" %}
+        </div>
     </div>
 </aside>
 {% endwith %}
 
 <style>
 /* Admin Sidebar only: retain the original width, colours and proportions. */
+/* Subtle divider above Logout, matching the sidebar theme. */
+body.admin-workspace #sidebar .admin-logout-divider {
+    display: block;
+    width: calc(100% - 16px);
+    height: 1px;
+    margin: 0 8px 16px;
+    padding: 0;
+    border: 0;
+    background: rgba(255,255,255,.12);
+}
+/* Slightly longer Logout button, with a wider icon. */
+body.admin-workspace #sidebar .sidebar-logout {
+    width: 100%;
+    min-height: 47px;
+}
+body.admin-workspace #sidebar .sidebar-logout .sidebar-icon {
+    width: 24px;
+    min-width: 24px;
+}
+body.admin-workspace #sidebar .sidebar-logout .sidebar-icon svg {
+    width: 23px;
+    height: 19px;
+}
+/* Keep Windows Alerts directly below Logout, like the reference. */
+body.admin-workspace #sidebar .admin-windows-alerts-bottom {
+    margin-top: 16px;
+    width: 100%;
+    min-width: 0;
+}
+
 body.admin-workspace #sidebar {
     min-height: 0;
     display: flex;
