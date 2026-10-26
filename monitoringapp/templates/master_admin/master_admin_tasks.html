@@ -79,6 +79,87 @@ body.master-tasks-page:has(dialog[open]) #masterTaskRoot,body.master-tasks-page:
 .master-tasks-page .mt textarea{resize:vertical;max-width:100%}
 @media(max-width:520px){.master-tasks-page .mt .form-grid{grid-template-columns:1fr}.master-tasks-page .mt dialog{max-height:calc(100dvh - 24px)}.master-tasks-page .mt .task-actions select{font-size:16px}}
 @media(max-width:360px){.master-tasks-page .mt .stats{grid-template-columns:1fr}.master-tasks-page .mt .tabs{gap:3px;padding:4px}}
+body.master-tasks-page .finance-choice{position:relative;min-width:0;width:100%}
+body.master-tasks-page select.finance-native-choice{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;opacity:0;pointer-events:none;top:0;left:0}
+body.master-tasks-page .finance-select-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;box-sizing:border-box;min-height:46px;padding:12px 15px;border-radius:13px;background:#0c0b11;border:1px solid #302a3b;color:#ece8f2;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+body.master-tasks-page .finance-select-toggle span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.master-tasks-page .finance-select-toggle:after{content:'';width:7px;height:7px;border:solid #b9a7d7;border-width:0 2px 2px 0;transform:rotate(45deg);flex-shrink:0;margin:0 3px 4px}
+body.master-tasks-page .finance-select-toggle[aria-expanded=true]:after{transform:rotate(225deg);margin-top:7px}
+body.master-tasks-page .finance-select-toggle:is(:focus-visible,[aria-expanded=true]){outline:2px solid #8050c833;outline-offset:1px;border-color:#70499e}
+body.master-tasks-page .finance-select-toggle:disabled{opacity:.5;cursor:not-allowed}
+body.master-tasks-page .finance-select-menu{position:fixed;box-sizing:border-box;z-index:100010;padding:10px;overflow:auto;overscroll-behavior:contain;border:1px solid #514064;border-radius:17px;background:linear-gradient(125deg,#281b42,#100e19 55%,#171e2e);box-shadow:0 20px 48px #0009;scrollbar-width:thin;scrollbar-color:#725596 #0c0b12}
+body.master-tasks-page .finance-select-menu[hidden]{display:none}
+body.master-tasks-page .finance-select-option{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;box-sizing:border-box;padding:12px 15px;color:#e8e1f4;border-radius:11px;font-size:14px;line-height:1.5;cursor:pointer;overflow-wrap:anywhere}
+body.master-tasks-page .finance-select-option[aria-selected=true]{background:linear-gradient(110deg,#52317e,#37244f);color:#f2e9ff;font-weight:700}
+body.master-tasks-page .finance-select-option[aria-selected=true]:after{content:'✓';font-size:20px;color:#dacef0}
+body.master-tasks-page .finance-select-option.is-active{box-shadow:inset 0 0 0 1px #9970d14d}
+body.master-tasks-page .finance-select-option:hover{background-color:#9760d733}
+body.master-tasks-page .finance-select-option[aria-disabled=true]{opacity:.4;cursor:default}
+body.master-tasks-page .finance-toast-stack{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));width:min(370px,calc(100vw - 36px));z-index:100020;display:grid;gap:10px;pointer-events:none}
+body.master-tasks-page .finance-toast{display:flex;align-items:center;gap:12px;background:#21172f;border:1px solid #7950ae;border-radius:12px;padding:13px 16px;color:#eee5fc;font-size:13px;line-height:1.5;box-shadow:0 12px 35px #0006;pointer-events:auto}
+body.master-tasks-page .finance-toast span{flex:1;min-width:0;overflow-wrap:anywhere}
+body.master-tasks-page .finance-toast button{background:transparent;border:0;color:#d7c4f0;font-size:22px;min-width:30px;min-height:32px;cursor:pointer}
+body.master-tasks-page .finance-select-toggle:after{border-color:#c4a5fa}
+body.master-tasks-page .finance-select-option.is-active{background-color:#9760d726;box-shadow:inset 0 0 0 1px #b18aff66}
+body.master-tasks-page .finance-select-option[aria-disabled=true]{background:transparent;box-shadow:none}
+body.master-tasks-page .finance-select-toggle{min-height:54px;padding:14px 16px;border:1px solid #332b43;border-radius:13px;background:#0b0a10;color:#efedf4;font-size:16px}
+body.master-tasks-page .finance-select-toggle:is(:focus-visible,[aria-expanded=true]){border-color:#62428c;outline:2px solid #8b5cf612;outline-offset:1px}
+body.master-tasks-page .finance-select-toggle:after{width:7px;height:7px;border-color:#b5a3d3}
+body.master-tasks-page .finance-select-menu{padding:10px;border:1px solid #3c324c;border-radius:17px;background:linear-gradient(115deg,#211831 0%,#0d0c14 55%,#111522 100%);box-shadow:0 18px 40px #0007}
+body.master-tasks-page .finance-select-option{min-height:50px;padding:12px 16px;border-radius:11px;color:#eee9f6;font-size:16px;line-height:1.5}
+body.master-tasks-page .finance-select-option[aria-selected=true]{background:linear-gradient(110deg,#362451,#2e284d);color:#e9ddff;font-weight:700}
+body.master-tasks-page .finance-select-option[aria-selected=true]:after{color:#ddd1f4;font-size:22px}
+body.master-tasks-page .finance-select-option.is-active{box-shadow:none;background-color:#8b5cf61a}
+body.master-tasks-page .finance-select-option:hover{background-color:#8b5cf626}
+body.master-tasks-page .finance-select-option[aria-disabled=true]{background:transparent}
+/* Task popup reference: purple header, dark canvas and separate content/footer. */
+body.master-tasks-page .mt :is(#mtEditDialog,#mtViewDialog,#mtDeleteDialog){width:min(740px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);padding:0;overflow:hidden;border:1px solid #393341;border-radius:24px;background:radial-gradient(ellipse at top left,#241936,transparent 55%),#0b0a12;box-shadow:0 30px 95px #0009;color:#f0edf6}
+body.master-tasks-page .mt #mtDeleteDialog{width:min(520px,calc(100vw - 32px))}
+body.master-tasks-page .mt dialog::backdrop{background:#05040999;backdrop-filter:blur(7px)}
+body.master-tasks-page .mt dialog>.dialog-inner{display:flex;flex-direction:column;max-height:calc(100dvh - 34px);min-height:0;padding:0}
+body.master-tasks-page .mt dialog .dialog-head{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:125px;margin:0;padding:26px 28px;background:linear-gradient(110deg,#281b42,#100e19 52%,#171e2e);border-bottom:1px solid #ffffff12}
+.mt .task-popup-title{display:flex;align-items:center;gap:16px;min-width:0}.mt .task-popup-title>div{min-width:0}
+.mt .task-popup-badge{display:grid;place-items:center;width:52px;height:52px;flex:0 0 52px;border-radius:16px;border:1px solid #a78bfa33;background:linear-gradient(135deg,#3d2566,#281d4d);color:#c4b5fd}.mt .task-popup-badge svg{width:24px;height:24px}
+.mt .task-popup-eyebrow{display:block;margin-bottom:8px;color:#b18aff;font-size:10px;font-weight:800;letter-spacing:2px}
+body.master-tasks-page .mt dialog .dialog-head h2{font-size:23px;line-height:1.4;overflow-wrap:anywhere;color:#faf8ff}
+body.master-tasks-page .mt dialog .dialog-head>.icon{width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:#ffffff04;border-color:#ffffff12;color:#95899f}
+body.master-tasks-page .mt :is(#mtEditor,.task-popup-body){min-height:0;overflow:auto;overscroll-behavior:contain;padding:26px 28px;scrollbar-width:thin;scrollbar-color:#725596 transparent}
+body.master-tasks-page .mt #mtEditor{margin:0}
+body.master-tasks-page .mt #mtEditor :is(input:not([type=hidden]),textarea){background:#0b0a11;border:1px solid #302a38;border-radius:12px;color:#e9e2f4;min-height:46px}
+body.master-tasks-page .mt #mtEditor label{font-size:12px;color:#d6d0df;margin-bottom:8px}
+body.master-tasks-page .mt dialog .dialog-footer{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin:22px 0 0;padding:20px 0 0;border-top:1px solid #ffffff12}
+body.master-tasks-page .mt :is(#mtViewDialog,#mtDeleteDialog) .dialog-inner>.dialog-footer{flex:0 0 auto;margin:0;padding:20px 28px 24px}
+body.master-tasks-page .mt dialog .btn{min-height:46px;padding:11px 18px;border-radius:12px;background:#16131d;border:1px solid #2d2835;color:#c1b8ce;font-size:13px}
+body.master-tasks-page .mt :is(#mtSave,#mtConfirmDelete){background:linear-gradient(115deg,#8249d5,#6032a8)!important;border-color:#a78bfa55!important;color:#fff!important}
+.mt #mtErrors:empty,.mt #mtDeleteError:empty{display:none}.mt #mtDeleteText{margin:0;line-height:1.8}
+body.master-tasks-page .mt .task-actions>.finance-choice{grid-column:1/-1;width:100%;min-width:0}
+body.master-tasks-page .mt .task-actions .finance-select-toggle{min-height:38px;padding:8px 10px;font-size:12px;border-radius:10px}
+body.master-tasks-page .mt .filters :is(.search,.finance-choice){min-width:0}
+body.master-tasks-page .mt .filters .finance-select-toggle,body.master-tasks-page .mt .filters input:not([type=hidden]),body.master-tasks-page .mt .filters>.btn{box-sizing:border-box;min-height:46px;height:46px;font-size:13px}
+body.master-tasks-page .mt #mtEditor .finance-select-toggle{min-height:46px;font-size:13px}
+body.master-tasks-page .mt .task-actions .icon{width:38px;height:38px}
+body.master-tasks-page .mt .task-actions{grid-template-columns:repeat(3,38px)}
+@media(max-width:700px){body.master-tasks-page .mt .task-row{grid-template-columns:minmax(0,1fr)}body.master-tasks-page .mt .task-actions{width:100%;display:flex;flex-wrap:wrap;justify-content:flex-start}body.master-tasks-page .mt .task-actions>.finance-choice{flex:1 1 150px;width:auto}body.master-tasks-page .mt .task-actions>.status{flex:1 1 130px}}
+@media(max-width:600px){body.master-tasks-page .mt :is(#mtEditDialog,#mtViewDialog,#mtDeleteDialog){width:calc(100vw - 20px);max-height:calc(100dvh - 20px);border-radius:20px}body.master-tasks-page .mt dialog>.dialog-inner{max-height:calc(100dvh - 22px)}body.master-tasks-page .mt dialog .dialog-head{padding:22px 18px;min-height:110px;gap:12px}.mt .task-popup-title{gap:12px}.mt .task-popup-badge{width:44px;height:44px;flex-basis:44px}body.master-tasks-page .mt dialog .dialog-head h2{font-size:20px}body.master-tasks-page .mt :is(#mtEditor,.task-popup-body){padding:22px 18px}body.master-tasks-page .mt :is(#mtViewDialog,#mtDeleteDialog) .dialog-inner>.dialog-footer{padding:18px}body.master-tasks-page .mt #mtEditor :is(input,textarea,.finance-select-toggle){font-size:16px}body.master-tasks-page .mt .form-grid{grid-template-columns:1fr}.mt dialog .dialog-footer>.btn{flex:1}}
+
+
+/* Team filter removed; rebalance the remaining search controls. */
+body.master-tasks-page .mt .filters{grid-template-columns:minmax(0,2fr) minmax(160px,1fr) auto}
+@media(max-width:850px){body.master-tasks-page .mt .filters{grid-template-columns:minmax(0,1fr) auto}body.master-tasks-page .mt .filters .search{grid-column:1/-1}}
+@media(max-width:520px){body.master-tasks-page .mt .filters{grid-template-columns:minmax(0,1fr)}body.master-tasks-page .mt .filters .search{grid-column:auto}}
+
+
+/* Status menu must remain wide enough for complete option labels. */
+body.master-tasks-page .finance-select-option{display:flex;flex-wrap:nowrap;min-height:44px;padding:10px 14px;font-size:14px;line-height:1.5;white-space:nowrap;overflow-wrap:normal;word-break:normal;gap:14px}
+body.master-tasks-page .finance-select-option[aria-selected=true]:after{flex:0 0 18px;font-size:19px;text-align:center}
+body.master-tasks-page .mt .task-actions{grid-template-columns:repeat(3,42px)}
+body.master-tasks-page .mt .task-actions>.status{white-space:nowrap}
+body.master-tasks-page .mt .task-actions .finance-select-toggle{min-height:40px;padding:9px 11px;font-size:12px}
+body.master-tasks-page .mt .task-filter-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+body.master-tasks-page .mt .task-filter-actions>.btn{min-height:46px;height:46px;white-space:nowrap}
+@media(max-width:850px){body.master-tasks-page .mt .filters{grid-template-columns:minmax(0,1fr) auto}}
+@media(max-width:520px){body.master-tasks-page .mt .filters{grid-template-columns:minmax(0,1fr)}body.master-tasks-page .mt .task-filter-actions>.btn{flex:1}}
+
 </style>
 {% endblock %}
 {% block content %}
@@ -98,22 +179,74 @@ body.master-tasks-page:has(dialog[open]) #masterTaskRoot,body.master-tasks-page:
             </div>
         </section>
 <div class="mt-directory-heading"><div><span>WORKSPACE TASKS</span><h2>Task Management</h2></div><div class="mt-heading-line" aria-hidden="true"></div><button class="btn primary" type="button" id="mtAdd"><i data-lucide="clipboard-plus" aria-hidden="true"></i>Assign Task</button></div>
-<form id="mtFilters" class="filters" method="get"><input type="hidden" name="tab" value="{{ task_tab }}"><div class="search"><i data-lucide="search" aria-hidden="true"></i><input name="q" value="{{ query }}" placeholder="Search tasks or people…" aria-label="Search tasks"></div><select name="team" aria-label="Team"><option value="">All teams</option>{% for team in teams %}<option value="{{ team.pk }}" {% if selected_team == team.pk|stringformat:'s' %}selected{% endif %}>{{ team.name }}</option>{% endfor %}</select><select name="status" aria-label="Task status"><option value="">All statuses</option><option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option><option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>In Progress</option><option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option></select><button class="btn" type="submit">Apply filters</button></form>
+<form id="mtFilters" class="filters" method="get"><input type="hidden" name="tab" value="{{ task_tab }}"><div class="search"><i data-lucide="search" aria-hidden="true"></i><input name="q" value="{{ query }}" placeholder="Search tasks or people…" aria-label="Search tasks"></div><select name="status" aria-label="Task status"><option value="">All statuses</option><option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option><option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>In Progress</option><option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option></select><div class="task-filter-actions"><button class="btn" type="submit">Apply filters</button><button class="btn" type="button" id="mtReset"><i data-lucide="rotate-ccw" aria-hidden="true"></i>Reset</button></div></form>
 <div id="mtResults">
 <div class="stats"><div class="stat"><span>Total tasks</span><strong>{{ total_tasks }}</strong></div><div class="stat"><span>Pending</span><strong>{{ pending_tasks }}</strong></div><div class="stat"><span>In progress</span><strong>{{ in_progress_tasks }}</strong></div><div class="stat"><span>Completed</span><strong>{{ completed_tasks }}</strong></div></div>
 <nav class="tabs" aria-label="Task assignee"><a href="?{{ filter_params }}&amp;tab=all" {% if task_tab == 'all' %}aria-current="page"{% endif %}><i data-lucide="list-checks" aria-hidden="true"></i>All Tasks</a><a href="?{{ filter_params }}&amp;tab=leads" {% if task_tab == 'leads' %}aria-current="page"{% endif %}><i data-lucide="user-round" aria-hidden="true"></i>Team Leads</a><a href="?{{ filter_params }}&amp;tab=members" {% if task_tab == 'members' %}aria-current="page"{% endif %}><i data-lucide="users-round" aria-hidden="true"></i>Team Members</a></nav>
 <div class="list-head"><h2>Task listing</h2><span class="small">{{ page_obj.paginator.count }} tasks · newest first</span></div>
-<div class="task-list" tabindex="0" role="region" aria-label="Task listing">{% for task in page_obj %}<article class="task-row" data-id="{{ task.pk }}" data-update="{% url 'master_admin_task_update' task.pk %}" data-delete="{% url 'master_admin_task_delete' task.pk %}"><div class="task-main"><h3 class="task-title">{{ task.title }}</h3><p class="task-desc">{{ task.description|default:'No description' }}</p><div class="meta"><span>Assigned to: {{ task.assigned_to.name }}</span><span>{{ task.assigned_to.team.name|default:'No team' }}</span><span>By: {{ task.creator_label }}</span><span>{{ task.created_at|date:'d M Y, h:i A' }}</span></div></div><div class="task-actions"><span class="status {{ task.status }}">{{ task.get_status_display }} · {{ task.progress }}%</span><select class="mtStatus" aria-label="Status for {{ task.title }}"><option value="pending" {% if task.status == 'pending' %}selected{% endif %}>Pending</option><option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option><option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option></select><button type="button" class="icon" data-action="view" aria-label="View task"><i data-lucide="eye" aria-hidden="true"></i></button><button type="button" class="icon" data-action="edit" aria-label="Edit task"><i data-lucide="pencil" aria-hidden="true"></i></button><button type="button" class="icon danger" data-action="delete" aria-label="Delete task"><i data-lucide="trash-2" aria-hidden="true"></i></button></div></article>{% empty %}<div class="empty">No tasks match these filters.</div>{% endfor %}</div>
+<div class="task-list" tabindex="0" role="region" aria-label="Task listing">{% for task in page_obj %}<article class="task-row" data-id="{{ task.pk }}" data-update="{% url 'master_admin_task_update' task.pk %}" data-delete="{% url 'master_admin_task_delete' task.pk %}"><div class="task-main"><h3 class="task-title">{{ task.title }}</h3><p class="task-desc">{{ task.description|default:'No description' }}</p><div class="meta"><span>Assigned to: {{ task.assigned_to.name }}</span><span>By: {{ task.creator_label }}</span><span>{{ task.created_at|date:'d M Y, h:i A' }}</span></div></div><div class="task-actions"><span class="status {{ task.status }}">{{ task.get_status_display }} · {{ task.progress }}%</span><select class="mtStatus" aria-label="Status for {{ task.title }}"><option value="pending" {% if task.status == 'pending' %}selected{% endif %}>Pending</option><option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option><option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option></select><button type="button" class="icon" data-action="view" aria-label="View task"><i data-lucide="eye" aria-hidden="true"></i></button><button type="button" class="icon" data-action="edit" aria-label="Edit task"><i data-lucide="pencil" aria-hidden="true"></i></button><button type="button" class="icon danger" data-action="delete" aria-label="Delete task"><i data-lucide="trash-2" aria-hidden="true"></i></button></div></article>{% empty %}<div class="empty">No tasks match these filters.</div>{% endfor %}</div>
 <div class="pagination"><span class="small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_previous %}<a class="btn page-link" href="?{{ filter_params }}&amp;tab={{ task_tab }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}{% if page_obj.has_next %}<a class="btn page-link" href="?{{ filter_params }}&amp;tab={{ task_tab }}&amp;page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></div>
 {{ task_items|json_script:'mtTaskData' }}
 </div>
-<dialog id="mtEditDialog" aria-labelledby="mtEditHeading"><div class="dialog-inner"><div class="dialog-head"><h2 id="mtEditHeading">Assign Task</h2><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><form id="mtEditor" method="post" action="{% url 'master_admin_tasks' %}">{% csrf_token %}<div class="field"><label for="mtTitle">Task title</label><input id="mtTitle" name="title" maxlength="255" required></div><div class="field"><label for="mtDescription">Description</label><textarea id="mtDescription" name="description" rows="4"></textarea></div><div class="field"><label for="mtAssignee">Assign to</label><select id="mtAssignee" name="assigned_to" required><option value="">Choose team lead or member</option>{% for person in people %}<option value="{{ person.pk }}">{{ person.name }} — {{ person.job_Position }} · {{ person.team.name|default:'No team' }}</option>{% endfor %}</select></div><div class="form-grid"><div class="field"><label for="mtState">Status</label><select name="status" id="mtState"><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="completed">Completed</option></select></div><div class="field"><label for="mtProgress">Progress %</label><input id="mtProgress" name="progress" type="number" min="0" max="100" value="0" required></div></div><div id="mtErrors" class="error" role="alert"></div><div class="dialog-footer"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit" id="mtSave">Save task</button></div></form></div></dialog>
-<dialog id="mtViewDialog" aria-labelledby="mtViewHeading"><div class="dialog-inner"><div class="dialog-head"><h2 id="mtViewHeading">Task details</h2><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><div id="mtViewBody" class="view-text"></div></div></dialog>
-<dialog id="mtDeleteDialog" aria-labelledby="mtDeleteHeading"><div class="dialog-inner"><div class="dialog-head"><h2 id="mtDeleteHeading">Delete task?</h2><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><p id="mtDeleteText" class="view-text"></p><p class="small" style="margin-top:10px">This removes the task from the assignee’s task list.</p><div class="error" id="mtDeleteError" role="alert"></div><div class="dialog-footer"><button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn danger" id="mtConfirmDelete">Delete task</button></div></div></dialog>
+<dialog id="mtEditDialog" aria-labelledby="mtEditHeading"><div class="dialog-inner"><div class="dialog-head"><div class="task-popup-title"><span class="task-popup-badge" aria-hidden="true"><i data-lucide="clipboard-plus"></i></span><div><span class="task-popup-eyebrow">TASK MANAGEMENT</span><h2 id="mtEditHeading">Assign Task</h2></div></div><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><form id="mtEditor" method="post" action="{% url 'master_admin_tasks' %}">{% csrf_token %}<div class="field"><label for="mtTitle">Task title</label><input id="mtTitle" name="title" maxlength="255" required></div><div class="field"><label for="mtDescription">Description</label><textarea id="mtDescription" name="description" rows="4"></textarea></div><div class="field"><label for="mtAssignee">Assign to</label><select id="mtAssignee" name="assigned_to" required><option value="">Choose team lead or member</option>{% for person in people %}<option value="{{ person.pk }}">{{ person.name }} — {{ person.job_Position }}</option>{% endfor %}</select></div><div class="form-grid"><div class="field"><label for="mtState">Status</label><select name="status" id="mtState"><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="completed">Completed</option></select></div><div class="field"><label for="mtProgress">Progress %</label><input id="mtProgress" name="progress" type="number" min="0" max="100" value="0" required></div></div><div id="mtErrors" class="error" role="alert"></div><div class="dialog-footer"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit" id="mtSave">Save task</button></div></form></div></dialog>
+<dialog id="mtViewDialog" aria-labelledby="mtViewHeading"><div class="dialog-inner"><div class="dialog-head"><div class="task-popup-title"><span class="task-popup-badge" aria-hidden="true"><i data-lucide="eye"></i></span><div><span class="task-popup-eyebrow">TASK MANAGEMENT</span><h2 id="mtViewHeading">Task details</h2></div></div><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><div class="task-popup-body"><div id="mtViewBody" class="view-text"></div></div><div class="dialog-footer"><button class="btn" type="button" data-close>Close</button></div></div></dialog>
+<dialog id="mtDeleteDialog" aria-labelledby="mtDeleteHeading"><div class="dialog-inner"><div class="dialog-head"><div class="task-popup-title"><span class="task-popup-badge" aria-hidden="true"><i data-lucide="trash-2"></i></span><div><span class="task-popup-eyebrow">TASK MANAGEMENT</span><h2 id="mtDeleteHeading">Delete task?</h2></div></div><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><div class="task-popup-body"><p id="mtDeleteText" class="view-text"></p><p class="small" style="margin-top:10px">This removes the task from the assignee’s task list.</p><div class="error" id="mtDeleteError" role="alert"></div></div><div class="dialog-footer"><button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn danger" id="mtConfirmDelete">Delete task</button></div></div></dialog>
 <div id="mtFeedback" role="status" hidden></div>
 </section>
 {% endblock %}
 {% block extra_js %}
+<script>
+
+/* Purple dropdowns and toast fallback shared by this page only. */
+(() => {
+ 'use strict';
+ if(window.masterTaskEnhancements)return;window.masterTaskEnhancements=true;
+ function localToast(message,type='success'){
+  const host=document.querySelector('dialog[open]')||document.body;
+  let stack=host.querySelector(':scope > .finance-toast-stack');
+  if(!stack){stack=document.createElement('div');stack.className='finance-toast-stack';host.append(stack);}
+  const box=document.createElement('div'),text=document.createElement('span'),dismiss=document.createElement('button');
+  box.className='finance-toast';box.setAttribute('role',type==='error'?'alert':'status');text.textContent=String(message);dismiss.type='button';dismiss.textContent='×';dismiss.setAttribute('aria-label','Dismiss notification');
+  let timer;const remove=()=>{clearTimeout(timer);box.remove();if(!stack.children.length)stack.remove();};const start=()=>{clearTimeout(timer);timer=setTimeout(remove,7000);};dismiss.addEventListener('click',remove);box.addEventListener('mouseenter',()=>clearTimeout(timer));box.addEventListener('mouseleave',start);box.addEventListener('focusin',()=>clearTimeout(timer));box.addEventListener('focusout',start);box.append(text,dismiss);if(stack.children.length>=3)stack.firstChild.remove();stack.append(box);start();
+ }
+ const sharedToast=typeof window.showToast==='function'?window.showToast:null;
+ window.masterFinanceToast=(message,type='success')=>{if(!document.querySelector('dialog[open]')&&sharedToast){try{sharedToast(message,type);return;}catch(_){}}localToast(message,type);};
+ window.showToast=window.masterFinanceToast;
+ let current=null,active=-1,counter=0,typed='',typeTimer;
+ const entries=new Set();
+ function sync(entry){const text=entry.select.selectedOptions[0]?.textContent.trim()||'Select';if(entry.text.textContent!==text)entry.text.textContent=text;if(entry.button.disabled!==entry.select.disabled)entry.button.disabled=entry.select.disabled;entry.button.setAttribute('aria-required',String(entry.select.required));}
+ function close(){if(!current)return;current.menu.hidden=true;current.button.setAttribute('aria-expanded','false');current.button.removeAttribute('aria-activedescendant');current=null;}
+ function highlight(index){if(!current||!current.menu.children.length)return;const rows=[...current.menu.children];active=(index+rows.length)%rows.length;rows.forEach((row,i)=>row.classList.toggle('is-active',i===active));current.button.setAttribute('aria-activedescendant',rows[active].id);const row=rows[active],menu=current.menu;if(row.offsetTop<menu.scrollTop)menu.scrollTop=row.offsetTop;else if(row.offsetTop+row.offsetHeight>menu.scrollTop+menu.clientHeight)menu.scrollTop=row.offsetTop+row.offsetHeight-menu.clientHeight;}
+ function choose(index){if(!current)return;const entry=current,option=entry.select.options[index];if(!option||option.disabled)return;entry.select.selectedIndex=index;sync(entry);close();entry.select.dispatchEvent(new Event('change',{bubbles:true}));entry.button.removeAttribute('aria-invalid');entry.button.focus();}
+ function open(entry){close();sync(entry);if(entry.select.disabled)return;current=entry;const host=entry.select.closest('dialog')||document.body;host.append(entry.menu);entry.menu.replaceChildren();[...entry.select.options].forEach((option,index)=>{const row=document.createElement('div');row.id=entry.menu.id+'-'+index;row.className='finance-select-option';row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.selected));row.setAttribute('aria-disabled',String(option.disabled));row.textContent=option.textContent.trim();row.addEventListener('pointerdown',event=>event.preventDefault());row.addEventListener('click',()=>choose(index));entry.menu.append(row);});
+  const rect=entry.button.getBoundingClientRect(),below=innerHeight-rect.bottom-12,above=rect.top-12;const menuWidth=Math.min(Math.max(rect.width,220),innerWidth-24);entry.menu.style.width=menuWidth+'px';entry.menu.style.left=Math.max(12,Math.min(rect.left,innerWidth-menuWidth-12))+'px';entry.menu.style.maxHeight=Math.min(280,Math.max(above,below))+'px';entry.menu.hidden=false;const height=entry.menu.getBoundingClientRect().height;entry.menu.style.top=(below>=height?rect.bottom+7:Math.max(12,rect.top-height-7))+'px';entry.button.setAttribute('aria-expanded','true');highlight(Math.max(0,entry.select.selectedIndex));
+ }
+ function init(){
+  for(const entry of entries){if(!entry.select.isConnected){if(current===entry)close();entry.observer.disconnect();entry.menu.remove();entries.delete(entry);}else sync(entry);}
+  document.querySelectorAll('.mt select:not([multiple]):not([data-finance-choice])').forEach(select=>{
+   select.dataset.financeChoice='true';const wrap=document.createElement('div');wrap.className='finance-choice';select.before(wrap);wrap.append(select);select.classList.add('finance-native-choice');select.tabIndex=-1;
+   const button=document.createElement('button'),text=document.createElement('span'),menu=document.createElement('div');button.type='button';button.className='finance-select-toggle';button.append(text);button.setAttribute('role','combobox');button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');menu.id='finance-choice-'+counter++;menu.className='finance-select-menu';menu.hidden=true;menu.setAttribute('role','listbox');button.setAttribute('aria-controls',menu.id);
+   const label=select.labels?.[0];if(label){if(!label.id)label.id=menu.id+'-label';button.setAttribute('aria-labelledby',label.id);if(!label.contains(select))label.addEventListener('click',event=>{event.preventDefault();button.focus();});}else button.setAttribute('aria-label',select.name.replaceAll('_',' ')||'Select option');
+   wrap.append(button);(select.closest('dialog')||document.body).append(menu);
+   const entry={select,button,text,menu};entry.observer=new MutationObserver(()=>{sync(entry);if(current===entry)open(entry);});entry.observer.observe(select,{subtree:true,childList:true,attributes:true});entries.add(entry);sync(entry);
+   button.addEventListener('click',()=>current===entry?close():open(entry));select.addEventListener('change',()=>sync(entry));select.addEventListener('focus',()=>button.focus());select.addEventListener('invalid',()=>{button.setAttribute('aria-invalid','true');button.focus();});
+   button.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&current){event.preventDefault();event.stopPropagation();close();return;}if(event.key==='Tab'){close();return;}
+    if(['ArrowDown','ArrowUp','Home','End','Enter',' '].includes(event.key)){event.preventDefault();if(current!==entry){open(entry);return;}if(event.key==='Enter'||event.key===' '){choose(active);return;}const options=[...select.options];let index=event.key==='Home'?0:event.key==='End'?options.length-1:active+(event.key==='ArrowUp'?-1:1);const step=['ArrowUp','End'].includes(event.key)?-1:1;for(let n=0;n<options.length;n++){index=(index+options.length)%options.length;if(!options[index].disabled){highlight(index);break;}index+=step;}}
+    else if(event.key.length===1){typed+=event.key.toLowerCase();clearTimeout(typeTimer);typeTimer=setTimeout(()=>typed='',700);if(current!==entry)open(entry);const index=[...select.options].findIndex(option=>!option.disabled&&option.textContent.trim().toLowerCase().startsWith(typed));if(index>=0)highlight(index);}
+   });
+  });
+  if(current&&(!current.button.isConnected||current.select.closest('dialog')&&!current.select.closest('dialog').open))close();
+ }
+ let queued=false;const queue=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;init();});};
+ new MutationObserver(queue).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open']});
+ document.addEventListener('pointerdown',event=>{if(current&&!current.button.contains(event.target)&&!current.menu.contains(event.target))close();});document.addEventListener('scroll',event=>{if(current&&!current.menu.contains(event.target))close();},true);window.addEventListener('resize',close);document.addEventListener('reset',()=>setTimeout(init,0));
+ document.addEventListener('close',event=>{const dialog=event.target;dialog.querySelectorAll?.(':scope > .finance-toast-stack').forEach(stack=>document.body.append(stack));if(current&&dialog.contains(current.select))close();},true);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+
+
+</script>
 <script>
 (() => {
  const root=document.getElementById('masterTaskRoot'); if(!root)return;
@@ -123,6 +256,7 @@ body.master-tasks-page:has(dialog[open]) #masterTaskRoot,body.master-tasks-page:
  const csrf=editor.querySelector('[name=csrfmiddlewaretoken]').value;
  let current=new URL(location.href), busy=false, polling=false, deleting=null, timer, latest=0;
  let pending=null,pagePaused=false,sessionExpired=false,listSignature='',returnFocus=null;
+ current.searchParams.delete('team');if(new URL(location.href).searchParams.has('team'))history.replaceState({},'',current);
  const items=()=>JSON.parse(document.getElementById('mtTaskData').textContent);
  const icons=()=>{if(window.lucide)window.lucide.createIcons();};
  let toastTimer;
@@ -131,7 +265,7 @@ body.master-tasks-page:has(dialog[open]) #masterTaskRoot,body.master-tasks-page:
   const active=[edit,view,del].find(dialog=>dialog.open);
   // Native dialogs occupy the top layer; put feedback in that layer too.
   if(host){(active||document.body).append(host);}
-  if(typeof window.showToast==='function'){try{window.showToast(message,type);return;}catch(_){}}
+  if(typeof window.showToast==='function'&&(!active||host||window.masterTaskEnhancements)){try{window.showToast(message,type);return;}catch(_){}}
   const el=document.getElementById('mtFeedback');
   (active||document.body).append(el);el.textContent=message;el.hidden=false;
   el.setAttribute('role',type==='error'?'alert':'status');
@@ -142,7 +276,7 @@ body.master-tasks-page:has(dialog[open]) #masterTaskRoot,body.master-tasks-page:
   const host=(document.getElementById('toastContainer')||document.getElementById('toast-container'));if(host&&dialog.contains(host))document.body.append(host);
   const feedback=document.getElementById('mtFeedback');if(dialog.contains(feedback))document.body.append(feedback);
  }));
- const anyOpen=()=>edit.open||view.open||del.open;
+ const anyOpen=()=>edit.open||view.open||del.open||!!document.querySelector('.finance-select-menu:not([hidden])');
  let savedOverflow='';
  function show(dialog){returnFocus=document.activeElement;savedOverflow=document.getElementById('adminMain').style.overflow;document.getElementById('adminMain').style.overflow='hidden';dialog.showModal();}
  [edit,view,del].forEach(d=>{d.addEventListener('close',()=>{document.getElementById('adminMain').style.overflow=savedOverflow;if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});else document.getElementById('mtAdd').focus({preventScroll:true});});d.addEventListener('cancel',e=>{if(busy)e.preventDefault();});});
@@ -150,6 +284,7 @@ body.master-tasks-page:has(dialog[open]) #masterTaskRoot,body.master-tasks-page:
   if(pagePaused||sessionExpired||document.hidden||busy||anyOpen())return false;
   pending?.abort();const controller=new AbortController();pending=controller;
   const version=++latest,target=new URL(url,location.href),timeout=setTimeout(()=>controller.abort(),12000);
+  target.searchParams.delete('team');
   try{
    const response=await fetch(target,{credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},cache:'no-store',signal:controller.signal});
    if(version!==latest||controller.signal.aborted||pagePaused)return false;
@@ -202,15 +337,24 @@ body.master-tasks-page:has(dialog[open]) #masterTaskRoot,body.master-tasks-page:
   const button=e.target.closest('[data-action]');if(!button||busy)return;
   const row=button.closest('[data-id]'), item=items().find(i=>String(i.id)===row.dataset.id);if(!item)return;
   if(button.dataset.action==='edit')setup(item,row);
-  if(button.dataset.action==='view'){document.getElementById('mtViewBody').textContent=item.title+'\n\n'+(item.description||'No description')+'\n\nAssigned to: '+item.assignee+'\nTeam: '+item.team+'\nCreated by: '+item.creator+'\nStatus: '+item.status.replaceAll('_',' ')+' · '+item.progress+'%';show(view);}
+  if(button.dataset.action==='view'){document.getElementById('mtViewBody').textContent=item.title+'\n\n'+(item.description||'No description')+'\n\nAssigned to: '+item.assignee+'\nCreated by: '+item.creator+'\nStatus: '+item.status.replaceAll('_',' ')+' · '+item.progress+'%';show(view);}
   if(button.dataset.action==='delete'){deleting=row.dataset.delete;document.getElementById('mtDeleteText').textContent=item.title;document.getElementById('mtDeleteError').textContent='';show(del);}
  });
- editor.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;++latest;save.disabled=true;errors.textContent='';let result;try{result=await post(editor.getAttribute('action'),new FormData(editor));edit.close();toast(result.message);}catch(err){errors.textContent=err.message;toast(err.message,'error');}finally{busy=false;save.disabled=false;}if(result)try{await refresh();}catch(err){toast('Saved successfully. '+err.message,'warning');}});
- confirm.addEventListener('click',async()=>{if(busy||!deleting)return;busy=true;++latest;confirm.disabled=true;let result;try{result=await post(deleting,new FormData());del.close();toast(result.message);}catch(err){document.getElementById('mtDeleteError').textContent=err.message;toast(err.message,'error');}finally{busy=false;confirm.disabled=false;}if(result)try{await refresh();}catch(err){toast('Deleted successfully. '+err.message,'warning');}});
- results.addEventListener('change',async e=>{if(!e.target.matches('.mtStatus'))return;const select=e.target,row=select.closest('[data-id]');if(busy){select.value=items().find(i=>String(i.id)===row.dataset.id).status;return;}busy=true;++latest;select.disabled=true;const original=items().find(i=>String(i.id)===row.dataset.id).status;let result;try{const data=new FormData();data.set('mode','status');data.set('status',select.value);result=await post(row.dataset.update,data);toast(result.message);}catch(err){select.value=original;toast(err.message,'error');}finally{busy=false;select.disabled=false;}if(result)try{await refresh();}catch(err){toast('Status saved. '+err.message,'warning');}});
+ editor.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;++latest;save.disabled=true;errors.textContent='';let result;try{result=await post(editor.getAttribute('action'),new FormData(editor));edit.close();toast(result.message||'Task updated successfully.');}catch(err){errors.textContent=err.message;toast(err.message,'error');}finally{busy=false;save.disabled=false;}if(result)try{await refresh();}catch(err){toast('Saved successfully. '+err.message,'warning');}});
+ confirm.addEventListener('click',async()=>{if(busy||!deleting)return;busy=true;++latest;confirm.disabled=true;let result;try{result=await post(deleting,new FormData());del.close();toast(result.message||'Task updated successfully.');}catch(err){document.getElementById('mtDeleteError').textContent=err.message;toast(err.message,'error');}finally{busy=false;confirm.disabled=false;}if(result)try{await refresh();}catch(err){toast('Deleted successfully. '+err.message,'warning');}});
+ results.addEventListener('change',async e=>{if(!e.target.matches('.mtStatus'))return;const select=e.target,row=select.closest('[data-id]');if(busy){select.value=items().find(i=>String(i.id)===row.dataset.id).status;return;}busy=true;++latest;select.disabled=true;const original=items().find(i=>String(i.id)===row.dataset.id).status;let result;try{const data=new FormData();data.set('mode','status');data.set('status',select.value);result=await post(row.dataset.update,data);toast(result.message||'Task updated successfully.');}catch(err){select.value=original;toast(err.message,'error');}finally{busy=false;select.disabled=false;}if(result)try{await refresh();}catch(err){toast('Status saved. '+err.message,'warning');}});
  document.getElementById('mtState').addEventListener('change',e=>{document.getElementById('mtProgress').value={pending:0,in_progress:50,completed:100}[e.target.value];});
  filters.addEventListener('submit',async e=>{e.preventDefault();if(busy||anyOpen())return;const url=new URL(root.dataset.listUrl,location.origin);for(const [key,value] of new FormData(filters))if(value)url.searchParams.set(key,value);try{await refresh(url,true);}catch(err){toast(err.message,'error');}});
- window.addEventListener('popstate',async()=>{current=new URL(location.href);for(const key of ['tab','q','team','status'])filters.elements.namedItem(key).value=current.searchParams.get(key)||(key==='tab'?'all':'');try{await refresh();}catch(err){toast(err.message,'error');}});
+
+ document.getElementById('mtReset').addEventListener('click',async()=>{
+  if(busy||anyOpen())return;
+  filters.elements.namedItem('q').value='';
+  const status=filters.elements.namedItem('status');status.value='';status.dispatchEvent(new Event('change',{bubbles:true}));
+  const url=new URL(root.dataset.listUrl,location.origin),tab=filters.elements.namedItem('tab').value;
+  if(tab&&tab!=='all')url.searchParams.set('tab',tab);
+  try{await refresh(url,true);}catch(err){toast(err.message,'error');}
+ });
+ window.addEventListener('popstate',async()=>{current=new URL(location.href);for(const key of ['tab','q','status'])filters.elements.namedItem(key).value=current.searchParams.get(key)||(key==='tab'?'all':'');try{await refresh();}catch(err){toast(err.message,'error');}});
  async function poll(){if(pagePaused||sessionExpired||pending||document.hidden||anyOpen()||busy||polling)return;polling=true;try{await refresh();}catch{}finally{polling=false;}}
  setInterval(poll,20000);window.addEventListener('online',poll);
  document.addEventListener('visibilitychange',()=>{if(document.hidden){++latest;pending?.abort();pending=null;}else poll();});

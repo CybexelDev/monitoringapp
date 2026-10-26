@@ -1942,6 +1942,7 @@ body.admin-workspace :is(dialog,input,textarea,select){max-width:100%;box-sizing
     {% block content %}{% endblock %}
   </main>
   {% include 'components/toast_notification.html' %}
+  <script src="{% static 'js/windows-push.js' %}" defer></script>
   <script>
 /* Shared Admin behaviour. Page-specific controllers belong in separate files. */
 document.addEventListener('DOMContentLoaded', () => {

@@ -2,6 +2,88 @@
 {% block title %}Accounts Management - Master Admin{% endblock %}
 {% block page_heading %}ACCOUNTS MANAGEMENT{% endblock %}
 {% block page_description %}Review the financial ledgers and manage income, expenses and sales.{% endblock %}
+
+{% block extra_css %}{{ block.super }}
+<style>
+/* Scoped ledger polish; page headers retain their existing styles. */
+.master-finance-page .master-finance-shell,.master-finance-page .accounts-panel,.master-finance-page :is(#accountsIncomePage,#accountsExpensePage,#accountsSalePage,#financeOverview){min-width:0;max-width:100%;box-sizing:border-box}
+.master-finance-page :is(.income-summary-grid,.expense-summary-grid,.sale-summary-grid,.finance-overview-stats){display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:16px;margin-bottom:24px}
+.master-finance-page .accounts-stat{min-width:0}
+.master-finance-page .accounts-stat-value{overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.master-finance-page :is(.income-filter-grid,.expense-filter-grid,.sale-filter-grid){display:grid;grid-template-columns:repeat(auto-fit,minmax(min(210px,100%),1fr));gap:16px}
+.master-finance-page :is(.income-field,.expense-field,.sale-field){min-width:0}
+.master-finance-page :is(.income-field,.expense-field,.sale-field)[hidden]{display:none!important}
+.master-finance-page :is(.income-filter-footer,.expense-filter-footer,.sale-filter-footer,.accounts-panel-heading,.income-form-footer,.expense-form-footer,.sale-form-footer){display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.master-finance-page :is(.income-filter-actions,.expense-filter-actions,.sale-filter-actions,.income-heading-actions,.expense-heading-actions,.sale-heading-actions){display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.master-finance-page :is(.income-filter-description,.expense-filter-description,.sale-filter-description){min-width:0;overflow-wrap:anywhere;line-height:1.6}
+.master-finance-page .accounts-table-scroll{width:100%;max-width:100%;max-height:min(560px,65dvh);overflow:auto;border:1px solid #ffffff12;border-radius:14px;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#7a5a9f #111017;scrollbar-gutter:stable}
+.master-finance-page .accounts-table{width:100%;min-width:860px;display:table;border-collapse:separate;border-spacing:0;table-layout:auto}
+.master-finance-page :is(.expense-table,.sale-table){min-width:1180px}
+.master-finance-page .accounts-table thead{display:table-header-group}
+.master-finance-page .accounts-table tbody{display:table-row-group}
+.master-finance-page .accounts-table tr{display:table-row}
+.master-finance-page .accounts-table :is(th,td){display:table-cell;padding:14px 16px;vertical-align:middle;text-align:left;line-height:1.6}
+.master-finance-page .accounts-table th{position:sticky;top:0;z-index:2;background:#21192b;color:#bfb2d3;white-space:nowrap;border-bottom:1px solid #ffffff12}
+.master-finance-page .accounts-table td{border-bottom:1px solid #ffffff0c}
+.master-finance-page .accounts-table .amount{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.master-finance-page .accounts-table .description-cell{min-width:200px;max-width:360px;white-space:normal;overflow-wrap:anywhere}
+.master-finance-page .accounts-table .description-cell p{margin:4px 0 0;line-height:1.6}
+.master-finance-page :is(.income-reference,.expense-reference){overflow-wrap:anywhere;min-width:120px;max-width:220px}
+.master-finance-page :is(.income-row-actions,.expense-row-actions,.sale-row-actions){display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+.master-finance-page :is(.income-icon-button,.expense-icon-button,.sale-icon-button){display:inline-flex;align-items:center;justify-content:center;min-width:38px;min-height:38px;border-radius:10px;flex-shrink:0}
+.master-finance-page :is(.income-icon-button,.expense-icon-button,.sale-icon-button) svg{width:18px;height:18px;flex-shrink:0}
+.master-finance-page :is(.income-icon-delete,.expense-icon-delete,.sale-icon-delete){background:#ff465512;border:1px solid #ff505533;color:#ff8994}
+.master-finance-page :is(.income-icon-delete,.expense-icon-delete,.sale-icon-delete):hover{background:#ff465524}
+.master-finance-page :is(.income-pagination,.expense-pagination,.sale-pagination){display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog){width:min(850px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);box-sizing:border-box;padding:26px 30px;background:#0b0a12;color:#eee8f7;border:1px solid #3b3548;border-radius:24px;box-shadow:0 30px 95px #0009;overflow:auto;color-scheme:dark;scrollbar-width:thin;scrollbar-color:#715098 #0b0a12}
+.master-finance-page :is(.income-dialog-small,.expense-dialog-small,.sale-dialog-small){width:min(520px,calc(100vw - 32px))}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog)::backdrop{background:#050409aa;backdrop-filter:blur(7px)}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog)>:is(header,.accounts-panel-heading){display:flex;justify-content:space-between;align-items:center;gap:20px;padding:26px 30px;margin:-26px -30px 26px;background:linear-gradient(110deg,#251b3d,#12101e 48%,#171c2c);border-bottom:1px solid #ffffff12;min-height:112px}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) h2{font-size:24px;line-height:1.3;letter-spacing:-.4px;color:#faf7ff;margin:6px 0 0}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) .accounts-eyebrow{color:#b893f5}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) :is(label,dt){color:#d4cddd;font-size:12px;font-weight:700}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) :is(input:not([type=hidden]):not([type=checkbox]):not([type=radio]),textarea,select){box-sizing:border-box;max-width:100%;min-width:0;background:#0c0b12;border:1px solid #302a3b;border-radius:13px;color:#eee8f7;font-size:13px;padding:12px 14px}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) :is(input:not([type=hidden]):not([type=checkbox]):not([type=radio]),select){min-height:50px}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) :is(input,textarea):focus{outline:2px solid #9763d44d;outline-offset:1px;border-color:#8256ba}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) ::placeholder{color:#776e84}
+.master-finance-page :is(.income-form-grid,.expense-form-grid,.sale-form-grid){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.master-finance-page :is(.income-field-wide,.expense-field-wide,.sale-field-wide){grid-column:1/-1}
+.master-finance-page :is(.income-dialog-footer,.expense-dialog-footer,.sale-dialog-footer,.income-form-footer,.expense-form-footer,.sale-form-footer){display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:12px;margin-top:26px;padding-top:22px;border-top:1px solid #ffffff12}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) :is(.income-button,.expense-button,.sale-button){min-height:46px;padding:12px 18px;border-radius:12px;background:linear-gradient(115deg,#834ad6,#6032ab);border:1px solid #ad82ef50;color:#fff;font-size:12px;font-weight:700}
+.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) :is(.income-button-secondary,.expense-button-secondary,.sale-button-secondary){background:#17141e;border-color:#302a3b;color:#c4bace}
+.master-finance-page :is(.income-view-details,.expense-view-details,.sale-view-details){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.master-finance-page :is(.income-view-details,.expense-view-details,.sale-view-details) dd{margin:8px 0 0;overflow-wrap:anywhere}
+.master-finance-page :is(.income-view-wide,.expense-view-wide,.sale-view-wide){grid-column:1/-1}
+.master-finance-page :is(.income-view-amount,.expense-view-amount,.sale-view-amount,.sale-payment-summary){background:#a376e612;border:1px solid #a78bfa26;border-radius:14px;padding:20px;margin-bottom:22px;color:#d1b5ff}
+.master-finance-page .finance-overview-filter{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(160px,100%),1fr));align-items:end;gap:16px;margin-bottom:22px}
+.master-finance-page .finance-overview-filter label{display:grid;gap:9px;min-width:0;font-size:12px;color:#c8bbda}
+.master-finance-page .finance-overview-filter .accounts-input{width:100%;box-sizing:border-box;min-height:46px;color-scheme:dark}
+.master-finance-page .finance-choice{position:relative;min-width:0;width:100%}
+.master-finance-page select.finance-native-choice{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;opacity:0;pointer-events:none;top:0;left:0}
+.master-finance-page .finance-select-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;box-sizing:border-box;min-height:46px;padding:12px 15px;border-radius:13px;background:#0c0b11;border:1px solid #302a3b;color:#ece8f2;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+.master-finance-page .finance-select-toggle span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.master-finance-page .finance-select-toggle:after{content:'';width:7px;height:7px;border:solid #b9a7d7;border-width:0 2px 2px 0;transform:rotate(45deg);flex-shrink:0;margin:0 3px 4px}
+.master-finance-page .finance-select-toggle[aria-expanded=true]:after{transform:rotate(225deg);margin-top:7px}
+.master-finance-page .finance-select-toggle:is(:focus-visible,[aria-expanded=true]){outline:2px solid #8050c833;outline-offset:1px;border-color:#70499e}
+.master-finance-page .finance-select-toggle:disabled{opacity:.5;cursor:not-allowed}
+.master-finance-page .finance-select-menu{position:fixed;box-sizing:border-box;z-index:100010;padding:10px;overflow:auto;overscroll-behavior:contain;border:1px solid #34303d;border-radius:17px;background:linear-gradient(135deg,#1d172b,#0c0b12 72%);box-shadow:0 20px 48px #0009;scrollbar-width:thin;scrollbar-color:#725596 #0c0b12}
+.master-finance-page .finance-select-menu[hidden]{display:none}
+.master-finance-page .finance-select-option{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;box-sizing:border-box;padding:12px 15px;color:#e8e1f4;border-radius:11px;font-size:14px;line-height:1.5;cursor:pointer;overflow-wrap:anywhere}
+.master-finance-page .finance-select-option[aria-selected=true]{background:linear-gradient(110deg,#32234f,#292344);color:#e9defb;font-weight:700}
+.master-finance-page .finance-select-option[aria-selected=true]:after{content:'✓';font-size:20px;color:#dacef0}
+.master-finance-page .finance-select-option.is-active{box-shadow:inset 0 0 0 1px #9970d14d}
+.master-finance-page .finance-select-option:hover{background-color:#7952ae26}
+.master-finance-page .finance-select-option[aria-disabled=true]{opacity:.4;cursor:default}
+.master-finance-page .finance-toast-stack{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));width:min(370px,calc(100vw - 36px));z-index:100020;display:grid;gap:10px;pointer-events:none}
+.master-finance-page .finance-toast{display:flex;align-items:center;gap:12px;background:#21172f;border:1px solid #7950ae;border-radius:12px;padding:13px 16px;color:#eee5fc;font-size:13px;line-height:1.5;box-shadow:0 12px 35px #0006;pointer-events:auto}
+.master-finance-page .finance-toast span{flex:1;min-width:0;overflow-wrap:anywhere}
+.master-finance-page .finance-toast button{background:transparent;border:0;color:#d7c4f0;font-size:22px;min-width:30px;min-height:32px;cursor:pointer}
+.master-finance-page :is(button,a,input,textarea):focus-visible{outline:2px solid #b99aee;outline-offset:3px}
+@media(max-width:768px){.master-finance-page .accounts-panel{padding:18px}.master-finance-page :is(.income-filter-actions,.expense-filter-actions,.sale-filter-actions){width:100%}.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog){padding:22px 18px;width:calc(100vw - 24px);max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px)}.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog)>:is(header,.accounts-panel-heading){padding:22px 18px;margin:-22px -18px 22px}.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) h2{font-size:21px}.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) :is(input:not([type=hidden]),textarea){font-size:16px}}
+@media(max-width:560px){.master-finance-page :is(.income-form-grid,.expense-form-grid,.sale-form-grid,.income-view-details,.expense-view-details,.sale-view-details){grid-template-columns:1fr}.master-finance-page :is(.income-filter-actions,.expense-filter-actions,.sale-filter-actions)>*{flex:1 1 120px;text-align:center;justify-content:center}.master-finance-page :is(.income-dialog-footer,.expense-dialog-footer,.sale-dialog-footer)>button{flex:1}.master-finance-page :is(.income-heading-actions,.expense-heading-actions,.sale-heading-actions){width:100%;justify-content:space-between}}
+
+</style>
+{% endblock %}
 {% block finance_content %}
 <div id="financeOverview">
 <form method="get" class="finance-overview-filter"><label>Period<select class="accounts-input" name="period"><option value="monthly" {% if period == 'monthly' %}selected{% endif %}>Monthly</option><option value="weekly" {% if period == 'weekly' %}selected{% endif %}>Weekly</option><option value="custom" {% if period == 'custom' %}selected{% endif %}>Custom</option></select></label><label>Anchor date<input class="accounts-input" type="date" name="date" value="{{ anchor|date:'Y-m-d' }}"></label><label>From<input class="accounts-input" type="date" name="start" value="{{ from_date }}"></label><label>To<input class="accounts-input" type="date" name="end" value="{{ to_date }}"></label><button class="income-button" type="submit">Apply</button></form>
@@ -13,11 +95,62 @@
 {% endblock %}
 {% block extra_js %}{{ block.super }}
 <script>
+/* Purple dropdowns and toast fallback shared by this page only. */
+(() => {
+ 'use strict';
+ if(window.masterFinanceEnhancements)return;window.masterFinanceEnhancements=true;
+ function localToast(message,type='success'){
+  const host=document.querySelector('dialog[open]')||document.body;
+  let stack=host.querySelector(':scope > .finance-toast-stack');
+  if(!stack){stack=document.createElement('div');stack.className='finance-toast-stack';host.append(stack);}
+  const box=document.createElement('div'),text=document.createElement('span'),dismiss=document.createElement('button');
+  box.className='finance-toast';box.setAttribute('role',type==='error'?'alert':'status');text.textContent=String(message);dismiss.type='button';dismiss.textContent='×';dismiss.setAttribute('aria-label','Dismiss notification');
+  let timer;const remove=()=>{clearTimeout(timer);box.remove();if(!stack.children.length)stack.remove();};const start=()=>{clearTimeout(timer);timer=setTimeout(remove,7000);};dismiss.addEventListener('click',remove);box.addEventListener('mouseenter',()=>clearTimeout(timer));box.addEventListener('mouseleave',start);box.addEventListener('focusin',()=>clearTimeout(timer));box.addEventListener('focusout',start);box.append(text,dismiss);if(stack.children.length>=3)stack.firstChild.remove();stack.append(box);start();
+ }
+ const sharedToast=typeof window.showToast==='function'?window.showToast:null;
+ window.masterFinanceToast=(message,type='success')=>{if(!document.querySelector('dialog[open]')&&sharedToast){try{sharedToast(message,type);return;}catch(_){}}localToast(message,type);};
+ window.showToast=window.masterFinanceToast;
+ let current=null,active=-1,counter=0,typed='',typeTimer;
+ const entries=new Set();
+ function sync(entry){const text=entry.select.selectedOptions[0]?.textContent.trim()||'Select';if(entry.text.textContent!==text)entry.text.textContent=text;if(entry.button.disabled!==entry.select.disabled)entry.button.disabled=entry.select.disabled;entry.button.setAttribute('aria-required',String(entry.select.required));}
+ function close(){if(!current)return;current.menu.hidden=true;current.button.setAttribute('aria-expanded','false');current.button.removeAttribute('aria-activedescendant');current=null;}
+ function highlight(index){if(!current||!current.menu.children.length)return;const rows=[...current.menu.children];active=(index+rows.length)%rows.length;rows.forEach((row,i)=>row.classList.toggle('is-active',i===active));current.button.setAttribute('aria-activedescendant',rows[active].id);rows[active].scrollIntoView({block:'nearest'});}
+ function choose(index){if(!current)return;const entry=current,option=entry.select.options[index];if(!option||option.disabled)return;entry.select.selectedIndex=index;sync(entry);close();entry.select.dispatchEvent(new Event('change',{bubbles:true}));entry.button.removeAttribute('aria-invalid');entry.button.focus();}
+ function open(entry){close();sync(entry);if(entry.select.disabled)return;current=entry;const host=entry.select.closest('dialog')||document.body;host.append(entry.menu);entry.menu.replaceChildren();[...entry.select.options].forEach((option,index)=>{const row=document.createElement('div');row.id=entry.menu.id+'-'+index;row.className='finance-select-option';row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.selected));row.setAttribute('aria-disabled',String(option.disabled));row.textContent=option.textContent.trim();row.addEventListener('pointerdown',event=>event.preventDefault());row.addEventListener('click',()=>choose(index));entry.menu.append(row);});
+  const rect=entry.button.getBoundingClientRect(),below=innerHeight-rect.bottom-12,above=rect.top-12;entry.menu.style.width=Math.min(rect.width,innerWidth-24)+'px';entry.menu.style.left=Math.max(12,Math.min(rect.left,innerWidth-rect.width-12))+'px';entry.menu.style.maxHeight=Math.min(280,Math.max(above,below))+'px';entry.menu.hidden=false;const height=entry.menu.getBoundingClientRect().height;entry.menu.style.top=(below>=height?rect.bottom+7:Math.max(12,rect.top-height-7))+'px';entry.button.setAttribute('aria-expanded','true');highlight(Math.max(0,entry.select.selectedIndex));
+ }
+ function init(){
+  for(const entry of entries){if(!entry.select.isConnected){if(current===entry)close();entry.observer.disconnect();entry.menu.remove();entries.delete(entry);}else sync(entry);}
+  document.querySelectorAll('.master-finance-shell select:not([multiple]):not([data-finance-choice]),dialog:is(.income-dialog,.expense-dialog,.sale-dialog) select:not([multiple]):not([data-finance-choice])').forEach(select=>{
+   select.dataset.financeChoice='true';const wrap=document.createElement('div');wrap.className='finance-choice';select.before(wrap);wrap.append(select);select.classList.add('finance-native-choice');select.tabIndex=-1;
+   const button=document.createElement('button'),text=document.createElement('span'),menu=document.createElement('div');button.type='button';button.className='finance-select-toggle';button.append(text);button.setAttribute('role','combobox');button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');menu.id='finance-choice-'+counter++;menu.className='finance-select-menu';menu.hidden=true;menu.setAttribute('role','listbox');button.setAttribute('aria-controls',menu.id);
+   const label=select.labels?.[0];if(label){if(!label.id)label.id=menu.id+'-label';button.setAttribute('aria-labelledby',label.id);if(!label.contains(select))label.addEventListener('click',event=>{event.preventDefault();button.focus();});}else button.setAttribute('aria-label',select.name.replaceAll('_',' ')||'Select option');
+   wrap.append(button);(select.closest('dialog')||document.body).append(menu);
+   const entry={select,button,text,menu};entry.observer=new MutationObserver(()=>{sync(entry);if(current===entry)open(entry);});entry.observer.observe(select,{subtree:true,childList:true,attributes:true});entries.add(entry);sync(entry);
+   button.addEventListener('click',()=>current===entry?close():open(entry));select.addEventListener('change',()=>sync(entry));select.addEventListener('focus',()=>button.focus());select.addEventListener('invalid',()=>{button.setAttribute('aria-invalid','true');button.focus();});
+   button.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&current){event.preventDefault();event.stopPropagation();close();return;}if(event.key==='Tab'){close();return;}
+    if(['ArrowDown','ArrowUp','Home','End','Enter',' '].includes(event.key)){event.preventDefault();if(current!==entry){open(entry);return;}if(event.key==='Enter'||event.key===' '){choose(active);return;}const options=[...select.options];let index=event.key==='Home'?0:event.key==='End'?options.length-1:active+(event.key==='ArrowUp'?-1:1);const step=['ArrowUp','End'].includes(event.key)?-1:1;for(let n=0;n<options.length;n++){index=(index+options.length)%options.length;if(!options[index].disabled){highlight(index);break;}index+=step;}}
+    else if(event.key.length===1){typed+=event.key.toLowerCase();clearTimeout(typeTimer);typeTimer=setTimeout(()=>typed='',700);if(current!==entry)open(entry);const index=[...select.options].findIndex(option=>!option.disabled&&option.textContent.trim().toLowerCase().startsWith(typed));if(index>=0)highlight(index);}
+   });
+  });
+  if(current&&(!current.button.isConnected||current.select.closest('dialog')&&!current.select.closest('dialog').open))close();
+ }
+ let queued=false;const queue=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;init();});};
+ new MutationObserver(queue).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open']});
+ document.addEventListener('pointerdown',event=>{if(current&&!current.button.contains(event.target)&&!current.menu.contains(event.target))close();});document.addEventListener('scroll',event=>{if(current&&!current.menu.contains(event.target))close();},true);window.addEventListener('resize',close);document.addEventListener('reset',()=>setTimeout(init,0));
+ document.addEventListener('close',event=>{const dialog=event.target;dialog.querySelectorAll?.(':scope > .finance-toast-stack').forEach(stack=>document.body.append(stack));if(current&&dialog.contains(current.select))close();},true);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+
+</script>
+<script>
 (() => {
  const root=document.getElementById('financeOverview');if(!root)return;
  const number=new Intl.NumberFormat('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
  let timer=null,controller=null,sequence=0,paused=false,expired=false,auditSignature=null;
  let appliedUrl=new URL(location.href);appliedUrl.searchParams.delete('format');
+ let updateFailed=false;
  const status=message=>{document.getElementById('masterFinanceStatus').textContent=message;};
  const schedule=()=>{clearTimeout(timer);if(!document.hidden&&!paused&&!expired)timer=setTimeout(()=>refresh(),15000);};
  function render(data){
@@ -45,13 +178,13 @@
     const doc=new DOMParser().parseFromString(await response.text(),'text/html'),next=doc.getElementById('financeOverview');
     if(!next)throw Error('Unable to load the filtered overview.');
     if(token!==sequence||current.signal.aborted||paused||document.hidden)return;
-    root.replaceChildren(...Array.from(next.childNodes));appliedUrl=new URL(target);if(updateHistory)history.pushState({},'',appliedUrl);auditSignature=null;
+    root.replaceChildren(...Array.from(next.childNodes));appliedUrl=new URL(target);if(updateHistory)history.pushState({},'',appliedUrl);auditSignature=null;window.masterFinanceToast('Overview filters updated.');
     window.lucide?.createIcons();return;
    }
    const data=await response.json();
    if(token!==sequence||current.signal.aborted||paused||document.hidden)return;
-   if(!data.ok)throw Error(data.message||'Live updates paused.');render(data);status('');
-  }catch(error){if(token===sequence&&!paused&&!document.hidden&&error.name!=='AbortError')status(expired?error.message:error.message+' Retrying automatically.');}
+   if(!data.ok)throw Error(data.message||'Live updates paused.');render(data);status('');if(updateFailed){updateFailed=false;window.masterFinanceToast('Overview live updates restored.');}
+  }catch(error){if(token===sequence&&!paused&&!document.hidden&&error.name!=='AbortError'){status(expired?error.message:error.message+' Retrying automatically.');if(!updateFailed){updateFailed=true;window.masterFinanceToast(error.message,'error');}}}
   finally{clearTimeout(timeout);if(controller===current)controller=null;schedule();}
  }
  root.addEventListener('submit',event=>{

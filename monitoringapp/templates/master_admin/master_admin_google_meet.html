@@ -2926,6 +2926,88 @@ body.master-google-meet-page :is(.meeting-modal-title,.meeting-form-error,.team-
 body.master-google-meet-page #masterMeetingDelete{max-height:calc(100dvh - 28px)}
 @media(max-width:768px){body.master-google-meet-page #adminMain>.dashboard-box{padding:13px!important}body.master-google-meet-page .meeting-modal-box :is(input:not([type=checkbox]):not([type=radio]),textarea,select){font-size:16px}}
 @media(prefers-reduced-motion:reduce){body.master-google-meet-page :is(.meeting-modal-box,.view-meeting-card,button){animation:none;transition:none}}
+body.master-google-meet-page .finance-choice{position:relative;min-width:0;width:100%}
+body.master-google-meet-page select.finance-native-choice{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;opacity:0;pointer-events:none;top:0;left:0}
+body.master-google-meet-page .finance-select-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;box-sizing:border-box;min-height:46px;padding:12px 15px;border-radius:13px;background:#0c0b11;border:1px solid #302a3b;color:#ece8f2;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+body.master-google-meet-page .finance-select-toggle span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.master-google-meet-page .finance-select-toggle:after{content:'';width:7px;height:7px;border:solid #b9a7d7;border-width:0 2px 2px 0;transform:rotate(45deg);flex-shrink:0;margin:0 3px 4px}
+body.master-google-meet-page .finance-select-toggle[aria-expanded=true]:after{transform:rotate(225deg);margin-top:7px}
+body.master-google-meet-page .finance-select-toggle:is(:focus-visible,[aria-expanded=true]){outline:2px solid #8050c833;outline-offset:1px;border-color:#70499e}
+body.master-google-meet-page .finance-select-toggle:disabled{opacity:.5;cursor:not-allowed}
+body.master-google-meet-page .finance-select-menu{position:fixed;box-sizing:border-box;z-index:100010;padding:10px;overflow:auto;overscroll-behavior:contain;border:1px solid #514064;border-radius:17px;background:linear-gradient(125deg,#281b42,#100e19 55%,#171e2e);box-shadow:0 20px 48px #0009;scrollbar-width:thin;scrollbar-color:#725596 #0c0b12}
+body.master-google-meet-page .finance-select-menu[hidden]{display:none}
+body.master-google-meet-page .finance-select-option{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;box-sizing:border-box;padding:12px 15px;color:#e8e1f4;border-radius:11px;font-size:14px;line-height:1.5;cursor:pointer;overflow-wrap:anywhere}
+body.master-google-meet-page .finance-select-option[aria-selected=true]{background:linear-gradient(110deg,#52317e,#37244f);color:#f2e9ff;font-weight:700}
+body.master-google-meet-page .finance-select-option[aria-selected=true]:after{content:'✓';font-size:20px;color:#dacef0}
+body.master-google-meet-page .finance-select-option.is-active{box-shadow:inset 0 0 0 1px #9970d14d}
+body.master-google-meet-page .finance-select-option:hover{background-color:#9760d733}
+body.master-google-meet-page .finance-select-option[aria-disabled=true]{opacity:.4;cursor:default}
+body.master-google-meet-page .finance-toast-stack{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));width:min(370px,calc(100vw - 36px));z-index:100020;display:grid;gap:10px;pointer-events:none}
+body.master-google-meet-page .finance-toast{display:flex;align-items:center;gap:12px;background:#21172f;border:1px solid #7950ae;border-radius:12px;padding:13px 16px;color:#eee5fc;font-size:13px;line-height:1.5;box-shadow:0 12px 35px #0006;pointer-events:auto}
+body.master-google-meet-page .finance-toast span{flex:1;min-width:0;overflow-wrap:anywhere}
+body.master-google-meet-page .finance-toast button{background:transparent;border:0;color:#d7c4f0;font-size:22px;min-width:30px;min-height:32px;cursor:pointer}
+body.master-google-meet-page .finance-select-toggle:after{border-color:#c4a5fa}
+body.master-google-meet-page .finance-select-option.is-active{background-color:#9760d726;box-shadow:inset 0 0 0 1px #b18aff66}
+body.master-google-meet-page .finance-select-option[aria-disabled=true]{background:transparent;box-shadow:none}
+body.master-google-meet-page .finance-select-toggle{min-height:54px;padding:14px 16px;border:1px solid #332b43;border-radius:13px;background:#0b0a10;color:#efedf4;font-size:16px}
+body.master-google-meet-page .finance-select-toggle:is(:focus-visible,[aria-expanded=true]){border-color:#62428c;outline:2px solid #8b5cf612;outline-offset:1px}
+body.master-google-meet-page .finance-select-toggle:after{width:7px;height:7px;border-color:#b5a3d3}
+body.master-google-meet-page .finance-select-menu{padding:10px;border:1px solid #3c324c;border-radius:17px;background:linear-gradient(115deg,#211831 0%,#0d0c14 55%,#111522 100%);box-shadow:0 18px 40px #0007}
+body.master-google-meet-page .finance-select-option{min-height:50px;padding:12px 16px;border-radius:11px;color:#eee9f6;font-size:16px;line-height:1.5}
+body.master-google-meet-page .finance-select-option[aria-selected=true]{background:linear-gradient(110deg,#362451,#2e284d);color:#e9ddff;font-weight:700}
+body.master-google-meet-page .finance-select-option[aria-selected=true]:after{color:#ddd1f4;font-size:22px}
+body.master-google-meet-page .finance-select-option.is-active{box-shadow:none;background-color:#8b5cf61a}
+body.master-google-meet-page .finance-select-option:hover{background-color:#8b5cf626}
+body.master-google-meet-page .finance-select-option[aria-disabled=true]{background:transparent}
+body.master-google-meet-page .finance-select-option{display:flex;flex-wrap:nowrap;min-height:44px;padding:10px 14px;font-size:14px;line-height:1.5;white-space:nowrap;overflow-wrap:normal;word-break:normal;gap:14px}
+body.master-google-meet-page .finance-select-option[aria-selected=true]:after{flex:0 0 18px;font-size:19px;text-align:center}
+/* Shared reference canvas for Create/Edit, View and Remove Meeting. */
+body.master-google-meet-page :is(.meeting-modal-box,.view-meeting-card,#masterMeetingDelete){box-sizing:border-box;width:min(850px,100%);max-width:850px;max-height:calc(100dvh - 32px);border:1px solid #393341;border-radius:24px;background:radial-gradient(ellipse at top left,#241936,transparent 55%),#0b0a12;color:#f0edf6;box-shadow:0 30px 95px #0009;overflow:auto;scrollbar-width:thin;scrollbar-color:#725596 transparent}
+body.master-google-meet-page :is(.meeting-modal,.view-meeting-modal){padding:16px}
+body.master-google-meet-page :is(.meeting-modal-overlay,.view-meeting-overlay){background:#05040999;backdrop-filter:blur(7px)}
+body.master-google-meet-page :is(.meeting-modal-header,.view-meeting-header,.meet-delete-head){display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0;padding:28px 30px;min-height:130px;background:linear-gradient(110deg,#281b42,#100e19 52%,#171e2e);border-bottom:1px solid #ffffff12}
+body.master-google-meet-page :is(.meeting-modal-icon,.view-meeting-icon,.meet-delete-icon){display:grid;place-items:center;width:56px;height:56px;flex:0 0 56px;border-radius:17px;border:1px solid #a78bfa33;background:linear-gradient(135deg,#3d2566,#281d4d);color:#c4b5fd;box-shadow:none}
+body.master-google-meet-page :is(.meeting-modal-header h2,.view-meeting-header h3,#masterMeetingDelete h2){margin:0;color:#faf8ff;font-size:24px;line-height:1.4;font-weight:800;overflow-wrap:anywhere}
+body.master-google-meet-page .meeting-modal-eyebrow{color:#b18aff;font-size:10px;letter-spacing:2px}
+body.master-google-meet-page :is(.meeting-modal-close,.view-meeting-close,.meet-delete-close){display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border:1px solid #ffffff12;border-radius:12px;background:#ffffff04;color:#95899f;font-size:25px;cursor:pointer}
+body.master-google-meet-page :is(#createMeetingForm,.view-meeting-body){padding:26px 30px}
+body.master-google-meet-page .meeting-form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+body.master-google-meet-page :is(.meeting-input-wrap input,.view-field input,.view-field textarea,#meetingDepartment){box-sizing:border-box;max-width:100%;min-width:0;min-height:48px;border:1px solid #302a38;border-radius:13px;background:#0b0a11;color:#e9e2f4}
+body.master-google-meet-page :is(.meeting-modal-footer,.view-meeting-footer,.master-meeting-delete-actions){display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin-top:24px;padding-top:22px;border-top:1px solid #ffffff12}
+body.master-google-meet-page .view-meeting-footer{margin:0;padding:22px 30px 28px}
+body.master-google-meet-page :is(.meeting-cancel-btn,.view-meeting-close-btn,#masterMeetingDeleteCancel){min-height:46px;padding:11px 20px;border:1px solid #2d2835;border-radius:12px;background:#16131d;color:#c1b8ce;font:inherit;font-size:13px;cursor:pointer}
+body.master-google-meet-page :is(.meeting-submit-btn,#masterMeetingDeleteConfirm){min-height:46px;padding:11px 20px;border:1px solid #a78bfa55;border-radius:12px;background:linear-gradient(115deg,#8249d5,#6032a8);color:#fff;font:inherit;font-size:13px;font-weight:700;box-shadow:none}
+body.master-google-meet-page :is(.participant-option,.team-member-selection){border-color:#a78bfa33;background:#7c3aed08;box-shadow:none}
+body.master-google-meet-page .participant-option:has(input:checked){border-color:#a78bfa66;background:#7c3aed16}
+body.master-google-meet-page input:is([type=checkbox],[type=radio]){accent-color:#8b5cf6}
+body.master-google-meet-page .team-member-item input:checked+.member-check{background:#7c3aed;border-color:#a78bfa}
+body.master-google-meet-page #masterMeetingDelete{width:min(540px,calc(100vw - 32px));padding:0}
+body.master-google-meet-page #masterMeetingDelete::backdrop{background:#05040999;backdrop-filter:blur(7px)}
+body.master-google-meet-page .meet-delete-title{display:flex;align-items:center;gap:16px;min-width:0}
+body.master-google-meet-page .meet-delete-body{padding:26px 28px}
+body.master-google-meet-page #masterMeetingDeleteForm{margin:0}
+body.master-google-meet-page .meeting-table-wrap{max-width:100%;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#725596 transparent}
+body.master-google-meet-page .meeting-table-wrap :is(th,td){vertical-align:middle;line-height:1.6}
+body.master-google-meet-page :is(.meeting-modal-title>div,.view-meeting-title-wrap>div,.meeting-form-group,.member-info){min-width:0}
+body.master-google-meet-page .finance-select-toggle{min-height:48px;font-size:13px}
+@media(max-width:650px){body.master-google-meet-page :is(.meeting-modal-box,.view-meeting-card,#masterMeetingDelete){border-radius:20px}body.master-google-meet-page :is(.meeting-modal-header,.view-meeting-header,.meet-delete-head){padding:22px 18px;min-height:110px;gap:12px}body.master-google-meet-page :is(.meeting-modal-icon,.view-meeting-icon,.meet-delete-icon){width:44px;height:44px;flex-basis:44px;border-radius:13px}body.master-google-meet-page :is(.meeting-modal-header h2,.view-meeting-header h3,#masterMeetingDelete h2){font-size:20px}body.master-google-meet-page :is(#createMeetingForm,.view-meeting-body,.meet-delete-body){padding:22px 18px}body.master-google-meet-page :is(.meeting-form-grid,.view-field-row,.participant-selection){grid-template-columns:minmax(0,1fr)}body.master-google-meet-page .view-meeting-footer{padding:18px}body.master-google-meet-page :is(.meeting-modal-footer,.view-meeting-footer,.master-meeting-delete-actions)>button{flex:1}body.master-google-meet-page .finance-select-toggle{font-size:16px}}
+
+
+/* Mount overlays above the entire portal, including the sidebar. */
+body.master-google-meet-page :is(#meetingModal,#viewMeetingModal){position:fixed;inset:0;width:100%;height:100%;margin:0;z-index:100000;padding:20px;isolation:isolate;align-items:center;justify-content:center}
+body.master-google-meet-page :is(.meeting-modal-overlay,.view-meeting-overlay){position:absolute;inset:0;background:#050409b3;backdrop-filter:blur(7px)}
+body.master-google-meet-page :is(.meeting-modal-box,.view-meeting-card){display:flex;flex-direction:column;width:min(850px,100%);max-height:calc(100dvh - 40px);min-height:0;overflow:hidden}
+body.master-google-meet-page :is(.meeting-modal-header,.view-meeting-header){flex:0 0 auto;min-height:114px;padding:24px 28px}
+body.master-google-meet-page #createMeetingForm{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;margin:0;padding:0;overflow:hidden}
+body.master-google-meet-page #createMeetingForm>.meeting-form-grid{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:24px 28px;gap:18px;scrollbar-width:thin;scrollbar-color:#725596 transparent;scrollbar-gutter:stable}
+body.master-google-meet-page #createMeetingForm>.meeting-modal-footer{flex:0 0 auto;margin:0;padding:20px 28px 24px;background:#0b0a12;border-top:1px solid #ffffff12}
+body.master-google-meet-page #createMeetingForm>p:not([hidden]){flex:0 0 auto;margin:0;padding:12px 28px}
+body.master-google-meet-page .view-meeting-body{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain;padding:24px 28px;scrollbar-width:thin;scrollbar-color:#725596 transparent;scrollbar-gutter:stable}
+body.master-google-meet-page .view-meeting-footer{flex:0 0 auto;padding:20px 28px 24px;background:#0b0a12}
+body.master-google-meet-page :is(.meeting-modal-title,.view-meeting-title-wrap){gap:16px;min-width:0}
+body.master-google-meet-page #meetingTimePopover{z-index:100030}
+@media(max-width:650px){body.master-google-meet-page :is(#meetingModal,#viewMeetingModal){padding:10px}body.master-google-meet-page :is(.meeting-modal-box,.view-meeting-card){max-height:calc(100dvh - 20px)}body.master-google-meet-page :is(.meeting-modal-header,.view-meeting-header){padding:20px 18px;min-height:100px}body.master-google-meet-page #createMeetingForm>.meeting-form-grid,body.master-google-meet-page .view-meeting-body{padding:20px 18px;scrollbar-gutter:auto}body.master-google-meet-page #createMeetingForm>.meeting-modal-footer,body.master-google-meet-page .view-meeting-footer{padding:16px 18px}body.master-google-meet-page :is(.meeting-modal-title,.view-meeting-title-wrap){gap:12px}}
+
 </style>{% endblock %}
 {% block content %}
 {% for message in messages %}<span hidden data-meeting-operation-message data-level="{{ message.level }}">{{ message }}</span>{% endfor %}<div class="dashboard-box">
@@ -2989,7 +3071,7 @@ body.master-google-meet-page #masterMeetingDelete{max-height:calc(100dvh - 28px)
                         </span>
 
                         <h2>
-                            Team Meetings
+                            Meetings
                         </h2>
 
                     </div>
@@ -3023,7 +3105,7 @@ body.master-google-meet-page #masterMeetingDelete{max-height:calc(100dvh - 28px)
                                 </h3>
 
                                 <p>
-                                    Create and manage meetings for your team members.
+                                    Create and manage meetings for your participants.
                                     Meetings will appear here after they are scheduled.
                                 </p>
 
@@ -3282,7 +3364,7 @@ body.master-google-meet-page #masterMeetingDelete{max-height:calc(100dvh - 28px)
                             <p>
                                 No Google Meet sessions have been created yet.
                                 Click <strong>Create Meeting</strong> to schedule
-                                your first team meeting.
+                                your first meeting.
                             </p>
 
                         </div>
@@ -3321,7 +3403,7 @@ body.master-google-meet-page #masterMeetingDelete{max-height:calc(100dvh - 28px)
 
                 <div>
                     <span class="meeting-modal-eyebrow">
-                        TEAM MEETING
+                        GOOGLE MEET
                     </span>
 
                     <h2 id="meetingModalTitle">
@@ -3329,7 +3411,7 @@ body.master-google-meet-page #masterMeetingDelete{max-height:calc(100dvh - 28px)
 </h2>
 
 <p id="meetingModalDescription">
-    Schedule a Google Meet session for your team.
+    Schedule a Google Meet session for your participants.
 </p>
                 </div>
 
@@ -3708,7 +3790,7 @@ body.master-google-meet-page #masterMeetingDelete{max-height:calc(100dvh - 28px)
                             {% empty %}
 
                                 <div class="no-team-members">
-                                    No team members available.
+                                    No participants available.
                                 </div>
 
                             {% endfor %}
@@ -3771,14 +3853,14 @@ body.master-google-meet-page #masterMeetingDelete{max-height:calc(100dvh - 28px)
 
 
     
-<dialog id="masterMeetingDelete" aria-labelledby="masterMeetingDeleteHeading"><h2 id="masterMeetingDeleteHeading">Remove meeting?</h2><p id="masterMeetingDeletePurpose"></p><p>This removes the meeting from the portal. It does not end an ongoing Google Meet session.</p><form id="masterMeetingDeleteForm" method="post">{% csrf_token %}<p id="masterMeetingDeleteError" role="alert" style="color:#efa2ae"></p><div class="master-meeting-delete-actions"><button type="button" id="masterMeetingDeleteCancel">Cancel</button><button type="submit" id="masterMeetingDeleteConfirm">Remove meeting</button></div></form></dialog>
+<dialog id="masterMeetingDelete" aria-labelledby="masterMeetingDeleteHeading"><div class="meet-delete-head"><div class="meet-delete-title"><span class="meet-delete-icon" aria-hidden="true"><i data-lucide="trash-2"></i></span><h2 id="masterMeetingDeleteHeading">Remove meeting?</h2></div><button type="button" class="meet-delete-close" id="meetDeleteClose" aria-label="Close">×</button></div><div class="meet-delete-body"><p id="masterMeetingDeletePurpose"></p><p>This removes the meeting from the portal. It does not end an ongoing Google Meet session.</p><form id="masterMeetingDeleteForm" method="post">{% csrf_token %}<p id="masterMeetingDeleteError" role="alert" style="color:#efa2ae"></p><div class="master-meeting-delete-actions"><button type="button" id="masterMeetingDeleteCancel">Cancel</button><button type="submit" id="masterMeetingDeleteConfirm">Remove meeting</button></div></form></div></dialog>
 
 <script>
 window.masterMeetingMutation=false;
 window.masterMeetingNotify=function(message,type='success'){
  const active=document.querySelector('#masterMeetingDelete[open]'),host=document.getElementById('toastContainer')||document.getElementById('toast-container');
  if(host)(active||document.body).appendChild(host);
- if(typeof window.showToast==='function'){try{window.showToast(message,type);return;}catch(_){}}
+ if(typeof window.showToast==='function'&&(!active||host||window.masterMeetEnhancements)){try{window.showToast(message,type);return;}catch(_){}}
  const node=document.createElement('div');node.className='meeting-toast-fallback';node.textContent=message;node.setAttribute('role',type==='error'?'alert':'status');node.style.cssText='position:fixed;bottom:20px;right:16px;z-index:100001;max-width:calc(100vw - 32px);padding:14px 18px;border:1px solid #8161a5;border-radius:12px;background:#241b30;color:#fff;font:13px/1.6 system-ui';(active||document.body).appendChild(node);setTimeout(()=>node.remove(),6000);
 };
 // Prevent a second operation while a meeting request is pending.
@@ -3991,7 +4073,7 @@ if (createMeetingBtn && meetingModal) {
                 "Create Meeting";
 
             meetingModalDescription.textContent =
-                "Schedule a Google Meet session for your team.";
+                "Schedule a Google Meet session for your participants.";
 
             meetingSubmitText.textContent =
                 "Create Meeting";
@@ -5405,7 +5487,7 @@ document.addEventListener('DOMContentLoaded', () => {
  const dialog=document.getElementById('masterMeetingDelete'),form=document.getElementById('masterMeetingDeleteForm'),confirm=document.getElementById('masterMeetingDeleteConfirm'),error=document.getElementById('masterMeetingDeleteError');let busy=false,scrollOwners=[],trigger=null;
  document.addEventListener('click',event=>{const button=event.target.closest('.master-meeting-delete');if(!button||busy||window.masterMeetingMutation)return;trigger=button;form.setAttribute('action',button.dataset.deleteUrl);document.getElementById('masterMeetingDeletePurpose').textContent=button.dataset.purpose;error.textContent='';scrollOwners=Array.from(document.querySelectorAll('#adminMain,#adminMain>.dashboard-box')).map(el=>({el,value:el.style.getPropertyValue('overflow'),priority:el.style.getPropertyPriority('overflow')}));scrollOwners.forEach(({el})=>el.style.setProperty('overflow','hidden','important'));dialog.showModal();});
  dialog.addEventListener('close',()=>{const host=document.getElementById('toastContainer')||document.getElementById('toast-container');if(host&&dialog.contains(host))document.body.appendChild(host);dialog.querySelectorAll('.meeting-toast-fallback').forEach(node=>document.body.appendChild(node));if(trigger?.isConnected)trigger.focus({preventScroll:true});scrollOwners.forEach(({el,value,priority})=>{if(value)el.style.setProperty('overflow',value,priority);else el.style.removeProperty('overflow');});scrollOwners=[];});
- dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});document.getElementById('masterMeetingDeleteCancel').addEventListener('click',()=>{if(!busy)dialog.close();});
+ dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});document.getElementById('meetDeleteClose').addEventListener('click',()=>{if(!busy)dialog.close();});document.getElementById('masterMeetingDeleteCancel').addEventListener('click',()=>{if(!busy)dialog.close();});
  form.addEventListener('submit',async event=>{event.preventDefault();if(busy||window.masterMeetingMutation)return;busy=true;window.masterMeetingMutation=true;confirm.disabled=true;error.textContent='';let result;try{const response=await fetch(form.getAttribute('action'),{method:'POST',body:new FormData(form),headers:{'X-Requested-With':'XMLHttpRequest'},credentials:'same-origin',signal:AbortSignal.timeout(15000)});if(!(response.headers.get('content-type')||'').includes('application/json'))throw Error('Unable to confirm removal. Check your login and try again.');result=await response.json();if(!response.ok||!result.ok)throw Error(result.message||'Unable to remove meeting.');dialog.close();window.masterMeetingNotify(result.message||'Meeting removed.','success');}catch(err){result=null;error.textContent=err.message;window.masterMeetingNotify(err.message,'error');}finally{busy=false;window.masterMeetingMutation=false;confirm.disabled=false;}if(result)await window.refreshMasterMeetings?.(true);});
 })();
 </script>
@@ -5413,7 +5495,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
  const modals=[document.getElementById('meetingModal'),document.getElementById('viewMeetingModal')].filter(Boolean);let active=null,trigger=null,owners=[];
- modals.forEach(modal=>{modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');});
+ modals.forEach(modal=>{if(modal.parentElement!==document.body)document.body.appendChild(modal);modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');});
  function sync(){const next=modals.find(modal=>modal.classList.contains('show'))||null;if(next===active)return;
   if(active){owners.forEach(({el,value,priority})=>{if(value)el.style.setProperty('overflow',value,priority);else el.style.removeProperty('overflow');});owners=[];if(trigger?.isConnected)trigger.focus({preventScroll:true});}
   active=next;if(!active)return;trigger=document.activeElement;owners=Array.from(document.querySelectorAll('#adminMain,#adminMain>.dashboard-box')).map(el=>({el,value:el.style.getPropertyValue('overflow'),priority:el.style.getPropertyPriority('overflow')}));owners.forEach(({el})=>el.style.setProperty('overflow','hidden','important'));
@@ -5422,5 +5504,59 @@ document.addEventListener('DOMContentLoaded',()=>{
  const observer=new MutationObserver(sync);modals.forEach(modal=>observer.observe(modal,{attributes:true,attributeFilter:['class']}));
  document.addEventListener('keydown',event=>{if(event.key!=='Tab'||!active)return;const time=document.getElementById('meetingTimePopover');if(time&&!time.hidden)return;const controls=Array.from(active.querySelectorAll('button:not([disabled]),input:not([disabled]):not([type=hidden]),textarea:not([disabled]),select:not([disabled]),a[href]')).filter(el=>el.getClientRects().length);const first=controls[0],last=controls[controls.length-1];if(!first)return;if(event.shiftKey&&(document.activeElement===first||!active.contains(document.activeElement))){event.preventDefault();last.focus();}else if(!event.shiftKey&&(document.activeElement===last||!active.contains(document.activeElement))){event.preventDefault();first.focus();}});
 });
+</script>
+<script>
+
+
+/* Purple dropdowns and toast fallback shared by this page only. */
+(() => {
+ 'use strict';
+ if(window.masterMeetEnhancements)return;window.masterMeetEnhancements=true;
+ function localToast(message,type='success'){
+  const host=document.querySelector('dialog[open]')||document.body;
+  let stack=host.querySelector(':scope > .finance-toast-stack');
+  if(!stack){stack=document.createElement('div');stack.className='finance-toast-stack';host.append(stack);}
+  const box=document.createElement('div'),text=document.createElement('span'),dismiss=document.createElement('button');
+  box.className='finance-toast';box.setAttribute('role',type==='error'?'alert':'status');text.textContent=String(message);dismiss.type='button';dismiss.textContent='×';dismiss.setAttribute('aria-label','Dismiss notification');
+  let timer;const remove=()=>{clearTimeout(timer);box.remove();if(!stack.children.length)stack.remove();};const start=()=>{clearTimeout(timer);timer=setTimeout(remove,7000);};dismiss.addEventListener('click',remove);box.addEventListener('mouseenter',()=>clearTimeout(timer));box.addEventListener('mouseleave',start);box.addEventListener('focusin',()=>clearTimeout(timer));box.addEventListener('focusout',start);box.append(text,dismiss);if(stack.children.length>=3)stack.firstChild.remove();stack.append(box);start();
+ }
+ const sharedToast=typeof window.showToast==='function'?window.showToast:null;
+ window.masterFinanceToast=(message,type='success')=>{if(!document.querySelector('dialog[open]')&&sharedToast){try{sharedToast(message,type);return;}catch(_){}}localToast(message,type);};
+ window.showToast=window.masterFinanceToast;
+ let current=null,active=-1,counter=0,typed='',typeTimer;
+ const entries=new Set();
+ function sync(entry){const text=entry.select.selectedOptions[0]?.textContent.trim()||'Select';if(entry.text.textContent!==text)entry.text.textContent=text;if(entry.button.disabled!==entry.select.disabled)entry.button.disabled=entry.select.disabled;entry.button.setAttribute('aria-required',String(entry.select.required));}
+ function close(){if(!current)return;current.menu.hidden=true;current.button.setAttribute('aria-expanded','false');current.button.removeAttribute('aria-activedescendant');current=null;}
+ function highlight(index){if(!current||!current.menu.children.length)return;const rows=[...current.menu.children];active=(index+rows.length)%rows.length;rows.forEach((row,i)=>row.classList.toggle('is-active',i===active));current.button.setAttribute('aria-activedescendant',rows[active].id);const row=rows[active],menu=current.menu;if(row.offsetTop<menu.scrollTop)menu.scrollTop=row.offsetTop;else if(row.offsetTop+row.offsetHeight>menu.scrollTop+menu.clientHeight)menu.scrollTop=row.offsetTop+row.offsetHeight-menu.clientHeight;}
+ function choose(index){if(!current)return;const entry=current,option=entry.select.options[index];if(!option||option.disabled)return;entry.select.selectedIndex=index;sync(entry);close();entry.select.dispatchEvent(new Event('change',{bubbles:true}));entry.button.removeAttribute('aria-invalid');entry.button.focus();}
+ function open(entry){close();sync(entry);if(entry.select.disabled)return;current=entry;const host=entry.select.closest('dialog')||document.body;host.append(entry.menu);entry.menu.replaceChildren();[...entry.select.options].forEach((option,index)=>{const row=document.createElement('div');row.id=entry.menu.id+'-'+index;row.className='finance-select-option';row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.selected));row.setAttribute('aria-disabled',String(option.disabled));row.textContent=option.textContent.trim();row.addEventListener('pointerdown',event=>event.preventDefault());row.addEventListener('click',()=>choose(index));entry.menu.append(row);});
+  const rect=entry.button.getBoundingClientRect(),below=innerHeight-rect.bottom-12,above=rect.top-12;const menuWidth=Math.min(Math.max(rect.width,220),innerWidth-24);entry.menu.style.width=menuWidth+'px';entry.menu.style.left=Math.max(12,Math.min(rect.left,innerWidth-menuWidth-12))+'px';entry.menu.style.maxHeight=Math.min(280,Math.max(above,below))+'px';entry.menu.hidden=false;const height=entry.menu.getBoundingClientRect().height;entry.menu.style.top=(below>=height?rect.bottom+7:Math.max(12,rect.top-height-7))+'px';entry.button.setAttribute('aria-expanded','true');highlight(Math.max(0,entry.select.selectedIndex));
+ }
+ function init(){
+  for(const entry of entries){if(!entry.select.isConnected){if(current===entry)close();entry.observer.disconnect();entry.menu.remove();entries.delete(entry);}else sync(entry);}
+  document.querySelectorAll('body.master-google-meet-page select:not([multiple]):not([data-finance-choice])').forEach(select=>{
+   select.dataset.financeChoice='true';const wrap=document.createElement('div');wrap.className='finance-choice';select.before(wrap);wrap.append(select);select.classList.add('finance-native-choice');select.tabIndex=-1;
+   const button=document.createElement('button'),text=document.createElement('span'),menu=document.createElement('div');button.type='button';button.className='finance-select-toggle';button.append(text);button.setAttribute('role','combobox');button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');menu.id='finance-choice-'+counter++;menu.className='finance-select-menu';menu.hidden=true;menu.setAttribute('role','listbox');button.setAttribute('aria-controls',menu.id);
+   const label=select.labels?.[0];if(label){if(!label.id)label.id=menu.id+'-label';button.setAttribute('aria-labelledby',label.id);if(!label.contains(select))label.addEventListener('click',event=>{event.preventDefault();button.focus();});}else button.setAttribute('aria-label',select.name.replaceAll('_',' ')||'Select option');
+   wrap.append(button);(select.closest('dialog')||document.body).append(menu);
+   const entry={select,button,text,menu};entry.observer=new MutationObserver(()=>{sync(entry);if(current===entry)open(entry);});entry.observer.observe(select,{subtree:true,childList:true,attributes:true});entries.add(entry);sync(entry);
+   button.addEventListener('click',()=>current===entry?close():open(entry));select.addEventListener('change',()=>sync(entry));select.addEventListener('focus',()=>button.focus());select.addEventListener('invalid',()=>{button.setAttribute('aria-invalid','true');button.focus();});
+   button.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&current){event.preventDefault();event.stopPropagation();close();return;}if(event.key==='Tab'){close();return;}
+    if(['ArrowDown','ArrowUp','Home','End','Enter',' '].includes(event.key)){event.preventDefault();if(current!==entry){open(entry);return;}if(event.key==='Enter'||event.key===' '){choose(active);return;}const options=[...select.options];let index=event.key==='Home'?0:event.key==='End'?options.length-1:active+(event.key==='ArrowUp'?-1:1);const step=['ArrowUp','End'].includes(event.key)?-1:1;for(let n=0;n<options.length;n++){index=(index+options.length)%options.length;if(!options[index].disabled){highlight(index);break;}index+=step;}}
+    else if(event.key.length===1){typed+=event.key.toLowerCase();clearTimeout(typeTimer);typeTimer=setTimeout(()=>typed='',700);if(current!==entry)open(entry);const index=[...select.options].findIndex(option=>!option.disabled&&option.textContent.trim().toLowerCase().startsWith(typed));if(index>=0)highlight(index);}
+   });
+  });
+  if(current&&(!current.button.isConnected||current.select.closest('dialog')&&!current.select.closest('dialog').open))close();
+ }
+ let queued=false;const queue=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;init();});};
+ new MutationObserver(queue).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open']});
+ document.addEventListener('pointerdown',event=>{if(current&&!current.button.contains(event.target)&&!current.menu.contains(event.target))close();});document.addEventListener('scroll',event=>{if(current&&!current.menu.contains(event.target))close();},true);window.addEventListener('resize',close);document.addEventListener('reset',()=>setTimeout(init,0));
+ document.addEventListener('close',event=>{const dialog=event.target;dialog.querySelectorAll?.(':scope > .finance-toast-stack').forEach(stack=>document.body.append(stack));if(current&&dialog.contains(current.select))close();},true);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+
+
+
 </script>
 {% endblock %}

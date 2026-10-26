@@ -180,6 +180,40 @@ body.admin-chat-page .chat-composer textarea, body.admin-chat-page .chat-compose
  body.admin-chat-page #adminMain { padding:54px 8px 8px !important; }
 }
 </style>
+<style>
+
+/* Responsive chat: one message scroller, a fixed composer and contained contacts. */
+body.admin-chat-page #adminMain{box-sizing:border-box;height:var(--master-chat-height,100dvh)!important;min-height:0;max-width:100%;overflow:hidden}
+body.admin-chat-page #memberChatPage :is(.chat-shell,.chat-conversation,.chat-list-panel,.chat-list-scroll,.chat-messages){min-width:0;min-height:0}
+body.admin-chat-page #memberChatPage .chat-shell{width:100%;max-width:100%;grid-template-columns:minmax(240px,300px) minmax(0,1fr)}
+body.admin-chat-page #memberChatPage .chat-list-scroll{overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#725596 transparent}
+body.admin-chat-page #memberChatPage .chat-messages{overflow:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-color:#725596 transparent;scrollbar-gutter:stable;overflow-anchor:none}
+body.admin-chat-page #memberChatPage .chat-conversation-header{flex:0 0 auto;gap:10px;padding-bottom:22px}
+body.admin-chat-page #memberChatPage .conversation-user{min-width:0;gap:10px}
+body.admin-chat-page #memberChatPage .conversation-user>div{min-width:0}
+body.admin-chat-page #memberChatPage .conversation-user :is(h2,h3,strong){overflow-wrap:anywhere;line-height:1.4}
+body.admin-chat-page #memberChatPage .message-row{display:flex;align-items:flex-end;gap:8px;min-width:0;max-width:100%;flex-shrink:0}
+body.admin-chat-page #memberChatPage .message-row.sent{justify-content:flex-end}
+body.admin-chat-page #memberChatPage .message-row.received{justify-content:flex-start}
+body.admin-chat-page #memberChatPage .message-avatar{width:30px;height:30px;flex:0 0 30px;border-radius:50%;object-fit:cover}
+body.admin-chat-page #memberChatPage .message-bubble{box-sizing:border-box;min-width:0;width:fit-content;max-width:min(76%,640px);height:auto;overflow-wrap:anywhere;word-break:normal}
+body.admin-chat-page #memberChatPage .message-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65}
+body.admin-chat-page #memberChatPage .message-time{white-space:nowrap;font-size:10px;line-height:1.4;margin-top:6px}
+body.admin-chat-page #memberChatPage :is(.chat-composer,#chat-form){display:flex;align-items:flex-end;min-width:0;gap:10px;flex:0 0 auto;flex-wrap:nowrap}
+body.admin-chat-page #memberChatPage .chat-composer{padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+body.admin-chat-page #memberChatPage .chat-composer #chat-form{width:100%}
+body.admin-chat-page #memberChatPage .chat-composer :is(input,textarea){box-sizing:border-box;flex:1 1 auto;width:0;min-width:0;min-height:44px;max-height:140px;margin:0;line-height:1.5}
+body.admin-chat-page #memberChatPage :is(#sendBtn,#chat-form button[type=submit]){display:inline-flex;align-items:center;justify-content:center;min-height:44px;flex:0 0 auto;gap:8px;white-space:nowrap}
+body.admin-chat-page #memberChatPage .member-message-tools{min-width:0;flex-wrap:nowrap}
+body.admin-chat-page #memberChatPage .member-unread-badge{flex-shrink:0}
+body.admin-chat-page #groupModal .chat-modal-card{box-sizing:border-box;width:min(540px,calc(100vw - 24px));max-width:100%;max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#725596 transparent}
+body.admin-chat-page #groupModal :is(input,textarea,select){box-sizing:border-box;max-width:100%;min-width:0}
+body.admin-chat-page .member-action-dialog{max-height:calc(100dvh - 24px);overscroll-behavior:contain}
+body.admin-chat-page .member-action-dialog footer{flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:700px){body.admin-chat-page #memberChatPage .chat-shell{grid-template-columns:minmax(0,1fr)}body.admin-chat-page #memberChatPage .message-bubble{max-width:82%}body.admin-chat-page #memberChatPage .chat-composer{padding:10px;padding-bottom:max(10px,env(safe-area-inset-bottom))}body.admin-chat-page #memberChatPage .chat-composer :is(input,textarea),body.admin-chat-page #groupModal :is(input,textarea,select),body.admin-chat-page .member-action-dialog textarea{font-size:16px}body.admin-chat-page #memberChatPage :is(#sendBtn,#chat-form button[type=submit]){width:44px;min-width:44px;padding:0}body.admin-chat-page #memberChatPage :is(#sendBtn,#chat-form button[type=submit]) span{display:none}body.admin-chat-page #memberChatPage .chat-messages{scrollbar-gutter:auto;padding:12px}}
+@container member-chat (max-width:660px){body.admin-chat-page #memberChatPage .chat-shell{grid-template-columns:minmax(0,1fr)}body.admin-chat-page #memberChatPage .message-bubble{max-width:82%}}
+
+</style>
 {% endblock %}
 {% block content %}
 
@@ -904,7 +938,16 @@ body.admin-chat-page .chat-composer textarea, body.admin-chat-page .chat-compose
  const modal = document.getElementById('groupModal');
  const feedback = document.getElementById('memberChatFeedback');
  let busy = false, lastFocus = null, socket = null, closed = false, retry = 0, reconnectTimer, pending = null, historyBusy = false, historyFingerprint='';
- const toast = (message,type='info') => {if(window.showToast) window.showToast(message,type); else {feedback.textContent = message;feedback.hidden = false;}};
+ const toast = (message,type='info') => {
+  if(message===undefined||message===null||!String(message).trim())return;
+  const dialog=document.querySelector('dialog[open]'),host=document.getElementById('toastContainer')||document.getElementById('toast-container');
+  if(host)(dialog||document.body).appendChild(host);
+  if(typeof window.showToast==='function')return window.showToast(message,type);
+  feedback.textContent=message;feedback.hidden=false;feedback.setAttribute('role',type==='error'?'alert':'status');
+ };
+ document.addEventListener('close',event=>{const host=document.getElementById('toastContainer')||document.getElementById('toast-container');if(host&&event.target.contains?.(host))document.body.appendChild(host);},true);
+ let hasConnected=false,connectionOutage=false;
+
  const input = document.getElementById(mode === 'group' ? 'message-input' : 'chat-input');
  const messages = document.getElementById(mode === 'group' ? 'chat-area' : 'chat-messages');
  const send = mode === 'group' ? document.querySelector('#chat-form [type=submit]') : document.getElementById('sendBtn');
@@ -1137,9 +1180,9 @@ body.admin-chat-page .chat-composer textarea, body.admin-chat-page .chat-compose
  function connect(){
   if(closed||!root.dataset.socketPath||socket?.readyState===WebSocket.OPEN||socket?.readyState===WebSocket.CONNECTING)return;clearTimeout(reconnectTimer);
   status('Connecting…',false);const scheme=location.protocol==='https:'?'wss':'ws';socket=new WebSocket(`${scheme}://${location.host}${root.dataset.socketPath}`);
-  socket.onopen=()=>{retry=0;status('Connected',true);syncHistory();};
+  socket.onopen=()=>{hasConnected=true;if(connectionOutage){toast('Chat connection restored.','success');connectionOutage=false;}retry=0;status('Connected',true);syncHistory();};
   socket.onmessage=event=>{let data;try{data=JSON.parse(event.data);}catch{return;}if(data.action==='sync_messages'){historyEpoch++;memberEpoch++;syncHistory();syncMembers();return;}if(data.error){restorePending();toast(data.error,'error');return;}historyEpoch++;renderMessage(data,true);if(pending&&data.client_id===pending.id&&Number(data.sender_id)===currentId){clearTimeout(pending.timer);pending=null;if(input)input.disabled=false;if(send)send.disabled=false;input?.focus();}};
-  socket.onclose=event=>{status(event.code===4403?'Access denied':'Reconnecting…',false);restorePending();if(!closed&&event.code!==4403)reconnectTimer=setTimeout(connect,Math.min(1000*2**retry++,15000));};
+  socket.onclose=event=>{const denied=event.code===4401||event.code===4403;status(denied?'Access denied':'Reconnecting…',false);const hadPending=!!pending;restorePending();if(!closed&&denied){toast('Chat access changed. Sign in again to continue.','error');closed=true;}else if(!closed&&hasConnected&&!connectionOutage){connectionOutage=true;if(!hadPending)toast('Chat connection interrupted. Reconnecting…','warning');}if(!closed&&!denied)reconnectTimer=setTimeout(connect,Math.min(1000*2**retry++,15000));};
   socket.onerror=()=>status('Connection unavailable',false);
  }
  function sendMessage(event){event?.preventDefault();if(!input)return;const text=input.value.trim();if(!text)return;if(text.length>10000){toast('Use 10,000 characters or fewer.','warning');return;}if(!socket||socket.readyState!==WebSocket.OPEN){toast('Chat is reconnecting. Your message is kept; try again when connected.','warning');return;}if(pending){toast('Waiting for the previous message to be confirmed.','info');return;}
@@ -1332,5 +1375,21 @@ body.admin-chat-page .chat-composer textarea, body.admin-chat-page .chat-compose
  window.addEventListener('pageshow',()=>{stopped=false;syncContacts();});
 })();
 
+</script>
+
+<script>
+(() => {
+ const main=document.getElementById('adminMain');if(!main)return;
+ let frame=0;
+ function resize(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{
+  const view=window.visualViewport,bottom=view?view.offsetTop+view.height:window.innerHeight;
+  const height=Math.max(0,Math.floor(bottom-main.getBoundingClientRect().top));
+  main.style.setProperty('--master-chat-height',height+'px');
+ });}
+ window.addEventListener('resize',resize,{passive:true});window.addEventListener('pageshow',resize);
+ window.visualViewport?.addEventListener('resize',resize,{passive:true});
+ window.visualViewport?.addEventListener('scroll',resize,{passive:true});
+ resize();
+})();
 </script>
 {% endblock %}

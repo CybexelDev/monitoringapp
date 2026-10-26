@@ -1258,6 +1258,85 @@ body.master-repository-page #masterRepositoryEditor{max-height:calc(100dvh - 28p
 body.master-repository-page :is(.repository-delete-buttons,.master-resource-edit-footer){flex-wrap:wrap}
 body.master-repository-page .repository-modal-description p{white-space:pre-wrap}
 @media(max-width:600px){body.master-repository-page #adminMain>.dashboard-box{padding:13px!important}body.master-repository-page :is(.repository-input,.repository-textarea,#masterRepositoryEditor input:not([type=checkbox]),#masterRepositoryEditor textarea){font-size:16px}body.master-repository-page #masterRepositoryEditor{padding:18px}body.master-repository-page .resource-tab{flex-wrap:wrap;overflow-wrap:anywhere}}
+
+/* Reference purple popups, contained scrolling and native checkbox styling. */
+body.master-repository-page :is(.repository-modal,.repository-delete-overlay){padding:16px;background:#05040999!important;backdrop-filter:blur(7px)!important}
+body.master-repository-page :is(.repository-modal-card,.repository-delete-box,#masterRepositoryEditor){box-sizing:border-box;padding:0!important;border:1px solid #393341!important;border-radius:24px;background:radial-gradient(ellipse at top left,#241936,transparent 55%),#0b0a12!important;color:#f0edf6;box-shadow:0 30px 95px #0009;max-height:calc(100dvh - 32px);overflow:auto;scrollbar-width:thin;scrollbar-color:#725596 transparent}
+body.master-repository-page .repository-modal-card{width:min(850px,100%)}
+body.master-repository-page .repository-delete-box{width:min(540px,100%)}
+body.master-repository-page #masterRepositoryEditor{width:min(850px,calc(100vw - 32px));max-width:calc(100vw - 32px);overflow:hidden}
+body.master-repository-page #masterRepositoryEditor[open]{display:flex;flex-direction:column}
+body.master-repository-page #masterRepositoryEditor::backdrop{background:#05040999;backdrop-filter:blur(7px)}
+body.master-repository-page :is(.repository-modal-header,.master-resource-edit-head,.repository-delete-heading){box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:18px;margin:0;padding:30px 32px;min-height:140px;flex:0 0 auto;background:linear-gradient(110deg,#281b42,#100e19 52%,#171e2e);border-bottom:1px solid #ffffff12}
+body.master-repository-page :is(.repository-modal-icon,.repo-popup-icon){display:grid;place-items:center;width:60px;height:60px;flex:0 0 60px;border-radius:18px;background:linear-gradient(135deg,#3d2566,#281d4d);border:1px solid #a78bfa33;color:#c4b5fd;box-shadow:none}
+body.master-repository-page .repo-popup-icon svg{width:25px;height:25px}
+body.master-repository-page .repo-popup-title{display:flex;align-items:center;gap:18px;min-width:0}
+body.master-repository-page :is(.repository-modal-card h2,#masterResourceHeading,#repositoryDeleteTitle){margin:0;color:#faf8ff;font-size:24px;font-weight:800;line-height:1.4;overflow-wrap:anywhere}
+body.master-repository-page .repo-popup-eyebrow{display:block;color:#b18aff;font-size:10px;font-weight:800;letter-spacing:2px;margin-bottom:8px}
+body.master-repository-page :is(.repository-modal-subtitle,.repo-popup-subtitle){margin:8px 0 0;color:#8c8299;font-size:12px;letter-spacing:0;line-height:1.6}
+body.master-repository-page :is(.repository-modal-x,#masterResourceClose,.repository-delete-close){display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:1px solid #ffffff12!important;border-radius:12px;background:#ffffff04!important;color:#95899f!important;font-size:25px;cursor:pointer}
+body.master-repository-page .repository-preview-body,body.master-repository-page #masterResourceForm{padding:30px 32px;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#725596 transparent}
+body.master-repository-page .repository-modal-description{margin:0 0 22px;padding:18px;border:1px solid #302a38;border-radius:14px;background:#0b0a11;box-shadow:none}
+body.master-repository-page .repository-modal-description p{overflow-wrap:anywhere;line-height:1.8}
+body.master-repository-page .repository-modal-action{border:1px solid #a78bfa33;background:#7c3aed12;color:#ded1ee;border-radius:12px}
+body.master-repository-page .repository-modal-action-icon{background:#7c3aed22;border-color:#a78bfa33;color:#c4b5fd}
+body.master-repository-page .repository-modal-meta{border-top:1px solid #ffffff12;margin-top:24px;padding-top:20px}
+body.master-repository-page #masterResourceForm :is(input:not([type=hidden]):not([type=checkbox]),textarea){box-sizing:border-box;max-width:100%;min-width:0;min-height:50px;padding:13px 15px;border:1px solid #302a38;border-radius:14px;background:#0b0a11;color:#e9e2f4}
+body.master-repository-page #masterResourceForm textarea{resize:vertical;line-height:1.7}
+body.master-repository-page input[type=checkbox]{accent-color:#8b5cf6;width:18px;height:18px;min-height:18px;flex:0 0 18px;margin:0;cursor:pointer;color-scheme:dark}
+body.master-repository-page .repository-remove-file{display:flex;align-items:center;gap:10px;line-height:1.5;cursor:pointer;padding:14px;border:1px solid #a78bfa33;border-radius:12px;background:#7c3aed10}
+body.master-repository-page input[type=checkbox]:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
+body.master-repository-page :is(.master-resource-edit-footer,.repository-delete-buttons){display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:12px;margin:24px 0 0;padding:22px 0 0;border-top:1px solid #ffffff12}
+body.master-repository-page :is(.master-resource-edit-footer button,.repository-delete-buttons button){min-height:49px;padding:12px 20px;border:1px solid #2d2835;border-radius:13px;background:#16131d;color:#c1b8ce;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+body.master-repository-page :is(#masterResourceSave,.repository-delete-buttons .repository-delete-confirm){background:linear-gradient(115deg,#8249d5,#6032a8)!important;border-color:#a78bfa55!important;color:#fff!important}
+body.master-repository-page .repository-delete-box>p{margin:0;padding:26px 28px;color:#b7a9c5;line-height:1.8}
+body.master-repository-page .repository-delete-buttons{margin:0;padding:22px 28px 26px}
+body.master-repository-page :is(.repository-field,.repository-card-content,.repository-modal-title-wrap,.repo-popup-title>div){min-width:0}
+body.master-repository-page .repository-field :is(input,textarea){box-sizing:border-box;max-width:100%}
+@media(max-width:950px){body.master-repository-page .repository-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){body.master-repository-page .repository-grid{grid-template-columns:minmax(0,1fr)}body.master-repository-page :is(.repository-modal-card,.repository-delete-box,#masterRepositoryEditor){border-radius:20px}body.master-repository-page :is(.repository-modal-header,.master-resource-edit-head,.repository-delete-heading){padding:22px 18px;min-height:110px;gap:12px}body.master-repository-page :is(.repository-modal-icon,.repo-popup-icon){width:44px;height:44px;flex-basis:44px;border-radius:13px}body.master-repository-page :is(.repository-modal-card h2,#masterResourceHeading,#repositoryDeleteTitle){font-size:20px}body.master-repository-page :is(.repository-preview-body,#masterResourceForm){padding:22px 18px}body.master-repository-page .repository-delete-box>p{padding:22px 18px}body.master-repository-page .repository-delete-buttons{padding:18px}body.master-repository-page :is(.repository-modal-actions){grid-template-columns:1fr}body.master-repository-page .repo-popup-title{gap:12px}body.master-repository-page #masterResourceForm :is(input:not([type=checkbox]),textarea){font-size:16px}body.master-repository-page :is(.master-resource-edit-footer,.repository-delete-buttons)>button{flex:1}}
+
+body.master-repository-page .repository-close{min-height:49px;border-radius:13px;background:#16131d;border:1px solid #2d2835;color:#c1b8ce;box-shadow:none}
+
+/* Add Resource form matches the supplied Team Lead reference. */
+body.master-repository-page .repository-form-card{display:flex;flex-direction:column;align-items:stretch;gap:0;padding:34px;border-radius:26px;border:1px solid #ffffff12;background:radial-gradient(ellipse at top right,#32244944,transparent 65%),linear-gradient(130deg,#1c1628,#101019 65%,#0d0e16);box-shadow:inset 0 1px 0 #ffffff05;margin-bottom:28px}
+body.master-repository-page .repository-form-card .repository-form-header{display:flex;align-items:center;gap:18px;margin:0 0 30px;padding:6px 0 26px;border-bottom:1px solid #ffffff12}
+body.master-repository-page .repository-form-card .repository-form-header h2{margin:0;font-size:25px;line-height:1.4;font-weight:800;letter-spacing:-.3px}
+body.master-repository-page .repository-form-card .repository-form-header p{margin:8px 0 0;font-size:14px;line-height:1.6;max-width:100%;color:#918999}
+body.master-repository-page .repository-form-card .repository-form-icon{width:56px;height:56px;flex:0 0 56px;border-radius:18px;border:1px solid #a78bfa38;background:linear-gradient(135deg,#39265c,#271e44);color:#d4c4fa;box-shadow:none}
+body.master-repository-page .repository-form-card .repository-form-icon svg{width:25px;height:25px}
+body.master-repository-page .repository-form-card>.repository-field{width:100%;margin:0 0 20px}
+body.master-repository-page .repository-form-card .repository-field label{display:block;margin:0 0 10px;color:#b18aff;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase}
+body.master-repository-page .repository-form-card :is(.repository-input,.repository-textarea,.repository-file){box-sizing:border-box;display:block;width:100%;min-width:0;max-width:100%;border:1px solid #ffffff12;border-radius:16px;background:#0a0911;color:#e8e0f2;font:inherit;font-size:14px;box-shadow:none}
+body.master-repository-page .repository-form-card .repository-input{height:55px;min-height:55px;padding:0 16px}
+body.master-repository-page .repository-form-card .repository-textarea{min-height:125px;padding:16px;line-height:1.7;resize:vertical}
+body.master-repository-page .repository-form-card .repository-file{min-height:57px;padding:6px}
+body.master-repository-page .repository-form-card .repository-file::file-selector-button{min-height:42px;margin-right:15px;padding:9px 18px;border:1px solid #a78bfa40;border-radius:11px;background:#241a3b;color:#e5d9fa;font:inherit;font-weight:600}
+body.master-repository-page .repository-form-card :is(.repository-input,.repository-textarea)::placeholder{color:#716a7a}
+body.master-repository-page .repository-form-card :is(.repository-input,.repository-textarea,.repository-file):focus-visible{outline:2px solid #a78bfa44;outline-offset:2px;border-color:#9267c9}
+body.master-repository-page .repository-form-card>.repository-submit{align-self:flex-start;min-height:52px;gap:12px;padding:12px 24px;border:1px solid #a78bfa55;border-radius:15px;background:linear-gradient(115deg,#8249d5,#6032a8);color:#fff;font-size:13px;font-weight:800;box-shadow:0 10px 28px #6d35d922}
+body.master-repository-page .repository-form-card>.repository-submit svg{width:24px;height:24px}
+@media(max-width:600px){body.master-repository-page .repository-form-card{padding:20px 18px;border-radius:20px}body.master-repository-page .repository-form-card .repository-form-header{gap:12px;margin-bottom:24px;padding-bottom:22px;align-items:flex-start}body.master-repository-page .repository-form-card .repository-form-header h2{font-size:20px}body.master-repository-page .repository-form-card .repository-form-header p{font-size:12px}body.master-repository-page .repository-form-card .repository-form-icon{width:44px;height:44px;flex-basis:44px;border-radius:13px}body.master-repository-page .repository-form-card :is(.repository-input,.repository-textarea,.repository-file){font-size:16px}body.master-repository-page .repository-form-card>.repository-submit{align-self:stretch}}
+
+
+/* Compact Add Resource form, retaining the requested single-column layout. */
+body.master-repository-page .repository-form-card{padding:22px 24px;border-radius:20px;margin-bottom:24px}
+body.master-repository-page .repository-form-card .repository-form-header{gap:13px;margin-bottom:20px;padding:0 0 18px}
+body.master-repository-page .repository-form-card .repository-form-header h2{font-size:20px}
+body.master-repository-page .repository-form-card .repository-form-header p{margin-top:5px;font-size:12px}
+body.master-repository-page .repository-form-card .repository-form-icon{width:44px;height:44px;flex-basis:44px;border-radius:13px}
+body.master-repository-page .repository-form-card .repository-form-icon svg{width:21px;height:21px}
+body.master-repository-page .repository-form-card>.repository-field{margin-bottom:15px}
+body.master-repository-page .repository-form-card .repository-field label{margin-bottom:7px;font-size:10px;letter-spacing:1.4px}
+body.master-repository-page .repository-form-card :is(.repository-input,.repository-textarea,.repository-file){border-radius:11px;font-size:13px}
+body.master-repository-page .repository-form-card .repository-input{height:43px;min-height:43px;padding:0 13px}
+body.master-repository-page .repository-form-card .repository-textarea{min-height:85px;height:85px;padding:11px 13px}
+body.master-repository-page .repository-form-card .repository-file{min-height:44px;padding:5px}
+body.master-repository-page .repository-form-card .repository-file::file-selector-button{min-height:32px;padding:6px 12px;margin-right:10px;border-radius:8px;font-size:12px}
+body.master-repository-page .repository-form-card>.repository-submit{min-height:43px;padding:10px 18px;gap:9px;border-radius:11px;font-size:12px;box-shadow:none}
+body.master-repository-page .repository-form-card>.repository-submit svg{width:19px;height:19px}
+@media(max-width:600px){body.master-repository-page .repository-form-card{padding:18px 16px}body.master-repository-page .repository-form-card .repository-form-header h2{font-size:18px}body.master-repository-page .repository-form-card :is(.repository-input,.repository-textarea,.repository-file){font-size:16px}}
+
 </style>{% endblock %}
 {% block content %}
 <div hidden aria-hidden="true">
@@ -1668,7 +1747,7 @@ body.master-repository-page .repository-modal-description p{white-space:pre-wrap
                      DESCRIPTION
                 ========================================= -->
 
-                <div class="repository-modal-description">
+                <div class="repository-preview-body"><div class="repository-modal-description">
 
 
                   <div class="repository-modal-description-label">
@@ -1807,7 +1886,7 @@ body.master-repository-page .repository-modal-description p{white-space:pre-wrap
                     Close Resource
                   </span>
 
-                </button>
+                </button></div>
 
 
               </div>
@@ -1831,7 +1910,7 @@ body.master-repository-page .repository-modal-description p{white-space:pre-wrap
      aria-labelledby="repositoryDeleteTitle"
      onclick="if (event.target === this) closeRepositoryDeleteModal()">
   <div class="repository-delete-box">
-    <h3 id="repositoryDeleteTitle">Delete resource?</h3>
+    <div class="repository-delete-heading"><div class="repo-popup-title"><span class="repo-popup-icon" aria-hidden="true"><i data-lucide="trash-2"></i></span><div><span class="repo-popup-eyebrow">KNOWLEDGE REPOSITORY</span><h3 id="repositoryDeleteTitle">Delete resource?</h3></div></div><button type="button" class="repository-delete-close" onclick="closeRepositoryDeleteModal()" aria-label="Close delete popup">×</button></div>
     <p>Are you sure you want to delete this resource? This action cannot be undone.</p>
 
     <div class="repository-delete-buttons">
@@ -1844,7 +1923,7 @@ body.master-repository-page .repository-modal-description p{white-space:pre-wrap
 
   
 
-<dialog id="masterRepositoryEditor" aria-labelledby="masterResourceHeading"><div class="master-resource-edit-head"><h2 id="masterResourceHeading">Edit Resource</h2><button type="button" id="masterResourceClose" aria-label="Close" style="background:transparent;border:0;color:#bba2db;cursor:pointer;font-size:24px">×</button></div><form id="masterResourceForm" method="post" enctype="multipart/form-data">{% csrf_token %}<div class="repository-field"><label for="masterResourceTitle">Title</label><input name="title" id="masterResourceTitle" maxlength="255" required></div><div class="repository-field"><label for="masterResourceDescription">Description</label><textarea name="description" id="masterResourceDescription" rows="5"></textarea></div><div class="repository-field"><label for="masterResourceLink">Reference link</label><input name="link" id="masterResourceLink" type="url" maxlength="200"></div><div class="repository-field"><label for="masterResourceFile">Replace file (optional)</label><input name="file" id="masterResourceFile" type="file"><p id="masterResourceFileName" style="font-size:11px;color:#ac9cb9"></p></div><label><input type="checkbox" name="remove_file" value="1"> Remove existing file</label><p id="masterResourceError" role="alert"></p><div class="master-resource-edit-footer"><button type="button" id="masterResourceCancel">Cancel</button><button type="submit" id="masterResourceSave">Save changes</button></div></form></dialog>
+<dialog id="masterRepositoryEditor" aria-labelledby="masterResourceHeading"><div class="master-resource-edit-head"><div class="repo-popup-title"><span class="repo-popup-icon" aria-hidden="true"><i data-lucide="pencil"></i></span><div><span class="repo-popup-eyebrow">KNOWLEDGE REPOSITORY</span><h2 id="masterResourceHeading">Edit Resource</h2></div></div><button type="button" id="masterResourceClose" aria-label="Close" style="background:transparent;border:0;color:#bba2db;cursor:pointer;font-size:24px">×</button></div><form id="masterResourceForm" method="post" enctype="multipart/form-data">{% csrf_token %}<div class="repository-field"><label for="masterResourceTitle">Title</label><input name="title" id="masterResourceTitle" maxlength="255" required></div><div class="repository-field"><label for="masterResourceDescription">Description</label><textarea name="description" id="masterResourceDescription" rows="5"></textarea></div><div class="repository-field"><label for="masterResourceLink">Reference link</label><input name="link" id="masterResourceLink" type="url" maxlength="200"></div><div class="repository-field"><label for="masterResourceFile">Replace file (optional)</label><input name="file" id="masterResourceFile" type="file"><p id="masterResourceFileName" style="font-size:11px;color:#ac9cb9"></p></div><label class="repository-remove-file"><input type="checkbox" name="remove_file" value="1"> Remove existing file</label><p id="masterResourceError" role="alert"></p><div class="master-resource-edit-footer"><button type="button" id="masterResourceCancel">Cancel</button><button type="submit" id="masterResourceSave">Save changes</button></div></form></dialog>
 
 {% endblock %}
 {% block extra_js %}<script>
@@ -2017,7 +2096,7 @@ document.addEventListener("keydown", function (event) {
  const notify = (message,type = 'success') => {
   const active=document.querySelector('#masterRepositoryEditor[open]'),host=document.getElementById('toastContainer')||document.getElementById('toast-container');
   if(host)(active||document.body).appendChild(host);
-  if(typeof window.showToast==='function'){try{window.showToast(message,type);return;}catch(_){}}
+  if(typeof window.showToast==='function'&&(!active||host)){try{window.showToast(message,type);return;}catch(_){}}
   const status=document.createElement('div');status.className='repository-toast-fallback';status.textContent=message;status.setAttribute('role',type==='error'?'alert':'status');
   status.style.cssText='position:fixed;bottom:20px;right:16px;z-index:100001;max-width:calc(100vw - 32px);padding:14px 18px;border:1px solid #8161a5;border-radius:12px;background:#241b30;color:#fff;font:13px/1.6 system-ui';
   (active||document.body).appendChild(status);setTimeout(()=>status.remove(),6000);
@@ -2148,7 +2227,7 @@ document.addEventListener("keydown", function (event) {
  document.getElementById('masterResourceClose').addEventListener('click',close);document.getElementById('masterResourceCancel').addEventListener('click',close);
  dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});dialog.addEventListener('close',()=>{const host=document.getElementById('toastContainer')||document.getElementById('toast-container');if(host&&dialog.contains(host))document.body.appendChild(host);dialog.querySelectorAll('.repository-toast-fallback').forEach(node=>document.body.appendChild(node));unlockRepositoryPage();});
  editor.addEventListener('submit',async event=>{event.preventDefault();if(busy||window.repositoryMutation)return;busy=true;window.repositoryMutation=true;save.disabled=true;error.textContent='';let result;
- try{const response=await fetch(editor.getAttribute('action'),{method:'POST',body:new FormData(editor),headers:{'X-Requested-With':'XMLHttpRequest'},credentials:'same-origin',signal:AbortSignal.timeout(30000)});if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Could not update the resource. Check your login and try again.');result=await response.json();if(!response.ok||!result.ok)throw new Error(result.message||'Unable to save resource.');dialog.close();window.masterRepositoryNotify(result.message);}
+ try{const response=await fetch(editor.getAttribute('action'),{method:'POST',body:new FormData(editor),headers:{'X-Requested-With':'XMLHttpRequest'},credentials:'same-origin',signal:AbortSignal.timeout(30000)});if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Could not update the resource. Check your login and try again.');result=await response.json();if(!response.ok||!result.ok)throw new Error(result.message||'Unable to save resource.');dialog.close();window.masterRepositoryNotify(result.message||'Resource updated successfully.');}
  catch(err){result=null;error.textContent=err.message;window.masterRepositoryNotify(err.message,'error');}
  finally{busy=false;window.repositoryMutation=false;save.disabled=false;}
  if(result)try{await window.refreshMasterRepository();}catch{window.masterRepositoryNotify('Saved. Listing updates will retry automatically.','warning');}

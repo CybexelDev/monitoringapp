@@ -1115,6 +1115,243 @@ body.admin-reports-page .master-report-dialog { max-height:calc(100dvh - 32px); 
  body.admin-reports-page .master-report-dialog dd { margin-bottom:8px; }
 }
 
+
+/* Reports alignment and the shared purple popup palette. */
+body.admin-reports-page :is(.report-card,.report-section,.report-toolbar,.filter-area){min-width:0;max-width:100%;box-sizing:border-box}
+body.admin-reports-page .table-wrapper{overflow:auto;max-width:100%;scrollbar-gutter:auto;scrollbar-width:thin;scrollbar-color:#8460ae #100d18;overscroll-behavior:contain}
+body.admin-reports-page .report-table{min-width:850px;table-layout:auto}
+body.admin-reports-page .report-table :is(th,td){vertical-align:middle;text-align:left;line-height:1.6}
+body.admin-reports-page .report-table :is(th,td):nth-child(1),body.admin-reports-page .report-table :is(th,td):nth-child(2){white-space:nowrap}
+body.admin-reports-page .report-table :is(th,td):nth-child(3){min-width:160px}
+body.admin-reports-page .report-table :is(th,td):nth-child(4){min-width:150px;overflow-wrap:anywhere}
+body.admin-reports-page .report-table :is(th,td):nth-child(5){min-width:240px;max-width:440px;overflow-wrap:anywhere}
+body.admin-reports-page .report-table :is(th,td):last-child{text-align:center;width:68px}
+body.admin-reports-page .report-view-button{width:38px!important;height:38px;min-width:38px!important;padding:9px!important;border-radius:10px}
+body.admin-reports-page .report-view-button svg{width:18px;height:18px}
+body.admin-reports-page .filter-area{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+body.admin-reports-page .report-search-input{flex:1 1 220px;min-width:0;max-width:none;min-height:44px}
+body.admin-reports-page .report-date-picker{min-width:0;flex:0 1 190px}
+#masterReportView{box-sizing:border-box;width:min(760px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);padding:0!important;overflow:hidden!important;border:1px solid #49365f;border-radius:24px!important;background:radial-gradient(ellipse at top left,#33204d55,transparent 60%),#100c19!important;color:#ece5f6;box-shadow:0 30px 95px #0009}
+#masterReportView[open]{display:flex;flex-direction:column}
+#masterReportView::backdrop{background:#050409aa;backdrop-filter:blur(7px)}
+#masterReportView>header{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:112px;margin:0;padding:26px 28px;background:linear-gradient(110deg,#2b1c42,#191222 55%,#181927);border-bottom:1px solid #a78bfa24}
+#masterReportView h2{color:#faf7ff;font-size:23px;line-height:1.4;letter-spacing:-.3px;margin:0}
+#masterReportView .report-popup-heading{display:flex;align-items:center;gap:16px;min-width:0}
+#masterReportView .report-popup-badge{display:grid;place-items:center;width:52px;height:52px;flex:0 0 52px;background:#7c3aed26;border:1px solid #a78bfa40;border-radius:16px;color:#c4b5fd}
+#masterReportView .report-popup-badge svg{width:23px;height:23px}
+#masterReportViewClose{display:grid;place-items:center;min-width:42px;width:42px;height:42px;padding:10px;border:1px solid #ffffff12;border-radius:12px;background:#ffffff04;color:#b4a4c5}
+#masterReportView .report-popup-body{padding:26px 28px;overflow:auto;min-height:0;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#8460ae #100d18}
+#masterReportView dl{display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;margin:0 0 24px;font-size:13px;line-height:1.7}
+#masterReportView dt{color:#ac99bf}#masterReportView dd{color:#e5dcef;margin:0;min-width:0;overflow-wrap:anywhere}
+#masterReportView .master-report-full-text{padding:22px 0 0;border-top:1px solid #a78bfa24;color:#e5dcef;line-height:1.85;white-space:pre-wrap;overflow-wrap:anywhere}
+#masterReportView footer{flex:0 0 auto;display:flex;justify-content:flex-end;padding:20px 28px;border-top:1px solid #a78bfa24;background:#100c19}
+#masterReportView footer button{padding:11px 20px;border:1px solid #a78bfa33;border-radius:11px;background:#21162e;color:#d7c4f0;cursor:pointer;font:inherit;font-size:12px;min-height:44px}
+body.admin-reports-page .report-toast-stack{position:fixed;right:18px;bottom:18px;z-index:100010;display:grid;gap:10px;width:min(370px,calc(100vw - 36px));pointer-events:none}
+body.admin-reports-page .report-toast{padding:14px 18px;background:#21172f;border:1px solid #7950ae;border-radius:12px;color:#eee5fc;font-size:13px;line-height:1.6;box-shadow:0 12px 35px #0006;pointer-events:auto;overflow-wrap:anywhere}
+@media(max-width:600px){#masterReportView{width:calc(100vw - 20px);max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}#masterReportView>header{padding:22px 18px;min-height:100px;gap:12px}#masterReportView h2{font-size:20px}#masterReportView .report-popup-body{padding:22px 18px}#masterReportView dl{grid-template-columns:1fr;gap:6px}#masterReportView dd{margin-bottom:12px}#masterReportView footer{padding:18px}body.admin-reports-page .report-date-picker{flex:1 1 160px}body.admin-reports-page .filter-area>.glass-button{flex:1;min-height:44px}}
+
+
+/* Match the uploaded Team Lead report eye button. */
+body.admin-reports-page .report-view-button{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;min-width:38px!important;flex:none;padding:0!important;border-radius:9px;border:1px solid rgba(170,140,247,.42);background:rgba(111,76,190,.18);color:#e8dbff;cursor:pointer;box-shadow:none}
+body.admin-reports-page .report-view-button:hover{background:rgba(111,76,190,.4);color:#e8dbff}
+body.admin-reports-page .report-view-button svg{width:18px;height:18px;flex-shrink:0}
+
+
+body.admin-reports-page .section-heading .report-section-view{margin-left:auto;flex-shrink:0}
+body.admin-reports-page .report-table :is(th,td):last-child{width:auto;text-align:left}
+body.admin-reports-page .report-view-data[hidden]{display:none!important}
+#masterReportView .master-section-report{padding:22px 0;border-bottom:1px solid #a78bfa24}
+#masterReportView .master-section-report:first-child{padding-top:0}
+#masterReportView .master-section-report:last-child{padding-bottom:0;border-bottom:0}
+#masterReportView .master-section-report h3{font-size:16px;color:#e6d7fc;margin:0 0 16px;overflow-wrap:anywhere}
+#masterReportView .master-section-report dl{margin:0 0 18px}
+#masterReportView .master-section-report .master-report-full-text{margin:0}
+
+/* VIEW POPUP ONLY — pixel styling mirrored from admin_reports(9).html */
+#masterReportView {
+    width:min(700px,calc(100vw - 28px));max-height:calc(100dvh - 28px);
+    box-sizing:border-box;padding:0;overflow:auto;border:1px solid #383045;border-radius:22px;
+    background:#0e0c16;color:#f1eafa;color-scheme:dark;box-shadow:0 24px 80px #0009;
+    scrollbar-width:thin;scrollbar-color:#6d528d transparent;
+}
+#masterReportView::backdrop {background:rgba(5,4,12,.74);backdrop-filter:blur(5px);}
+#masterReportView .report-view-header {
+    display:flex;align-items:center;gap:14px;padding:23px 25px;border-bottom:1px solid #302637;
+    background:linear-gradient(115deg,#211630,#131321 65%,#171c2b);
+}
+#masterReportView .report-view-header-icon {
+    width:48px;height:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:13px;
+    border:1px solid rgba(151,140,255,.30);background:linear-gradient(130deg,#2b2042,#20264a);color:#a9baff;
+}
+#masterReportView .report-view-header-icon svg {width:21px;height:21px;}
+#masterReportView .report-view-heading {flex:1;min-width:0;}
+#masterReportView .report-view-heading h2 {margin:0;font-size:20px;font-weight:800;color:#faf7ff;}
+#masterReportView .report-view-heading p {margin:5px 0 0;font-size:12px;color:#9990aa;}
+#masterReportView .report-view-close {
+    width:38px;height:38px;display:grid;place-items:center;flex:none;cursor:pointer;
+    border:1px solid #363043;border-radius:10px;background:#21202e;color:#c5bdce;
+}
+#masterReportView .report-view-close svg {width:18px;height:18px;}
+#masterReportView .report-view-content {padding:25px;max-height:calc(100dvh - 215px);overflow:auto;}
+#masterReportView .report-view-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;}
+#masterReportView .report-view-field {min-width:0;}
+#masterReportView .report-view-field.is-wide {grid-column:1/-1;}
+#masterReportView .report-view-field > label {display:block;margin-bottom:8px;font-size:11px;font-weight:800;color:#bcb1cc;letter-spacing:.035em;text-transform:uppercase;}
+#masterReportView .report-view-value {
+    box-sizing:border-box;min-height:49px;padding:13px 14px;border:1px solid #302c3b;border-radius:11px;
+    background:#0a0911;color:#efecf7;font-size:14px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;
+}
+#masterReportView .report-view-long {min-height:98px;max-height:none;}
+#masterReportView .report-view-footer {display:flex;justify-content:flex-end;padding:17px 25px 22px;border-top:1px solid #292331;}
+#masterReportView .report-view-done,#masterReportView .report-view-drilldown {
+    padding:10px 17px;min-height:40px;border:1px solid #49345e;border-radius:10px;
+    background:#21162e;color:#decaf5;font:inherit;font-size:12px;font-weight:750;cursor:pointer;
+}
+#masterReportView .report-view-done:hover,#masterReportView .report-view-drilldown:hover {background:#322145;}
+#masterReportView .report-view-group + .report-view-group {margin-top:26px;}
+#masterReportView .report-view-group h3 {margin:0 0 12px;font-size:14px;color:#e7daf7;}
+#masterReportView .report-view-entry {padding:15px;margin:0 0 11px;border:1px solid #342a44;border-radius:12px;background:#15101e;}
+#masterReportView .report-view-entry-heading {display:flex;gap:10px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;}
+#masterReportView .report-view-entry-heading strong {color:#f2eafb;font-size:13px;}
+#masterReportView .report-view-entry-heading small {color:#a898bb;font-size:11px;}
+#masterReportView .report-view-entry-meta {margin:7px 0 10px;color:#b9adc8;font-size:11px;line-height:1.5;}
+#masterReportView .report-view-entry-text {white-space:pre-wrap;overflow-wrap:anywhere;color:#e2dbe9;font-size:12px;line-height:1.7;}
+#masterReportView .report-view-entry-footer {margin-top:12px;text-align:right;}
+#masterReportView .report-view-empty {color:#afa4bf;font-size:13px;line-height:1.7;}
+#masterReportView button:focus-visible {outline:2px solid #a78bfa;outline-offset:2px;}
+#masterReportView .report-view-section-list {
+    display:grid;gap:0;min-height:0;max-height:min(540px,calc(100dvh - 238px));
+    overflow-y:auto;overscroll-behavior:contain;padding-right:4px;
+    scrollbar-width:thin;scrollbar-color:#8061b4 transparent;
+}
+#masterReportView .report-view-section-item {
+    padding:17px 0;border-bottom:1px solid rgba(255,255,255,.10);
+}
+#masterReportView .report-view-section-item:first-child {padding-top:0;}
+#masterReportView .report-view-section-item:last-child {border-bottom:0;}
+#masterReportView .report-view-section-top {
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+}
+#masterReportView .report-view-section-top strong {color:#f6f0ff;font-size:14px;overflow-wrap:anywhere;}
+#masterReportView .report-view-section-status {
+    display:inline-flex;align-items:center;padding:5px 11px;border-radius:9px;
+    border:1px solid rgba(167,139,250,.3);background:rgba(139,92,246,.1);
+    color:#d7c1f8;font-size:11px;font-weight:700;
+}
+#masterReportView .report-view-section-status.is-completed,
+#masterReportView .report-view-section-status.is-submitted {color:#9ee7ba;border-color:rgba(52,211,153,.28);background:rgba(52,211,153,.10);}
+#masterReportView .report-view-section-status.is-progress {color:#9bd3ff;border-color:rgba(59,130,246,.32);background:rgba(59,130,246,.12);}
+#masterReportView .report-view-section-status.is-pending {color:#ffd080;border-color:rgba(245,158,11,.32);background:rgba(245,158,11,.12);}
+#masterReportView .report-view-section-meta {margin:8px 0 11px;color:#b3a6cc;font-size:12px;line-height:1.6;overflow-wrap:anywhere;}
+#masterReportView .report-view-section-text {margin:0;color:#ece7f5;font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;}
+#masterReportView {
+    width: min(740px, calc(100vw - 30px));
+    max-height: min(85dvh, 780px);
+    overflow: hidden; /* Never scroll the dialog shell itself */
+    padding: 0;
+    border: 1px solid #3d324e;
+    border-radius: 20px;
+    background: #0e0c16;
+    color: #f1eafa;
+}
+#masterReportView[open] {
+    display: flex;
+    flex-direction: column;
+}
+#masterReportView .report-view-header,
+#masterReportView .report-view-footer {
+    flex: 0 0 auto;
+}
+#masterReportView .report-view-header {
+    gap: 12px;
+    padding: 21px 23px;
+    background: linear-gradient(113deg, #211630 0%, #151320 62%, #151c2a 100%);
+    border-bottom: 1px solid #302739;
+}
+#masterReportView .report-view-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding: 18px 23px;
+    scrollbar-width: thin;
+    scrollbar-color: #7653ad #14101d;
+}
+#masterReportView .report-view-content::-webkit-scrollbar { width: 7px; }
+#masterReportView .report-view-content::-webkit-scrollbar-track { background: #14101d; }
+#masterReportView .report-view-content::-webkit-scrollbar-thumb {
+    background: #7653ad;
+    border-radius: 10px;
+}
+#masterReportView .report-view-section-list {
+    display: grid;
+    gap: 12px;
+    min-height: 0;
+    max-height: none;
+    overflow: visible; /* All scrolling is owned by .report-view-content */
+    padding: 0;
+}
+#masterReportView .report-view-section-item,
+#masterReportView .report-view-section-item:first-child,
+#masterReportView .report-view-section-item:last-child {
+    min-width: 0;
+    padding: 17px 18px;
+    margin: 0;
+    border: 1px solid #342a44;
+    border-radius: 13px;
+    background: linear-gradient(125deg, #171220, #110e18);
+}
+#masterReportView .report-view-section-top { gap: 10px; }
+#masterReportView .report-view-section-top strong { font-size: 13px; line-height: 1.5; }
+#masterReportView .report-view-section-status { flex-shrink: 0; }
+#masterReportView .report-view-section-meta {
+    margin: 10px 0 12px;
+    color: #a99bbd;
+    font-size: 11px;
+    line-height: 1.7;
+}
+#masterReportView .report-view-section-text {
+    padding-top: 12px;
+    border-top: 1px solid rgba(181,152,224,.12);
+    font-size: 13px;
+    line-height: 1.75;
+    color: #e9e2f2;
+}
+#masterReportView .report-view-footer {
+    padding: 14px 23px 18px;
+    border-top: 1px solid #292331;
+    background: #0e0c16;
+}
+@media (max-width: 520px) {
+    #masterReportView {
+        width: calc(100vw - 20px);
+        max-height: calc(100dvh - 20px);
+        border-radius: 16px;
+    }
+    #masterReportView .report-view-header { padding: 16px; gap: 10px; }
+    #masterReportView .report-view-heading h2 { font-size: 17px; }
+    #masterReportView .report-view-header-icon {
+        width: 42px; height: 42px; flex-basis: 42px;
+    }
+    #masterReportView .report-view-content { padding: 13px; }
+    #masterReportView .report-view-section-item,
+    #masterReportView .report-view-section-item:first-child,
+    #masterReportView .report-view-section-item:last-child { padding: 14px; }
+    #masterReportView .report-view-footer { padding: 12px 16px 16px; }
+    #masterReportView .report-view-section-top { align-items: flex-start; }
+}
+
+#masterReportView { font-family: inherit; }
+
+
+#masterReportView{width:min(740px,calc(100vw - 30px))!important;max-height:min(85dvh,780px)!important;border:1px solid #3d324e!important;border-radius:20px!important;background:#0e0c16!important;padding:0!important;overflow:hidden!important}
+@media(max-width:520px){#masterReportView{width:calc(100vw - 20px)!important;max-height:calc(100dvh - 20px)!important;border-radius:16px!important}}
+#masterReportView>header{min-height:0;margin:0;justify-content:initial}
+#masterReportView .report-view-header-icon{box-sizing:border-box}
+#masterReportView .report-view-content{box-sizing:border-box}
+#masterReportView footer .report-view-done{background:#21162e;border:1px solid #49345e;color:#decaf5}
 </style>
 {% endblock %}
 {% block content %}
@@ -1336,7 +1573,7 @@ body.admin-reports-page .master-report-dialog { max-height:calc(100dvh - 32px); 
 
                     </div>
 
-                    <div class="heading-line"></div>
+                    <div class="heading-line"></div><button type="button" class="report-view-button report-section-view" data-report-section="morning" aria-label="View Morning Reports" title="View Morning Reports" aria-haspopup="dialog" aria-controls="masterReportView"><i data-lucide="eye" aria-hidden="true"></i></button>
 
                 </div>
 
@@ -1357,14 +1594,14 @@ body.admin-reports-page .master-report-dialog { max-height:calc(100dvh - 32px); 
 
                                     <th>Name</th>
 
-                                    <th>Team</th>
+                                    
 
                                     <th>Department</th>
 
                                     <th>Report</th>
 
                                     <th>Status</th>
-<th>View</th>
+
 
                                 </tr>
 
@@ -1397,9 +1634,7 @@ body.admin-reports-page .master-report-dialog { max-height:calc(100dvh - 32px); 
 
                                     </td>
 
-                                    <td>
-                                        {{ report.team }}
-                                    </td>
+                                    
 
                                     <td>
                                         {{ report.department }}
@@ -1419,8 +1654,7 @@ body.admin-reports-page .master-report-dialog { max-height:calc(100dvh - 32px); 
                                             {{ report.status|default:"Submitted" }}
                                         </span>
 
-                                    </td>
-                                    <td><button type="button" class="glass-button report-view-button" aria-label="View report"><i data-lucide="eye" aria-hidden="true"></i></button><div class="report-view-data" hidden><span data-detail="name">{{ report.user.name }}</span><span data-detail="date">{{ report.created_at|date:"d M Y, h:i A" }}</span><span data-detail="team">{{ report.team }}</span><span data-detail="department">{{ report.department }}</span><span data-detail="status">{{ report.status }}</span><span data-detail="text">{{ report.report_text }}</span></div></td>
+                                    <div class="report-view-data" hidden><span data-detail="name">{{ report.user.name }}</span><span data-detail="date">{{ report.created_at|date:"d M Y, h:i A" }}</span><span data-detail="department">{{ report.department }}</span><span data-detail="status">{{ report.status }}</span><span data-detail="text">{{ report.report_text }}</span></div></td>
                                 </tr>
 
                                 {% empty %}
@@ -1428,7 +1662,7 @@ body.admin-reports-page .master-report-dialog { max-height:calc(100dvh - 32px); 
                                 <tr>
 
                                     <td
-                                        colspan="8"
+                                        colspan="6"
                                         class="empty-row"
                                     >
                                         No morning reports found
@@ -1470,7 +1704,7 @@ body.admin-reports-page .master-report-dialog { max-height:calc(100dvh - 32px); 
 
                     </div>
 
-                    <div class="heading-line"></div>
+                    <div class="heading-line"></div><button type="button" class="report-view-button report-section-view" data-report-section="evening" aria-label="View Evening Reports" title="View Evening Reports" aria-haspopup="dialog" aria-controls="masterReportView"><i data-lucide="eye" aria-hidden="true"></i></button>
 
                 </div>
 
@@ -1491,14 +1725,14 @@ body.admin-reports-page .master-report-dialog { max-height:calc(100dvh - 32px); 
 
                                     <th>Name</th>
 
-                                    <th>Team</th>
+                                    
 
                                     <th>Department</th>
 
                                     <th>Report</th>
 
                                     <th>Status</th>
-<th>View</th>
+
 
                                 </tr>
 
@@ -1531,9 +1765,7 @@ body.admin-reports-page .master-report-dialog { max-height:calc(100dvh - 32px); 
 
                                     </td>
 
-                                    <td>
-                                        {{ report.team }}
-                                    </td>
+                                    
 
                                     <td>
                                         {{ report.department }}
@@ -1553,8 +1785,7 @@ body.admin-reports-page .master-report-dialog { max-height:calc(100dvh - 32px); 
                                             {{ report.status|default:"Submitted" }}
                                         </span>
 
-                                    </td>
-                                    <td><button type="button" class="glass-button report-view-button" aria-label="View report"><i data-lucide="eye" aria-hidden="true"></i></button><div class="report-view-data" hidden><span data-detail="name">{{ report.user.name }}</span><span data-detail="date">{{ report.created_at|date:"d M Y, h:i A" }}</span><span data-detail="team">{{ report.team }}</span><span data-detail="department">{{ report.department }}</span><span data-detail="status">{{ report.status }}</span><span data-detail="text">{{ report.report_text }}</span></div></td>
+                                    <div class="report-view-data" hidden><span data-detail="name">{{ report.user.name }}</span><span data-detail="date">{{ report.created_at|date:"d M Y, h:i A" }}</span><span data-detail="department">{{ report.department }}</span><span data-detail="status">{{ report.status }}</span><span data-detail="text">{{ report.report_text }}</span></div></td>
                                 </tr>
 
                                 {% empty %}
@@ -1562,7 +1793,7 @@ body.admin-reports-page .master-report-dialog { max-height:calc(100dvh - 32px); 
                                 <tr>
 
                                     <td
-                                        colspan="8"
+                                        colspan="6"
                                         class="empty-row"
                                     >
                                         No evening reports found
@@ -1590,7 +1821,7 @@ body.admin-reports-page .master-report-dialog { max-height:calc(100dvh - 32px); 
 
 
 
-<dialog id="masterReportView" class="master-report-dialog" aria-labelledby="masterReportViewHeading"><header><h2 id="masterReportViewHeading">Report details</h2><button type="button" class="glass-button" id="masterReportViewClose" aria-label="Close report"><i data-lucide="x" aria-hidden="true"></i></button></header><dl><dt>Employee</dt><dd data-output="name"></dd><dt>Submitted</dt><dd data-output="date"></dd><dt>Team</dt><dd data-output="team"></dd><dt>Department</dt><dd data-output="department"></dd><dt>Status</dt><dd data-output="status"></dd></dl><div class="master-report-full-text" data-output="text"></div></dialog>
+<dialog id="masterReportView" class="master-report-dialog" aria-labelledby="masterReportViewHeading" aria-describedby="masterReportViewSubtitle"><header class="report-view-header"><span class="report-view-header-icon" aria-hidden="true"><i data-lucide="eye"></i></span><div class="report-view-heading"><h2 id="masterReportViewHeading">Report Details</h2><p id="masterReportViewSubtitle">View full report information</p></div><button type="button" id="masterReportViewClose" class="report-view-close" aria-label="Close report details"><i data-lucide="x"></i></button></header><div id="masterReportSectionContent" class="report-view-content"></div><footer class="report-view-footer"><button type="button" id="masterReportViewDone" class="report-view-done">Close</button></footer></dialog>
 {% endblock %}
 {% block extra_js %}
 <script>
@@ -1921,17 +2152,17 @@ document.addEventListener('DOMContentLoaded', () => {
  const filter = root?.querySelector('.filter-area');
  if (!root || !filter) return;
  let currentUrl = new URL(window.location.href), request = null, token = 0, timer = null;
- let pagePaused=false, sessionExpired=false, exporting=false;
+ let pagePaused=false, sessionExpired=false, exporting=false, updateFailed=false;
  currentUrl.searchParams.delete('mpage'); currentUrl.searchParams.delete('epage');
  const signatures = new Map();
  const notify = (message,type='error') => {
-  if (typeof window.showToast === 'function') {try {window.showToast(message,type);return;}catch(_){}}
-  {
-   let alert = document.getElementById('reportLiveError');
-   if (!alert) { alert = document.createElement('p'); alert.id = 'reportLiveError'; alert.setAttribute('role','alert'); filter.after(alert); }
-   alert.setAttribute('role',type==='error'?'alert':'status');alert.textContent = message;
-  }
+  const dialog=document.getElementById('masterReportView'),host=dialog?.open?dialog:document.body;
+  if(!dialog?.open&&typeof window.showToast==='function'){try{window.showToast(message,type);return;}catch(_){}}
+  let stack=host.querySelector(':scope > .report-toast-stack');if(!stack){stack=document.createElement('div');stack.className='report-toast-stack';host.append(stack);}
+  const node=document.createElement('div');node.className='report-toast';node.setAttribute('role',type==='error'?'alert':'status');node.textContent=message;
+  if(stack.children.length>=3)stack.firstChild.remove();stack.append(node);setTimeout(()=>{node.remove();if(!stack.children.length)stack.remove();},7000);
  };
+
  function apply(doc, navigation) {
   const incoming = Array.from(doc.querySelectorAll('.report-section'));
   const sections = Array.from(root.querySelectorAll('.report-section'));
@@ -1976,7 +2207,7 @@ document.addEventListener('DOMContentLoaded', () => {
  }
  function schedule() {
   clearTimeout(timer); if (document.hidden || pagePaused || sessionExpired) return;
-  timer = setTimeout(async () => { if (!request && !nameSearchTimer && !document.getElementById('masterReportView')?.open) { try { await load(currentUrl,false); } catch (_) {} } schedule(); },10000);
+  timer = setTimeout(async () => { if (!request && !nameSearchTimer && !document.getElementById('masterReportView')?.open) { try { await load(currentUrl,false); } catch(error) {if(error.name!=='AbortError'&&!sessionExpired&&!updateFailed){updateFailed=true;notify('Report live updates are unavailable. Retrying automatically.');}} } schedule(); },10000);
  }
  async function load(url, navigation, historyMode = 'push') {
   if(pagePaused||sessionExpired||document.hidden||(!navigation&&document.getElementById('masterReportView')?.open))return;
@@ -1991,7 +2222,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if (!response.ok) throw new Error('Unable to update reports.');
    const doc = new DOMParser().parseFromString(await response.text(),'text/html');
    if (sequence !== token || controller.signal.aborted || pagePaused || document.hidden || (!navigation && document.getElementById('masterReportView')?.open)) return;
-   apply(doc,navigation);
+   apply(doc,navigation);if(updateFailed){updateFailed=false;notify('Report live updates restored.','success');}
    currentUrl = target;
    if (navigation && historyMode === 'push' && target.href !== window.location.href) history.pushState(null,'',target);
   } finally {
@@ -2053,15 +2284,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
- const dialog=document.getElementById('masterReportView');document.body.append(dialog);let returnFocus=null,previousOverflow='';
+ const dialog=document.getElementById('masterReportView');document.body.append(dialog);
+ const content=document.getElementById('masterReportSectionContent');let returnFocus=null,previousOverflow='';
+ const element=(tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node;};
  document.addEventListener('click',event=>{
-  const button=event.target.closest('.report-view-button');if(!button)return;
-  const data=button.parentElement.querySelector('.report-view-data');if(!data)return;
-  for(const target of dialog.querySelectorAll('[data-output]'))target.textContent=data.querySelector('[data-detail="'+target.dataset.output+'"]')?.textContent||'—';
-  returnFocus=button;previousOverflow=document.body.style.overflow;dialog.showModal();document.body.style.overflow='hidden';
+  const button=event.target.closest('.report-section-view');if(!button||dialog.open)return;
+  const section=button.closest('.report-section'),period=button.dataset.reportSection;
+  const rows=[...section.querySelectorAll('tbody tr')].filter(row=>row.cells.length===6&&!row.querySelector('.empty-row'));
+  document.getElementById('masterReportViewHeading').textContent=period==='morning'?'Morning Reports':'Evening Reports';
+  document.getElementById('masterReportViewSubtitle').textContent=rows.length+' report'+(rows.length===1?'':'s')+' in the selected view';
+  const list=element('div','report-view-section-list');
+  for(const row of rows){
+   const cells=row.cells,statusText=cells[5].querySelector('.status-badge')?.textContent.trim()||'Submitted';
+   const card=element('article','report-view-section-item'),heading=element('div','report-view-section-top');
+   const badge=element('span','report-view-section-status',statusText),normalized=statusText.toLowerCase();
+   if(['completed','submitted'].includes(normalized))badge.classList.add('is-completed');else if(['in progress','progress'].includes(normalized))badge.classList.add('is-progress');else if(normalized==='pending')badge.classList.add('is-pending');
+   heading.append(element('strong','',cells[2].querySelector('.user-name')?.textContent.trim()||cells[2].textContent.trim()),badge);
+   const meta=[cells[0].textContent.trim(),cells[1].textContent.trim(),cells[3].textContent.trim()].filter(Boolean).join(' · ');
+   const text=cells[4].querySelector('.report-text')?.textContent.trim()||cells[4].textContent.trim()||'—';
+   card.append(heading,element('p','report-view-section-meta',meta),element('p','report-view-section-text',text));list.append(card);
+  }
+  if(!rows.length)list.append(element('p','report-view-empty','No '+period+' reports found for the selected filters.'));
+  content.replaceChildren(list);content.scrollTop=0;returnFocus=button;previousOverflow=document.body.style.overflow;dialog.showModal();document.body.style.overflow='hidden';document.getElementById('masterReportViewClose').focus({preventScroll:true});window.lucide?.createIcons();
  });
- document.getElementById('masterReportViewClose').addEventListener('click',()=>dialog.close());
- dialog.addEventListener('close',()=>{document.body.style.overflow=previousOverflow;if(returnFocus?.isConnected)returnFocus.focus();});
+ const close=()=>dialog.close();document.getElementById('masterReportViewClose').addEventListener('click',close);document.getElementById('masterReportViewDone').addEventListener('click',close);
+ dialog.addEventListener('click',event=>{if(event.target===dialog)close();});
+ dialog.addEventListener('close',()=>{document.body.style.overflow=previousOverflow;if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});});
 });
 </script>
 {% endblock %}

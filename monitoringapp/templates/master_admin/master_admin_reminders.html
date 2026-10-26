@@ -1078,6 +1078,62 @@ body.master-reminders-page :is(.reminder-stat span,#deleteDescription,.reminder-
 body.master-reminders-page .reminder-dialog textarea{resize:vertical}
 @media(max-width:768px){body.master-reminders-page .reminder-dialog :is(input,select,textarea),body.master-reminders-page #reminderSearch{font-size:16px}}
 @media(max-width:360px){body.master-reminders-page .reminder-stats{grid-template-columns:1fr}body.master-reminders-page .calendar-controls{width:100%;justify-content:space-between}}
+body.master-reminders-page .finance-choice{position:relative;min-width:0;width:100%}
+body.master-reminders-page select.finance-native-choice{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;opacity:0;pointer-events:none;top:0;left:0}
+body.master-reminders-page .finance-select-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;box-sizing:border-box;min-height:46px;padding:12px 15px;border-radius:13px;background:#0c0b11;border:1px solid #302a3b;color:#ece8f2;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+body.master-reminders-page .finance-select-toggle span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.master-reminders-page .finance-select-toggle:after{content:'';width:7px;height:7px;border:solid #b9a7d7;border-width:0 2px 2px 0;transform:rotate(45deg);flex-shrink:0;margin:0 3px 4px}
+body.master-reminders-page .finance-select-toggle[aria-expanded=true]:after{transform:rotate(225deg);margin-top:7px}
+body.master-reminders-page .finance-select-toggle:is(:focus-visible,[aria-expanded=true]){outline:2px solid #8050c833;outline-offset:1px;border-color:#70499e}
+body.master-reminders-page .finance-select-toggle:disabled{opacity:.5;cursor:not-allowed}
+body.master-reminders-page .finance-select-menu{position:fixed;box-sizing:border-box;z-index:100010;padding:10px;overflow:auto;overscroll-behavior:contain;border:1px solid #514064;border-radius:17px;background:linear-gradient(125deg,#281b42,#100e19 55%,#171e2e);box-shadow:0 20px 48px #0009;scrollbar-width:thin;scrollbar-color:#725596 #0c0b12}
+body.master-reminders-page .finance-select-menu[hidden]{display:none}
+body.master-reminders-page .finance-select-option{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;box-sizing:border-box;padding:12px 15px;color:#e8e1f4;border-radius:11px;font-size:14px;line-height:1.5;cursor:pointer;overflow-wrap:anywhere}
+body.master-reminders-page .finance-select-option[aria-selected=true]{background:linear-gradient(110deg,#52317e,#37244f);color:#f2e9ff;font-weight:700}
+body.master-reminders-page .finance-select-option[aria-selected=true]:after{content:'✓';font-size:20px;color:#dacef0}
+body.master-reminders-page .finance-select-option.is-active{box-shadow:inset 0 0 0 1px #9970d14d}
+body.master-reminders-page .finance-select-option:hover{background-color:#9760d733}
+body.master-reminders-page .finance-select-option[aria-disabled=true]{opacity:.4;cursor:default}
+body.master-reminders-page .finance-select-toggle:after{border-color:#c4a5fa}
+body.master-reminders-page .finance-select-option.is-active{background-color:#9760d726;box-shadow:inset 0 0 0 1px #b18aff66}
+body.master-reminders-page .finance-select-option[aria-disabled=true]{background:transparent;box-shadow:none}
+body.master-reminders-page .finance-select-toggle{min-height:54px;padding:14px 16px;border:1px solid #332b43;border-radius:13px;background:#0b0a10;color:#efedf4;font-size:16px}
+body.master-reminders-page .finance-select-toggle:is(:focus-visible,[aria-expanded=true]){border-color:#62428c;outline:2px solid #8b5cf612;outline-offset:1px}
+body.master-reminders-page .finance-select-toggle:after{width:7px;height:7px;border-color:#b5a3d3}
+body.master-reminders-page .finance-select-menu{padding:10px;border:1px solid #3c324c;border-radius:17px;background:linear-gradient(115deg,#211831 0%,#0d0c14 55%,#111522 100%);box-shadow:0 18px 40px #0007}
+body.master-reminders-page .finance-select-option{min-height:50px;padding:12px 16px;border-radius:11px;color:#eee9f6;font-size:16px;line-height:1.5}
+body.master-reminders-page .finance-select-option[aria-selected=true]{background:linear-gradient(110deg,#362451,#2e284d);color:#e9ddff;font-weight:700}
+body.master-reminders-page .finance-select-option[aria-selected=true]:after{color:#ddd1f4;font-size:22px}
+body.master-reminders-page .finance-select-option.is-active{box-shadow:none;background-color:#8b5cf61a}
+body.master-reminders-page .finance-select-option:hover{background-color:#8b5cf626}
+body.master-reminders-page .finance-select-option[aria-disabled=true]{background:transparent}
+body.master-reminders-page .finance-select-option{display:flex;flex-wrap:nowrap;min-height:44px;padding:10px 14px;font-size:14px;line-height:1.5;white-space:nowrap;overflow-wrap:normal;word-break:normal;gap:14px}
+body.master-reminders-page .finance-select-option[aria-selected=true]:after{flex:0 0 18px;font-size:19px;text-align:center}
+/* Reminder popups match the shared purple reference. */
+body.master-reminders-page .reminder-dialog{box-sizing:border-box;width:min(740px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);padding:0!important;overflow:hidden;border:1px solid #393341;border-radius:24px;background:radial-gradient(ellipse at top left,#241936,transparent 55%),#0b0a12;color:#f0edf6;box-shadow:0 30px 95px #0009;scrollbar-gutter:auto}
+body.master-reminders-page .reminder-dialog[open]{display:flex;flex-direction:column}
+body.master-reminders-page .reminder-dialog::backdrop{background:#05040999;backdrop-filter:blur(7px)}
+body.master-reminders-page #deleteDialog{width:min(520px,calc(100vw - 32px));max-width:calc(100vw - 32px)}
+body.master-reminders-page .reminder-dialog .dialog-header{display:flex;align-items:center;justify-content:space-between;flex:0 0 auto;gap:18px;min-height:125px;margin:0;padding:26px 28px;background:linear-gradient(110deg,#281b42,#100e19 52%,#171e2e);border-bottom:1px solid #ffffff12}
+body.master-reminders-page .reminder-popup-title{display:flex;align-items:center;gap:16px;min-width:0}
+body.master-reminders-page .reminder-popup-badge{display:grid;place-items:center;width:52px;height:52px;flex:0 0 52px;border-radius:16px;border:1px solid #a78bfa33;background:linear-gradient(135deg,#3d2566,#281d4d);color:#c4b5fd}.reminder-popup-badge svg{width:24px;height:24px}
+body.master-reminders-page .reminder-popup-eyebrow{display:block;margin-bottom:8px;color:#b18aff;font-size:10px;font-weight:800;letter-spacing:2px}
+body.master-reminders-page .reminder-dialog .dialog-header h2{font-size:23px;line-height:1.4;margin:0;color:#faf8ff;overflow-wrap:anywhere}
+body.master-reminders-page .reminder-dialog .dialog-header>.reminder-btn{display:grid;place-items:center;width:40px;height:40px;min-height:40px;flex:0 0 40px;padding:0;border-radius:12px;background:#ffffff04;border-color:#ffffff12;color:#95899f}
+body.master-reminders-page #reminderForm{display:flex;flex-direction:column;min-height:0;margin:0;overflow:hidden}
+body.master-reminders-page .reminder-form-body,body.master-reminders-page .reminder-delete-body{padding:24px 28px;overflow:auto;min-height:0;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#725596 transparent}
+body.master-reminders-page .reminder-dialog .reminder-field{min-width:0;font-size:12px;color:#d6d0df}
+body.master-reminders-page .reminder-dialog :is(.reminder-field input:not([type=hidden]),.reminder-field textarea,.picker-trigger,.finance-select-toggle){box-sizing:border-box;min-height:46px;max-width:100%;min-width:0;border:1px solid #302a38;border-radius:12px;background:#0b0a11;color:#e9e2f4;font-size:13px}
+body.master-reminders-page .reminder-dialog textarea{min-height:90px;resize:vertical;line-height:1.7}
+body.master-reminders-page .reminder-dialog .dialog-footer{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;flex:0 0 auto;gap:12px;margin:0;padding:20px 28px 24px;border-top:1px solid #ffffff12;background:#0b0a12}
+body.master-reminders-page .reminder-dialog .dialog-footer .reminder-btn{min-height:46px;padding:11px 18px;border:1px solid #2d2835;border-radius:12px;background:#16131d;color:#c1b8ce;font-size:13px}
+body.master-reminders-page .reminder-dialog .dialog-footer :is(.primary,.danger){background:linear-gradient(115deg,#8249d5,#6032a8);border-color:#a78bfa55;color:#fff}
+body.master-reminders-page .picker-panel{box-sizing:border-box;max-width:100%;background:linear-gradient(135deg,#21172f,#0b0a12);border-color:#a78bfa33;border-radius:14px}
+body.master-reminders-page #deleteDialog form{margin:0;flex:0 0 auto}
+body.master-reminders-page #deleteDescription{margin:0 0 12px;color:#e9dff4;line-height:1.7}
+body.master-reminders-page :is(.reminder-panel,.reminder-card,.datetime-control,.reminder-popup-title>div){min-width:0}
+@media(max-width:650px){body.master-reminders-page .reminder-dialog{width:calc(100vw - 20px);max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px);border-radius:20px}body.master-reminders-page .reminder-dialog .dialog-header{padding:22px 18px;min-height:110px;gap:12px}body.master-reminders-page .reminder-popup-title{gap:12px}body.master-reminders-page .reminder-popup-badge{width:44px;height:44px;flex-basis:44px}body.master-reminders-page .reminder-dialog .dialog-header h2{font-size:20px}body.master-reminders-page :is(.reminder-form-body,.reminder-delete-body){padding:22px 18px}body.master-reminders-page .reminder-dialog .dialog-footer{padding:18px}body.master-reminders-page .reminder-dialog .dialog-footer>.reminder-btn{flex:1}body.master-reminders-page .reminder-dialog :is(.reminder-field input:not([type=hidden]),.reminder-field textarea,.finance-select-toggle){font-size:16px}}
+
 </style>{% endblock %}
 {% block content %}
     
@@ -1149,13 +1205,13 @@ body.master-reminders-page .reminder-dialog textarea{resize:vertical}
     </section>
     <dialog class="reminder-dialog" id="editDialog" aria-labelledby="editHeading">
         <div class="dialog-header">
-            <h2 id="editHeading">Add reminder</h2><button type="button" class="reminder-btn" data-close
+            <div class="reminder-popup-title"><span class="reminder-popup-badge" aria-hidden="true"><i data-lucide="bell-plus"></i></span><div><span class="reminder-popup-eyebrow">REMINDERS</span><h2 id="editHeading">Add reminder</h2></div></div><button type="button" class="reminder-btn" data-close
                 aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button>
         </div>
         <form method="post" action="{% url 'master_admin_reminders' %}" id="reminderForm">{% csrf_token %}
             <input type="hidden" name="action" id="formAction" value="create"><input type="hidden" name="reminder_id"
                 id="reminderId">
-            <label class="reminder-field">Title<input name="title" id="reminderTitle" maxlength="180" required
+            <div class="reminder-form-body"><label class="reminder-field">Title<input name="title" id="reminderTitle" maxlength="180" required
                     placeholder="e.g. Project review meeting"></label>
             <label class="reminder-field">Description <span>(optional)</span><textarea name="description"
                     id="reminderDescription" placeholder="Add details…"></textarea></label>
@@ -1188,15 +1244,15 @@ body.master-reminders-page .reminder-dialog textarea{resize:vertical}
                 </div>
             </div>
             <p>Times use your configured timezone. Choose a future reminder time.</p>
-            <p id="pickerError" class="picker-error" role="alert" hidden></p>
+            <p id="pickerError" class="picker-error" role="alert" hidden></p></div>
             <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Cancel</button><button
                     type="submit" class="reminder-btn primary">Save reminder</button></div>
         </form>
     </dialog>
     <dialog class="reminder-dialog" id="deleteDialog" aria-labelledby="deleteHeading">
-        <h2 id="deleteHeading">Delete reminder?</h2>
+        <div class="dialog-header"><div class="reminder-popup-title"><span class="reminder-popup-badge" aria-hidden="true"><i data-lucide="trash-2"></i></span><div><span class="reminder-popup-eyebrow">REMINDERS</span><h2 id="deleteHeading">Delete reminder?</h2></div></div><button type="button" class="reminder-btn" data-close aria-label="Close"><i data-lucide="x"></i></button></div><div class="reminder-delete-body">
         <p id="deleteDescription"></p>
-        <p>This removes the reminder from your calendar.</p>
+        <p>This removes the reminder from your calendar.</p></div>
         <form method="post" action="{% url 'master_admin_reminders' %}">{% csrf_token %}<input type="hidden" name="action"
                 value="delete"><input type="hidden" name="reminder_id" id="deleteId">
             <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Cancel</button><button
@@ -1213,13 +1269,58 @@ body.master-reminders-page .reminder-dialog textarea{resize:vertical}
     
 {% endblock %}
 {% block extra_js %}<script>
+
+
+/* Purple dropdowns only; notification rendering belongs to the shared component. */
+(() => {
+ 'use strict';
+ if(window.masterReminderEnhancements)return;window.masterReminderEnhancements=true;
+ let current=null,active=-1,counter=0,typed='',typeTimer;
+ const entries=new Set();
+ function sync(entry){const text=entry.select.selectedOptions[0]?.textContent.trim()||'Select';if(entry.text.textContent!==text)entry.text.textContent=text;if(entry.button.disabled!==entry.select.disabled)entry.button.disabled=entry.select.disabled;entry.button.setAttribute('aria-required',String(entry.select.required));}
+ function close(){if(!current)return;current.menu.hidden=true;current.button.setAttribute('aria-expanded','false');current.button.removeAttribute('aria-activedescendant');current=null;}
+ function highlight(index){if(!current||!current.menu.children.length)return;const rows=[...current.menu.children];active=(index+rows.length)%rows.length;rows.forEach((row,i)=>row.classList.toggle('is-active',i===active));current.button.setAttribute('aria-activedescendant',rows[active].id);const row=rows[active],menu=current.menu;if(row.offsetTop<menu.scrollTop)menu.scrollTop=row.offsetTop;else if(row.offsetTop+row.offsetHeight>menu.scrollTop+menu.clientHeight)menu.scrollTop=row.offsetTop+row.offsetHeight-menu.clientHeight;}
+ function choose(index){if(!current)return;const entry=current,option=entry.select.options[index];if(!option||option.disabled)return;entry.select.selectedIndex=index;sync(entry);close();entry.select.dispatchEvent(new Event('change',{bubbles:true}));entry.button.removeAttribute('aria-invalid');entry.button.focus();}
+ function open(entry){close();sync(entry);if(entry.select.disabled)return;current=entry;const host=entry.select.closest('dialog')||document.body;host.append(entry.menu);entry.menu.replaceChildren();[...entry.select.options].forEach((option,index)=>{const row=document.createElement('div');row.id=entry.menu.id+'-'+index;row.className='finance-select-option';row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.selected));row.setAttribute('aria-disabled',String(option.disabled));row.textContent=option.textContent.trim();row.addEventListener('pointerdown',event=>event.preventDefault());row.addEventListener('click',()=>choose(index));entry.menu.append(row);});
+  const rect=entry.button.getBoundingClientRect(),below=innerHeight-rect.bottom-12,above=rect.top-12;const menuWidth=Math.min(Math.max(rect.width,220),innerWidth-24);entry.menu.style.width=menuWidth+'px';entry.menu.style.left=Math.max(12,Math.min(rect.left,innerWidth-menuWidth-12))+'px';entry.menu.style.maxHeight=Math.min(280,Math.max(above,below))+'px';entry.menu.hidden=false;const height=entry.menu.getBoundingClientRect().height;entry.menu.style.top=(below>=height?rect.bottom+7:Math.max(12,rect.top-height-7))+'px';entry.button.setAttribute('aria-expanded','true');highlight(Math.max(0,entry.select.selectedIndex));
+ }
+ function init(){
+  for(const entry of entries){if(!entry.select.isConnected){if(current===entry)close();entry.observer.disconnect();entry.menu.remove();entries.delete(entry);}else sync(entry);}
+  document.querySelectorAll('.reminder-dialog select:not([multiple]):not([data-finance-choice])').forEach(select=>{
+   select.dataset.financeChoice='true';const wrap=document.createElement('div');wrap.className='finance-choice';select.before(wrap);wrap.append(select);select.classList.add('finance-native-choice');select.tabIndex=-1;
+   const button=document.createElement('button'),text=document.createElement('span'),menu=document.createElement('div');button.type='button';button.className='finance-select-toggle';button.append(text);button.setAttribute('role','combobox');button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');menu.id='finance-choice-'+counter++;menu.className='finance-select-menu';menu.hidden=true;menu.setAttribute('role','listbox');button.setAttribute('aria-controls',menu.id);
+   const label=select.labels?.[0];if(label){if(!label.id)label.id=menu.id+'-label';button.setAttribute('aria-labelledby',label.id);if(!label.contains(select))label.addEventListener('click',event=>{event.preventDefault();button.focus();});}else button.setAttribute('aria-label',select.name.replaceAll('_',' ')||'Select option');
+   wrap.append(button);(select.closest('dialog')||document.body).append(menu);
+   const entry={select,button,text,menu};entry.observer=new MutationObserver(()=>{sync(entry);if(current===entry)open(entry);});entry.observer.observe(select,{subtree:true,childList:true,attributes:true});entries.add(entry);sync(entry);
+   button.addEventListener('click',()=>current===entry?close():open(entry));select.addEventListener('change',()=>sync(entry));select.addEventListener('focus',()=>button.focus());select.addEventListener('invalid',()=>{button.setAttribute('aria-invalid','true');button.focus();});
+   button.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&current){event.preventDefault();event.stopPropagation();close();return;}if(event.key==='Tab'){close();return;}
+    if(['ArrowDown','ArrowUp','Home','End','Enter',' '].includes(event.key)){event.preventDefault();if(current!==entry){open(entry);return;}if(event.key==='Enter'||event.key===' '){choose(active);return;}const options=[...select.options];let index=event.key==='Home'?0:event.key==='End'?options.length-1:active+(event.key==='ArrowUp'?-1:1);const step=['ArrowUp','End'].includes(event.key)?-1:1;for(let n=0;n<options.length;n++){index=(index+options.length)%options.length;if(!options[index].disabled){highlight(index);break;}index+=step;}}
+    else if(event.key.length===1){typed+=event.key.toLowerCase();clearTimeout(typeTimer);typeTimer=setTimeout(()=>typed='',700);if(current!==entry)open(entry);const index=[...select.options].findIndex(option=>!option.disabled&&option.textContent.trim().toLowerCase().startsWith(typed));if(index>=0)highlight(index);}
+   });
+  });
+  if(current&&(!current.button.isConnected||current.select.closest('dialog')&&!current.select.closest('dialog').open))close();
+ }
+ let queued=false;const queue=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;init();});};
+ new MutationObserver(queue).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open']});
+ document.addEventListener('pointerdown',event=>{if(current&&!current.button.contains(event.target)&&!current.menu.contains(event.target))close();});document.addEventListener('scroll',event=>{if(current&&!current.menu.contains(event.target))close();},true);window.addEventListener('resize',close);document.addEventListener('reset',()=>setTimeout(init,0));
+ document.addEventListener('close',event=>{if(current&&event.target.contains(current.select))close();},true);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+
+
+
+</script><script>
         (() => {
             'use strict';
             let mutationBusy=false, pollBusy=false;
             const notify=(message,type='success')=>{
-                const active=document.querySelector('.reminder-dialog[open]'),host=(document.getElementById('toastContainer')||document.getElementById('toast-container'))||document.getElementById('toast-container');if(host)(active||document.body).appendChild(host);
-                if(typeof window.showToast==='function'){try{window.showToast(message,type);return;}catch(_){}}
-                const node=document.createElement('div');node.className='reminder-toast-fallback';node.textContent=message;node.setAttribute('role',type==='error'?'alert':'status');node.style.cssText='position:fixed;right:16px;bottom:20px;z-index:100001;max-width:calc(100vw - 32px);padding:14px 18px;border:1px solid #8161a5;border-radius:12px;background:#241b30;color:#fff;font:13px/1.6 system-ui';(active||document.body).appendChild(node);setTimeout(()=>node.remove(),6000);
+                if(message===undefined||message===null||!String(message).trim())return;
+                const active=document.querySelector('.reminder-dialog[open]');
+                const host=document.getElementById('toastContainer')||document.getElementById('toast-container');
+                if(host)(active||document.body).appendChild(host);
+                if(typeof window.showToast==='function')return window.showToast(message,type);
+                console.error('Shared toast component is missing. Include toast_notification.html in the base template.');
             };
             let pollController=null,pollRevision=0,pagePaused=false,sessionExpired=false,returnFocus=null;
             function startMutation(){if(mutationBusy)return false;++pollRevision;pollController?.abort();pollController=null;pollBusy=false;mutationBusy=true;return true;}
@@ -1263,7 +1364,6 @@ body.master-reminders-page .reminder-dialog textarea{resize:vertical}
             [editDialog, deleteDialog].forEach(dialog => { dialog.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => {if(!mutationBusy)dialog.close();})); dialog.addEventListener('close', () => {
                     const container = (document.getElementById('toastContainer')||document.getElementById('toast-container'));
                     if (container) document.body.appendChild(container);
-                    dialog.querySelectorAll('.reminder-toast-fallback').forEach(node=>document.body.appendChild(node));
                     document.body.classList.remove('modal-open');if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});else document.getElementById('newReminder').focus({preventScroll:true});
                 }); });
             const controls = Array.from(document.querySelectorAll('.datetime-control'));
@@ -1331,7 +1431,7 @@ body.master-reminders-page .reminder-dialog textarea{resize:vertical}
                     const index=items.findIndex(item=>Number(item.id)===Number(data.id));
                     if(data.item){if(data.item.date.startsWith(month+'-')){if(index<0)items.push(data.item);else items[index]=data.item;}else if(index>=0)items.splice(index,1);}else if(index>=0)items.splice(index,1);
                     items.sort((a,b)=>a.event_at.localeCompare(b.event_at)||a.id-b.id);
-                    dialog.close(); render(true); icons(); notify(data.message);
+                    dialog.close(); render(true); icons(); notify(data.message||'Reminder updated successfully.');
                     window.dispatchEvent(new CustomEvent('master-notifications-count',{detail:data.unread_count}));
                 } catch(error){notify(error.message,'error');}finally{mutationBusy=false;if(submit)submit.disabled=false;}
             }

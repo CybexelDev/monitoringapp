@@ -26,7 +26,6 @@ body.admin-workspace #sidebar .sidebar-profile-text{min-width:0}
     <a href="{% url 'master_admin_dashboard' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_dashboard' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_dashboard' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="layout-dashboard" aria-hidden="true"></i></span><span>Dashboard</span></a>
     <a href="{% url 'master_admin_usermanagement' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_usermanagement' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_usermanagement' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="user-cog" aria-hidden="true"></i></span><span>User Management</span></a>
     <a href="{% url 'master_admin_departments' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_departments' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_departments' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="building-2" aria-hidden="true"></i></span><span>Departments</span></a>
-    <a href="{% url 'master_admin_teams' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_teams' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_teams' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="users-round" aria-hidden="true"></i></span><span>Teams</span></a>
     <a href="{% url 'master_admin_accounts_overview' %}" class="sidebar-item {% if accounts_active %}active{% endif %}"><span class="sidebar-icon"><i data-lucide="wallet" aria-hidden="true"></i></span><span>Accounts Management</span></a>
     <a href="{% url 'master_admin_announcements' %}" class="sidebar-item {% if master_announcements_active %}active{% endif %}" {% if master_announcements_active %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="megaphone" aria-hidden="true"></i></span><span>Announcements</span></a>
     <a href="{% url 'master_admin_reports' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_reports' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_reports' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="file-chart-column" aria-hidden="true"></i></span><span>Reports</span></a>
@@ -42,7 +41,21 @@ body.admin-workspace #sidebar .sidebar-profile-text{min-width:0}
 
   </nav>
   <div class="sidebar-bottom">
-    <form method="post" action="{% url 'master_admin_logout' %}">{% csrf_token %}<button type="submit" class="sidebar-logout" style="width:100%;font-family:inherit;text-align:left;cursor:pointer;appearance:none"><span class="sidebar-icon"><i data-lucide="log-out" aria-hidden="true"></i></span><span>Logout</span></button></form>
+
+    <form method="post" action="{% url 'master_admin_logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="sidebar-logout"
+        style="width:100%;font-family:inherit;text-align:left;cursor:pointer;appearance:none">
+        <span class="sidebar-icon">
+          <i data-lucide="log-out" aria-hidden="true"></i>
+        </span>
+        <span>Logout</span>
+      </button>
+    </form>
+
+    <!-- Master Admin Windows Desktop Notifications -->
+    {% include 'components/windows_push.html' with portal='master_admin' %}
+
   </div>
 </aside>
 
@@ -83,21 +96,20 @@ document.addEventListener('DOMContentLoaded',()=>{
       badge.hidden = count === 0;
       const text = count > 99 ? '99+' : String(count);
       if (badge.textContent !== text) badge.textContent = text;
-      badge.setAttribute('aria-label', count + ' unread chats');
-      link.setAttribute('aria-label', 'Chat, ' + count + ' unread chats');
-      link.title = count ? count + ' unread chats' : 'Chat';
+      badge.setAttribute('aria-label', count + ' people with unread messages');
+      link.setAttribute('aria-label', 'Chat, ' + count + ' people with unread messages');
+      link.title = count ? count + ' people with unread messages' : 'Chat';
     }
 
     function unreadChatCount(data) {
-      if (!Array.isArray(data.personal) || !Array.isArray(data.groups)) return null;
+      // Each personal entry represents one person, not one message.
+      // Group unread totals cannot reveal how many distinct people sent them.
+      if (!Array.isArray(data.personal)) return null;
       let total = 0;
-      for (const items of [data.personal, data.groups]) {
-        for (const item of items) {
-          const count = Number(item.unread);
-          if (!Number.isSafeInteger(count) || count < 0) return null;
-          if (count > 0) total += 1; // Count each unread conversation once, regardless of its messages.
-          if (!Number.isSafeInteger(total)) return null;
-        }
+      for (const person of data.personal) {
+        const unread = Number(person.unread);
+        if (!Number.isSafeInteger(unread) || unread < 0) return null;
+        if (unread > 0) total += 1;
       }
       return total;
     }
@@ -116,7 +128,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       const token = ++sequence;
       const timeout = setTimeout(() => controller.abort(), 12000);
       try {
-        // No target_id: count unread personal/group conversations, once per chat.
+        // No target_id: read personal unread metadata for the current account.
         const response = await fetch(link.dataset.chatMetaUrl, {
           credentials: 'same-origin', cache: 'no-store',
           headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},

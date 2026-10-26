@@ -583,6 +583,25 @@ body.master-profile-page .profile-save-button:disabled{opacity:.55;cursor:wait;t
 body.master-profile-page #masterPasswordFeedback{overflow-wrap:anywhere;line-height:1.6;margin:12px 0}
 @media(max-width:768px){body.master-profile-page #adminMain>.dashboard-box{padding:13px!important}body.master-profile-page .profile-form-input{font-size:16px}body.master-profile-page .profile-content{padding-top:24px}}
 @media(prefers-reduced-motion:reduce){body.master-profile-page :is(.profile-main-card,.profile-save-button,.profile-form-input){transition:none;transform:none}}
+
+/* Account state is a text badge, without an always-green online light. */
+body.master-profile-page .profile-form-feedback{margin:0 0 18px;padding:12px 15px;border:1px solid #a78bfa33;border-radius:11px;background:#7c3aed0d;color:#c4b5fd;font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+body.master-profile-page .profile-form-feedback[data-type=error],body.master-profile-page #masterPasswordFeedback[data-type=error]{color:#fca5a5;border-color:#f8717144;background:#ef44440c}
+body.master-profile-page .profile-form-feedback[data-type=warning]{color:#fca5a5;border-color:#f8717144;background:#ef44440c}
+body.master-profile-page #masterPasswordFeedback:empty{display:none}
+body.master-profile-page :is(.profile-info-grid,.profile-form-grid){grid-template-columns:repeat(2,minmax(0,1fr))}
+body.master-profile-page :is(.profile-details,.profile-image-section,.profile-info-item,.master-password-panel){min-width:0}
+body.master-profile-page .profile-save-wrapper{display:flex;flex-wrap:wrap;gap:12px}
+body.master-profile-page .master-password-panel summary{max-width:100%;white-space:normal;line-height:1.5}
+@media(max-width:768px){body.master-profile-page :is(.profile-info-grid,.profile-form-grid){grid-template-columns:minmax(0,1fr)}body.master-profile-page .profile-main-card{gap:24px}body.master-profile-page .profile-save-button{min-height:44px}}
+
+
+/* Avatar status: green for Active, red for inactive/blocked/disabled. */
+body.master-profile-page #profileAccountIndicator{position:absolute;left:20px;bottom:9px;z-index:10;display:block;width:20px;height:20px;border:3px solid #17151e;border-radius:50%;background:#8b8495;box-shadow:none;pointer-events:none}
+body.master-profile-page #profileAccountIndicator.is-active{background:#4ade80;box-shadow:0 0 12px #4ade8070}
+body.master-profile-page #profileAccountIndicator.is-inactive{background:#f87171;box-shadow:0 0 12px #f8717160}
+@media(max-width:480px){body.master-profile-page #profileAccountIndicator{left:10px;bottom:7px;width:18px;height:18px}}
+
 </style>
 {% endblock %}
 {% block content %}
@@ -716,7 +735,8 @@ body.master-profile-page #masterPasswordFeedback{overflow-wrap:anywhere;line-hei
                         >
 
 
-                        <!-- Status -->
+                        <!-- Account status indicator -->
+<span id="profileAccountIndicator" class="profile-status {% if user.account_status|lower == 'active' %}is-active{% elif user.account_status|lower == 'inactive' or user.account_status|lower == 'blocked' or user.account_status|lower == 'disabled' %}is-inactive{% endif %}" role="img" aria-label="Account status: {{ user.account_status|default:'Not available' }}" title="{{ user.account_status|default:'Status unavailable' }}"></span>
 
                         
 
@@ -935,8 +955,9 @@ body.master-profile-page #masterPasswordFeedback{overflow-wrap:anywhere;line-hei
 {% block extra_js %}<script>
 window.masterProfileBusy=false;
 window.masterProfileToast=function(message,type='success'){
- if(typeof window.showToast==='function'){try{window.showToast(message,type);return;}catch(_){}}
- const node=document.createElement('div');node.textContent=message;node.setAttribute('role',type==='error'?'alert':'status');node.style.cssText='position:fixed;right:16px;bottom:20px;z-index:100001;max-width:calc(100vw - 32px);padding:14px 18px;border:1px solid #8161a5;border-radius:12px;background:#241b30;color:#fff;font:13px/1.6 system-ui';document.body.appendChild(node);setTimeout(()=>node.remove(),6000);
+ if(message===undefined||message===null||!String(message).trim())return;
+ if(typeof window.showToast==='function')return window.showToast(message,type);
+ console.error('Shared toast component is missing from the base template.');
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -948,11 +969,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const endpoint='{% url "master_admin_profile" %}';
   let saving=false,uploading=false,controller=null,revision=0,baseline='',summarySignature=null,pagePaused=false,sessionExpired=false;
   let committedImage=display.getAttribute('src');
-  const feedback=document.createElement('p');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');feedback.hidden=true;form.prepend(feedback);
+  const feedback=document.createElement('p');feedback.className='profile-form-feedback';feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');feedback.hidden=true;form.prepend(feedback);
   const fields=['name','email','phone'];
   function snapshot(){return JSON.stringify(fields.map(name=>form.elements.namedItem(name)?.value||''));}
   baseline=snapshot();
-  function notify(message,type='success'){feedback.textContent=message;feedback.hidden=false;feedback.style.color=type==='error'?'#fda4af':'#c4b5fd';window.masterProfileToast(message,type);}
+  function notify(message,type='success'){feedback.textContent=message;feedback.hidden=false;feedback.dataset.type=type;feedback.setAttribute('role',type==='error'?'alert':'status');window.masterProfileToast(message,type);}
   function sidebarPhoto(url){
     document.querySelectorAll('#sidebar a[href],.glass-sidebar a[href]').forEach(link=>{
       if(new URL(link.href,location.href).pathname!==new URL(endpoint,location.origin).pathname)return;
@@ -966,6 +987,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const incoming=doc.querySelector('.profile-info-grid');const current=document.querySelector('.profile-info-grid');
     if(!incoming||!current||!doc.querySelector('.profile-form'))throw new Error('Please sign in again to load your profile.');
     if(summarySignature!==incoming.innerHTML){current.innerHTML=incoming.innerHTML;summarySignature=incoming.innerHTML;}
+    const incomingStatus=doc.getElementById('profileAccountIndicator'),status=document.getElementById('profileAccountIndicator');
+    if(incomingStatus&&status){status.className=incomingStatus.className;status.setAttribute('aria-label',incomingStatus.getAttribute('aria-label'));status.title=incomingStatus.title;}
     const image=doc.getElementById('profile-display');if(image&&!uploading)setPhoto(image.getAttribute('src'));
     if(updateFields){const newForm=doc.querySelector('.profile-form');fields.forEach(name=>{const value=newForm.elements.namedItem(name)?.value;if(value!==undefined&&form.elements.namedItem(name))form.elements.namedItem(name).value=value;});baseline=snapshot();}
   }
@@ -1032,9 +1055,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.addEventListener('DOMContentLoaded',()=>{
  const form=document.getElementById('masterPasswordForm'),feedback=document.getElementById('masterPasswordFeedback');let busy=false;
- form.addEventListener('submit',async event=>{event.preventDefault();if(busy||window.masterProfileBusy||!form.reportValidity())return;busy=true;window.masterProfileBusy=true;feedback.textContent='';const button=form.querySelector('[type="submit"]');button.disabled=true;
+ const confirmation=document.getElementById('masterConfirmPassword'),password=document.getElementById('masterNewPassword');
+ [password,confirmation].forEach(input=>input.addEventListener('input',()=>confirmation.setCustomValidity('')));
+ let passwordValidation=false;
+ form.addEventListener('invalid',event=>{if(passwordValidation)return;passwordValidation=true;feedback.textContent=event.target.validationMessage;feedback.dataset.type='error';feedback.setAttribute('role','alert');window.masterProfileToast(event.target.validationMessage,'warning');setTimeout(()=>passwordValidation=false,0);},true);
+
+ form.addEventListener('submit',async event=>{event.preventDefault();confirmation.setCustomValidity(password.value===confirmation.value?'':'Passwords do not match.');if(busy||window.masterProfileBusy||!form.reportValidity())return;busy=true;window.masterProfileBusy=true;feedback.textContent='';const button=form.querySelector('[type="submit"]');button.disabled=true;
  try{const response=await fetch(form.getAttribute('action'),{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:AbortSignal.timeout(20000)});if(!(response.headers.get('content-type')||'').includes('application/json'))throw Error('Please sign in again.');const data=await response.json();if(!response.ok||!data.ok)throw Error(data.message||'Could not change password.');form.reset();form.closest('details').open=false;feedback.textContent='';window.masterProfileToast(data.message||'Password updated.','success');window.dispatchEvent(new CustomEvent('master-notifications-count',{detail:data.unread_count}));}
- catch(error){feedback.textContent=error.message;window.masterProfileToast(error.message,'error');}finally{busy=false;window.masterProfileBusy=false;button.disabled=false;}
+ catch(error){feedback.textContent=error.message;feedback.dataset.type='error';feedback.setAttribute('role','alert');window.masterProfileToast(error.message,'error');}finally{busy=false;window.masterProfileBusy=false;button.disabled=false;}
  });
 });
 </script>{% endblock %}

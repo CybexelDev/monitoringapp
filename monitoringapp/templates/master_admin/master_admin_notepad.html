@@ -1790,6 +1790,82 @@ body.note-popup-open #adminMain,body.note-delete-open #adminMain,body.note-popup
  .saved-notes-section .notepad-pagination { display:flex; flex-wrap:wrap; gap:10px; }
 }
 
+body:has(#masterNotepadContent) .finance-choice{position:relative;min-width:0;width:100%}
+body:has(#masterNotepadContent) select.finance-native-choice{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;opacity:0;pointer-events:none;top:0;left:0}
+body:has(#masterNotepadContent) .finance-select-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;box-sizing:border-box;min-height:46px;padding:12px 15px;border-radius:13px;background:#0c0b11;border:1px solid #302a3b;color:#ece8f2;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+body:has(#masterNotepadContent) .finance-select-toggle span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body:has(#masterNotepadContent) .finance-select-toggle:after{content:'';width:7px;height:7px;border:solid #b9a7d7;border-width:0 2px 2px 0;transform:rotate(45deg);flex-shrink:0;margin:0 3px 4px}
+body:has(#masterNotepadContent) .finance-select-toggle[aria-expanded=true]:after{transform:rotate(225deg);margin-top:7px}
+body:has(#masterNotepadContent) .finance-select-toggle:is(:focus-visible,[aria-expanded=true]){outline:2px solid #8050c833;outline-offset:1px;border-color:#70499e}
+body:has(#masterNotepadContent) .finance-select-toggle:disabled{opacity:.5;cursor:not-allowed}
+body:has(#masterNotepadContent) .finance-select-menu{position:fixed;box-sizing:border-box;z-index:100010;padding:10px;overflow:auto;overscroll-behavior:contain;border:1px solid #514064;border-radius:17px;background:linear-gradient(125deg,#281b42,#100e19 55%,#171e2e);box-shadow:0 20px 48px #0009;scrollbar-width:thin;scrollbar-color:#725596 #0c0b12}
+body:has(#masterNotepadContent) .finance-select-menu[hidden]{display:none}
+body:has(#masterNotepadContent) .finance-select-option{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;box-sizing:border-box;padding:12px 15px;color:#e8e1f4;border-radius:11px;font-size:14px;line-height:1.5;cursor:pointer;overflow-wrap:anywhere}
+body:has(#masterNotepadContent) .finance-select-option[aria-selected=true]{background:linear-gradient(110deg,#52317e,#37244f);color:#f2e9ff;font-weight:700}
+body:has(#masterNotepadContent) .finance-select-option[aria-selected=true]:after{content:'✓';font-size:20px;color:#dacef0}
+body:has(#masterNotepadContent) .finance-select-option.is-active{box-shadow:inset 0 0 0 1px #9970d14d}
+body:has(#masterNotepadContent) .finance-select-option:hover{background-color:#9760d733}
+body:has(#masterNotepadContent) .finance-select-option[aria-disabled=true]{opacity:.4;cursor:default}
+body:has(#masterNotepadContent) .finance-toast-stack{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));width:min(370px,calc(100vw - 36px));z-index:100020;display:grid;gap:10px;pointer-events:none}
+body:has(#masterNotepadContent) .finance-toast{display:flex;align-items:center;gap:12px;background:#21172f;border:1px solid #7950ae;border-radius:12px;padding:13px 16px;color:#eee5fc;font-size:13px;line-height:1.5;box-shadow:0 12px 35px #0006;pointer-events:auto}
+body:has(#masterNotepadContent) .finance-toast span{flex:1;min-width:0;overflow-wrap:anywhere}
+body:has(#masterNotepadContent) .finance-toast button{background:transparent;border:0;color:#d7c4f0;font-size:22px;min-width:30px;min-height:32px;cursor:pointer}
+body:has(#masterNotepadContent) .finance-select-toggle:after{border-color:#c4a5fa}
+body:has(#masterNotepadContent) .finance-select-option.is-active{background-color:#9760d726;box-shadow:inset 0 0 0 1px #b18aff66}
+body:has(#masterNotepadContent) .finance-select-option[aria-disabled=true]{background:transparent;box-shadow:none}
+/* Notepad popups follow the supplied Create Meeting reference. */
+#noteEditDialog,#noteViewDialog{box-sizing:border-box;width:min(850px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);padding:0!important;overflow:hidden;border:1px solid #393341!important;border-radius:24px;background:radial-gradient(ellipse at top left,#241936,transparent 55%),#0b0a12!important;color:#f0edf6;box-shadow:0 30px 95px #0009}
+#noteEditDialog[open],#noteViewDialog[open]{display:flex;flex-direction:column}
+#noteEditDialog::backdrop,#noteViewDialog::backdrop{background:#05040999!important;backdrop-filter:blur(7px)!important}
+:is(#noteEditDialog,#noteViewDialog) .note-edit-heading,.note-delete-heading{box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:18px;flex:0 0 auto;margin:0;padding:30px 32px;min-height:140px;background:linear-gradient(110deg,#281b42,#100e19 52%,#171e2e);border-bottom:1px solid #ffffff12}
+.note-popup-title{display:flex;align-items:center;gap:18px;min-width:0}.note-popup-title>div{min-width:0}
+.note-popup-badge{display:grid;place-items:center;width:60px;height:60px;flex:0 0 60px;border-radius:18px;background:linear-gradient(135deg,#3d2566,#281d4d);border:1px solid #a78bfa33;color:#c4b5fd}.note-popup-badge svg{width:25px;height:25px}
+.note-popup-eyebrow{display:block;margin-bottom:8px;color:#b18aff;font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase}
+:is(#noteEditDialog,#noteViewDialog) h2,#noteDeleteTitle{margin:0;color:#faf8ff;font-size:24px;font-weight:800;line-height:1.4;overflow-wrap:anywhere}
+.note-popup-subtitle{margin:8px 0 0;color:#8c8299;font-size:13px;line-height:1.6}
+:is(#noteEditDialog,#noteViewDialog) .note-edit-close,.note-delete-close{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border:1px solid #ffffff12;border-radius:12px;background:#ffffff04;color:#95899f;font-size:25px;cursor:pointer}
+#noteEditForm,.note-view-body{box-sizing:border-box;min-height:0;overflow:auto;overscroll-behavior:contain;padding:30px 32px;scrollbar-width:thin;scrollbar-color:#725596 transparent}
+#noteEditForm{margin:0}#noteEditForm label{display:block;margin:0 0 9px;font-size:12px;font-weight:650;color:#d6d0df}
+#noteEditForm :is(input:not([type=hidden]),textarea){box-sizing:border-box;width:100%;max-width:100%;min-width:0;border:1px solid #302a38;border-radius:14px;background:#0b0a11;color:#e9e2f4;padding:14px 16px;margin-bottom:22px;font:inherit;font-size:14px}
+#noteEditForm input:not([type=hidden]){min-height:54px}#noteEditForm textarea{min-height:200px;resize:vertical;line-height:1.7}
+#noteEditForm :is(input,textarea):focus{outline:2px solid #a78bfa55;outline-offset:2px;border-color:#a78bfa}
+:is(#noteEditDialog,#noteViewDialog) .note-edit-actions,.note-delete-buttons{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:12px;margin:24px 0 0;padding:22px 0 0;border-top:1px solid #ffffff12}
+#noteViewDialog>.note-edit-actions{flex:0 0 auto;margin:0;padding:22px 32px 30px}
+:is(#noteEditDialog,#noteViewDialog) .notepad-new-button,.note-delete-buttons button{box-sizing:border-box;min-height:49px;padding:12px 20px;border:1px solid #2d2835;border-radius:13px;background:#16131d;color:#c1b8ce;font-size:13px;font-weight:700;cursor:pointer}
+#updateNoteButton,.note-delete-buttons .note-delete-confirm{min-height:49px;padding:12px 20px;border:1px solid #a78bfa55;border-radius:13px;background:linear-gradient(115deg,#8249d5,#6032a8);color:#fff;box-shadow:none}
+#noteViewUpdated{margin:0 0 18px}#noteViewContent{max-height:none;overflow:visible;min-height:120px;background:#0b0a11;border-color:#302a38}
+#noteDeleteModal{padding:16px;background:#05040999!important;backdrop-filter:blur(7px)!important}
+#noteDeleteModal .note-delete-box{width:min(540px,100%);padding:0;border:1px solid #393341;border-radius:24px;background:radial-gradient(ellipse at top left,#241936,transparent 55%),#0b0a12;overflow:auto;box-shadow:0 30px 95px #0009}
+.note-delete-heading{min-height:130px;padding:26px 28px}#noteDeleteModal .note-delete-box>p{padding:26px 28px;margin:0;line-height:1.8;color:#b7a9c5}
+#noteDeleteModal .note-delete-buttons{margin:0;padding:22px 28px 26px}
+#masterNotepadContent,#masterNotepadContent .notepad-page{box-sizing:border-box;min-width:0;max-width:100%}
+.note-search-tools{display:flex;flex-wrap:wrap;align-items:center;gap:10px}.note-search-tools input[type=search]{flex:1 1 220px;min-width:0}.note-search-tools .finance-choice{flex:0 1 220px;width:220px;min-width:160px}.saved-note-content{min-width:0}.saved-note-title{overflow-wrap:anywhere}
+@media(max-width:600px){#noteEditDialog,#noteViewDialog{width:calc(100vw - 20px);max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px);border-radius:20px}:is(#noteEditDialog,#noteViewDialog) .note-edit-heading,.note-delete-heading{padding:22px 18px;min-height:110px;gap:12px}.note-popup-title{gap:12px}.note-popup-badge{width:44px;height:44px;flex-basis:44px;border-radius:13px}:is(#noteEditDialog,#noteViewDialog) h2,#noteDeleteTitle{font-size:20px}.note-popup-subtitle{font-size:11px}.note-popup-eyebrow{font-size:9px;letter-spacing:1.5px}#noteEditForm,.note-view-body{padding:22px 18px}#noteViewDialog>.note-edit-actions,#noteDeleteModal .note-delete-buttons{padding:18px}#noteDeleteModal .note-delete-box>p{padding:22px 18px}#noteEditForm :is(input,textarea){font-size:16px}.note-search-tools input[type=search],.note-search-tools .finance-choice{width:100%;flex:1 1 100%}.note-search-tools>.notepad-new-button{flex:1}.note-edit-actions>button,.note-delete-buttons>button{flex:1}.notepad-toolbar,.saved-notes-header{flex-wrap:wrap}.saved-note-actions{justify-content:flex-end}}
+
+
+/* Sort dropdown matches the supplied status-dropdown reference. */
+body:has(#masterNotepadContent) .finance-select-toggle{min-height:54px;padding:14px 16px;border:1px solid #332b43;border-radius:13px;background:#0b0a10;color:#efedf4;font-size:16px}
+body:has(#masterNotepadContent) .finance-select-toggle:is(:focus-visible,[aria-expanded=true]){border-color:#62428c;outline:2px solid #8b5cf612;outline-offset:1px}
+body:has(#masterNotepadContent) .finance-select-toggle:after{width:7px;height:7px;border-color:#b5a3d3}
+body:has(#masterNotepadContent) .finance-select-menu{padding:10px;border:1px solid #3c324c;border-radius:17px;background:linear-gradient(115deg,#211831 0%,#0d0c14 55%,#111522 100%);box-shadow:0 18px 40px #0007}
+body:has(#masterNotepadContent) .finance-select-option{min-height:50px;padding:12px 16px;border-radius:11px;color:#eee9f6;font-size:16px;line-height:1.5}
+body:has(#masterNotepadContent) .finance-select-option[aria-selected=true]{background:linear-gradient(110deg,#362451,#2e284d);color:#e9ddff;font-weight:700}
+body:has(#masterNotepadContent) .finance-select-option[aria-selected=true]:after{color:#ddd1f4;font-size:22px}
+body:has(#masterNotepadContent) .finance-select-option.is-active{box-shadow:none;background-color:#8b5cf61a}
+body:has(#masterNotepadContent) .finance-select-option:hover{background-color:#8b5cf626}
+body:has(#masterNotepadContent) .finance-select-option[aria-disabled=true]{background:transparent}
+
+
+/* Equal control heights and stable search-toolbar columns. */
+#masterNotepadContent .note-search-tools{display:grid;grid-template-columns:minmax(0,1fr) minmax(190px,240px) 90px 84px;gap:12px;align-items:center;padding:20px 18px 0;min-width:0}
+#masterNotepadContent .note-search-tools input[type=search],#masterNotepadContent .note-search-tools .finance-select-toggle,#masterNotepadContent .note-search-tools>.notepad-new-button{box-sizing:border-box;display:flex;align-items:center;min-height:48px!important;height:48px!important;max-height:48px;margin:0!important;padding:0 15px!important;font-size:13px;line-height:1.4;border-radius:12px;width:100%;min-width:0}
+#masterNotepadContent .note-search-tools>.notepad-new-button{justify-content:center;white-space:nowrap}
+#masterNotepadContent .note-search-tools .finance-choice{width:100%;min-width:0;margin:0}
+#masterNotepadContent .note-search-tools .finance-select-toggle{justify-content:space-between;font-weight:500}
+#masterNotepadContent .note-search-tools .finance-select-toggle span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:900px){#masterNotepadContent .note-search-tools{grid-template-columns:minmax(0,1fr) 90px 84px}#masterNotepadContent .note-search-tools input[type=search]{grid-column:1/-1}}
+@media(max-width:480px){#masterNotepadContent .note-search-tools{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:14px 12px 0}#masterNotepadContent .note-search-tools .finance-choice{grid-column:1/-1}#masterNotepadContent .note-search-tools input[type=search],#masterNotepadContent .note-search-tools .finance-select-toggle{font-size:16px}}
+
 </style>{% endblock %}
 {% block content %}
 
@@ -2156,14 +2232,14 @@ body.note-popup-open #adminMain,body.note-delete-open #adminMain,body.note-popup
 <!-- Read-only preview; the main form remains exclusively for new notes. -->
 <dialog id="noteViewDialog" aria-labelledby="noteViewTitle">
     <div class="note-edit-heading">
-        <div>
-            <p class="note-view-label">Saved note</p>
+        <div class="note-popup-title"><span class="note-popup-badge" aria-hidden="true"><i data-lucide="file-text"></i></span><div>
+            <p class="note-popup-eyebrow">Saved note</p>
             <h2 id="noteViewTitle"></h2>
-        </div>
+        </div></div>
         <button type="button" class="note-edit-close" id="closeNoteView" aria-label="Close note preview">×</button>
     </div>
-    <time id="noteViewUpdated"></time>
-    <div id="noteViewContent" tabindex="0" role="region" aria-label="Note content"></div>
+    <div class="note-view-body"><time id="noteViewUpdated"></time>
+    <div id="noteViewContent" tabindex="0" role="region" aria-label="Note content"></div></div>
     <div class="note-edit-actions">
         <button type="button" class="notepad-new-button" id="dismissNoteView">Close</button>
     </div>
@@ -2171,7 +2247,7 @@ body.note-popup-open #adminMain,body.note-delete-open #adminMain,body.note-popup
 
 <dialog id="noteEditDialog" aria-labelledby="noteEditHeading">
   <div class="note-edit-heading">
-<h2 id="noteEditHeading">Edit Note</h2>
+<div class="note-popup-title"><span class="note-popup-badge" aria-hidden="true"><i data-lucide="pencil"></i></span><div><span class="note-popup-eyebrow">NOTEPAD</span><h2 id="noteEditHeading">Edit Note</h2><p class="note-popup-subtitle">Update your saved note.</p></div></div>
 <button type="button" class="note-edit-close" id="closeNoteEdit" aria-label="Close edit popup">×</button>
 </div>
   <form id="noteEditForm" method="post" action="{% url 'master_admin_notepad' %}">
@@ -2195,7 +2271,7 @@ body.note-popup-open #adminMain,body.note-delete-open #adminMain,body.note-popup
      aria-labelledby="noteDeleteTitle"
      onclick="if (event.target === this) closeNoteDeleteModal()">
     <div class="note-delete-box">
-        <h3 id="noteDeleteTitle">Delete note?</h3>
+        <div class="note-delete-heading"><div class="note-popup-title"><span class="note-popup-badge" aria-hidden="true"><i data-lucide="trash-2"></i></span><div><span class="note-popup-eyebrow">NOTEPAD</span><h3 id="noteDeleteTitle">Delete note?</h3></div></div><button type="button" class="note-delete-close" onclick="closeNoteDeleteModal()" aria-label="Close delete popup">×</button></div>
         <p>Are you sure you want to delete this note? This action cannot be undone.</p>
 
         <div class="note-delete-buttons">
@@ -2207,11 +2283,62 @@ body.note-popup-open #adminMain,body.note-delete-open #adminMain,body.note-popup
 </div>
     {% endblock %}
 {% block extra_js %}<script>
+
+/* Purple dropdowns and toast fallback shared by this page only. */
+(() => {
+ 'use strict';
+ if(window.masterNotepadEnhancements)return;window.masterNotepadEnhancements=true;
+ function localToast(message,type='success'){
+  const host=document.querySelector('dialog[open]')||document.body;
+  let stack=host.querySelector(':scope > .finance-toast-stack');
+  if(!stack){stack=document.createElement('div');stack.className='finance-toast-stack';host.append(stack);}
+  const box=document.createElement('div'),text=document.createElement('span'),dismiss=document.createElement('button');
+  box.className='finance-toast';box.setAttribute('role',type==='error'?'alert':'status');text.textContent=String(message);dismiss.type='button';dismiss.textContent='×';dismiss.setAttribute('aria-label','Dismiss notification');
+  let timer;const remove=()=>{clearTimeout(timer);box.remove();if(!stack.children.length)stack.remove();};const start=()=>{clearTimeout(timer);timer=setTimeout(remove,7000);};dismiss.addEventListener('click',remove);box.addEventListener('mouseenter',()=>clearTimeout(timer));box.addEventListener('mouseleave',start);box.addEventListener('focusin',()=>clearTimeout(timer));box.addEventListener('focusout',start);box.append(text,dismiss);if(stack.children.length>=3)stack.firstChild.remove();stack.append(box);start();
+ }
+ const sharedToast=typeof window.showToast==='function'?window.showToast:null;
+ window.masterFinanceToast=(message,type='success')=>{if(!document.querySelector('dialog[open]')&&sharedToast){try{sharedToast(message,type);return;}catch(_){}}localToast(message,type);};
+ window.showToast=window.masterFinanceToast;
+ let current=null,active=-1,counter=0,typed='',typeTimer;
+ const entries=new Set();
+ function sync(entry){const text=entry.select.selectedOptions[0]?.textContent.trim()||'Select';if(entry.text.textContent!==text)entry.text.textContent=text;if(entry.button.disabled!==entry.select.disabled)entry.button.disabled=entry.select.disabled;entry.button.setAttribute('aria-required',String(entry.select.required));}
+ function close(){if(!current)return;current.menu.hidden=true;current.button.setAttribute('aria-expanded','false');current.button.removeAttribute('aria-activedescendant');current=null;}
+ function highlight(index){if(!current||!current.menu.children.length)return;const rows=[...current.menu.children];active=(index+rows.length)%rows.length;rows.forEach((row,i)=>row.classList.toggle('is-active',i===active));current.button.setAttribute('aria-activedescendant',rows[active].id);const row=rows[active],menu=current.menu;if(row.offsetTop<menu.scrollTop)menu.scrollTop=row.offsetTop;else if(row.offsetTop+row.offsetHeight>menu.scrollTop+menu.clientHeight)menu.scrollTop=row.offsetTop+row.offsetHeight-menu.clientHeight;}
+ function choose(index){if(!current)return;const entry=current,option=entry.select.options[index];if(!option||option.disabled)return;entry.select.selectedIndex=index;sync(entry);close();entry.select.dispatchEvent(new Event('change',{bubbles:true}));entry.button.removeAttribute('aria-invalid');entry.button.focus();}
+ function open(entry){close();sync(entry);if(entry.select.disabled)return;current=entry;const host=entry.select.closest('dialog')||document.body;host.append(entry.menu);entry.menu.replaceChildren();[...entry.select.options].forEach((option,index)=>{const row=document.createElement('div');row.id=entry.menu.id+'-'+index;row.className='finance-select-option';row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.selected));row.setAttribute('aria-disabled',String(option.disabled));row.textContent=option.textContent.trim();row.addEventListener('pointerdown',event=>event.preventDefault());row.addEventListener('click',()=>choose(index));entry.menu.append(row);});
+  const rect=entry.button.getBoundingClientRect(),below=innerHeight-rect.bottom-12,above=rect.top-12;entry.menu.style.width=Math.min(rect.width,innerWidth-24)+'px';entry.menu.style.left=Math.max(12,Math.min(rect.left,innerWidth-rect.width-12))+'px';entry.menu.style.maxHeight=Math.min(280,Math.max(above,below))+'px';entry.menu.hidden=false;const height=entry.menu.getBoundingClientRect().height;entry.menu.style.top=(below>=height?rect.bottom+7:Math.max(12,rect.top-height-7))+'px';entry.button.setAttribute('aria-expanded','true');highlight(Math.max(0,entry.select.selectedIndex));
+ }
+ function init(){
+  for(const entry of entries){if(!entry.select.isConnected){if(current===entry)close();entry.observer.disconnect();entry.menu.remove();entries.delete(entry);}else sync(entry);}
+  document.querySelectorAll('.note-search-tools select:not([multiple]):not([data-finance-choice])').forEach(select=>{
+   select.dataset.financeChoice='true';const wrap=document.createElement('div');wrap.className='finance-choice';select.before(wrap);wrap.append(select);select.classList.add('finance-native-choice');select.tabIndex=-1;
+   const button=document.createElement('button'),text=document.createElement('span'),menu=document.createElement('div');button.type='button';button.className='finance-select-toggle';button.append(text);button.setAttribute('role','combobox');button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');menu.id='finance-choice-'+counter++;menu.className='finance-select-menu';menu.hidden=true;menu.setAttribute('role','listbox');button.setAttribute('aria-controls',menu.id);
+   const label=select.labels?.[0];if(label){if(!label.id)label.id=menu.id+'-label';button.setAttribute('aria-labelledby',label.id);if(!label.contains(select))label.addEventListener('click',event=>{event.preventDefault();button.focus();});}else button.setAttribute('aria-label',select.name.replaceAll('_',' ')||'Select option');
+   wrap.append(button);(select.closest('dialog')||document.body).append(menu);
+   const entry={select,button,text,menu};entry.observer=new MutationObserver(()=>{sync(entry);if(current===entry)open(entry);});entry.observer.observe(select,{subtree:true,childList:true,attributes:true});entries.add(entry);sync(entry);
+   button.addEventListener('click',()=>current===entry?close():open(entry));select.addEventListener('change',()=>sync(entry));select.addEventListener('focus',()=>button.focus());select.addEventListener('invalid',()=>{button.setAttribute('aria-invalid','true');button.focus();});
+   button.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&current){event.preventDefault();event.stopPropagation();close();return;}if(event.key==='Tab'){close();return;}
+    if(['ArrowDown','ArrowUp','Home','End','Enter',' '].includes(event.key)){event.preventDefault();if(current!==entry){open(entry);return;}if(event.key==='Enter'||event.key===' '){choose(active);return;}const options=[...select.options];let index=event.key==='Home'?0:event.key==='End'?options.length-1:active+(event.key==='ArrowUp'?-1:1);const step=['ArrowUp','End'].includes(event.key)?-1:1;for(let n=0;n<options.length;n++){index=(index+options.length)%options.length;if(!options[index].disabled){highlight(index);break;}index+=step;}}
+    else if(event.key.length===1){typed+=event.key.toLowerCase();clearTimeout(typeTimer);typeTimer=setTimeout(()=>typed='',700);if(current!==entry)open(entry);const index=[...select.options].findIndex(option=>!option.disabled&&option.textContent.trim().toLowerCase().startsWith(typed));if(index>=0)highlight(index);}
+   });
+  });
+  if(current&&(!current.button.isConnected||current.select.closest('dialog')&&!current.select.closest('dialog').open))close();
+ }
+ let queued=false;const queue=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;init();});};
+ new MutationObserver(queue).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open']});
+ document.addEventListener('pointerdown',event=>{if(current&&!current.button.contains(event.target)&&!current.menu.contains(event.target))close();});document.addEventListener('scroll',event=>{if(current&&!current.menu.contains(event.target))close();},true);window.addEventListener('resize',close);document.addEventListener('reset',()=>setTimeout(init,0));
+ document.addEventListener('close',event=>{const dialog=event.target;dialog.querySelectorAll?.(':scope > .finance-toast-stack').forEach(stack=>document.body.append(stack));if(current&&dialog.contains(current.select))close();},true);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+
+
+</script><script>
 window.masterNoteMutation=false;
 window.masterNoteToast=function(message,type='success'){
  const active=document.querySelector('dialog[open]'),host=document.getElementById('toastContainer')||document.getElementById('toast-container');
  if(host)(active||document.body).appendChild(host);
- if(typeof window.showToast==='function'){try{window.showToast(message,type);return;}catch(_){}}
+ if(typeof window.showToast==='function'&&(!active||host||window.masterNotepadEnhancements)){try{window.showToast(message,type);return;}catch(_){}}
  const node=document.createElement('div');node.textContent=message;node.setAttribute('role',type==='error'?'alert':'status');
  node.style.cssText='position:fixed;right:16px;bottom:20px;z-index:100000;max-width:calc(100vw - 32px);padding:14px 18px;border:1px solid #8161a5;border-radius:12px;background:#241b30;color:#fff;font:13px/1.6 system-ui';
  (active||document.body).appendChild(node);setTimeout(()=>node.remove(),6000);
@@ -2297,7 +2424,7 @@ async function submitNoteDelete() {
     const target=pendingNoteDeleteForm,button=document.querySelector('.note-delete-confirm');window.masterNoteMutation=true;button.disabled=true;
     try{const response=await fetch(target.getAttribute('action'),{method:'POST',body:new FormData(target),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:AbortSignal.timeout(30000)});
     if(!(response.headers.get('content-type')||'').includes('application/json'))throw Error('Please sign in again.');const data=await response.json();if(!response.ok||!data.ok)throw Error(data.message||'Could not delete note.');
-    closeNoteDeleteModal(true);window.masterNoteToast(data.message,'success');window.dispatchEvent(new CustomEvent('master-notifications-count',{detail:data.unread_count}));await window.masterRefreshNotes(true);
+    closeNoteDeleteModal(true);window.masterNoteToast(data.message||'Note deleted successfully.','success');window.dispatchEvent(new CustomEvent('master-notifications-count',{detail:data.unread_count}));await window.masterRefreshNotes(true);
     }catch(error){window.masterNoteToast(error.message,'error');}finally{window.masterNoteMutation=false;button.disabled=false;}
 }
 
@@ -2347,7 +2474,7 @@ document.addEventListener("keydown", function (event) {
         saving=true;window.masterNoteMutation=true;const submit=form.querySelector('[type="submit"]');submit.disabled=true;state.textContent='Saving…';
         try{const response=await fetch(form.getAttribute('action'),{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:AbortSignal.timeout(30000)});
         if(!(response.headers.get('content-type')||'').includes('application/json'))throw Error('Please sign in again.');const data=await response.json();if(!response.ok||!data.ok)throw Error(data.message||'Could not save note.');
-        form.reset();title.value='';content.value='';baseline=JSON.stringify([title.value,content.value]);updateWordCount();window.masterNoteToast(data.message,'success');window.dispatchEvent(new CustomEvent('master-notifications-count',{detail:data.unread_count}));
+        form.reset();title.value='';content.value='';baseline=JSON.stringify([title.value,content.value]);updateWordCount();window.masterNoteToast(data.message||'Note saved successfully.','success');window.dispatchEvent(new CustomEvent('master-notifications-count',{detail:data.unread_count}));
         history.replaceState({},'',form.getAttribute('action'));await window.masterRefreshNotes(true);
         }catch(error){state.textContent='Unsaved changes';window.masterNoteToast(error.message,'error');}finally{saving=false;window.masterNoteMutation=false;submit.disabled=false;}
     });
@@ -2555,7 +2682,7 @@ document.addEventListener("keydown", function (event) {
             JSON.parse(document.getElementById('note-content-' + id).textContent) || '';
         document.getElementById('noteViewUpdated').textContent =
             'Updated ' + card.querySelector('.note-updated').textContent.trim();
-        document.getElementById('noteViewContent').scrollTop = 0;
+        dialog.querySelector('.note-view-body').scrollTop = 0;
         dialog.showModal();
         document.body.classList.add('note-popup-open');
         document.documentElement.classList.add('note-popup-open');
