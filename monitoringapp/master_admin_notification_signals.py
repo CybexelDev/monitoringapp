@@ -5,6 +5,9 @@ from django.db import transaction
 from django.db.models.signals import post_save, post_delete
 from django.urls import reverse
 from . import models
+import logging
+
+logger = logging.getLogger(__name__)
 
 EVENTS = {
     "User": ("user", "Employee", "master_admin_usermanagement"),
@@ -39,12 +42,71 @@ def _emit(sender, instance, action, **kwargs):
     # Snapshot before deletion; do not expose passwords, private notes, or financial values.
     title, message, url = f"{label} {action}", name[:500], reverse(route)
     event = uuid4().hex
+
     def deliver():
-        recipients = get_user_model().objects.filter(is_active=True, is_superuser=True).values_list("pk", flat=True)
+        from .components.windows_push.delivery import send_windows_push
+        from .master_chat_identity import master_chat_user
+
+        recipients = list(
+            get_user_model().objects.filter(
+                is_active=True,
+                is_superuser=True
+            )
+        )
+
+        # Existing Master Admin in-app notifications
         models.AdminNotification.objects.bulk_create([
-            models.AdminNotification(auth_owner_id=pk, kind=kind, title=title,
-                message=message, url=url, event_key=f"master-event:{event}:{pk}") for pk in recipients
+            models.AdminNotification(
+                auth_owner_id=account.pk,
+                kind=kind,
+                title=title,
+                message=message,
+                url=url,
+                event_key=f"master-event:{event}:{account.pk}",
+            )
+            for account in recipients
         ])
+
+        # Windows Push for important business events
+        PUSH_KINDS = {
+            "announcement",
+            "report",
+            "task",
+            "project",
+            "meeting",
+        }
+
+        if kind not in PUSH_KINDS:
+            return
+
+        for account in recipients:
+            try:
+                person = master_chat_user(account, create=False)
+
+                if person is None:
+                    continue
+
+                result = send_windows_push(
+                    recipient=person,
+                    portal="master_admin",
+                    title=title,
+                    message=message,
+                    url=url,
+                    tag=f"master-{event}-{account.pk}",
+                )
+
+                logger.info(
+                    "Master Admin Windows Push: account=%s result=%s",
+                    account.pk,
+                    result,
+                )
+
+            except Exception:
+                logger.exception(
+                    "Master Admin Windows Push failed: account=%s",
+                    account.pk,
+                )
+
     transaction.on_commit(deliver)
 
 

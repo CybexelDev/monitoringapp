@@ -162,7 +162,7 @@ def admin_reports(request):
         ws = wb.active
         ws.title = "Team Reports"
 
-        headers = ["Report Type", "Date", "Time", "Name", "Team", "Department", "Report", "Status"]
+        headers = ["Report Type", "Date", "Time", "Name", "Department", "Report", "Status"]
         ws.append(headers)
 
         def add_report_to_sheet(report_list, report_type):
@@ -173,7 +173,6 @@ def admin_reports(request):
                     local_dt.strftime("%Y-%m-%d"),
                     local_dt.strftime("%I:%M %p"),
                     getattr(report.user, "name", report.user.username),
-                    report.team,
                     report.department,
                     report.report_text,
                     getattr(report, "status", ""),
@@ -182,11 +181,11 @@ def admin_reports(request):
         add_report_to_sheet(morning_reports, "Morning")
         add_report_to_sheet(evening_reports, "Evening")
 
-        for row in ws.iter_rows(min_row=2, min_col=7, max_col=7):
+        for row in ws.iter_rows(min_row=2, min_col=6, max_col=6):
             for cell in row:
                 cell.alignment = Alignment(wrap_text=True, vertical="top")
 
-        column_widths = [15, 15, 12, 20, 15, 20, 50, 15]
+        column_widths = [15, 15, 12, 20, 20, 50, 15]
         for i, width in enumerate(column_widths, start=1):
             ws.column_dimensions[get_column_letter(i)].width = width
 
@@ -485,17 +484,9 @@ def admin_dashboard(request):
                         if not Designation.objects.filter(department=department, name__iexact=name).exists():
                             Designation.objects.create(department=department, name=name)
                     return finish("Designations saved successfully.")
-                if "add_team" in request.POST:
-                    name = request.POST.get("team_name", "").strip()
-                    if not name or len(name) > 100:
-                        return finish("Enter a team name with up to 100 characters.", False)
-                    if Team.objects.filter(name__iexact=name).exists():
-                        return finish("This team already exists.", False)
-                    Team.objects.create(name=name)
-                    return finish("Team added successfully.")
                 return finish("Invalid dashboard action.", False)
         except IntegrityError:
-            return finish("This department, team or designation already exists.", False)
+            return finish("This department or designation already exists.", False)
 
     from django.core.paginator import Paginator
     from django.db.models import Count, Q
@@ -504,9 +495,7 @@ def admin_dashboard(request):
     if managed is None:
         request.session.flush()
         return redirect("login_view")
-    all_teams = list(Team.objects.order_by("name"))
     department_ids = set(Department.objects.values_list("pk", flat=True))
-    team_ids = {team.pk for team in all_teams}
 
     def selected_id(name, allowed):
         try:
@@ -516,17 +505,11 @@ def admin_dashboard(request):
         return value if value in allowed else None
 
     department_id = selected_id("department", department_ids)
-    team_id = selected_id("team", team_ids)
-    department_teams = {}
-    for dept_id, assigned_team in managed.exclude(department_id=None).exclude(team_id=None).values_list("department_id", "team_id").distinct():
-        department_teams.setdefault(str(dept_id), []).append(assigned_team)
-    if department_id and team_id not in department_teams.get(str(department_id), []):
-        team_id = None
+
     employees = managed
     if department_id:
         employees = employees.filter(department_id=department_id)
-    if team_id:
-        employees = employees.filter(team_id=team_id)
+
     employee_counts = employees.aggregate(
         total=Count("pk"),
         leads=Count("pk", filter=Q(job_Position__iexact="Team Lead")),
@@ -534,16 +517,13 @@ def admin_dashboard(request):
         active=Count("pk", filter=Q(status__iexact="active")),
         inactive=Count("pk", filter=Q(status__iexact="inactive")),
     )
-    employee_page = Paginator(employees.select_related("department", "team").order_by("name", "pk"), 25).get_page(request.GET.get("page"))
+    employee_page = Paginator(employees.select_related("department").order_by("name", "pk"), 25).get_page(request.GET.get("page"))
 
     departments = list(Department.objects.prefetch_related("designations").order_by("name"))
     return render(request, "admin_panel/admin_dashboard.html", {
         "departments": departments,
         "department_editor_items": {str(dept.pk): {"name": dept.name, "designations": [{"id": item.pk, "name": item.name} for item in dept.designations.all()]} for dept in departments},
-        "teams": all_teams,
         "filter_department": str(department_id) if department_id else "",
-        "filter_team": str(team_id) if team_id else "",
-        "department_team_options": department_teams,
         "employee_page": employee_page,
         "employee_counts": employee_counts,
     })
@@ -772,7 +752,7 @@ def admin_usermanagement(request):
         ).order_by("name").values_list("name", flat=True))
         return JsonResponse({"ok": True, "items": names})
 
-    users = managed_users.select_related("department", "team").order_by("-id")
+    users = managed_users.select_related("department").order_by("-id")
 
     # Hide currently logged-in management/admin user
     current_user_id = request.session.get("user_id")
@@ -780,7 +760,6 @@ def admin_usermanagement(request):
     if current_user_id:
         users = users.exclude(id=current_user_id)
     departments = Department.objects.all()
-    teams = Team.objects.all()
     job_positions = (
         managed_users.exclude(job_Position__isnull=True)
         .exclude(job_Position__exact="")
@@ -806,7 +785,6 @@ def admin_usermanagement(request):
         email = request.POST.get("email")
         phone = request.POST.get("phone")
         department_id = request.POST.get("department")
-        team_id = request.POST.get("team")
         job_Position = request.POST.get("job_Position")
         designation = request.POST.get("designation")
         work_location = _retain_work_location("", request.POST.get("work_location"))
@@ -823,7 +801,6 @@ def admin_usermanagement(request):
 
         # Foreign key fetch
         department = Department.objects.get(id=department_id) if department_id else None
-        team = Team.objects.get(id=team_id) if team_id else None
 
         # Helper for uniqueness validation
         def check_unique(field_name, value):
@@ -853,7 +830,6 @@ def admin_usermanagement(request):
             user.email = email
             user.phone = phone
             user.department = department
-            user.team = team
             user.job_Position = job_Position
             user.designation = designation
             user.work_location = _retain_work_location(user.work_location, work_location)
@@ -897,7 +873,6 @@ def admin_usermanagement(request):
                     email=email,
                     phone=phone,
                     department=department,
-                    team=team,
                     job_Position=job_Position,
                     designation=designation,
                     work_location=work_location,
@@ -920,7 +895,6 @@ def admin_usermanagement(request):
 
     search = request.GET.get("search", "").strip()
     department_filter = request.GET.get("department", "")
-    team_filter = request.GET.get("team", "")
     position_filter = request.GET.get("position", "")
 
     if search:
@@ -933,16 +907,12 @@ def admin_usermanagement(request):
     if department_filter:
         users = users.filter(department__name=department_filter)
 
-    if team_filter:
-        users = users.filter(team__name=team_filter)
-
     if position_filter:
         users = users.filter(job_Position=position_filter)
 
     context = {
         "users": users,
         "departments": departments,
-        "teams": teams,
         "job_positions": job_positions,
         "designation_options": _department_designation_options(),
     }
@@ -1114,7 +1084,6 @@ def edit_user(request):
         password = request.POST.get("edit_password")
         joining_date = request.POST.get("edit_joining_date")
         dept_id = request.POST.get("edit_department")
-        team_id = request.POST.get("edit_team")
 
         designation = (designation or "").strip()
         if not _valid_department_designation(dept_id, designation):
@@ -1144,12 +1113,12 @@ def edit_user(request):
         if password:
             user.password = make_password(password)
 
-        # Department & Team
+
+        # Department
         try:
             user.department = Department.objects.get(id=dept_id) if dept_id else None
-            user.team = Team.objects.get(id=team_id) if team_id else None
-        except (Department.DoesNotExist, Team.DoesNotExist, ValueError, TypeError):
-            return finish("Choose a valid department and team.")
+        except (Department.DoesNotExist, ValueError, TypeError):
+            return finish("Choose a valid department.")
 
         # Joining Date
         if joining_date:
@@ -10236,7 +10205,7 @@ def master_admin_dashboard(request):
     from django.http import HttpResponseForbidden, JsonResponse
     from django.shortcuts import redirect, render
     from django.utils import timezone
-    from .models import User as Employee, Department, Team
+    from .models import User as Employee, Department
     from .models import AccountsIncome, AccountsExpense, AccountsSale
 
     json_request = request.GET.get("format") == "json"
@@ -10265,17 +10234,24 @@ def master_admin_dashboard(request):
     counts["inactive"] = counts["users"] - counts["active"]
     counts["master_admins"] = get_user_model().objects.filter(is_superuser=True, is_active=True).count()
     counts["departments"] = Department.objects.count()
-    counts["teams"] = Team.objects.count()
 
     def month_total(model):
         total = model.objects.filter(date__gte=month_start, date__lt=next_month).aggregate(total=Sum("amount"))["total"]
         return format(total if total is not None else Decimal("0.00"), ".2f")
 
     financial = {"income": month_total(AccountsIncome), "expenses": month_total(AccountsExpense), "sales": month_total(AccountsSale)}
-    recent_users = [{"id": item.pk, "name": item.name, "employee_id": item.employee_id,
-        "role": item.job_Position, "department": item.department.name if item.department else "Not assigned",
-        "team": item.team.name if item.team else "Not assigned"}
-        for item in employees.select_related("department", "team").order_by("-id")[:10]]
+    recent_users = [
+        {
+            "id": item.pk,
+            "name": item.name,
+            "employee_id": item.employee_id,
+            "role": item.job_Position,
+            "department": (
+                item.department.name if item.department else "Not assigned"
+            ),
+        }
+        for item in employees.select_related("department").order_by("-id")[:10]
+    ]
     payload = {"ok": True, "counts": counts, "financial": financial, "recent_users": recent_users,
         "month_label": month_start.strftime("%B %Y"),
         "updated_at": timezone.localtime(now).strftime("%d %b %Y, %I:%M:%S %p")}
@@ -10304,7 +10280,7 @@ def _master_employee_form(data=None, files=None, instance=None):
 
         class Meta:
             model = Employee
-            fields = ["employee_id", "name", "email", "phone", "department", "team",
+            fields = ["employee_id", "name", "email", "phone", "department",
                       "job_Position", "designation", "work_location", "username", "profile_image", "status"]
 
         def __init__(self, *args, **kwargs):
@@ -10392,7 +10368,7 @@ def _master_employee_save(request, instance=None):
     editing = instance is not None
     keys = {
         "employee_id": "edit_emp_id", "name": "edit_name", "email": "edit_email",
-        "phone": "edit_phone", "department": "edit_department", "team": "edit_team",
+        "phone": "edit_phone", "department": "edit_department",
         "job_Position": "edit_job_position", "designation": "edit_designation",
         "work_location": "edit_work_location", "username": "edit_username",
         "status": "edit_status",
@@ -10434,7 +10410,7 @@ def master_admin_usermanagement(request):
     from django.db.models import Q
     from django.http import HttpResponseForbidden, JsonResponse
     from django.utils import timezone
-    from .models import User as Employee, Department, Team, Designation
+    from .models import User as Employee, Department, Designation
 
     if not _master_admin_allowed(request):
         if request.method == "POST" or request.headers.get("X-Requested-With") == "XMLHttpRequest":
@@ -10454,18 +10430,16 @@ def master_admin_usermanagement(request):
         return JsonResponse({"ok": True, "items": list(Designation.objects.filter(
             department_id=department_id).order_by("name").values_list("name", flat=True))})
 
-    users = Employee.objects.select_related("department", "team").order_by("-id")
+    users = Employee.objects.select_related("department").order_by("-id")
     query = request.GET.get("search", "").strip()[:200]
     if query:
         users = users.filter(Q(name__icontains=query) | Q(email__icontains=query)
                              | Q(employee_id__icontains=query) | Q(username__icontains=query))
     department = request.GET.get("department", "")
-    team = request.GET.get("team", "")
     position = request.GET.get("position", "")
     if department:
         users = users.filter(department__name=department)
-    if team:
-        users = users.filter(team__name=team)
+
     if position:
         users = users.filter(job_Position=position)
     total = users.count()
@@ -10478,7 +10452,7 @@ def master_admin_usermanagement(request):
                    | {"Management", "Team Lead", "Team Member", "Accounts"})
     return render(request, "master_admin/master_admin_usermanagement.html", {
         "users": page.object_list, "page_obj": page, "total_filtered": total,
-        "departments": Department.objects.order_by("name"), "teams": Team.objects.order_by("name"),
+        "departments": Department.objects.order_by("name"),
         "job_positions": roles, "designation_options": catalog,
     })
 
@@ -10730,15 +10704,15 @@ def master_admin_reports(request):
         wb = Workbook()
         ws = wb.active
         ws.title = "Team Reports"
-        ws.append(["Report Type", "Date", "Time", "Name", "Team", "Department", "Report", "Status"])
+        ws.append(["Report Type", "Date", "Time", "Name", "Department", "Report", "Status"])       
         for rows, label in ((morning, "Morning"), (evening, "Evening")):
             for report in rows.iterator(chunk_size=500):
                 stamp = report.created_at
                 if timezone.is_aware(stamp):
                     stamp = timezone.localtime(stamp)
                 values = [label, stamp.strftime("%Y-%m-%d"), stamp.strftime("%I:%M %p"),
-                          report.user.name or report.user.username, report.team,
-                          report.department, report.report_text, report.status]
+                        report.user.name or report.user.username,
+                        report.department, report.report_text, report.status]
                 ws.append([ILLEGAL_CHARACTERS_RE.sub("", str(value or "")) for value in values])
                 # Treat all employee-entered content as text, including strings starting with '='.
                 for cell in ws[ws.max_row]:
@@ -10747,7 +10721,7 @@ def master_admin_reports(request):
         for cell in ws[1]:
             cell.font = Font(bold=True, color="FFFFFF")
             cell.fill = PatternFill("solid", fgColor="7351A4")
-        for index, width in enumerate([15, 15, 12, 24, 20, 24, 65, 18], 1):
+        for index, width in enumerate([15, 15, 12, 24, 24, 65, 18], 1):
             ws.column_dimensions[get_column_letter(index)].width = width
         ws.freeze_panes = "A2"
         ws.auto_filter.ref = ws.dimensions
@@ -11903,11 +11877,17 @@ from django.views.decorators.http import require_http_methods, require_POST
 from .models import Task, User, Team, TeamLeadNotification, MasterAdminTaskAudit
 
 
-def _master_task_people():
-    return User.objects.annotate(task_role=Lower(Trim("job_Position"))).filter(
-        task_role__in=["team lead", "team_lead", "team member", "team_member"]
-    ).select_related("team", "department").order_by("name", "pk")
+# def _master_task_people():
+#     return User.objects.annotate(task_role=Lower(Trim("job_Position"))).filter(
+#         task_role__in=["team lead", "team_lead", "team member", "team_member"]
+#     ).select_related("team", "department").order_by("name", "pk")
 
+def _master_task_people():
+    return User.objects.annotate(
+        task_role=Lower(Trim("job_Position"))
+    ).filter(
+        task_role__in=["team lead", "team_lead", "team member", "team_member"]
+    ).select_related("department").order_by("name", "pk")
 
 class MasterAdminTaskForm(forms.ModelForm):
     class Meta:
@@ -11987,7 +11967,7 @@ def master_admin_tasks(request):
             task.save()
             _master_task_record(request, task, "created")
         return JsonResponse({"ok": True, "message": "Task assigned successfully.", "id": task.pk}, status=201)
-    tasks = Task.objects.select_related("assigned_to__team", "assigned_to__department", "created_by").annotate(
+    tasks = Task.objects.select_related("assigned_to__department", "created_by").annotate(
         task_role=Lower(Trim("assigned_to__job_Position")))
     tab = request.GET.get("tab", "all")
     if tab not in {"all", "leads", "members"}:
@@ -12000,11 +11980,6 @@ def master_admin_tasks(request):
     if query:
         tasks = tasks.filter(Q(title__icontains=query) | Q(description__icontains=query)
             | Q(assigned_to__name__icontains=query) | Q(created_by__name__icontains=query))
-    team = request.GET.get("team", "")
-    if team.isdigit():
-        tasks = tasks.filter(assigned_to__team_id=int(team))
-    else:
-        team = ""
     state = request.GET.get("status", "")
     if state in dict(Task.STATUS_CHOICES):
         tasks = tasks.filter(status=state)
@@ -12021,15 +11996,16 @@ def master_admin_tasks(request):
         item.creator_label = (item.created_by.name if item.created_by else
             "Master Admin: " + creators[item.pk] if item.pk in creators else "Not recorded")
         data.append({"id": item.pk, **_master_task_snapshot(item), "assignee": item.assigned_to.name,
-            "creator": item.creator_label, "team": item.assigned_to.team.name if item.assigned_to.team else "No team"})
+            "creator": item.creator_label})
     page.object_list = items
     params = request.GET.copy()
     params.pop("page", None)
     params.pop("fragment", None)
     params.pop("tab", None)
+    params.pop("team", None)
     return render(request, "master_admin/master_admin_tasks.html", {
-        "master_tasks_active": True, "task_tab": tab, "query": query, "selected_team": team,
-        "selected_status": state, "teams": Team.objects.order_by("name"), "people": _master_task_people(),
+        "master_tasks_active": True, "task_tab": tab, "query": query,
+        "selected_status": state, "people": _master_task_people(),
         "page_obj": page, "task_items": data, "filter_params": params.urlencode(),
         "total_tasks": sum(counts.values()), "pending_tasks": counts.get("pending", 0),
         "in_progress_tasks": counts.get("in_progress", 0), "completed_tasks": counts.get("completed", 0),
@@ -12110,13 +12086,13 @@ from .models import ProjectAssign, ProjectFile, ProjectImage, User, Team, Depart
 def _master_project_people():
     return User.objects.annotate(project_role=Lower(Trim("job_Position"))).filter(
         project_role__in=["team lead", "team_lead", "team member", "team_member"]
-    ).select_related("team", "department").order_by("name", "pk")
+    ).select_related( "department").order_by("name", "pk")
 
 
 class MasterAdminProjectForm(forms.ModelForm):
     class Meta:
         model = ProjectAssign
-        fields = ["team", "department", "assign_to", "assigned_by", "work_name", "work_type",
+        fields = ["department", "assign_to", "assigned_by", "work_name", "work_type",
             "category", "description", "deadline", "additional_notes", "color_preference",
             "content_example", "priority", "status"]
 
@@ -12137,16 +12113,22 @@ class MasterAdminProjectForm(forms.ModelForm):
 
     def clean(self):
         data = super().clean()
-        team, department = data.get("team"), data.get("department")
-        assignee, owner = data.get("assign_to"), data.get("assigned_by")
-        if team and assignee and assignee.team_id != team.pk:
-            self.add_error("assign_to", "Choose someone from the selected team.")
+        department = data.get("department")
+        assignee = data.get("assign_to")
+        owner = data.get("assigned_by")
+
         if department and assignee and assignee.department_id != department.pk:
-            self.add_error("assign_to", "Choose someone from the selected department.")
-        if team and owner and owner.team_id != team.pk:
-            self.add_error("assigned_by", "Choose a responsible lead from the selected team.")
+            self.add_error(
+                "assign_to",
+                "Choose someone from the selected department.",
+            )
+
         if department and owner and owner.department_id != department.pk:
-            self.add_error("assigned_by", "Choose a responsible lead from the selected department.")
+            self.add_error(
+                "assigned_by",
+                "Choose a responsible lead from the selected department.",
+            )
+
         return data
 
 
@@ -12223,11 +12205,7 @@ def master_admin_projects(request):
     if query:
         projects = projects.filter(Q(work_name__icontains=query) | Q(description__icontains=query)
             | Q(assign_to__name__icontains=query) | Q(assigned_by__name__icontains=query))
-    team, department = request.GET.get("team", ""), request.GET.get("department", "")
-    if team.isdigit():
-        projects = projects.filter(team_id=int(team))
-    else:
-        team = ""
+    department = request.GET.get("department", "")
     if department.isdigit():
         projects = projects.filter(department_id=int(department))
     else:
@@ -12261,7 +12239,6 @@ def master_admin_projects(request):
                 attachments.append({"name": field.name.split("/")[-1], "url": field.url})
         data.append({"id": item.pk, **_master_project_snapshot(item), "assignee_name": item.assign_to.name,
             "owner_name": item.assigned_by.name,
-            "team_name": item.team.name if item.team else "—",
             "department_name": item.department.name,
             "recorded_by": item.recorded_by_name, "attachments": attachments})
     page.object_list = items
@@ -12270,10 +12247,10 @@ def master_admin_projects(request):
     people = list(_master_project_people())
     return render(request, "master_admin/master_admin_projects.html", {
         "master_projects_active": True, "page_obj": page, "project_items": data,
-        "query": query, "selected_team": team, "selected_department": department,
+        "query": query, "selected_department": department,
         "selected_status": state, "selected_priority": priority, "filter_params": params.urlencode(),
-        "teams": Team.objects.order_by("name"), "departments": Department.objects.order_by("name"),
-        "people": people, "people_data": [{"id": p.pk, "name": p.name, "team": p.team_id,
+        "departments": Department.objects.order_by("name"),
+        "people": people, "people_data": [{"id": p.pk, "name": p.name,
             "department": p.department_id, "role": p.project_role} for p in people],
         "statuses": ProjectAssign.STATUS_CHOICES, "priorities": ProjectAssign.PRIORITY_CHOICES,
         "total_projects": sum(counts.values()), "ongoing_projects": counts.get("In Progress", 0),

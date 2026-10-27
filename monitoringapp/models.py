@@ -341,8 +341,12 @@ class ProjectAssign(models.Model):
         ("On Hold", "On Hold"),
         ("Completed", "Completed"),
     )
-
-    team = models.ForeignKey("Team", on_delete=models.CASCADE)
+    team = models.ForeignKey(
+        "Team",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
     department = models.ForeignKey("Department", on_delete=models.CASCADE)
     assign_to = models.ForeignKey("User", related_name="assigned_works", on_delete=models.CASCADE)
     assigned_by = models.ForeignKey("User", related_name="given_works", on_delete=models.CASCADE)
