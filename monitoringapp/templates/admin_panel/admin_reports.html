@@ -1,6 +1,6 @@
 {% extends 'admin_panel/base.html' %}
 {% load static %}
-{% block title %}Team Reports - Cybexel{% endblock %}
+{% block title %}Admin Reports - Cybexel{% endblock %}
 {% block page_class %}admin-reports-page{% endblock %}
 {% block extra_css %}
 <style>
@@ -1535,7 +1535,6 @@ body.admin-reports-page .report-section-view svg {width:18px;height:18px;}
 
                                     <th>Name</th>
 
-                                    <th>Team</th>
 
                                     <th>Department</th>
 
@@ -1575,10 +1574,6 @@ body.admin-reports-page .report-section-view svg {width:18px;height:18px;}
                                     </td>
 
                                     <td>
-                                        {{ report.team }}
-                                    </td>
-
-                                    <td>
                                         {{ report.department }}
                                     </td>
 
@@ -1605,7 +1600,7 @@ body.admin-reports-page .report-section-view svg {width:18px;height:18px;}
                                 <tr>
 
                                     <td
-                                        colspan="7"
+                                        colspan="6"
                                         class="empty-row"
                                     >
                                         No morning reports found
@@ -1671,7 +1666,6 @@ body.admin-reports-page .report-section-view svg {width:18px;height:18px;}
 
                                     <th>Name</th>
 
-                                    <th>Team</th>
 
                                     <th>Department</th>
 
@@ -1710,9 +1704,7 @@ body.admin-reports-page .report-section-view svg {width:18px;height:18px;}
 
                                     </td>
 
-                                    <td>
-                                        {{ report.team }}
-                                    </td>
+                                   
 
                                     <td>
                                         {{ report.department }}
@@ -1741,7 +1733,7 @@ body.admin-reports-page .report-section-view svg {width:18px;height:18px;}
                                 <tr>
 
                                     <td
-                                        colspan="7"
+                                        colspan="6"
                                         class="empty-row"
                                     >
                                         No evening reports found
@@ -2141,14 +2133,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function readReport(row) {
     const columns = [...row.cells];
-    if (columns.length < 7 || row.querySelector('.empty-row')) return null;
+    if (columns.length < 6 || row.querySelector('.empty-row')) return null;
     return {
-      date: columns[0].textContent.trim(), time: columns[1].textContent.trim(),
-      name: columns[2].textContent.trim(), team: columns[3].textContent.trim(),
-      department: columns[4].textContent.trim(),
-      report: columns[5].querySelector('.report-text')?.textContent.trim() || '',
-      status: columns[6].textContent.trim(),
-      period: row.closest('.report-section')?.querySelector('.section-heading h2')?.textContent.trim() || 'Reports'
+    date: columns[0].textContent.trim(),
+    time: columns[1].textContent.trim(),
+    name: columns[2].textContent.trim(),
+    department: columns[3].textContent.trim(),
+    report: columns[4].querySelector('.report-text')?.textContent.trim() || '',
+    status: columns[5].textContent.trim(),
     };
   }
   function el(tag, cls, content) {
@@ -2187,7 +2179,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (normalized === 'pending') status.classList.add('is-pending');
         headingRow.append(el('strong','',report.name || '—'),status);
         item.append(headingRow,
-          el('p','report-view-section-meta',`${report.date} · ${report.time} · ${report.team} · ${report.department}`),
+          el('p','report-view-section-meta',`${report.date} · ${report.time} · ${report.department}`),
           el('p','report-view-section-text',report.report || '—'));
         list.appendChild(item);
       });

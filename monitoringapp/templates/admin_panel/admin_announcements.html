@@ -3,2162 +3,2710 @@
 {% block title %}Admin Announcements - Cybexel{% endblock %}
 {% block page_class %}admin-announcements-page{% endblock %}
 {% block extra_css %}<style>
-body.admin-announcements-page .dashboard-box{
-            width: 100%;
-            height: 100%;
+    body.admin-announcements-page .dashboard-box {
+        width: 100%;
+        height: 100%;
 
-            padding: 16px;
+        padding: 16px;
 
-            overflow-y: auto;
-            overflow-x: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
 
-            border-radius: 28px;
+        border-radius: 28px;
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(17, 16, 24, 0.94),
-                    rgba(8, 9, 14, 0.96)
-                );
+        background:
+            linear-gradient(145deg,
+                rgba(17, 16, 24, 0.94),
+                rgba(8, 9, 14, 0.96));
 
-            border:
-                1px solid rgba(255, 255, 255, 0.10);
+        border:
+            1px solid rgba(255, 255, 255, 0.10);
 
-            box-shadow:
-                0 25px 80px rgba(0, 0, 0, 0.35),
-                inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        box-shadow:
+            0 25px 80px rgba(0, 0, 0, 0.35),
+            inset 0 1px 0 rgba(255, 255, 255, 0.035);
 
-            scrollbar-width: thin;
+        scrollbar-width: thin;
 
-            scrollbar-color:
-                rgba(151, 112, 235, 0.65)
-                transparent;
-        }
-body.admin-announcements-page .dashboard-box::-webkit-scrollbar{
-            width: 6px;
-        }
-body.admin-announcements-page .dashboard-box::-webkit-scrollbar-thumb{
-            background:
-                linear-gradient(
-                    180deg,
-                    #8b5cf6,
-                    #4f46e5
-                );
+        scrollbar-color:
+            rgba(151, 112, 235, 0.65) transparent;
+    }
 
-            border-radius: 20px;
-        }
-body.admin-announcements-page .dashboard-header{
-            position: relative;
+    body.admin-announcements-page .dashboard-box::-webkit-scrollbar {
+        width: 6px;
+    }
 
-            min-height: 155px;
+    body.admin-announcements-page .dashboard-box::-webkit-scrollbar-thumb {
+        background:
+            linear-gradient(180deg,
+                #8b5cf6,
+                #4f46e5);
 
-            display: flex;
-            align-items: center;
+        border-radius: 20px;
+    }
 
-            padding: 28px 32px;
+    body.admin-announcements-page .dashboard-header {
+        position: relative;
 
-            border-radius: 25px;
+        min-height: 155px;
 
-            overflow: hidden;
+        display: flex;
+        align-items: center;
 
-            background:
-                linear-gradient(
-                    110deg,
-                    rgba(44, 32, 55, 0.62),
-                    rgba(18, 23, 31, 0.72),
-                    rgba(30, 31, 59, 0.62)
-                );
+        padding: 28px 32px;
 
-            border:
-                1px solid rgba(255, 255, 255, 0.10);
-        }
-body.admin-announcements-page .dashboard-header::before{
-            content: "";
+        border-radius: 25px;
 
-            position: absolute;
+        overflow: hidden;
 
-            width: 260px;
-            height: 260px;
+        background:
+            linear-gradient(110deg,
+                rgba(44, 32, 55, 0.62),
+                rgba(18, 23, 31, 0.72),
+                rgba(30, 31, 59, 0.62));
 
-            top: -130px;
-            right: -100px;
+        border:
+            1px solid rgba(255, 255, 255, 0.10);
+    }
 
-            background:
-                rgba(99, 102, 241, 0.13);
+    body.admin-announcements-page .dashboard-header::before {
+        content: "";
 
-            filter: blur(80px);
-        }
-body.admin-announcements-page .dashboard-header-content{
-            position: relative;
+        position: absolute;
 
-            z-index: 2;
+        width: 260px;
+        height: 260px;
 
-            width: 100%;
+        top: -130px;
+        right: -100px;
 
-            display: flex;
+        background:
+            rgba(99, 102, 241, 0.13);
 
-            align-items: center;
+        filter: blur(80px);
+    }
 
-            justify-content: space-between;
+    body.admin-announcements-page .dashboard-header-content {
+        position: relative;
 
-            gap: 25px;
-        }
-body.admin-announcements-page .dashboard-eyebrow{
-            margin-bottom: 12px;
+        z-index: 2;
 
-            color: #a78bfa;
+        width: 100%;
 
-            font-size: 10px;
+        display: flex;
 
-            font-weight: 800;
+        align-items: center;
 
-            letter-spacing: 3px;
-        }
-body.admin-announcements-page .dashboard-header h1{
-            margin: 0;
+        justify-content: space-between;
 
-            font-size:
-                clamp(34px, 4vw, 52px);
+        gap: 25px;
+    }
 
-            line-height: 1;
+    body.admin-announcements-page .dashboard-eyebrow {
+        margin-bottom: 12px;
 
-            font-weight: 900;
+        color: #a78bfa;
 
-            letter-spacing: -2px;
+        font-size: 10px;
 
-            background:
-                linear-gradient(
-                    90deg,
-                    #ffffff,
-                    #c4b5fd,
-                    #67c8ff
-                );
+        font-weight: 800;
 
-            -webkit-background-clip: text;
-            background-clip: text;
+        letter-spacing: 3px;
+    }
 
-            -webkit-text-fill-color: transparent;
-        }
-body.admin-announcements-page .dashboard-header p{
-            margin: 16px 0 0;
+    body.admin-announcements-page .dashboard-header h1 {
+        margin: 0;
 
-            color: #96939e;
+        font-size:
+            clamp(34px, 4vw, 52px);
 
-            font-size: 13px;
-        }
-body.admin-announcements-page .system-status{
-            display: flex;
+        line-height: 1;
 
-            align-items: center;
+        font-weight: 900;
 
-            gap: 9px;
+        letter-spacing: -2px;
 
-            flex-shrink: 0;
+        background:
+            linear-gradient(90deg,
+                #ffffff,
+                #c4b5fd,
+                #67c8ff);
 
-            padding: 9px 17px;
+        -webkit-background-clip: text;
+        background-clip: text;
 
-            border-radius: 30px;
+        -webkit-text-fill-color: transparent;
+    }
 
-            color: #9ee7ba;
+    body.admin-announcements-page .dashboard-header p {
+        margin: 16px 0 0;
 
-            font-size: 11px;
+        color: #96939e;
 
-            background:
-                rgba(52, 211, 153, 0.055);
+        font-size: 13px;
+    }
 
-            border:
-                1px solid rgba(52, 211, 153, 0.17);
-        }
-body.admin-announcements-page .status-dot{
-            width: 8px;
-            height: 8px;
+    body.admin-announcements-page .system-status {
+        display: flex;
 
-            border-radius: 50%;
+        align-items: center;
 
-            background: #4ade80;
+        gap: 9px;
 
-            box-shadow:
-                0 0 12px rgba(74, 222, 128, 0.75);
-        }
-body.admin-announcements-page .dashboard-content{
-            padding: 24px 0 30px;
-        }
-body.admin-announcements-page .section-heading{
-            display: flex;
+        flex-shrink: 0;
 
-            align-items: center;
+        padding: 9px 17px;
 
-            gap: 18px;
+        border-radius: 30px;
 
-            margin-bottom: 13px;
-        }
-body.admin-announcements-page .section-title-block{
-            flex-shrink: 0;
-        }
-body.admin-announcements-page .section-eyebrow{
-            display: block;
+        color: #9ee7ba;
 
-            margin-bottom: 5px;
+        font-size: 11px;
 
-            color: #a78bfa;
+        background:
+            rgba(52, 211, 153, 0.055);
 
-            font-size: 9px;
+        border:
+            1px solid rgba(52, 211, 153, 0.17);
+    }
 
-            font-weight: 800;
+    body.admin-announcements-page .status-dot {
+        width: 8px;
+        height: 8px;
 
-            letter-spacing: 2.5px;
-        }
-body.admin-announcements-page .section-heading h2{
-            margin: 0;
+        border-radius: 50%;
 
-            color: #ffffff;
+        background: #4ade80;
 
-            font-size: 19px;
+        box-shadow:
+            0 0 12px rgba(74, 222, 128, 0.75);
+    }
 
-            font-weight: 800;
-        }
-body.admin-announcements-page .heading-line{
-            flex: 1;
+    body.admin-announcements-page .dashboard-content {
+        padding: 24px 0 30px;
+    }
 
-            height: 1px;
+    body.admin-announcements-page .section-heading {
+        display: flex;
 
-            background:
-                linear-gradient(
-                    90deg,
-                    rgba(255, 255, 255, 0.12),
-                    transparent
-                );
-        }
-body.admin-announcements-page .create-card{
-            margin-bottom: 24px;
+        align-items: center;
 
-            padding: 18px;
+        gap: 18px;
 
-            border-radius: 20px;
+        margin-bottom: 13px;
+    }
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(27, 26, 34, 0.90),
-                    rgba(16, 16, 22, 0.92)
-                );
+    body.admin-announcements-page .section-title-block {
+        flex-shrink: 0;
+    }
 
-            border:
-                1px solid rgba(255, 255, 255, 0.09);
+    body.admin-announcements-page .section-eyebrow {
+        display: block;
 
-            box-shadow:
-                0 20px 50px rgba(0, 0, 0, 0.18),
-                inset 0 1px 0 rgba(255, 255, 255, 0.035);
-        }
-body.admin-announcements-page .create-card-header{
-            display: flex;
+        margin-bottom: 5px;
 
-            align-items: center;
+        color: #a78bfa;
 
-            gap: 12px;
+        font-size: 9px;
 
-            margin-bottom: 14px;
-        }
-body.admin-announcements-page .create-icon{
-            width: 38px;
-            height: 38px;
+        font-weight: 800;
 
-            flex-shrink: 0;
+        letter-spacing: 2.5px;
+    }
 
-            display: flex;
+    body.admin-announcements-page .section-heading h2 {
+        margin: 0;
 
-            align-items: center;
-            justify-content: center;
+        color: #ffffff;
 
-            border-radius: 11px;
+        font-size: 19px;
 
-            color: #c4b5fd;
+        font-weight: 800;
+    }
 
-            background:
-                rgba(139, 92, 246, 0.12);
+    body.admin-announcements-page .heading-line {
+        flex: 1;
 
-            border:
-                1px solid rgba(139, 92, 246, 0.20);
-        }
-body.admin-announcements-page .create-icon svg{
-            width: 18px;
-            height: 18px;
-        }
-body.admin-announcements-page .create-title{
-            margin: 0;
+        height: 1px;
 
-            color: #ffffff;
+        background:
+            linear-gradient(90deg,
+                rgba(255, 255, 255, 0.12),
+                transparent);
+    }
 
-            font-size: 14px;
+    body.admin-announcements-page .create-card {
+        margin-bottom: 24px;
 
-            font-weight: 800;
-        }
-body.admin-announcements-page .create-subtitle{
-            margin: 3px 0 0;
+        padding: 18px;
 
-            color: #77727e;
+        border-radius: 20px;
 
-            font-size: 10px;
-        }
-body.admin-announcements-page .announcement-textarea{
-            width: 100%;
+        background:
+            linear-gradient(145deg,
+                rgba(27, 26, 34, 0.90),
+                rgba(16, 16, 22, 0.92));
 
-            height: 105px;
-            min-height: 105px;
-            max-height: 180px;
+        border:
+            1px solid rgba(255, 255, 255, 0.09);
 
-            resize: vertical;
+        box-shadow:
+            0 20px 50px rgba(0, 0, 0, 0.18),
+            inset 0 1px 0 rgba(255, 255, 255, 0.035);
+    }
 
-            padding: 14px 15px;
+    body.admin-announcements-page .create-card-header {
+        display: flex;
 
-            outline: none;
+        align-items: center;
 
-            border-radius: 13px;
+        gap: 12px;
 
-            color: #f4f1f7;
+        margin-bottom: 14px;
+    }
 
-            background:
-                rgba(5, 5, 11, 0.72);
+    body.admin-announcements-page .create-icon {
+        width: 38px;
+        height: 38px;
 
-            border:
-                1px solid rgba(255, 255, 255, 0.10);
+        flex-shrink: 0;
 
-            font-size: 12px;
+        display: flex;
 
-            line-height: 1.5;
+        align-items: center;
+        justify-content: center;
 
-            transition:
-                border-color 0.2s ease,
-                box-shadow 0.2s ease;
-        }
-body.admin-announcements-page .announcement-textarea::placeholder{
-            color: #5f5b66;
-        }
-body.admin-announcements-page .announcement-textarea:focus{
-            border-color:
-                rgba(139, 92, 246, 0.60);
+        border-radius: 11px;
 
-            box-shadow:
-                0 0 0 3px
-                rgba(139, 92, 246, 0.08);
-        }
-body.admin-announcements-page .form-bottom{
-            display: flex;
+        color: #c4b5fd;
 
-            align-items: center;
+        background:
+            rgba(139, 92, 246, 0.12);
 
-            justify-content: space-between;
+        border:
+            1px solid rgba(139, 92, 246, 0.20);
+    }
 
-            gap: 20px;
+    body.admin-announcements-page .create-icon svg {
+        width: 18px;
+        height: 18px;
+    }
 
-            margin-top: 14px;
-        }
-body.admin-announcements-page .send-area{
-            display: flex;
+    body.admin-announcements-page .create-title {
+        margin: 0;
 
-            align-items: center;
+        color: #ffffff;
 
-            gap: 14px;
+        font-size: 14px;
 
-            min-width: 0;
-        }
-body.admin-announcements-page .send-label{
-            flex-shrink: 0;
+        font-weight: 800;
+    }
 
-            color: #77727e;
+    body.admin-announcements-page .create-subtitle {
+        margin: 3px 0 0;
 
-            font-size: 9px;
+        color: #77727e;
 
-            font-weight: 800;
+        font-size: 10px;
+    }
 
-            letter-spacing: 2px;
-        }
-body.admin-announcements-page .send-options{
-            display: flex;
+    body.admin-announcements-page .announcement-textarea {
+        width: 100%;
 
-            align-items: center;
+        height: 105px;
+        min-height: 105px;
+        max-height: 180px;
 
-            gap: 8px;
+        resize: vertical;
 
-            flex-wrap: wrap;
-        }
-body.admin-announcements-page .send-option{
-            min-height: 36px;
+        padding: 14px 15px;
 
-            display: inline-flex;
+        outline: none;
 
-            align-items: center;
+        border-radius: 13px;
 
-            gap: 7px;
+        color: #f4f1f7;
 
-            padding: 0 12px;
+        background:
+            rgba(5, 5, 11, 0.72);
 
-            border-radius: 10px;
+        border:
+            1px solid rgba(255, 255, 255, 0.10);
 
-            color: #aaa6b2;
+        font-size: 12px;
 
-            background:
-                rgba(255, 255, 255, 0.035);
+        line-height: 1.5;
 
-            border:
-                1px solid rgba(255, 255, 255, 0.08);
+        transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease;
+    }
 
-            font-size: 10px;
+    body.admin-announcements-page .announcement-textarea::placeholder {
+        color: #5f5b66;
+    }
 
-            font-weight: 700;
+    body.admin-announcements-page .announcement-textarea:focus {
+        border-color:
+            rgba(139, 92, 246, 0.60);
 
-            cursor: pointer;
+        box-shadow:
+            0 0 0 3px rgba(139, 92, 246, 0.08);
+    }
 
-            transition: all 0.2s ease;
-        }
-body.admin-announcements-page .send-option:hover{
-            color: #ffffff;
+    body.admin-announcements-page .form-bottom {
+        display: flex;
 
-            background:
-                rgba(139, 92, 246, 0.10);
+        align-items: center;
 
-            border-color:
-                rgba(139, 92, 246, 0.30);
-        }
-body.admin-announcements-page .send-option input{
-            width: 13px;
-            height: 13px;
+        justify-content: space-between;
 
-            accent-color: #8b5cf6;
-        }
-body.admin-announcements-page .post-button{
-            min-height: 39px;
+        gap: 20px;
 
-            flex-shrink: 0;
+        margin-top: 14px;
+    }
 
-            display: inline-flex;
+    body.admin-announcements-page .send-area {
+        display: flex;
 
-            align-items: center;
+        align-items: center;
 
-            justify-content: center;
+        gap: 14px;
 
-            gap: 8px;
+        min-width: 0;
+    }
 
-            padding: 0 16px;
+    body.admin-announcements-page .send-label {
+        flex-shrink: 0;
 
-            border: none;
+        color: #77727e;
 
-            border-radius: 11px;
+        font-size: 9px;
 
-            color: #ffffff;
+        font-weight: 800;
 
-            background:
-                linear-gradient(
-                    135deg,
-                    #7c4bd4,
-                    #5b32a7
-                );
+        letter-spacing: 2px;
+    }
 
-            font-size: 10px;
+    body.admin-announcements-page .send-options {
+        display: flex;
 
-            font-weight: 800;
+        align-items: center;
 
-            cursor: pointer;
+        gap: 8px;
 
-            box-shadow:
-                0 10px 25px rgba(124, 75, 212, 0.18);
+        flex-wrap: wrap;
+    }
 
-            transition:
-                transform 0.2s ease,
-                box-shadow 0.2s ease;
-        }
-body.admin-announcements-page .post-button:hover{
-            transform: translateY(-2px);
+    body.admin-announcements-page .send-option {
+        min-height: 36px;
 
-            box-shadow:
-                0 13px 30px rgba(124, 75, 212, 0.26);
-        }
-body.admin-announcements-page .post-button svg{
-            width: 15px;
-            height: 15px;
-        }
-body.admin-announcements-page .recipients-box{
-            display: none;
+        display: inline-flex;
 
-            margin-top: 13px;
+        align-items: center;
 
-            padding: 14px;
+        gap: 7px;
 
-            border-radius: 13px;
+        padding: 0 12px;
 
-            background:
-                rgba(5, 5, 11, 0.48);
+        border-radius: 10px;
 
-            border:
-                1px solid rgba(255, 255, 255, 0.08);
-        }
-body.admin-announcements-page .recipients-title{
-            margin: 0 0 10px;
+        color: #aaa6b2;
 
-            color: #dcd9e1;
+        background:
+            rgba(255, 255, 255, 0.035);
 
-            font-size: 10px;
+        border:
+            1px solid rgba(255, 255, 255, 0.08);
 
-            font-weight: 800;
-        }
-body.admin-announcements-page .members-grid{
-            display: grid;
+        font-size: 10px;
 
-            grid-template-columns:
-                repeat(4, minmax(0, 1fr));
+        font-weight: 700;
 
-            gap: 8px;
-        }
-body.admin-announcements-page .member-option{
-            display: flex;
+        cursor: pointer;
 
-            align-items: center;
+        transition: all 0.2s ease;
+    }
 
-            gap: 9px;
+    body.admin-announcements-page .send-option:hover {
+        color: #ffffff;
 
-            min-width: 0;
+        background:
+            rgba(139, 92, 246, 0.10);
 
-            padding: 9px 10px;
+        border-color:
+            rgba(139, 92, 246, 0.30);
+    }
 
-            border-radius: 10px;
+    body.admin-announcements-page .send-option input {
+        width: 13px;
+        height: 13px;
 
-            background:
-                rgba(255, 255, 255, 0.025);
+        accent-color: #8b5cf6;
+    }
 
-            border:
-                1px solid rgba(255, 255, 255, 0.07);
+    body.admin-announcements-page .post-button {
+        min-height: 39px;
 
-            cursor: pointer;
+        flex-shrink: 0;
 
-            transition: all 0.2s ease;
-        }
-body.admin-announcements-page .member-option:hover{
-            background:
-                rgba(139, 92, 246, 0.08);
+        display: inline-flex;
 
-            border-color:
-                rgba(139, 92, 246, 0.25);
-        }
-body.admin-announcements-page .member-option input{
-            width: 13px;
-            height: 13px;
+        align-items: center;
 
-            flex-shrink: 0;
+        justify-content: center;
 
-            accent-color: #8b5cf6;
-        }
-body.admin-announcements-page .member-info{
-            min-width: 0;
-        }
-body.admin-announcements-page .member-name{
-            margin: 0;
+        gap: 8px;
 
-            overflow: hidden;
+        padding: 0 16px;
 
-            text-overflow: ellipsis;
+        border: none;
 
-            white-space: nowrap;
+        border-radius: 11px;
 
-            color: #eeeeF4;
+        color: #ffffff;
 
-            font-size: 10px;
+        background:
+            linear-gradient(135deg,
+                #7c4bd4,
+                #5b32a7);
 
-            font-weight: 700;
-        }
-body.admin-announcements-page .member-designation{
-            margin: 2px 0 0;
+        font-size: 10px;
 
-            overflow: hidden;
+        font-weight: 800;
 
-            text-overflow: ellipsis;
+        cursor: pointer;
 
-            white-space: nowrap;
+        box-shadow:
+            0 10px 25px rgba(124, 75, 212, 0.18);
 
-            color: #6f6b75;
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
 
-            font-size: 8px;
-        }
-body.admin-announcements-page .history-card{
-            overflow: hidden;
+    body.admin-announcements-page .post-button:hover {
+        transform: translateY(-2px);
 
-            border-radius: 20px;
+        box-shadow:
+            0 13px 30px rgba(124, 75, 212, 0.26);
+    }
 
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(27, 26, 34, 0.90),
-                    rgba(16, 16, 22, 0.92)
-                );
+    body.admin-announcements-page .post-button svg {
+        width: 15px;
+        height: 15px;
+    }
 
-            border:
-                1px solid rgba(255, 255, 255, 0.09);
+    body.admin-announcements-page .recipients-box {
+        display: none;
 
-            box-shadow:
-                0 20px 50px rgba(0, 0, 0, 0.20);
-        }
-body.admin-announcements-page .history-top{
-            min-height: 48px;
+        margin-top: 13px;
 
-            display: flex;
+        padding: 14px;
 
-            align-items: center;
+        border-radius: 13px;
 
-            justify-content: space-between;
+        background:
+            rgba(5, 5, 11, 0.48);
 
-            gap: 15px;
+        border:
+            1px solid rgba(255, 255, 255, 0.08);
+    }
 
-            padding: 0 16px;
+    body.admin-announcements-page .recipients-title {
+        margin: 0 0 10px;
 
-            background:
-                linear-gradient(
-                    90deg,
-                    rgba(139,92,246,0.055),
-                    rgba(255,255,255,0.015)
-                );
+        color: #dcd9e1;
 
-            border-bottom:
-                1px solid rgba(255, 255, 255, 0.07);
-        }
-body.admin-announcements-page .history-label{
-            color: #85818d;
+        font-size: 10px;
 
-            font-size: 10px;
+        font-weight: 800;
+    }
 
-            font-weight: 700;
-        }
-body.admin-announcements-page .history-count{
-            padding: 5px 9px;
+    body.admin-announcements-page .members-grid {
+        display: grid;
 
-            border-radius: 8px;
+        grid-template-columns:
+            repeat(4, minmax(0, 1fr));
 
-            color: #c4b5fd;
+        gap: 8px;
+    }
 
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(139,92,246,0.16),
-                    rgba(99,102,241,0.08)
-                );
+    body.admin-announcements-page .member-option {
+        display: flex;
 
-            border:
-                1px solid rgba(167,139,250,0.28);
+        align-items: center;
 
-            font-size: 9px;
+        gap: 9px;
 
-            font-weight: 700;
-        }
-body.admin-announcements-page .announcement-list{
-            max-height: 500px;
+        min-width: 0;
 
-            overflow-y: auto;
-            overflow-x: hidden;
+        padding: 9px 10px;
 
-            scrollbar-width: thin;
+        border-radius: 10px;
 
-            scrollbar-color:
-                rgba(139, 92, 246, 0.75)
-                rgba(255, 255, 255, 0.03);
-        }
-body.admin-announcements-page .announcement-list::-webkit-scrollbar{
-            width: 7px;
-        }
-body.admin-announcements-page .announcement-list::-webkit-scrollbar-track{
-            background:
-                rgba(255, 255, 255, 0.025);
+        background:
+            rgba(255, 255, 255, 0.025);
 
-            border-radius: 20px;
-        }
-body.admin-announcements-page .announcement-list::-webkit-scrollbar-thumb{
-            background:
-                linear-gradient(
-                    180deg,
-                    #8b5cf6,
-                    #5b32a7
-                );
+        border:
+            1px solid rgba(255, 255, 255, 0.07);
 
-            border-radius: 20px;
-        }
-body.admin-announcements-page .announcement-item{
-            position: relative;
+        cursor: pointer;
 
-            display: flex;
+        transition: all 0.2s ease;
+    }
 
-            align-items: flex-start;
+    body.admin-announcements-page .member-option:hover {
+        background:
+            rgba(139, 92, 246, 0.08);
 
-            gap: 16px;
+        border-color:
+            rgba(139, 92, 246, 0.25);
+    }
 
-            padding: 20px 18px;
+    body.admin-announcements-page .member-option input {
+        width: 13px;
+        height: 13px;
 
-            border-bottom:
-                1px solid rgba(255,255,255,0.055);
+        flex-shrink: 0;
 
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(139,92,246,0.035),
-                    rgba(255,255,255,0.008)
-                );
+        accent-color: #8b5cf6;
+    }
 
-            transition:
-                background .25s ease,
-                box-shadow .25s ease;
-        }
-body.admin-announcements-page .announcement-item:last-child{
-            border-bottom: none;
-        }
-body.admin-announcements-page .announcement-item::before{
-            content: "";
+    body.admin-announcements-page .member-info {
+        min-width: 0;
+    }
 
-            position: absolute;
+    body.admin-announcements-page .member-name {
+        margin: 0;
 
-            left: 0;
+        overflow: hidden;
 
-            top: 18px;
-            bottom: 18px;
+        text-overflow: ellipsis;
 
-            width: 2px;
+        white-space: nowrap;
 
-            border-radius:
-                0 5px 5px 0;
+        color: #eeeeF4;
 
-            background:
-                linear-gradient(
-                    to bottom,
-                    #a855f7,
-                    #6366f1
-                );
+        font-size: 10px;
 
+        font-weight: 700;
+    }
+
+    body.admin-announcements-page .member-designation {
+        margin: 2px 0 0;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+        white-space: nowrap;
+
+        color: #6f6b75;
+
+        font-size: 8px;
+    }
+
+    body.admin-announcements-page .history-card {
+        overflow: hidden;
+
+        border-radius: 20px;
+
+        background:
+            linear-gradient(145deg,
+                rgba(27, 26, 34, 0.90),
+                rgba(16, 16, 22, 0.92));
+
+        border:
+            1px solid rgba(255, 255, 255, 0.09);
+
+        box-shadow:
+            0 20px 50px rgba(0, 0, 0, 0.20);
+    }
+
+    body.admin-announcements-page .history-top {
+        min-height: 48px;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        gap: 15px;
+
+        padding: 0 16px;
+
+        background:
+            linear-gradient(90deg,
+                rgba(139, 92, 246, 0.055),
+                rgba(255, 255, 255, 0.015));
+
+        border-bottom:
+            1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    body.admin-announcements-page .history-label {
+        color: #85818d;
+
+        font-size: 10px;
+
+        font-weight: 700;
+    }
+
+    body.admin-announcements-page .history-count {
+        padding: 5px 9px;
+
+        border-radius: 8px;
+
+        color: #c4b5fd;
+
+        background:
+            linear-gradient(135deg,
+                rgba(139, 92, 246, 0.16),
+                rgba(99, 102, 241, 0.08));
+
+        border:
+            1px solid rgba(167, 139, 250, 0.28);
+
+        font-size: 9px;
+
+        font-weight: 700;
+    }
+
+    body.admin-announcements-page .announcement-list {
+        max-height: 500px;
+
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        scrollbar-width: thin;
+
+        scrollbar-color:
+            rgba(139, 92, 246, 0.75) rgba(255, 255, 255, 0.03);
+    }
+
+    body.admin-announcements-page .announcement-list::-webkit-scrollbar {
+        width: 7px;
+    }
+
+    body.admin-announcements-page .announcement-list::-webkit-scrollbar-track {
+        background:
+            rgba(255, 255, 255, 0.025);
+
+        border-radius: 20px;
+    }
+
+    body.admin-announcements-page .announcement-list::-webkit-scrollbar-thumb {
+        background:
+            linear-gradient(180deg,
+                #8b5cf6,
+                #5b32a7);
+
+        border-radius: 20px;
+    }
+
+    body.admin-announcements-page .announcement-item {
+        position: relative;
+
+        display: flex;
+
+        align-items: flex-start;
+
+        gap: 16px;
+
+        padding: 20px 18px;
+
+        border-bottom:
+            1px solid rgba(255, 255, 255, 0.055);
+
+        background:
+            linear-gradient(135deg,
+                rgba(139, 92, 246, 0.035),
+                rgba(255, 255, 255, 0.008));
+
+        transition:
+            background .25s ease,
+            box-shadow .25s ease;
+    }
+
+    body.admin-announcements-page .announcement-item:last-child {
+        border-bottom: none;
+    }
+
+    body.admin-announcements-page .announcement-item::before {
+        content: "";
+
+        position: absolute;
+
+        left: 0;
+
+        top: 18px;
+        bottom: 18px;
+
+        width: 2px;
+
+        border-radius:
+            0 5px 5px 0;
+
+        background:
+            linear-gradient(to bottom,
+                #a855f7,
+                #6366f1);
+
+        opacity: 0;
+
+        transition:
+            opacity .25s ease;
+    }
+
+    body.admin-announcements-page .announcement-item:hover {
+        background:
+            linear-gradient(135deg,
+                rgba(139, 92, 246, 0.075),
+                rgba(99, 102, 241, 0.018));
+    }
+
+    body.admin-announcements-page .announcement-item:hover::before {
+        opacity: 1;
+    }
+
+    body.admin-announcements-page .announcement-icon {
+        width: 38px;
+        height: 38px;
+
+        min-width: 38px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 11px;
+
+        color: #c4b5fd;
+
+        background:
+            linear-gradient(145deg,
+                rgba(139, 92, 246, 0.18),
+                rgba(99, 102, 241, 0.08));
+
+        border:
+            1px solid rgba(167, 139, 250, 0.30);
+
+        box-shadow:
+            0 5px 16px rgba(124, 58, 237, 0.12);
+
+        transition:
+            all .25s ease;
+    }
+
+    body.admin-announcements-page .announcement-item:hover .announcement-icon {
+        transform: translateY(-1px);
+
+        border-color:
+            rgba(167, 139, 250, 0.55);
+
+        box-shadow:
+            0 7px 20px rgba(124, 58, 237, 0.22);
+    }
+
+    body.admin-announcements-page .announcement-icon svg {
+        width: 17px;
+        height: 17px;
+    }
+
+    body.admin-announcements-page .announcement-body {
+        flex: 1;
+
+        min-width: 0;
+    }
+
+    body.admin-announcements-page .announcement-title-row {
+        display: flex;
+
+        align-items: flex-start;
+
+        justify-content: space-between;
+
+        gap: 20px;
+    }
+
+    body.admin-announcements-page .announcement-title {
+        margin: 0;
+
+        color: #f5f3ff;
+
+        font-size: 12px;
+
+        font-weight: 800;
+
+        transition:
+            color .2s ease;
+    }
+
+    body.admin-announcements-page .announcement-item:hover .announcement-title {
+        color: #ddd6fe;
+    }
+
+    body.admin-announcements-page .announcement-message {
+        margin: 11px 0 9px;
+
+        color: #aaa6b8;
+
+        font-size: 11px;
+
+        line-height: 1.7;
+
+        white-space: pre-wrap;
+
+        word-break: break-word;
+    }
+
+    body.admin-announcements-page .announcement-meta {
+        color: #777383;
+
+        font-size: 9px;
+
+        opacity: .9;
+    }
+
+    body.admin-announcements-page .announcement-meta strong {
+        color: #a78bfa;
+
+        font-weight: 700;
+    }
+
+    body.admin-announcements-page .edited-label {
+        color: #a78bfa;
+
+        font-weight: 700;
+    }
+
+    body.admin-announcements-page .announcement-actions {
+        display: flex;
+
+        align-items: center;
+
+        gap: 7px;
+
+        flex-shrink: 0;
+    }
+
+    body.admin-announcements-page .announcement-action {
+        width: 32px !important;
+        height: 32px !important;
+
+        padding: 0 !important;
+        margin: 0 !important;
+
+        display: flex !important;
+
+        align-items: center !important;
+        justify-content: center !important;
+
+        border-radius: 9px !important;
+
+        background:
+            rgba(255, 255, 255, 0.035) !important;
+
+        border:
+            1px solid rgba(255, 255, 255, 0.08) !important;
+
+        cursor: pointer;
+
+        transition:
+            all .2s ease;
+    }
+
+    body.admin-announcements-page .announcement-action svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    body.admin-announcements-page .edit-action {
+        color: #a78bfa !important;
+    }
+
+    body.admin-announcements-page .edit-action:hover {
+        color: #ffffff !important;
+
+        background:
+            rgba(139, 92, 246, 0.18) !important;
+
+        border-color:
+            rgba(139, 92, 246, 0.45) !important;
+    }
+
+    body.admin-announcements-page .delete-action {
+        color: #f87171 !important;
+    }
+
+    body.admin-announcements-page .delete-action:hover {
+        color: #ffffff !important;
+
+        background:
+            rgba(239, 68, 68, 0.15) !important;
+
+        border-color:
+            rgba(239, 68, 68, 0.40) !important;
+    }
+
+    body.admin-announcements-page .delete-announcement-form {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body.admin-announcements-page .seen-status-wrapper {
+        margin-top: 15px;
+    }
+
+    body.admin-announcements-page .seen-status-toggle {
+        width: 100%;
+
+        min-height: 42px;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        gap: 12px;
+
+        padding: 0 13px;
+
+        border-radius: 12px;
+
+        color: #c9c4d4;
+
+        background:
+            linear-gradient(135deg,
+                rgba(139, 92, 246, 0.065),
+                rgba(255, 255, 255, 0.018));
+
+        border:
+            1px solid rgba(139, 92, 246, 0.16);
+
+        cursor: pointer;
+
+        transition:
+            background .22s ease,
+            border-color .22s ease,
+            box-shadow .22s ease;
+    }
+
+    body.admin-announcements-page .seen-status-toggle:hover {
+        background:
+            linear-gradient(135deg,
+                rgba(139, 92, 246, 0.11),
+                rgba(255, 255, 255, 0.025));
+
+        border-color:
+            rgba(139, 92, 246, 0.30);
+
+        box-shadow:
+            0 6px 18px rgba(124, 58, 237, 0.08);
+    }
+
+    body.admin-announcements-page .seen-status-left {
+        display: flex;
+
+        align-items: center;
+
+        gap: 9px;
+
+        min-width: 0;
+    }
+
+    body.admin-announcements-page .seen-status-icon {
+        width: 27px;
+        height: 27px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        flex-shrink: 0;
+
+        border-radius: 8px;
+
+        color: #a78bfa;
+
+        background:
+            rgba(139, 92, 246, 0.11);
+
+        border:
+            1px solid rgba(139, 92, 246, 0.18);
+    }
+
+    body.admin-announcements-page .seen-status-icon svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    body.admin-announcements-page .seen-status-text {
+        display: flex;
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 2px;
+    }
+
+    body.admin-announcements-page .seen-status-title {
+        color: #cfc9dc;
+
+        font-size: 9px;
+
+        font-weight: 800;
+
+        letter-spacing: 1.4px;
+
+        text-transform: uppercase;
+    }
+
+    body.admin-announcements-page .seen-status-subtitle {
+        color: #686371;
+
+        font-size: 8px;
+    }
+
+    body.admin-announcements-page .seen-status-arrow {
+        width: 27px;
+        height: 27px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        flex-shrink: 0;
+
+        border-radius: 8px;
+
+        color: #77727f;
+
+        background:
+            rgba(255, 255, 255, 0.025);
+
+        transition:
+            transform .25s ease,
+            color .2s ease,
+            background .2s ease;
+    }
+
+    body.admin-announcements-page .seen-status-arrow svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    body.admin-announcements-page .seen-status-toggle.open .seen-status-arrow {
+        transform: rotate(180deg);
+
+        color: #c4b5fd;
+
+        background:
+            rgba(139, 92, 246, 0.09);
+    }
+
+    body.admin-announcements-page .seen-status-panel {
+        display: none;
+
+        margin-top: 8px;
+
+        padding: 7px;
+
+        border-radius: 13px;
+
+        background:
+            rgba(7, 7, 13, 0.62);
+
+        border:
+            1px solid rgba(139, 92, 246, 0.12);
+
+        animation:
+            seenPanelIn .2s ease;
+    }
+
+    body.admin-announcements-page .seen-status-panel.open {
+        display: block;
+    }
+
+    @keyframes seenPanelIn {
+
+        from {
             opacity: 0;
 
-            transition:
-                opacity .25s ease;
-        }
-body.admin-announcements-page .announcement-item:hover{
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(139,92,246,0.075),
-                    rgba(99,102,241,0.018)
-                );
-        }
-body.admin-announcements-page .announcement-item:hover::before{
-            opacity: 1;
-        }
-body.admin-announcements-page .announcement-icon{
-            width: 38px;
-            height: 38px;
-
-            min-width: 38px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 11px;
-
-            color: #c4b5fd;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(139,92,246,0.18),
-                    rgba(99,102,241,0.08)
-                );
-
-            border:
-                1px solid rgba(167,139,250,0.30);
-
-            box-shadow:
-                0 5px 16px rgba(124,58,237,0.12);
-
-            transition:
-                all .25s ease;
-        }
-body.admin-announcements-page .announcement-item:hover .announcement-icon{
-            transform: translateY(-1px);
-
-            border-color:
-                rgba(167,139,250,0.55);
-
-            box-shadow:
-                0 7px 20px rgba(124,58,237,0.22);
-        }
-body.admin-announcements-page .announcement-icon svg{
-            width: 17px;
-            height: 17px;
-        }
-body.admin-announcements-page .announcement-body{
-            flex: 1;
-
-            min-width: 0;
-        }
-body.admin-announcements-page .announcement-title-row{
-            display: flex;
-
-            align-items: flex-start;
-
-            justify-content: space-between;
-
-            gap: 20px;
-        }
-body.admin-announcements-page .announcement-title{
-            margin: 0;
-
-            color: #f5f3ff;
-
-            font-size: 12px;
-
-            font-weight: 800;
-
-            transition:
-                color .2s ease;
-        }
-body.admin-announcements-page .announcement-item:hover .announcement-title{
-            color: #ddd6fe;
-        }
-body.admin-announcements-page .announcement-message{
-            margin: 11px 0 9px;
-
-            color: #aaa6b8;
-
-            font-size: 11px;
-
-            line-height: 1.7;
-
-            white-space: pre-wrap;
-
-            word-break: break-word;
-        }
-body.admin-announcements-page .announcement-meta{
-            color: #777383;
-
-            font-size: 9px;
-
-            opacity: .9;
-        }
-body.admin-announcements-page .announcement-meta strong{
-            color: #a78bfa;
-
-            font-weight: 700;
-        }
-body.admin-announcements-page .edited-label{
-            color: #a78bfa;
-
-            font-weight: 700;
-        }
-body.admin-announcements-page .announcement-actions{
-            display: flex;
-
-            align-items: center;
-
-            gap: 7px;
-
-            flex-shrink: 0;
-        }
-body.admin-announcements-page .announcement-action{
-            width: 32px !important;
-            height: 32px !important;
-
-            padding: 0 !important;
-            margin: 0 !important;
-
-            display: flex !important;
-
-            align-items: center !important;
-            justify-content: center !important;
-
-            border-radius: 9px !important;
-
-            background:
-                rgba(255,255,255,0.035) !important;
-
-            border:
-                1px solid rgba(255,255,255,0.08) !important;
-
-            cursor: pointer;
-
-            transition:
-                all .2s ease;
-        }
-body.admin-announcements-page .announcement-action svg{
-            width: 14px !important;
-            height: 14px !important;
-        }
-body.admin-announcements-page .edit-action{
-            color: #a78bfa !important;
-        }
-body.admin-announcements-page .edit-action:hover{
-            color: #ffffff !important;
-
-            background:
-                rgba(139,92,246,0.18) !important;
-
-            border-color:
-                rgba(139,92,246,0.45) !important;
-        }
-body.admin-announcements-page .delete-action{
-            color: #f87171 !important;
-        }
-body.admin-announcements-page .delete-action:hover{
-            color: #ffffff !important;
-
-            background:
-                rgba(239,68,68,0.15) !important;
-
-            border-color:
-                rgba(239,68,68,0.40) !important;
-        }
-body.admin-announcements-page .delete-announcement-form{
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-body.admin-announcements-page .seen-status-wrapper{
-            margin-top: 15px;
-        }
-body.admin-announcements-page .seen-status-toggle{
-            width: 100%;
-
-            min-height: 42px;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            gap: 12px;
-
-            padding: 0 13px;
-
-            border-radius: 12px;
-
-            color: #c9c4d4;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(139,92,246,0.065),
-                    rgba(255,255,255,0.018)
-                );
-
-            border:
-                1px solid rgba(139,92,246,0.16);
-
-            cursor: pointer;
-
-            transition:
-                background .22s ease,
-                border-color .22s ease,
-                box-shadow .22s ease;
-        }
-body.admin-announcements-page .seen-status-toggle:hover{
-            background:
-                linear-gradient(
-                    135deg,
-                    rgba(139,92,246,0.11),
-                    rgba(255,255,255,0.025)
-                );
-
-            border-color:
-                rgba(139,92,246,0.30);
-
-            box-shadow:
-                0 6px 18px rgba(124,58,237,0.08);
-        }
-body.admin-announcements-page .seen-status-left{
-            display: flex;
-
-            align-items: center;
-
-            gap: 9px;
-
-            min-width: 0;
-        }
-body.admin-announcements-page .seen-status-icon{
-            width: 27px;
-            height: 27px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            flex-shrink: 0;
-
-            border-radius: 8px;
-
-            color: #a78bfa;
-
-            background:
-                rgba(139,92,246,0.11);
-
-            border:
-                1px solid rgba(139,92,246,0.18);
-        }
-body.admin-announcements-page .seen-status-icon svg{
-            width: 14px;
-            height: 14px;
-        }
-body.admin-announcements-page .seen-status-text{
-            display: flex;
-
-            flex-direction: column;
-
-            align-items: flex-start;
-
-            gap: 2px;
-        }
-body.admin-announcements-page .seen-status-title{
-            color: #cfc9dc;
-
-            font-size: 9px;
-
-            font-weight: 800;
-
-            letter-spacing: 1.4px;
-
-            text-transform: uppercase;
-        }
-body.admin-announcements-page .seen-status-subtitle{
-            color: #686371;
-
-            font-size: 8px;
-        }
-body.admin-announcements-page .seen-status-arrow{
-            width: 27px;
-            height: 27px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            flex-shrink: 0;
-
-            border-radius: 8px;
-
-            color: #77727f;
-
-            background:
-                rgba(255,255,255,0.025);
-
-            transition:
-                transform .25s ease,
-                color .2s ease,
-                background .2s ease;
-        }
-body.admin-announcements-page .seen-status-arrow svg{
-            width: 14px;
-            height: 14px;
-        }
-body.admin-announcements-page .seen-status-toggle.open .seen-status-arrow{
-            transform: rotate(180deg);
-
-            color: #c4b5fd;
-
-            background:
-                rgba(139,92,246,0.09);
-        }
-body.admin-announcements-page .seen-status-panel{
-            display: none;
-
-            margin-top: 8px;
-
-            padding: 7px;
-
-            border-radius: 13px;
-
-            background:
-                rgba(7,7,13,0.62);
-
-            border:
-                1px solid rgba(139,92,246,0.12);
-
-            animation:
-                seenPanelIn .2s ease;
-        }
-body.admin-announcements-page .seen-status-panel.open{
-            display: block;
-        }
-@keyframes seenPanelIn{
-
-            from {
-                opacity: 0;
-
-                transform:
-                    translateY(-4px);
-            }
-
-            to {
-                opacity: 1;
-
-                transform:
-                    translateY(0);
-            }
-
-        }
-body.admin-announcements-page .seen-member-row{
-            min-height: 47px;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            gap: 12px;
-
-            padding: 6px 8px;
-
-            border-radius: 10px;
-
-            border-bottom:
-                1px solid rgba(255,255,255,0.045);
-
-            transition:
-                background .18s ease;
-        }
-body.admin-announcements-page .seen-member-row:last-child{
-            border-bottom: none;
-        }
-body.admin-announcements-page .seen-member-row:hover{
-            background:
-                rgba(139,92,246,0.055);
-        }
-body.admin-announcements-page .seen-member-profile{
-            display: flex;
-
-            align-items: center;
-
-            gap: 9px;
-
-            min-width: 0;
-        }
-body.admin-announcements-page .seen-member-avatar{
-            width: 29px;
-            height: 29px;
-
-            min-width: 29px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 9px;
-
-            color: #c4b5fd;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(139,92,246,0.20),
-                    rgba(99,102,241,0.09)
-                );
-
-            border:
-                1px solid rgba(167,139,250,0.22);
-
-            font-size: 9px;
-
-            font-weight: 800;
-        }
-body.admin-announcements-page .seen-member-details{
-            min-width: 0;
-
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 2px;
-        }
-body.admin-announcements-page .seen-member-name{
-            overflow: hidden;
-
-            text-overflow: ellipsis;
-
-            white-space: nowrap;
-
-            color: #ddd9e5;
-
-            font-size: 9px;
-
-            font-weight: 700;
-        }
-body.admin-announcements-page .seen-member-role{
-            color: #625e6a;
-
-            font-size: 7px;
-        }
-body.admin-announcements-page .member-seen-badge{
-            display: inline-flex;
-
-            align-items: center;
-
-            gap: 5px;
-
-            flex-shrink: 0;
-
-            min-height: 25px;
-
-            padding: 0 8px;
-
-            border-radius: 8px;
-
-            font-size: 8px;
-
-            font-weight: 700;
-        }
-body.admin-announcements-page .member-seen-badge svg{
-            width: 11px;
-            height: 11px;
-        }
-body.admin-announcements-page .member-seen-badge.seen{
-            color: #67e8a5;
-
-            background:
-                rgba(34,197,94,0.07);
-
-            border:
-                1px solid rgba(34,197,94,0.20);
-
-            box-shadow:
-                0 0 12px rgba(34,197,94,0.035);
-        }
-body.admin-announcements-page .member-seen-badge.not-seen{
-            color: #8b8792;
-
-            background:
-                rgba(255,255,255,0.025);
-
-            border:
-                1px solid rgba(255,255,255,0.08);
-        }
-body.admin-announcements-page .announcement-edit-box{
-            display: none;
-
-            width: 100%;
-
-            margin-top: 4px;
-        }
-body.admin-announcements-page .announcement-edit-box form{
-            width: 100%;
-        }
-body.admin-announcements-page .announcement-edit-textarea{
-            display: block;
-
-            width: 100% !important;
-
-            min-height: 105px !important;
-
-            box-sizing: border-box;
-
-            padding: 13px 14px !important;
-
-            resize: vertical;
-
-            border-radius: 12px !important;
-
-            outline: none;
-
-            color: #f5f3ff !important;
-
-            background:
-                #09090f !important;
-
-            border:
-                1px solid rgba(139,92,246,0.45) !important;
-
-            font-family: inherit;
-
-            font-size: 11px !important;
-
-            line-height: 1.6;
-        }
-body.admin-announcements-page .announcement-edit-textarea:focus{
-            border-color:
-                #8b5cf6 !important;
-
-            box-shadow:
-                0 0 0 3px
-                rgba(139,92,246,0.10);
-        }
-body.admin-announcements-page .edit-actions{
-            display: flex !important;
-
-            align-items: center !important;
-
-            justify-content: flex-end !important;
-
-            gap: 8px !important;
-
-            margin-top: 10px !important;
-        }
-body.admin-announcements-page .cancel-edit-button,body.admin-announcements-page .save-edit-button{
-            display: inline-flex !important;
-
-            align-items: center !important;
-
-            justify-content: center !important;
-
-            gap: 6px !important;
-
-            height: 34px !important;
-
-            padding: 0 14px !important;
-
-            border-radius: 9px !important;
-
-            font-family: inherit !important;
-
-            font-size: 10px !important;
-
-            font-weight: 700 !important;
-
-            cursor: pointer !important;
-
-            transition: all .2s ease;
-        }
-body.admin-announcements-page .cancel-edit-button{
-            color: #aaa7b5 !important;
-
-            background:
-                rgba(255,255,255,0.04) !important;
-
-            border:
-                1px solid rgba(255,255,255,0.09) !important;
-        }
-body.admin-announcements-page .cancel-edit-button:hover{
-            color: #ffffff !important;
-
-            background:
-                rgba(255,255,255,0.08) !important;
-        }
-body.admin-announcements-page .save-edit-button{
-            color: #ffffff !important;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #8b5cf6,
-                    #6d35c9
-                ) !important;
-
-            border:
-                1px solid rgba(167,139,250,0.4) !important;
-
-            box-shadow:
-                0 6px 18px rgba(124,58,237,0.18);
-        }
-body.admin-announcements-page .save-edit-button:hover{
             transform:
-                translateY(-1px);
-
-            box-shadow:
-                0 9px 24px rgba(124,58,237,0.28);
+                translateY(-4px);
         }
-body.admin-announcements-page .save-edit-button svg{
-            width: 13px !important;
-            height: 13px !important;
+
+        to {
+            opacity: 1;
+
+            transform:
+                translateY(0);
         }
-body.admin-announcements-page .empty-state{
-            padding: 35px 15px;
 
-            text-align: center;
+    }
 
-            color: #77727e;
+    body.admin-announcements-page .seen-member-row {
+        min-height: 47px;
 
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        gap: 12px;
+
+        padding: 6px 8px;
+
+        border-radius: 10px;
+
+        border-bottom:
+            1px solid rgba(255, 255, 255, 0.045);
+
+        transition:
+            background .18s ease;
+    }
+
+    body.admin-announcements-page .seen-member-row:last-child {
+        border-bottom: none;
+    }
+
+    body.admin-announcements-page .seen-member-row:hover {
+        background:
+            rgba(139, 92, 246, 0.055);
+    }
+
+    body.admin-announcements-page .seen-member-profile {
+        display: flex;
+
+        align-items: center;
+
+        gap: 9px;
+
+        min-width: 0;
+    }
+
+    body.admin-announcements-page .seen-member-avatar {
+        width: 29px;
+        height: 29px;
+
+        min-width: 29px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 9px;
+
+        color: #c4b5fd;
+
+        background:
+            linear-gradient(145deg,
+                rgba(139, 92, 246, 0.20),
+                rgba(99, 102, 241, 0.09));
+
+        border:
+            1px solid rgba(167, 139, 250, 0.22);
+
+        font-size: 9px;
+
+        font-weight: 800;
+    }
+
+    body.admin-announcements-page .seen-member-details {
+        min-width: 0;
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 2px;
+    }
+
+    body.admin-announcements-page .seen-member-name {
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+        white-space: nowrap;
+
+        color: #ddd9e5;
+
+        font-size: 9px;
+
+        font-weight: 700;
+    }
+
+    body.admin-announcements-page .seen-member-role {
+        color: #625e6a;
+
+        font-size: 7px;
+    }
+
+    body.admin-announcements-page .member-seen-badge {
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 5px;
+
+        flex-shrink: 0;
+
+        min-height: 25px;
+
+        padding: 0 8px;
+
+        border-radius: 8px;
+
+        font-size: 8px;
+
+        font-weight: 700;
+    }
+
+    body.admin-announcements-page .member-seen-badge svg {
+        width: 11px;
+        height: 11px;
+    }
+
+    body.admin-announcements-page .member-seen-badge.seen {
+        color: #67e8a5;
+
+        background:
+            rgba(34, 197, 94, 0.07);
+
+        border:
+            1px solid rgba(34, 197, 94, 0.20);
+
+        box-shadow:
+            0 0 12px rgba(34, 197, 94, 0.035);
+    }
+
+    body.admin-announcements-page .member-seen-badge.not-seen {
+        color: #8b8792;
+
+        background:
+            rgba(255, 255, 255, 0.025);
+
+        border:
+            1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    body.admin-announcements-page .announcement-edit-box {
+        display: none;
+
+        width: 100%;
+
+        margin-top: 4px;
+    }
+
+    body.admin-announcements-page .announcement-edit-box form {
+        width: 100%;
+    }
+
+    body.admin-announcements-page .announcement-edit-textarea {
+        display: block;
+
+        width: 100% !important;
+
+        min-height: 105px !important;
+
+        box-sizing: border-box;
+
+        padding: 13px 14px !important;
+
+        resize: vertical;
+
+        border-radius: 12px !important;
+
+        outline: none;
+
+        color: #f5f3ff !important;
+
+        background:
+            #09090f !important;
+
+        border:
+            1px solid rgba(139, 92, 246, 0.45) !important;
+
+        font-family: inherit;
+
+        font-size: 11px !important;
+
+        line-height: 1.6;
+    }
+
+    body.admin-announcements-page .announcement-edit-textarea:focus {
+        border-color:
+            #8b5cf6 !important;
+
+        box-shadow:
+            0 0 0 3px rgba(139, 92, 246, 0.10);
+    }
+
+    body.admin-announcements-page .edit-actions {
+        display: flex !important;
+
+        align-items: center !important;
+
+        justify-content: flex-end !important;
+
+        gap: 8px !important;
+
+        margin-top: 10px !important;
+    }
+
+    body.admin-announcements-page .cancel-edit-button,
+    body.admin-announcements-page .save-edit-button {
+        display: inline-flex !important;
+
+        align-items: center !important;
+
+        justify-content: center !important;
+
+        gap: 6px !important;
+
+        height: 34px !important;
+
+        padding: 0 14px !important;
+
+        border-radius: 9px !important;
+
+        font-family: inherit !important;
+
+        font-size: 10px !important;
+
+        font-weight: 700 !important;
+
+        cursor: pointer !important;
+
+        transition: all .2s ease;
+    }
+
+    body.admin-announcements-page .cancel-edit-button {
+        color: #aaa7b5 !important;
+
+        background:
+            rgba(255, 255, 255, 0.04) !important;
+
+        border:
+            1px solid rgba(255, 255, 255, 0.09) !important;
+    }
+
+    body.admin-announcements-page .cancel-edit-button:hover {
+        color: #ffffff !important;
+
+        background:
+            rgba(255, 255, 255, 0.08) !important;
+    }
+
+    body.admin-announcements-page .save-edit-button {
+        color: #ffffff !important;
+
+        background:
+            linear-gradient(135deg,
+                #8b5cf6,
+                #6d35c9) !important;
+
+        border:
+            1px solid rgba(167, 139, 250, 0.4) !important;
+
+        box-shadow:
+            0 6px 18px rgba(124, 58, 237, 0.18);
+    }
+
+    body.admin-announcements-page .save-edit-button:hover {
+        transform:
+            translateY(-1px);
+
+        box-shadow:
+            0 9px 24px rgba(124, 58, 237, 0.28);
+    }
+
+    body.admin-announcements-page .save-edit-button svg {
+        width: 13px !important;
+        height: 13px !important;
+    }
+
+    body.admin-announcements-page .empty-state {
+        padding: 35px 15px;
+
+        text-align: center;
+
+        color: #77727e;
+
+        font-size: 10px;
+    }
+
+    body.admin-announcements-page .empty-state svg {
+        width: 30px;
+        height: 30px;
+
+        margin:
+            0 auto 8px;
+    }
+
+    @media (max-width: 1100px) {
+        body.admin-announcements-page .members-grid {
+            grid-template-columns:
+                repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 768px) {
+        body.admin-announcements-page .dashboard-box {
+            padding: 12px;
+
+            border-radius: 22px;
+        }
+
+        body.admin-announcements-page .dashboard-header {
+            min-height: auto;
+
+            padding: 25px 20px;
+
+            border-radius: 20px;
+        }
+
+        body.admin-announcements-page .dashboard-header-content {
+            flex-direction: column;
+
+            align-items: flex-start;
+        }
+
+        body.admin-announcements-page .dashboard-header h1 {
+            font-size: 33px;
+
+            letter-spacing: -1px;
+        }
+
+        body.admin-announcements-page .dashboard-content {
+            padding: 22px 1px;
+        }
+
+        body.admin-announcements-page .form-bottom {
+            flex-direction: column;
+
+            align-items: stretch;
+        }
+
+        body.admin-announcements-page .send-area {
+            flex-direction: column;
+
+            align-items: flex-start;
+        }
+
+        body.admin-announcements-page .post-button {
+            width: 100%;
+        }
+
+        body.admin-announcements-page .members-grid {
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+
+        body.admin-announcements-page .announcement-title-row {
+            gap: 10px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        body.admin-announcements-page .dashboard-header h1 {
+            font-size: 27px;
+        }
+
+        body.admin-announcements-page .dashboard-header {
+            padding:
+                22px 16px;
+        }
+
+        body.admin-announcements-page .section-heading h2 {
+            font-size: 17px;
+        }
+
+        body.admin-announcements-page .members-grid {
+            grid-template-columns: 1fr;
+        }
+
+        body.admin-announcements-page .send-options {
+            width: 100%;
+
+            flex-direction: column;
+        }
+
+        body.admin-announcements-page .send-option {
+            width: 100%;
+        }
+
+        body.admin-announcements-page .create-card {
+            padding: 14px;
+        }
+
+        body.admin-announcements-page .announcement-item {
+            gap: 10px;
+
+            padding: 16px 12px;
+        }
+
+        body.admin-announcements-page .announcement-icon {
+            width: 34px;
+            height: 34px;
+
+            min-width: 34px;
+        }
+
+        body.admin-announcements-page .announcement-actions {
+            gap: 4px;
+        }
+
+        body.admin-announcements-page .announcement-action {
+            width: 29px !important;
+            height: 29px !important;
+        }
+
+        body.admin-announcements-page .seen-member-row {
+            padding:
+                6px 5px;
+        }
+
+        body.admin-announcements-page .member-seen-badge span {
+            display: inline;
+        }
+    }
+
+    body.admin-announcements-page .announcement-footer {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    body.admin-announcements-page .announcement-footer .announcement-meta {
+        flex: 1 1 180px;
+        padding-top: 12px;
+    }
+
+    body.admin-announcements-page .announcement-footer .seen-status-wrapper {
+        flex: 0 1 390px;
+        width: min(100%, 390px);
+        margin: 0 0 0 auto;
+    }
+
+    @media (max-width: 640px) {
+        body.admin-announcements-page .announcement-footer .announcement-meta {
+            flex-basis: 100%;
+            padding-top: 0;
+        }
+
+        body.admin-announcements-page .announcement-footer .seen-status-wrapper {
+            margin-left: auto;
+        }
+    }
+
+    body.admin-announcements-page .seen-status-wrapper {
+        width: min(100%, 390px);
+    }
+
+    body.admin-announcements-page .seen-status-panel {
+        padding: 9px;
+        border-radius: 16px;
+        background: linear-gradient(155deg, #171326, #100f1b 75%);
+        border: 1px solid rgba(167, 139, 250, .24);
+        box-shadow: 0 16px 38px rgba(0, 0, 0, .24);
+    }
+
+    body.admin-announcements-page .seen-panel-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 2px 3px 8px;
+        color: #e9ddff;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .2px;
+    }
+
+    body.admin-announcements-page .seen-panel-heading small {
+        color: #a9a0bb;
+        font-size: 9px;
+        font-weight: 600;
+    }
+
+    body.admin-announcements-page .seen-member-list {
+        display: grid;
+        gap: 7px;
+        max-height: 154px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #7653b5 transparent;
+    }
+
+    body.admin-announcements-page .seen-member-row {
+        min-height: 42px;
+        padding: 5px 8px;
+        border: 1px solid rgba(255, 255, 255, .07);
+        border-radius: 11px;
+        background: rgba(255, 255, 255, .035);
+    }
+
+    body.admin-announcements-page .seen-member-row:last-child {
+        border-bottom: 1px solid rgba(255, 255, 255, .07);
+    }
+
+    body.admin-announcements-page .seen-member-row:has(.member-seen-badge.seen) {
+        background: linear-gradient(100deg, rgba(20, 184, 166, .12), rgba(20, 184, 166, .025));
+        border-color: rgba(45, 212, 191, .22);
+    }
+
+    body.admin-announcements-page .seen-member-row:has(.member-seen-badge.not-seen) {
+        background: linear-gradient(100deg, rgba(245, 158, 11, .09), rgba(245, 158, 11, .015));
+        border-color: rgba(251, 191, 36, .16);
+    }
+
+    body.admin-announcements-page .seen-member-row:hover {
+        filter: brightness(1.18);
+    }
+
+    body.admin-announcements-page .seen-member-avatar {
+        width: 29px;
+        height: 29px;
+        min-width: 29px;
+        border-radius: 9px;
+        font-size: 11px;
+    }
+
+    body.admin-announcements-page .seen-member-row:has(.member-seen-badge.seen) .seen-member-avatar {
+        color: #99f6e4;
+        background: rgba(20, 184, 166, .15);
+        border-color: rgba(45, 212, 191, .27);
+    }
+
+    body.admin-announcements-page .seen-member-row:has(.member-seen-badge.not-seen) .seen-member-avatar {
+        color: #fde68a;
+        background: rgba(245, 158, 11, .12);
+        border-color: rgba(251, 191, 36, .22);
+    }
+
+    body.admin-announcements-page .seen-member-name {
+        color: #f1edf8;
+        font-size: 11px;
+    }
+
+    body.admin-announcements-page .seen-member-role {
+        color: #a59db2;
+        font-size: 9px;
+    }
+
+    body.admin-announcements-page .member-seen-badge {
+        min-height: 26px;
+        padding: 0 9px;
+        border-radius: 999px;
+        font-size: 9px;
+        white-space: nowrap;
+    }
+
+    body.admin-announcements-page .member-seen-badge.seen {
+        color: #8df3da;
+        background: rgba(20, 184, 166, .13);
+        border-color: rgba(45, 212, 191, .28);
+    }
+
+    body.admin-announcements-page .member-seen-badge.not-seen {
+        color: #fbd38d;
+        background: rgba(245, 158, 11, .11);
+        border-color: rgba(251, 191, 36, .23);
+    }
+
+    @media (max-width: 480px) {
+        body.admin-announcements-page .seen-panel-heading {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        body.admin-announcements-page .seen-member-row {
+            gap: 6px;
+            padding: 8px;
+        }
+
+        body.admin-announcements-page .seen-member-name {
+            max-width: 130px;
+        }
+    }
+
+    body.admin-announcements-page .announcement-actions .view-action {
+        color: #a78bfa;
+        background: rgba(139, 92, 246, .10);
+        border-color: rgba(167, 139, 250, .25);
+    }
+
+    body.admin-announcements-page .announcement-actions .view-action:hover {
+        color: #e9ddff;
+        background: rgba(139, 92, 246, .24);
+    }
+
+    body.admin-announcements-page .seen-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        background: rgba(4, 4, 10, .72);
+        backdrop-filter: blur(5px);
+    }
+
+    body.admin-announcements-page .seen-modal.open {
+        display: flex;
+    }
+
+    body.admin-announcements-page .seen-modal-card {
+        width: min(100%, 430px);
+        max-height: min(78vh, 520px);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid rgba(167, 139, 250, .3);
+        border-radius: 18px;
+        background: linear-gradient(150deg, #1e192d, #100f19);
+        box-shadow: 0 28px 75px rgba(0, 0, 0, .55);
+    }
+
+    body.admin-announcements-page .seen-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 19px 20px 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, .08);
+    }
+
+    body.admin-announcements-page .seen-modal-eyebrow {
+        color: #b69cff;
+        letter-spacing: 1.7px;
+        font-size: 9px;
+        font-weight: 800;
+    }
+
+    body.admin-announcements-page .seen-modal-header h3 {
+        margin: 5px 0 2px;
+        color: #f3efff;
+        font-size: 17px;
+        font-weight: 800;
+    }
+
+    body.admin-announcements-page .seen-modal-header p {
+        margin: 0;
+        color: #a49bae;
+        font-size: 10px;
+    }
+
+    body.admin-announcements-page .seen-modal-close {
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, .13);
+        border-radius: 9px;
+        background: rgba(255, 255, 255, .05);
+        color: #ddd4ec;
+        cursor: pointer;
+    }
+
+    body.admin-announcements-page .seen-modal-close svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    body.admin-announcements-page .seen-modal-body {
+        padding: 12px 16px 17px;
+        overflow-y: auto;
+    }
+
+    body.admin-announcements-page .seen-modal-body .seen-member-list {
+        max-height: none;
+    }
+
+    body.admin-announcements-page .seen-modal-body .seen-member-row {
+        min-height: 46px;
+        padding: 7px 10px;
+    }
+
+    body.admin-announcements-page .delete-confirm-text {
+        margin: 4px 0 20px;
+        color: #d5cede;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    body.admin-announcements-page .delete-confirm-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    body.admin-announcements-page .delete-confirm-cancel,
+    body.admin-announcements-page .delete-confirm-submit {
+        padding: 10px 14px;
+        border-radius: 9px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    body.admin-announcements-page .delete-confirm-cancel {
+        color: #e8e0f2;
+        border: 1px solid rgba(255, 255, 255, .15);
+        background: rgba(255, 255, 255, .06);
+    }
+
+    body.admin-announcements-page .delete-confirm-submit {
+        color: white;
+        background: #d44b60;
+    }
+
+    body.admin-announcements-page .admin-seen-summary {
+        margin-left: auto;
+        padding: 5px 10px;
+        border: 1px solid rgba(167, 139, 250, .22);
+        border-radius: 8px;
+        background: rgba(139, 92, 246, .09);
+        color: #c6afea;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    body.admin-announcements-page .admin-announcement-tabs {
+        display: flex;
+        gap: 6px;
+        padding: 6px;
+        margin: 0 0 22px;
+        border: 1px solid rgba(255, 255, 255, .07);
+        border-radius: 17px;
+        background: rgba(255, 255, 255, .025);
+    }
+
+    body.admin-announcements-page .admin-announcement-tab {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        min-height: 50px;
+        padding: 10px 14px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background: transparent;
+        color: #898493;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s, border-color .15s, color .15s;
+    }
+
+    body.admin-announcements-page .admin-announcement-tab:hover {
+        color: #e4ddef;
+        background: rgba(139, 92, 246, .06);
+    }
+
+    body.admin-announcements-page .admin-announcement-tab[aria-selected="true"] {
+        background: linear-gradient(110deg, rgba(139, 92, 246, .20), rgba(139, 92, 246, .09));
+        border-color: rgba(167, 139, 250, .23);
+        color: #faf7ff;
+    }
+
+    body.admin-announcements-page .admin-announcement-tab svg {
+        width: 17px;
+        height: 17px;
+        flex-shrink: 0;
+    }
+
+    body.admin-announcements-page .admin-announcement-tab:focus-visible {
+        outline: 2px solid #a78bfa;
+        outline-offset: 2px;
+    }
+
+    body.admin-announcements-page .admin-announcement-tab-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 27px;
+        height: 27px;
+        padding: 0 7px;
+        border-radius: 9px;
+        background: rgba(139, 92, 246, .09);
+        color: #b69bec;
+        font-size: 11px;
+        box-sizing: border-box;
+    }
+
+    body.admin-announcements-page .admin-announcement-tab[aria-selected="true"] .admin-announcement-tab-count {
+        background: rgba(139, 92, 246, .30);
+        color: #eee4ff;
+    }
+
+    body.admin-announcements-page .admin-announcement-panel[hidden] {
+        display: none !important;
+    }
+
+    body.admin-announcements-page .tl-announcement-preview {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    body.admin-announcements-page #adminLeadAnnouncementDialog {
+        width: min(92vw, 460px);
+        max-height: 80vh;
+        padding: 0;
+        border: 1px solid rgba(167, 139, 250, .3);
+        border-radius: 18px;
+        background: linear-gradient(150deg, #1e192d, #100f19);
+        color: #eee4ff;
+    }
+
+    body.admin-announcements-page #adminLeadAnnouncementDialog::backdrop {
+        background: rgba(4, 4, 10, .35);
+        backdrop-filter: blur(3px);
+    }
+
+    body.admin-announcements-page #adminLeadAnnouncementMessage {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font-size: 14px;
+        line-height: 1.7;
+        max-height: 55vh;
+        overflow: auto;
+    }
+
+    @media(max-width:560px) {
+        body.admin-announcements-page .admin-announcement-tab {
+            gap: 6px;
+            padding: 9px 5px;
+            font-size: 12px;
+        }
+    }
+
+    /* Announcement layout refinements: preserve the existing dark-purple theme. */
+    body.admin-announcements-page .dashboard-box,
+    body.admin-announcements-page .dashboard-content,
+    body.admin-announcements-page .create-card,
+    body.admin-announcements-page .history-card,
+    body.admin-announcements-page .announcement-body,
+    body.admin-announcements-page .admin-announcement-panel {
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    body.admin-announcements-page .create-card *,
+    body.admin-announcements-page .history-card *,
+    body.admin-announcements-page .seen-modal-card * {
+        box-sizing: border-box;
+    }
+
+    body.admin-announcements-page .announcement-textarea,
+    body.admin-announcements-page .announcement-edit-textarea {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    body.admin-announcements-page .section-title-block,
+    body.admin-announcements-page .dashboard-header-content>div:first-child {
+        min-width: 0;
+    }
+
+    body.admin-announcements-page .announcement-title-row {
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    body.admin-announcements-page .announcement-title {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        line-height: 1.5;
+    }
+
+    body.admin-announcements-page .announcement-message {
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    body.admin-announcements-page .announcement-actions {
+        align-items: center;
+        flex: none;
+        flex-wrap: nowrap;
+    }
+
+    body.admin-announcements-page .history-top {
+        flex-wrap: wrap;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    body.admin-announcements-page .send-area {
+        flex-wrap: wrap;
+        row-gap: 10px;
+    }
+
+    body.admin-announcements-page .send-option {
+        box-sizing: border-box;
+        max-width: 100%;
+    }
+
+    body.admin-announcements-page .member-option {
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    body.admin-announcements-page .admin-announcement-tab {
+        overflow-wrap: anywhere;
+        text-align: center;
+    }
+
+    body.admin-announcements-page .admin-announcement-tab-count {
+        flex: none;
+    }
+
+    body.admin-announcements-page .seen-modal-card,
+    body.admin-announcements-page #adminLeadAnnouncementDialog {
+        box-sizing: border-box;
+        max-width: calc(100vw - 28px);
+    }
+
+    body.admin-announcements-page .delete-confirm-actions {
+        flex-wrap: wrap;
+    }
+
+    body.admin-announcements-page .announcement-live-error,
+    body.admin-announcements-page .delete-confirm-error {
+        margin: 9px 0 4px;
+        font-size: 12px;
+        color: #ffb0bc;
+        line-height: 1.5;
+    }
+
+    /* Self-contained toast if shared window.showToast is unavailable. */
+    .announcement-toast-stack {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 200100;
+        width: min(370px, calc(100vw - 32px));
+        display: grid;
+        gap: 9px;
+        pointer-events: none;
+    }
+
+    .announcement-toast {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid #514169;
+        background: #181321;
+        color: #f4ecff;
+        box-shadow: 0 15px 38px #0009;
+        font-size: 12px;
+        line-height: 1.5;
+        pointer-events: auto;
+        overflow-wrap: anywhere;
+    }
+
+    .announcement-toast::before {
+        content: '✓';
+        color: #a4e5bb;
+        font-weight: 900;
+        font-size: 14px;
+    }
+
+    .announcement-toast[data-type=error] {
+        border-color: #875060;
+    }
+
+    .announcement-toast[data-type=error]::before {
+        content: '!';
+        color: #ff9ead;
+    }
+
+    .announcement-toast[data-type=warning]::before {
+        content: '!';
+        color: #f2ce92;
+    }
+
+    body.admin-announcements-page #toastContainer {
+        position: fixed !important;
+        right: 24px !important;
+        left: auto !important;
+        top: auto !important;
+        bottom: 24px !important;
+        z-index: 200100 !important;
+        max-width: calc(100vw - 32px) !important;
+    }
+
+    @media(max-width:768px) {
+        body.admin-announcements-page .dashboard-box {
+            width: 100%;
+            padding: 12px;
+            overflow-x: hidden;
+        }
+
+        body.admin-announcements-page .dashboard-header {
+            padding: 22px 17px;
+        }
+
+        body.admin-announcements-page .dashboard-header-content {
+            gap: 13px;
+        }
+
+        body.admin-announcements-page .form-bottom {
+            gap: 15px;
+        }
+
+        body.admin-announcements-page .send-area {
+            min-width: 0;
+        }
+
+        body.admin-announcements-page .members-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        body.admin-announcements-page .announcement-footer .seen-status-wrapper {
+            max-width: 100%;
+            flex: 1 1 100%;
+        }
+
+        body.admin-announcements-page .seen-modal {
+            padding: 12px;
+        }
+
+        body.admin-announcements-page .seen-modal-card {
+            width: min(100%, 460px);
+        }
+    }
+
+    @media(max-width:480px) {
+        body.admin-announcements-page .dashboard-header h1 {
+            font-size: clamp(23px, 7vw, 30px);
+            letter-spacing: -.5px;
+        }
+
+        body.admin-announcements-page .create-card {
+            padding: 15px 12px;
+        }
+
+        body.admin-announcements-page .admin-announcement-tabs {
+            padding: 4px;
+            gap: 4px;
+        }
+
+        body.admin-announcements-page .admin-announcement-tab {
+            flex: 1 1 0;
+            gap: 5px;
+            flex-wrap: wrap;
+            min-height: 52px;
+            padding: 8px 5px;
+            font-size: 11px;
+            line-height: 1.35;
+        }
+
+        body.admin-announcements-page .admin-announcement-tab svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        body.admin-announcements-page .admin-announcement-tab-count {
+            min-width: 22px;
+            height: 22px;
             font-size: 10px;
         }
-body.admin-announcements-page .empty-state svg{
-            width: 30px;
-            height: 30px;
 
-            margin:
-                0 auto 8px;
+        body.admin-announcements-page .announcement-item {
+            padding: 15px 11px;
+            gap: 9px;
         }
-@media (max-width: 1100px){body.admin-announcements-page .members-grid{
-                grid-template-columns:
-                    repeat(3, minmax(0, 1fr));
-            }}
-@media (max-width: 768px){body.admin-announcements-page .dashboard-box{
-                padding: 12px;
 
-                border-radius: 22px;
-            }
-body.admin-announcements-page .dashboard-header{
-                min-height: auto;
-
-                padding: 25px 20px;
-
-                border-radius: 20px;
-            }
-body.admin-announcements-page .dashboard-header-content{
-                flex-direction: column;
-
-                align-items: flex-start;
-            }
-body.admin-announcements-page .dashboard-header h1{
-                font-size: 33px;
-
-                letter-spacing: -1px;
-            }
-body.admin-announcements-page .dashboard-content{
-                padding: 22px 1px;
-            }
-body.admin-announcements-page .form-bottom{
-                flex-direction: column;
-
-                align-items: stretch;
-            }
-body.admin-announcements-page .send-area{
-                flex-direction: column;
-
-                align-items: flex-start;
-            }
-body.admin-announcements-page .post-button{
-                width: 100%;
-            }
-body.admin-announcements-page .members-grid{
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
-            }
-body.admin-announcements-page .announcement-title-row{
-                gap: 10px;
-            }}
-@media (max-width: 480px){body.admin-announcements-page .dashboard-header h1{
-                font-size: 27px;
-            }
-body.admin-announcements-page .dashboard-header{
-                padding:
-                    22px 16px;
-            }
-body.admin-announcements-page .section-heading h2{
-                font-size: 17px;
-            }
-body.admin-announcements-page .members-grid{
-                grid-template-columns: 1fr;
-            }
-body.admin-announcements-page .send-options{
-                width: 100%;
-
-                flex-direction: column;
-            }
-body.admin-announcements-page .send-option{
-                width: 100%;
-            }
-body.admin-announcements-page .create-card{
-                padding: 14px;
-            }
-body.admin-announcements-page .announcement-item{
-                gap: 10px;
-
-                padding: 16px 12px;
-            }
-body.admin-announcements-page .announcement-icon{
-                width: 34px;
-                height: 34px;
-
-                min-width: 34px;
-            }
-body.admin-announcements-page .announcement-actions{
-                gap: 4px;
-            }
-body.admin-announcements-page .announcement-action{
-                width: 29px !important;
-                height: 29px !important;
-            }
-body.admin-announcements-page .seen-member-row{
-                padding:
-                    6px 5px;
-            }
-body.admin-announcements-page .member-seen-badge span{
-                display: inline;
-            }}
-body.admin-announcements-page .announcement-footer{
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 14px;
-            flex-wrap: wrap;
-            width: 100%;
-        }
-body.admin-announcements-page .announcement-footer .announcement-meta{
-            flex: 1 1 180px;
-            padding-top: 12px;
-        }
-body.admin-announcements-page .announcement-footer .seen-status-wrapper{
-            flex: 0 1 390px;
-            width: min(100%, 390px);
-            margin: 0 0 0 auto;
-        }
-@media (max-width: 640px){body.admin-announcements-page .announcement-footer .announcement-meta{ flex-basis: 100%; padding-top: 0; }
-body.admin-announcements-page .announcement-footer .seen-status-wrapper{ margin-left: auto; }}
-body.admin-announcements-page .seen-status-wrapper{
-            width: min(100%, 390px);
-        }
-body.admin-announcements-page .seen-status-panel{
-            padding: 9px;
-            border-radius: 16px;
-            background: linear-gradient(155deg, #171326, #100f1b 75%);
-            border: 1px solid rgba(167,139,250,.24);
-            box-shadow: 0 16px 38px rgba(0,0,0,.24);
-        }
-body.admin-announcements-page .seen-panel-heading{
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin: 2px 3px 8px;
-            color: #e9ddff;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: .2px;
-        }
-body.admin-announcements-page .seen-panel-heading small{
-            color: #a9a0bb;
-            font-size: 9px;
-            font-weight: 600;
-        }
-body.admin-announcements-page .seen-member-list{
-            display: grid;
+        body.admin-announcements-page .announcement-title-row {
             gap: 7px;
-            max-height: 154px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #7653b5 transparent;
         }
-body.admin-announcements-page .seen-member-row{
-            min-height: 42px;
-            padding: 5px 8px;
-            border: 1px solid rgba(255,255,255,.07);
-            border-radius: 11px;
-            background: rgba(255,255,255,.035);
-        }
-body.admin-announcements-page .seen-member-row:last-child{ border-bottom: 1px solid rgba(255,255,255,.07); }
-body.admin-announcements-page .seen-member-row:has(.member-seen-badge.seen){
-            background: linear-gradient(100deg, rgba(20,184,166,.12), rgba(20,184,166,.025));
-            border-color: rgba(45,212,191,.22);
-        }
-body.admin-announcements-page .seen-member-row:has(.member-seen-badge.not-seen){
-            background: linear-gradient(100deg, rgba(245,158,11,.09), rgba(245,158,11,.015));
-            border-color: rgba(251,191,36,.16);
-        }
-body.admin-announcements-page .seen-member-row:hover{ filter: brightness(1.18); }
-body.admin-announcements-page .seen-member-avatar{ width: 29px; height: 29px; min-width: 29px; border-radius: 9px; font-size: 11px; }
-body.admin-announcements-page .seen-member-row:has(.member-seen-badge.seen) .seen-member-avatar{
-            color: #99f6e4; background: rgba(20,184,166,.15); border-color: rgba(45,212,191,.27);
-        }
-body.admin-announcements-page .seen-member-row:has(.member-seen-badge.not-seen) .seen-member-avatar{
-            color: #fde68a; background: rgba(245,158,11,.12); border-color: rgba(251,191,36,.22);
-        }
-body.admin-announcements-page .seen-member-name{ color: #f1edf8; font-size: 11px; }
-body.admin-announcements-page .seen-member-role{ color: #a59db2; font-size: 9px; }
-body.admin-announcements-page .member-seen-badge{ min-height: 26px; padding: 0 9px; border-radius: 999px; font-size: 9px; white-space: nowrap; }
-body.admin-announcements-page .member-seen-badge.seen{ color: #8df3da; background: rgba(20,184,166,.13); border-color: rgba(45,212,191,.28); }
-body.admin-announcements-page .member-seen-badge.not-seen{ color: #fbd38d; background: rgba(245,158,11,.11); border-color: rgba(251,191,36,.23); }
-@media (max-width: 480px){body.admin-announcements-page .seen-panel-heading{ align-items: flex-start; flex-direction: column; gap: 3px; }
-body.admin-announcements-page .seen-member-row{ gap: 6px; padding: 8px; }
-body.admin-announcements-page .seen-member-name{ max-width: 130px; }}
-body.admin-announcements-page .announcement-actions .view-action{
-            color: #a78bfa;
-            background: rgba(139,92,246,.10);
-            border-color: rgba(167,139,250,.25);
-        }
-body.admin-announcements-page .announcement-actions .view-action:hover{ color: #e9ddff; background: rgba(139,92,246,.24); }
-body.admin-announcements-page .seen-modal{ display: none; position: fixed; inset: 0; z-index: 9999; align-items: center; justify-content: center; padding: 18px; background: rgba(4,4,10,.72); backdrop-filter: blur(5px); }
-body.admin-announcements-page .seen-modal.open{ display: flex; }
-body.admin-announcements-page .seen-modal-card{ width: min(100%, 430px); max-height: min(78vh, 520px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(167,139,250,.3); border-radius: 18px; background: linear-gradient(150deg,#1e192d,#100f19); box-shadow: 0 28px 75px rgba(0,0,0,.55); }
-body.admin-announcements-page .seen-modal-header{ display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 19px 20px 15px; border-bottom: 1px solid rgba(255,255,255,.08); }
-body.admin-announcements-page .seen-modal-eyebrow{ color: #b69cff; letter-spacing: 1.7px; font-size: 9px; font-weight: 800; }
-body.admin-announcements-page .seen-modal-header h3{ margin: 5px 0 2px; color: #f3efff; font-size: 17px; font-weight: 800; }
-body.admin-announcements-page .seen-modal-header p{ margin: 0; color: #a49bae; font-size: 10px; }
-body.admin-announcements-page .seen-modal-close{ display: grid; place-items: center; width: 30px; height: 30px; flex-shrink: 0; border: 1px solid rgba(255,255,255,.13); border-radius: 9px; background: rgba(255,255,255,.05); color: #ddd4ec; cursor: pointer; }
-body.admin-announcements-page .seen-modal-close svg{ width: 16px; height: 16px; }
-body.admin-announcements-page .seen-modal-body{ padding: 12px 16px 17px; overflow-y: auto; }
-body.admin-announcements-page .seen-modal-body .seen-member-list{ max-height: none; }
-body.admin-announcements-page .seen-modal-body .seen-member-row{ min-height: 46px; padding: 7px 10px; }
-body.admin-announcements-page .delete-confirm-text{
-    margin: 4px 0 20px;
-    color: #d5cede;
-    font-size: 13px;
-    line-height: 1.6;
-}
-body.admin-announcements-page .delete-confirm-actions{
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-body.admin-announcements-page .delete-confirm-cancel,body.admin-announcements-page .delete-confirm-submit{
-    padding: 10px 14px;
-    border-radius: 9px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-}
-body.admin-announcements-page .delete-confirm-cancel{
-    color: #e8e0f2;
-    border: 1px solid rgba(255,255,255,.15);
-    background: rgba(255,255,255,.06);
-}
-body.admin-announcements-page .delete-confirm-submit{
-    color: white;
-    background: #d44b60;
-}
-body.admin-announcements-page .admin-seen-summary {margin-left:auto;padding:5px 10px;border:1px solid rgba(167,139,250,.22);border-radius:8px;background:rgba(139,92,246,.09);color:#c6afea;font-size:11px;font-weight:600;}
-body.admin-announcements-page .admin-announcement-tabs {display:flex;gap:6px;padding:6px;margin:0 0 22px;border:1px solid rgba(255,255,255,.07);border-radius:17px;background:rgba(255,255,255,.025);}
-body.admin-announcements-page .admin-announcement-tab {flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:10px 14px;border:1px solid transparent;border-radius:12px;background:transparent;color:#898493;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,color .15s;}
-body.admin-announcements-page .admin-announcement-tab:hover {color:#e4ddef;background:rgba(139,92,246,.06);}
-body.admin-announcements-page .admin-announcement-tab[aria-selected="true"] {background:linear-gradient(110deg,rgba(139,92,246,.20),rgba(139,92,246,.09));border-color:rgba(167,139,250,.23);color:#faf7ff;}
-body.admin-announcements-page .admin-announcement-tab svg {width:17px;height:17px;flex-shrink:0;}
-body.admin-announcements-page .admin-announcement-tab:focus-visible {outline:2px solid #a78bfa;outline-offset:2px;}
-body.admin-announcements-page .admin-announcement-tab-count {display:inline-flex;align-items:center;justify-content:center;min-width:27px;height:27px;padding:0 7px;border-radius:9px;background:rgba(139,92,246,.09);color:#b69bec;font-size:11px;box-sizing:border-box;}
-body.admin-announcements-page .admin-announcement-tab[aria-selected="true"] .admin-announcement-tab-count {background:rgba(139,92,246,.30);color:#eee4ff;}
 
-body.admin-announcements-page .admin-announcement-panel[hidden] {display:none!important;}
-body.admin-announcements-page .tl-announcement-preview {display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;overflow-wrap:anywhere;}
-body.admin-announcements-page #adminLeadAnnouncementDialog {width:min(92vw,460px);max-height:80vh;padding:0;border:1px solid rgba(167,139,250,.3);border-radius:18px;background:linear-gradient(150deg,#1e192d,#100f19);color:#eee4ff;}
-body.admin-announcements-page #adminLeadAnnouncementDialog::backdrop {background:rgba(4,4,10,.35);backdrop-filter:blur(3px);}
-body.admin-announcements-page #adminLeadAnnouncementMessage {white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.7;max-height:55vh;overflow:auto;}
-@media(max-width:560px){body.admin-announcements-page .admin-announcement-tab {gap:6px;padding:9px 5px;font-size:12px;}}
+        body.admin-announcements-page .announcement-title {
+            font-size: 11px;
+        }
 
-/* Announcement layout refinements: preserve the existing dark-purple theme. */
-body.admin-announcements-page .dashboard-box,
-body.admin-announcements-page .dashboard-content,
-body.admin-announcements-page .create-card,
-body.admin-announcements-page .history-card,
-body.admin-announcements-page .announcement-body,
-body.admin-announcements-page .admin-announcement-panel {min-width:0;max-width:100%;box-sizing:border-box;}
-body.admin-announcements-page .create-card *,
-body.admin-announcements-page .history-card *,
-body.admin-announcements-page .seen-modal-card * {box-sizing:border-box;}
-body.admin-announcements-page .announcement-textarea,
-body.admin-announcements-page .announcement-edit-textarea {display:block;width:100%;max-width:100%;box-sizing:border-box;}
-body.admin-announcements-page .section-title-block,
-body.admin-announcements-page .dashboard-header-content > div:first-child {min-width:0;}
-body.admin-announcements-page .announcement-title-row {align-items:flex-start;gap:12px;}
-body.admin-announcements-page .announcement-title {min-width:0;overflow-wrap:anywhere;line-height:1.5;}
-body.admin-announcements-page .announcement-message {overflow-wrap:anywhere;word-break:normal;}
-body.admin-announcements-page .announcement-actions {align-items:center;flex:none;flex-wrap:nowrap;}
-body.admin-announcements-page .history-top {flex-wrap:wrap;padding-top:10px;padding-bottom:10px;}
-body.admin-announcements-page .send-area {flex-wrap:wrap;row-gap:10px;}
-body.admin-announcements-page .send-option {box-sizing:border-box;max-width:100%;}
-body.admin-announcements-page .member-option {min-width:0;box-sizing:border-box;}
-body.admin-announcements-page .admin-announcement-tab {overflow-wrap:anywhere;text-align:center;}
-body.admin-announcements-page .admin-announcement-tab-count {flex:none;}
-body.admin-announcements-page .seen-modal-card,
-body.admin-announcements-page #adminLeadAnnouncementDialog {box-sizing:border-box;max-width:calc(100vw - 28px);}
-body.admin-announcements-page .delete-confirm-actions {flex-wrap:wrap;}
-body.admin-announcements-page .announcement-live-error,
-body.admin-announcements-page .delete-confirm-error {margin:9px 0 4px;font-size:12px;color:#ffb0bc;line-height:1.5;}
-/* Self-contained toast if shared window.showToast is unavailable. */
-.announcement-toast-stack {position:fixed;right:24px;bottom:24px;z-index:200100;width:min(370px,calc(100vw - 32px));display:grid;gap:9px;pointer-events:none;}
-.announcement-toast {display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:12px;border:1px solid #514169;background:#181321;color:#f4ecff;box-shadow:0 15px 38px #0009;font-size:12px;line-height:1.5;pointer-events:auto;overflow-wrap:anywhere;}
-.announcement-toast::before {content:'✓';color:#a4e5bb;font-weight:900;font-size:14px;}
-.announcement-toast[data-type=error] {border-color:#875060;}
-.announcement-toast[data-type=error]::before {content:'!';color:#ff9ead;}
-.announcement-toast[data-type=warning]::before {content:'!';color:#f2ce92;}
-body.admin-announcements-page #toastContainer {position:fixed!important;right:24px!important;left:auto!important;top:auto!important;bottom:24px!important;z-index:200100!important;max-width:calc(100vw - 32px)!important;}
-@media(max-width:768px){
- body.admin-announcements-page .dashboard-box {width:100%;padding:12px;overflow-x:hidden;}
- body.admin-announcements-page .dashboard-header {padding:22px 17px;}
- body.admin-announcements-page .dashboard-header-content {gap:13px;}
- body.admin-announcements-page .form-bottom {gap:15px;}
- body.admin-announcements-page .send-area {min-width:0;}
- body.admin-announcements-page .members-grid {grid-template-columns:repeat(2,minmax(0,1fr));}
- body.admin-announcements-page .announcement-footer .seen-status-wrapper {max-width:100%;flex:1 1 100%;}
- body.admin-announcements-page .seen-modal {padding:12px;}
- body.admin-announcements-page .seen-modal-card {width:min(100%,460px);}
-}
-@media(max-width:480px){
- body.admin-announcements-page .dashboard-header h1 {font-size:clamp(23px,7vw,30px);letter-spacing:-.5px;}
- body.admin-announcements-page .create-card {padding:15px 12px;}
- body.admin-announcements-page .admin-announcement-tabs {padding:4px;gap:4px;}
- body.admin-announcements-page .admin-announcement-tab {flex:1 1 0;gap:5px;flex-wrap:wrap;min-height:52px;padding:8px 5px;font-size:11px;line-height:1.35;}
- body.admin-announcements-page .admin-announcement-tab svg {width:14px;height:14px;}
- body.admin-announcements-page .admin-announcement-tab-count {min-width:22px;height:22px;font-size:10px;}
- body.admin-announcements-page .announcement-item {padding:15px 11px;gap:9px;}
- body.admin-announcements-page .announcement-title-row {gap:7px;}
- body.admin-announcements-page .announcement-title {font-size:11px;}
- body.admin-announcements-page .announcement-actions {gap:5px;}
- body.admin-announcements-page .announcement-action {width:29px!important;height:29px!important;}
- body.admin-announcements-page .members-grid {grid-template-columns:minmax(0,1fr);}
- body.admin-announcements-page .send-options {min-width:0;align-items:stretch;}
- body.admin-announcements-page .send-option {width:100%;min-height:43px;}
- body.admin-announcements-page .delete-confirm-actions button {flex:1 1 120px;}
- .announcement-toast-stack {right:16px;bottom:16px;}
- body.admin-announcements-page #toastContainer {right:16px!important;bottom:16px!important;}
-}
+        body.admin-announcements-page .announcement-actions {
+            gap: 5px;
+        }
+
+        body.admin-announcements-page .announcement-action {
+            width: 29px !important;
+            height: 29px !important;
+        }
+
+        body.admin-announcements-page .members-grid {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        body.admin-announcements-page .send-options {
+            min-width: 0;
+            align-items: stretch;
+        }
+
+        body.admin-announcements-page .send-option {
+            width: 100%;
+            min-height: 43px;
+        }
+
+        body.admin-announcements-page .delete-confirm-actions button {
+            flex: 1 1 120px;
+        }
+
+        .announcement-toast-stack {
+            right: 16px;
+            bottom: 16px;
+        }
+
+        body.admin-announcements-page #toastContainer {
+            right: 16px !important;
+            bottom: 16px !important;
+        }
+    }
 </style>{% endblock %}
 {% block content %}
 <div hidden aria-hidden="true">
- {% for message in messages %}<span data-announcement-operation-message data-level="{{ message.level }}">{{ message }}</span>{% endfor %}
+    {% for message in messages %}<span data-announcement-operation-message data-level="{{ message.level }}">{{ message
+        }}</span>{% endfor %}
 </div>
 
 
-        <div class="dashboard-box">
+<div class="dashboard-box">
 
 
-            <!-- =====================================================
+    <!-- =====================================================
                  HEADER
             ====================================================== -->
 
-            <section class="dashboard-header">
+    <section class="dashboard-header">
 
-                <div class="dashboard-header-content">
+        <div class="dashboard-header-content">
+
+            <div>
+
+                <div class="dashboard-eyebrow">
+                    CYBEXEL ADMIN PANEL
+                </div>
+
+                <h1>
+                    ANNOUNCEMENTS
+                </h1>
+
+                <p>
+                    Share important updates with Team Leads and Team Members.
+                </p>
+
+            </div>
+
+
+            <div class="system-status">
+
+                <span class="status-dot"></span>
+
+                <span>
+                    System Online
+                </span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+                 CONTENT
+            ====================================================== -->
+
+    <section class="dashboard-content">
+        <div class="admin-announcement-tabs" role="tablist" aria-label="Announcement sections">
+            <button type="button" id="adminOwnAnnouncementsTab" class="admin-announcement-tab" role="tab"
+                aria-selected="true" aria-controls="adminOwnAnnouncementsPanel" tabindex="0"><i data-lucide="megaphone"
+                    aria-hidden="true"></i><span>My Announcements</span><span class="admin-announcement-tab-count">{{
+                    announcements|length }}</span></button>
+            <button type="button" id="adminLeadAnnouncementsTab" class="admin-announcement-tab" role="tab"
+                aria-selected="false" aria-controls="adminLeadAnnouncementsPanel" tabindex="-1"><i data-lucide="users"
+                    aria-hidden="true"></i><span>Team Lead Announcements</span><span
+                    class="admin-announcement-tab-count">{{ lead_announcements|length }}</span></button>
+        </div>
+        <div id="adminOwnAnnouncementsPanel" class="admin-announcement-panel" role="tabpanel"
+            aria-labelledby="adminOwnAnnouncementsTab">
+
+
+
+            <!-- =================================================
+                     CREATE HEADING
+                ================================================== -->
+
+            <div class="section-heading">
+
+                <div class="section-title-block">
+
+                    <span class="section-eyebrow">
+                        TEAM COMMUNICATION
+                    </span>
+
+                    <h2>
+                        Create Announcement
+                    </h2>
+
+                </div>
+
+                <div class="heading-line"></div>
+
+            </div>
+
+
+            <!-- =================================================
+                     CREATE CARD
+                ================================================== -->
+
+            <form method="POST" action="{% url 'admin_announcements' %}" class="create-card">
+
+                {% csrf_token %}
+
+
+                <input type="hidden" name="action" value="create_announcement">
+
+
+                <div class="create-card-header">
+
+                    <div class="create-icon">
+
+                        <i data-lucide="megaphone"></i>
+
+                    </div>
+
 
                     <div>
 
-                        <div class="dashboard-eyebrow">
-                            CYBEXEL ADMIN PANEL
-                        </div>
+                        <h3 class="create-title">
+                            New Announcement
+                        </h3>
 
-                        <h1>
-                            ANNOUNCEMENTS
-                        </h1>
-
-                        <p>
-                            Share important updates with Team Leads and Team Members.
+                        <p class="create-subtitle">
+                            Send updates to Team Leads and Team Members.
                         </p>
 
                     </div>
 
+                </div>
 
-                    <div class="system-status">
 
-                        <span class="status-dot"></span>
+                <!-- MESSAGE -->
 
-                        <span>
-                            System Online
-                        </span>
+                <textarea name="message" class="announcement-textarea" placeholder="Write your announcement..."
+                    required></textarea>
+
+
+                <!-- SELECTED MEMBERS -->
+
+                <div id="announcementRecipients" class="recipients-box">
+
+                    <p class="recipients-title">
+                        Select Team Leads and Team Members
+                    </p>
+
+
+                    <div class="members-grid">
+
+                        {% for member in team_members %}
+
+                        <label class="member-option">
+
+                            <input type="checkbox" name="recipient_ids" value="{{ member.id }}"
+                                class="announcement-member-checkbox">
+
+
+                            <div class="member-info">
+
+                                <p class="member-name">
+                                    {{ member.name }}
+                                </p>
+
+
+                                {% if member.designation %}
+
+                                <p class="member-designation">
+                                    {{ member.designation }}
+                                </p>
+
+                                {% else %}
+
+                                <p class="member-designation">{{ member.job_Position }}
+                                </p>
+
+                                {% endif %}
+
+                            </div>
+
+                        </label>
+
+
+                        {% empty %}
+
+                        <p style="color:#77727e;font-size:10px;">
+                            No Team Leads or Team Members available.
+                        </p>
+
+                        {% endfor %}
 
                     </div>
 
                 </div>
 
-            </section>
+
+                <!-- FORM BOTTOM -->
+
+                <div class="form-bottom">
 
 
-            <!-- =====================================================
-                 CONTENT
-            ====================================================== -->
+                    <div class="send-area">
 
-            <section class="dashboard-content">
-<div class="admin-announcement-tabs" role="tablist" aria-label="Announcement sections">
-<button type="button" id="adminOwnAnnouncementsTab" class="admin-announcement-tab" role="tab" aria-selected="true" aria-controls="adminOwnAnnouncementsPanel" tabindex="0"><i data-lucide="megaphone" aria-hidden="true"></i><span>My Announcements</span><span class="admin-announcement-tab-count">{{ announcements|length }}</span></button>
-<button type="button" id="adminLeadAnnouncementsTab" class="admin-announcement-tab" role="tab" aria-selected="false" aria-controls="adminLeadAnnouncementsPanel" tabindex="-1"><i data-lucide="users" aria-hidden="true"></i><span>Team Lead Announcements</span><span class="admin-announcement-tab-count">{{ lead_announcements|length }}</span></button>
-</div>
-<div id="adminOwnAnnouncementsPanel" class="admin-announcement-panel" role="tabpanel" aria-labelledby="adminOwnAnnouncementsTab">
-
-
-
-                <!-- =================================================
-                     CREATE HEADING
-                ================================================== -->
-
-                <div class="section-heading">
-
-                    <div class="section-title-block">
-
-                        <span class="section-eyebrow">
-                            TEAM COMMUNICATION
+                        <span class="send-label">
+                            SEND TO
                         </span>
 
-                        <h2>
-                            Create Announcement
-                        </h2>
+                        <div class="send-options">
 
+                            <label class="send-option">
+                                <input type="radio" name="send_to" value="leads"
+                                    onchange="toggleAnnouncementRecipients()">
+                                <span>Team Leads Only</span>
+                            </label>
+
+                            <label class="send-option">
+                                <input type="radio" name="send_to" value="team" checked
+                                    onchange="toggleAnnouncementRecipients()">
+                                <span>All</span>
+                            </label>
+
+                            <label class="send-option">
+                                <input type="radio" name="send_to" value="selected"
+                                    onchange="toggleAnnouncementRecipients()">
+                                <span>Specific Recipients</span>
+                            </label>
+
+                        </div>
                     </div>
 
-                    <div class="heading-line"></div>
+
+                    <button type="submit" class="post-button">
+
+                        <i data-lucide="send"></i>
+
+                        Post Announcement
+
+                    </button>
+
+                </div>
+
+            </form>
+
+
+            <!-- =================================================
+                     HISTORY HEADING
+                ================================================== -->
+
+            <div class="section-heading">
+
+                <div class="section-title-block">
+
+                    <span class="section-eyebrow">
+                        ANNOUNCEMENT HISTORY
+                    </span>
+
+                    <h2>
+                        Previous Announcements
+                    </h2>
+
+                </div>
+
+                <div class="heading-line"></div>
+
+            </div>
+
+
+            <!-- =================================================
+                     HISTORY
+                ================================================== -->
+
+            <div class="history-card">
+
+
+                <div class="history-top">
+
+                    <span class="history-label">
+                        Recent team announcements
+                    </span>
+
+
+                    <span class="history-count">
+
+                        {{ announcements|length }}
+
+                        {% if announcements|length == 1 %}
+
+                        Announcement
+
+                        {% else %}
+
+                        Announcements
+
+                        {% endif %}
+
+                    </span>
 
                 </div>
 
 
                 <!-- =================================================
-                     CREATE CARD
-                ================================================== -->
+                         ANNOUNCEMENT LIST
+                    ================================================== -->
 
-                <form
-                    method="POST"
-                    action="{% url 'admin_announcements' %}"
-                    class="create-card"
-                >
-
-                    {% csrf_token %}
+                <div class="announcement-list">
 
 
-                    <input
-                        type="hidden"
-                        name="action"
-                        value="create_announcement"
-                    >
+                    {% for announcement in announcements %}
 
 
-                    <div class="create-card-header">
+                    <article class="announcement-item" id="announcement-{{ announcement.id }}">
 
-                        <div class="create-icon">
+
+                        <!-- =================================================
+                                 ANNOUNCEMENT ICON
+                            ================================================== -->
+
+                        <div class="announcement-icon">
 
                             <i data-lucide="megaphone"></i>
 
                         </div>
 
 
-                        <div>
-
-                            <h3 class="create-title">
-                                New Announcement
-                            </h3>
-
-                            <p class="create-subtitle">
-                                Send updates to Team Leads and Team Members.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- MESSAGE -->
-
-                    <textarea
-                        name="message"
-                        class="announcement-textarea"
-                        placeholder="Write your announcement..."
-                        required
-                    ></textarea>
-
-
-                    <!-- SELECTED MEMBERS -->
-
-                    <div
-                        id="announcementRecipients"
-                        class="recipients-box"
-                    >
-
-                        <p class="recipients-title">
-                            Select Team Leads and Team Members
-                        </p>
-
-
-                        <div class="members-grid">
-
-                            {% for member in team_members %}
-
-                            <label class="member-option">
-
-                                <input
-                                    type="checkbox"
-                                    name="recipient_ids"
-                                    value="{{ member.id }}"
-                                    class="announcement-member-checkbox"
-                                >
-
-
-                                <div class="member-info">
-
-                                    <p class="member-name">
-                                        {{ member.name }}
-                                    </p>
-
-
-                                    {% if member.designation %}
-
-                                    <p class="member-designation">
-                                        {{ member.designation }}
-                                    </p>
-
-                                    {% else %}
-
-                                    <p class="member-designation">{{ member.job_Position }}
-                                    </p>
-
-                                    {% endif %}
-
-                                </div>
-
-                            </label>
-
-
-                            {% empty %}
-
-                            <p style="color:#77727e;font-size:10px;">
-                                No Team Leads or Team Members available.
-                            </p>
-
-                            {% endfor %}
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- FORM BOTTOM -->
-
-                    <div class="form-bottom">
-
-
-                        <div class="send-area">
-
-                            <span class="send-label">
-                                SEND TO
-                            </span>
-
-
-                            <div class="send-options">
-
-                                <label class="send-option">
-
-                                    <input
-                                        type="radio"
-                                        name="send_to"
-                                        value="team"
-                                        checked
-                                        onchange="toggleAnnouncementRecipients()"
-                                    >
-
-                                    <span>
-                                        All Team Leads + Team Members
-                                    </span>
-
-                                </label>
-
-
-                                <label class="send-option">
-
-                                    <input
-                                        type="radio"
-                                        name="send_to"
-                                        value="selected"
-                                        onchange="toggleAnnouncementRecipients()"
-                                    >
-
-                                    <span>
-                                        Specific Recipients
-                                    </span>
-
-                                </label>
-
-                            </div>
-
-                        </div>
-
-
-                        <button
-                            type="submit"
-                            class="post-button"
-                        >
-
-                            <i data-lucide="send"></i>
-
-                            Post Announcement
-
-                        </button>
-
-                    </div>
-
-                </form>
-
-
-                <!-- =================================================
-                     HISTORY HEADING
-                ================================================== -->
-
-                <div class="section-heading">
-
-                    <div class="section-title-block">
-
-                        <span class="section-eyebrow">
-                            ANNOUNCEMENT HISTORY
-                        </span>
-
-                        <h2>
-                            Previous Announcements
-                        </h2>
-
-                    </div>
-
-                    <div class="heading-line"></div>
-
-                </div>
-
-
-                <!-- =================================================
-                     HISTORY
-                ================================================== -->
-
-                <div class="history-card">
-
-
-                    <div class="history-top">
-
-                        <span class="history-label">
-                            Recent team announcements
-                        </span>
-
-
-                        <span class="history-count">
-
-                            {{ announcements|length }}
-
-                            {% if announcements|length == 1 %}
-
-                                Announcement
-
-                            {% else %}
-
-                                Announcements
-
-                            {% endif %}
-
-                        </span>
-
-                    </div>
-
-
-                    <!-- =================================================
-                         ANNOUNCEMENT LIST
-                    ================================================== -->
-
-                    <div class="announcement-list">
-
-
-                        {% for announcement in announcements %}
-
-
-                        <article
-                            class="announcement-item"
-                            id="announcement-{{ announcement.id }}"
-                        >
-
-
-                            <!-- =================================================
-                                 ANNOUNCEMENT ICON
-                            ================================================== -->
-
-                            <div class="announcement-icon">
-
-                                <i data-lucide="megaphone"></i>
-
-                            </div>
-
-
-                            <!-- =================================================
+                        <!-- =================================================
                                  ANNOUNCEMENT BODY
                             ================================================== -->
 
-                            <div class="announcement-body">
+                        <div class="announcement-body">
 
 
-                                <!-- =================================================
+                            <!-- =================================================
                                      VIEW MODE
                                 ================================================== -->
 
-                                <div
-                                    class="announcement-view"
-                                    id="announcement-view-{{ announcement.id }}"
-                                >
+                            <div class="announcement-view" id="announcement-view-{{ announcement.id }}">
 
 
-                                    <!-- TITLE + ACTIONS -->
+                                <!-- TITLE + ACTIONS -->
 
-                                    <div class="announcement-title-row">
-
-
-                                        <h3 class="announcement-title">
-
-                                            {% if announcement.title %}
-
-                                                {{ announcement.title }}
-
-                                            {% else %}
-
-                                                Team Announcement
-
-                                            {% endif %}
-
-                                        </h3>
+                                <div class="announcement-title-row">
 
 
-                                        <!-- ACTION BUTTONS -->
+                                    <h3 class="announcement-title">
 
-                                        <div class="announcement-actions">
-                                            {% if announcement.recipients.all %}
-                                            <button type="button" class="announcement-action view-action"
-                                                    onclick="openSeenModal('{{ announcement.id }}')"
-                                                    title="View read status" aria-label="View announcement read status">
-                                                <i data-lucide="eye"></i>
+                                        {% if announcement.title %}
+
+                                        {{ announcement.title }}
+
+                                        {% else %}
+
+                                        Team Announcement
+
+                                        {% endif %}
+
+                                    </h3>
+
+
+                                    <!-- ACTION BUTTONS -->
+
+                                    <div class="announcement-actions">
+                                        {% if announcement.recipients.all %}
+                                        <button type="button" class="announcement-action view-action"
+                                            onclick="openSeenModal('{{ announcement.id }}')" title="View read status"
+                                            aria-label="View announcement read status">
+                                            <i data-lucide="eye"></i>
+                                        </button>
+                                        {% endif %}
+
+
+                                        <!-- EDIT -->
+
+                                        <button type="button" class="announcement-action edit-action"
+                                            onclick="openAnnouncementEdit('{{ announcement.id }}')"
+                                            title="Edit announcement">
+
+                                            <i data-lucide="pencil"></i>
+
+                                        </button>
+
+
+                                        <!-- DELETE -->
+
+                                        <form method="POST" action="{% url 'admin_announcements' %}"
+                                            class="delete-announcement-form"
+                                            onsubmit="return confirmDeleteAnnouncement(this);">
+
+                                            {% csrf_token %}
+
+
+                                            <input type="hidden" name="action" value="delete_announcement">
+
+
+                                            <input type="hidden" name="announcement_id" value="{{ announcement.id }}">
+
+
+                                            <button type="submit" class="announcement-action delete-action"
+                                                title="Delete announcement">
+
+                                                <i data-lucide="trash-2"></i>
+
                                             </button>
-                                            {% endif %}
 
-
-                                            <!-- EDIT -->
-
-                                            <button
-                                                type="button"
-                                                class="announcement-action edit-action"
-                                                onclick="openAnnouncementEdit('{{ announcement.id }}')"
-                                                title="Edit announcement"
-                                            >
-
-                                                <i data-lucide="pencil"></i>
-
-                                            </button>
-
-
-                                            <!-- DELETE -->
-
-                                            <form
-                                                method="POST"
-                                                action="{% url 'admin_announcements' %}"
-                                                class="delete-announcement-form"
-                                                onsubmit="return confirmDeleteAnnouncement(this);"
-                                            >
-
-                                                {% csrf_token %}
-
-
-                                                <input
-                                                    type="hidden"
-                                                    name="action"
-                                                    value="delete_announcement"
-                                                >
-
-
-                                                <input
-                                                    type="hidden"
-                                                    name="announcement_id"
-                                                    value="{{ announcement.id }}"
-                                                >
-
-
-                                                <button
-                                                    type="submit"
-                                                    class="announcement-action delete-action"
-                                                    title="Delete announcement"
-                                                >
-
-                                                    <i data-lucide="trash-2"></i>
-
-                                                </button>
-
-                                            </form>
-
-                                        </div>
+                                        </form>
 
                                     </div>
 
-
-                                    <!-- MESSAGE -->
-
-                                    <p class="announcement-message">
-                                        {{ announcement.message }}
-                                    </p>
+                                </div>
 
 
-                                    <!-- TIME ON LEFT, SEEN STATUS ON RIGHT -->
-                                    <div class="announcement-footer">
+                                <!-- MESSAGE -->
+
+                                <p class="announcement-message">
+                                    {{ announcement.message }}
+                                </p>
+
+
+                                <!-- TIME ON LEFT, SEEN STATUS ON RIGHT -->
+                                <div class="announcement-footer">
                                     <div class="announcement-meta">
 
                                         Posted on
@@ -2172,126 +2720,130 @@ body.admin-announcements-page #toastContainer {position:fixed!important;right:24
                                     </div>
 
 
-                                    </div> <!-- announcement-footer -->
+                                </div> <!-- announcement-footer -->
 
-                                </div>
+                            </div>
 
 
-                                <!-- =================================================
+                            <!-- =================================================
                                      EDIT MODE
                                 ================================================== -->
 
-                                <div
-                                    class="announcement-edit-box"
-                                    id="announcement-edit-{{ announcement.id }}"
-                                >
+                            <div class="announcement-edit-box" id="announcement-edit-{{ announcement.id }}">
 
 
-                                    <form
-                                        method="POST"
-                                        action="{% url 'admin_announcements' %}"
-                                    >
+                                <form method="POST" action="{% url 'admin_announcements' %}">
 
-                                        {% csrf_token %}
+                                    {% csrf_token %}
 
 
-                                        <input
-                                            type="hidden"
-                                            name="action"
-                                            value="edit_announcement"
-                                        >
+                                    <input type="hidden" name="action" value="edit_announcement">
 
 
-                                        <input
-                                            type="hidden"
-                                            name="announcement_id"
-                                            value="{{ announcement.id }}"
-                                        >
+                                    <input type="hidden" name="announcement_id" value="{{ announcement.id }}">
 
 
-                                        <textarea
-                                            name="message"
-                                            class="announcement-edit-textarea"
-                                            required
-                                        >{{ announcement.message }}</textarea>
+                                    <textarea name="message" class="announcement-edit-textarea"
+                                        required>{{ announcement.message }}</textarea>
 
 
-                                        <div class="edit-actions">
+                                    <div class="edit-actions">
 
 
-                                            <button
-                                                type="button"
-                                                class="cancel-edit-button"
-                                                onclick="closeAnnouncementEdit('{{ announcement.id }}')"
-                                            >
-                                                Cancel
-                                            </button>
+                                        <button type="button" class="cancel-edit-button"
+                                            onclick="closeAnnouncementEdit('{{ announcement.id }}')">
+                                            Cancel
+                                        </button>
 
 
-                                            <button
-                                                type="submit"
-                                                class="save-edit-button"
-                                            >
+                                        <button type="submit" class="save-edit-button">
 
-                                                <i data-lucide="check"></i>
+                                            <i data-lucide="check"></i>
 
-                                                Save Changes
+                                            Save Changes
 
-                                            </button>
+                                        </button>
 
-                                        </div>
+                                    </div>
 
-                                    </form>
-
-                                </div>
-
+                                </form>
 
                             </div>
 
-
-                        </article>
-
-
-                        {% empty %}
-
-
-                        <div class="empty-state">
-
-                            <i data-lucide="megaphone-off"></i>
-
-                            <div>
-                                No announcements yet.
-                            </div>
 
                         </div>
 
 
-                        {% endfor %}
+                    </article>
 
+
+                    {% empty %}
+
+
+                    <div class="empty-state">
+
+                        <i data-lucide="megaphone-off"></i>
+
+                        <div>
+                            No announcements yet.
+                        </div>
 
                     </div>
 
+
+                    {% endfor %}
+
+
                 </div>
 
-
-</div>
-<div id="adminLeadAnnouncementsPanel" class="admin-announcement-panel" role="tabpanel" aria-labelledby="adminLeadAnnouncementsTab" hidden>
-<div class="section-heading"><div class="section-title-block"><span class="section-eyebrow">TEAM COMMUNICATION</span><h2>Team Lead Announcements</h2></div><div class="heading-line"></div></div>
-<div class="history-card"><div class="history-top"><span class="history-label">Announcements sent by Team Leads</span><span class="history-count">{{ lead_announcements|length }} Announcements</span></div><div class="announcement-list">
-{% for item in lead_announcements %}
-<article class="announcement-item admin-lead-card" data-announcement-id="{{ item.pk }}"><div class="announcement-icon"><i data-lucide="megaphone" aria-hidden="true"></i></div><div class="announcement-body"><div class="announcement-title-row"><h3 class="announcement-title">{{ item.title|default:'Team Announcement' }}</h3><div class="announcement-actions"><button type="button" class="announcement-action view-action admin-lead-view" aria-label="View announcement" title="View announcement"><i data-lucide="eye" aria-hidden="true"></i></button></div></div><p class="announcement-message tl-announcement-preview">{{ item.message }}</p><div class="announcement-meta">Sent by <strong>{{ item.author_name }}</strong>{% if item.created_by.department %} · {{ item.created_by.department }}{% endif %} · {{ item.created_at|localtime|date:'d M Y, h:i A' }}</div><template>{{ item.message }}</template></div></article>
-{% empty %}<div class="empty-state"><i data-lucide="megaphone-off" aria-hidden="true"></i><div>No Team Lead announcements yet.</div></div>{% endfor %}
-</div></div></div>
-
-            </section>
+            </div>
 
 
         </div>
+        <div id="adminLeadAnnouncementsPanel" class="admin-announcement-panel" role="tabpanel"
+            aria-labelledby="adminLeadAnnouncementsTab" hidden>
+            <div class="section-heading">
+                <div class="section-title-block"><span class="section-eyebrow">TEAM COMMUNICATION</span>
+                    <h2>Team Lead Announcements</h2>
+                </div>
+                <div class="heading-line"></div>
+            </div>
+            <div class="history-card">
+                <div class="history-top"><span class="history-label">Announcements sent by Team Leads</span><span
+                        class="history-count">{{ lead_announcements|length }} Announcements</span></div>
+                <div class="announcement-list">
+                    {% for item in lead_announcements %}
+                    <article class="announcement-item admin-lead-card" data-announcement-id="{{ item.pk }}">
+                        <div class="announcement-icon"><i data-lucide="megaphone" aria-hidden="true"></i></div>
+                        <div class="announcement-body">
+                            <div class="announcement-title-row">
+                                <h3 class="announcement-title">{{ item.title|default:'Team Announcement' }}</h3>
+                                <div class="announcement-actions"><button type="button"
+                                        class="announcement-action view-action admin-lead-view"
+                                        aria-label="View announcement" title="View announcement"><i data-lucide="eye"
+                                            aria-hidden="true"></i></button></div>
+                            </div>
+                            <p class="announcement-message tl-announcement-preview">{{ item.message }}</p>
+                            <div class="announcement-meta">Sent by <strong>{{ item.author_name }}</strong>{% if
+                                item.created_by.department %} · {{ item.created_by.department }}{% endif %} {{
+                                item.created_at|localtime|date:'d M Y, h:i A' }}</div><template>{{ item.message
+                                }}</template>
+                        </div>
+                    </article>
+                    {% empty %}<div class="empty-state"><i data-lucide="megaphone-off" aria-hidden="true"></i>
+                        <div>No Team Lead announcements yet.</div>
+                    </div>{% endfor %}
+                </div>
+            </div>
+        </div>
 
-    <div class="seen-modal" id="deleteAnnouncementModal"
-     role="dialog" aria-modal="true" aria-hidden="true"
-     aria-labelledby="deleteAnnouncementTitle"
-     onclick="if (event.target === this) closeDeleteAnnouncementModal()">
+    </section>
+
+
+</div>
+
+<div class="seen-modal" id="deleteAnnouncementModal" role="dialog" aria-modal="true" aria-hidden="true"
+    aria-labelledby="deleteAnnouncementTitle" onclick="if (event.target === this) closeDeleteAnnouncementModal()">
 
     <div class="seen-modal-card">
         <div class="seen-modal-header">
@@ -2300,9 +2852,7 @@ body.admin-announcements-page #toastContainer {position:fixed!important;right:24
                 <h3 id="deleteAnnouncementTitle">Delete announcement?</h3>
                 <p>This action cannot be undone.</p>
             </div>
-            <button type="button" class="seen-modal-close"
-                    onclick="closeDeleteAnnouncementModal()"
-                    aria-label="Close">
+            <button type="button" class="seen-modal-close" onclick="closeDeleteAnnouncementModal()" aria-label="Close">
                 <i data-lucide="x"></i>
             </button>
         </div>
@@ -2313,596 +2863,605 @@ body.admin-announcements-page #toastContainer {position:fixed!important;right:24
             </p>
             <div class="delete-confirm-actions">
                 <button type="button" class="delete-confirm-cancel"
-                        onclick="closeDeleteAnnouncementModal()">Cancel</button>
-                <button type="button" class="delete-confirm-submit"
-                        onclick="submitDeleteAnnouncement()">Delete Announcement</button>
+                    onclick="closeDeleteAnnouncementModal()">Cancel</button>
+                <button type="button" class="delete-confirm-submit" onclick="submitDeleteAnnouncement()">Delete
+                    Announcement</button>
             </div>
         </div>
     </div>
 </div>
 
-    {% for announcement in announcements %}
-    {% if announcement.recipients.all %}
-    <div class="seen-modal" id="seen-modal-{{ announcement.id }}" role="dialog" aria-modal="true"
-         aria-label="Announcement read status" aria-hidden="true" onclick="if (event.target === this) closeSeenModal()">
-        <div class="seen-modal-card">
-            <div class="seen-modal-header">
-                <div>
-                    <span class="seen-modal-eyebrow">ANNOUNCEMENT ACTIVITY</span>
-                    <h3>Seen status</h3>
-                    <p>See who has read this announcement</p>
-                </div>
-                <button type="button" class="seen-modal-close" onclick="closeSeenModal()" aria-label="Close read status">
-                    <i data-lucide="x"></i>
-                </button>
+{% for announcement in announcements %}
+{% if announcement.recipients.all %}
+<div class="seen-modal" id="seen-modal-{{ announcement.id }}" role="dialog" aria-modal="true"
+    aria-label="Announcement read status" aria-hidden="true" onclick="if (event.target === this) closeSeenModal()">
+    <div class="seen-modal-card">
+        <div class="seen-modal-header">
+            <div>
+                <span class="seen-modal-eyebrow">ANNOUNCEMENT ACTIVITY</span>
+                <h3>Seen status</h3>
+                <p>See who has read this announcement</p>
             </div>
-            <div class="seen-modal-body">
-                                            <div class="seen-member-list">
+            <button type="button" class="seen-modal-close" onclick="closeSeenModal()" aria-label="Close read status">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+        <div class="seen-modal-body">
+            <div class="seen-member-list">
 
 
-                                            {% for recipient_row in announcement.recipients.all %}
+                {% for recipient_row in announcement.recipients.all %}
 
 
-                                            <div class="seen-member-row">
+                <div class="seen-member-row">
 
 
-                                                <!-- PROFILE -->
+                    <!-- PROFILE -->
 
-                                                <div class="seen-member-profile">
-
-
-                                                    <div class="seen-member-avatar">
-
-                                                        {{ recipient_row.recipient.name|slice:":1"|upper }}
-
-                                                    </div>
+                    <div class="seen-member-profile">
 
 
-                                                    <div class="seen-member-details">
+                        <div class="seen-member-avatar">
 
-                                                        <span class="seen-member-name">
+                            {{ recipient_row.recipient.name|slice:":1"|upper }}
 
-                                                            {{ recipient_row.recipient.name }}
-
-                                                        </span>
+                        </div>
 
 
-                                                        <span class="seen-member-role">{{ recipient_row.recipient.job_Position }}
+                        <div class="seen-member-details">
 
-                                                        </span>
+                            <span class="seen-member-name">
 
-                                                    </div>
+                                {{ recipient_row.recipient.name }}
 
-                                                </div>
-
-
-                                                <!-- STATUS -->
-
-                                                {% if recipient_row.read_at %}
-
-                                                <div class="member-seen-badge seen">
-
-                                                    <i data-lucide="check-circle-2"></i>
-
-                                                    <span>
-                                                        Seen
-                                                    </span>
-
-                                                </div>
-
-                                                {% else %}
-
-                                                <div class="member-seen-badge not-seen">
-
-                                                    <i data-lucide="circle"></i>
-
-                                                    <span>
-                                                        Not Seen
-                                                    </span>
-
-                                                </div>
-
-                                                {% endif %}
+                            </span>
 
 
-                                            </div>
+                            <span class="seen-member-role">{{ recipient_row.recipient.job_Position }}
+
+                            </span>
+
+                        </div>
+
+                    </div>
 
 
-                                            {% empty %}
+                    <!-- STATUS -->
 
-                                            <div
-                                                style="
+                    {% if recipient_row.read_at %}
+
+                    <div class="member-seen-badge seen">
+
+                        <i data-lucide="check-circle-2"></i>
+
+                        <span>
+                            Seen
+                        </span>
+
+                    </div>
+
+                    {% else %}
+
+                    <div class="member-seen-badge not-seen">
+
+                        <i data-lucide="circle"></i>
+
+                        <span>
+                            Not Seen
+                        </span>
+
+                    </div>
+
+                    {% endif %}
+
+
+                </div>
+
+
+                {% empty %}
+
+                <div style="
                                                     padding:16px;
                                                     text-align:center;
                                                     color:#77727e;
                                                     font-size:9px;
-                                                "
-                                            >
-                                                No recipients found.
-                                            </div>
+                                                ">
+                    No recipients found.
+                </div>
 
-                                            {% endfor %}
+                {% endfor %}
 
-                                            </div>
             </div>
         </div>
     </div>
-    {% endif %}
-    {% endfor %}
+</div>
+{% endif %}
+{% endfor %}
 
-    <!-- =========================================================
+<!-- =========================================================
          JAVASCRIPT
     ========================================================= -->
 
 
-<dialog id="adminLeadAnnouncementDialog" aria-labelledby="adminLeadAnnouncementTitle"><div class="seen-modal-header"><div><span class="seen-modal-eyebrow">TEAM LEAD ANNOUNCEMENT</span><h3 id="adminLeadAnnouncementTitle"></h3><p id="adminLeadAnnouncementMeta"></p></div><button type="button" class="seen-modal-close" id="adminLeadAnnouncementClose" aria-label="Close announcement"><i data-lucide="x" aria-hidden="true"></i></button></div><div class="seen-modal-body" id="adminLeadAnnouncementMessage"></div></dialog>
+<dialog id="adminLeadAnnouncementDialog" aria-labelledby="adminLeadAnnouncementTitle">
+    <div class="seen-modal-header">
+        <div><span class="seen-modal-eyebrow">TEAM LEAD ANNOUNCEMENT</span>
+            <h3 id="adminLeadAnnouncementTitle"></h3>
+            <p id="adminLeadAnnouncementMeta"></p>
+        </div><button type="button" class="seen-modal-close" id="adminLeadAnnouncementClose"
+            aria-label="Close announcement"><i data-lucide="x" aria-hidden="true"></i></button>
+    </div>
+    <div class="seen-modal-body" id="adminLeadAnnouncementMessage"></div>
+</dialog>
 {% endblock %}
-{% block extra_js %}<script>
+{% block extra_js %}
+<script>
 
 
 
-        /* =========================================================
-           INITIALIZE
-        ========================================================= */
+    /* =========================================================
+       INITIALIZE
+    ========================================================= */
 
-        document.addEventListener(
-            "DOMContentLoaded",
-            function () {
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
 
-                if (window.lucide) {
+            if (window.lucide) {
 
-                    lucide.createIcons();
-
-                }
-
-
-                toggleAnnouncementRecipients();
-
-            }
-        );
-
-
-        /* =========================================================
-           RECIPIENT SELECT
-        ========================================================= */
-
-        function toggleAnnouncementRecipients() {
-
-
-            const selectedOption =
-                document.querySelector(
-                    'input[name="send_to"]:checked'
-                );
-
-
-            const recipientsBox =
-                document.getElementById(
-                    "announcementRecipients"
-                );
-
-
-            if (
-                !selectedOption ||
-                !recipientsBox
-            ) {
-
-                return;
+                lucide.createIcons();
 
             }
 
 
-            if (
-                selectedOption.value === "selected"
-            ) {
+            toggleAnnouncementRecipients();
 
-                recipientsBox.style.display =
-                    "block";
-
-            } else {
-
-                recipientsBox.style.display =
-                    "none";
+        }
+    );
 
 
-                document
-                    .querySelectorAll(
-                        ".announcement-member-checkbox"
-                    )
-                    .forEach(
-                        function (checkbox) {
+    /* =========================================================
+       RECIPIENT SELECT
+    ========================================================= */
 
-                            checkbox.checked =
-                                false;
+    function toggleAnnouncementRecipients() {
 
-                        }
-                    );
 
-            }
+        const selectedOption =
+            document.querySelector(
+                'input[name="send_to"]:checked'
+            );
+
+
+        const recipientsBox =
+            document.getElementById(
+                "announcementRecipients"
+            );
+
+
+        if (
+            !selectedOption ||
+            !recipientsBox
+        ) {
+
+            return;
 
         }
 
 
-        let activeSeenModal = null;
-        let seenModalTrigger = null;
-        function openSeenModal(id) {
-            closeSeenModal();
-            const modal = document.getElementById('seen-modal-' + id);
-            if (!modal) return;
-            seenModalTrigger = document.activeElement;
-            activeSeenModal = modal;
-            modal.classList.add('open');
-            modal.setAttribute('aria-hidden', 'false');
-            document.body.style.overflow = 'hidden';
-            modal.querySelector('.seen-modal-close').focus();
-        }
-        function closeSeenModal() {
-            if (!activeSeenModal) return;
-            activeSeenModal.classList.remove('open');
-            activeSeenModal.setAttribute('aria-hidden', 'true');
-            document.body.style.overflow = '';
-            if (seenModalTrigger) seenModalTrigger.focus();
-            activeSeenModal = null;
-            seenModalTrigger = null;
-        }
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') closeSeenModal();
-        });
+        if (
+            selectedOption.value === "selected"
+        ) {
 
-        /* =========================================================
-           EDIT ANNOUNCEMENT
-        ========================================================= */
+            recipientsBox.style.display =
+                "block";
 
-        function openAnnouncementEdit(id) {
+        } else {
 
-
-            const viewBox =
-                document.getElementById(
-                    "announcement-view-" + id
-                );
-
-
-            const editBox =
-                document.getElementById(
-                    "announcement-edit-" + id
-                );
-
-
-            if (
-                !viewBox ||
-                !editBox
-            ) {
-
-                return;
-
-            }
-
-
-            viewBox.style.display =
+            recipientsBox.style.display =
                 "none";
 
 
-            editBox.style.display =
-                "block";
+            document
+                .querySelectorAll(
+                    ".announcement-member-checkbox"
+                )
+                .forEach(
+                    function (checkbox) {
 
+                        checkbox.checked =
+                            false;
 
-            const textarea =
-                editBox.querySelector(
-                    ".announcement-edit-textarea"
+                    }
                 );
 
+        }
 
-            if (textarea) {
-
-                textarea.focus();
+    }
 
 
-                textarea.setSelectionRange(
-                    textarea.value.length,
-                    textarea.value.length
-                );
+    let activeSeenModal = null;
+    let seenModalTrigger = null;
+    function openSeenModal(id) {
+        closeSeenModal();
+        const modal = document.getElementById('seen-modal-' + id);
+        if (!modal) return;
+        seenModalTrigger = document.activeElement;
+        activeSeenModal = modal;
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        modal.querySelector('.seen-modal-close').focus();
+    }
+    function closeSeenModal() {
+        if (!activeSeenModal) return;
+        activeSeenModal.classList.remove('open');
+        activeSeenModal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        if (seenModalTrigger) seenModalTrigger.focus();
+        activeSeenModal = null;
+        seenModalTrigger = null;
+    }
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeSeenModal();
+    });
 
-            }
+    /* =========================================================
+       EDIT ANNOUNCEMENT
+    ========================================================= */
+
+    function openAnnouncementEdit(id) {
+
+
+        const viewBox =
+            document.getElementById(
+                "announcement-view-" + id
+            );
+
+
+        const editBox =
+            document.getElementById(
+                "announcement-edit-" + id
+            );
+
+
+        if (
+            !viewBox ||
+            !editBox
+        ) {
+
+            return;
 
         }
 
 
-        /* =========================================================
-           CANCEL EDIT
-        ========================================================= */
-
-        function closeAnnouncementEdit(id) {
+        viewBox.style.display =
+            "none";
 
 
-            const viewBox =
-                document.getElementById(
-                    "announcement-view-" + id
-                );
+        editBox.style.display =
+            "block";
 
 
-            const editBox =
-                document.getElementById(
-                    "announcement-edit-" + id
-                );
+        const textarea =
+            editBox.querySelector(
+                ".announcement-edit-textarea"
+            );
 
 
-            if (
-                !viewBox ||
-                !editBox
-            ) {
+        if (textarea) {
 
-                return;
-
-            }
+            textarea.focus();
 
 
-            editBox.style.display =
-                "none";
+            textarea.setSelectionRange(
+                textarea.value.length,
+                textarea.value.length
+            );
+
+        }
+
+    }
 
 
-            viewBox.style.display =
-                "block";
+    /* =========================================================
+       CANCEL EDIT
+    ========================================================= */
+
+    function closeAnnouncementEdit(id) {
+
+
+        const viewBox =
+            document.getElementById(
+                "announcement-view-" + id
+            );
+
+
+        const editBox =
+            document.getElementById(
+                "announcement-edit-" + id
+            );
+
+
+        if (
+            !viewBox ||
+            !editBox
+        ) {
+
+            return;
 
         }
 
 
-        /* =========================================================
-           DELETE CONFIRMATION
-        ========================================================= */
-let pendingDeleteAnnouncementForm = null;
-let previousDeleteBodyOverflow = "";
+        editBox.style.display =
+            "none";
 
-function confirmDeleteAnnouncement(form) {
-    pendingDeleteAnnouncementForm = form;
-    document.querySelector("#deleteAnnouncementModal .delete-confirm-error")?.remove();
-    const modal = document.getElementById("deleteAnnouncementModal");
-    modal.classList.add("open");
-    modal.setAttribute("aria-hidden", "false");
-    previousDeleteBodyOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    modal.querySelector(".seen-modal-close").focus();
-    return false;
-}
 
-function closeDeleteAnnouncementModal() {
-    const modal = document.getElementById("deleteAnnouncementModal");
-    modal.classList.remove("open");
-    modal.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = previousDeleteBodyOverflow;
-    pendingDeleteAnnouncementForm = null;
-}
+        viewBox.style.display =
+            "block";
 
-function submitDeleteAnnouncement() {
-    if (pendingDeleteAnnouncementForm) {
-        window.saveAdminAnnouncement?.(pendingDeleteAnnouncementForm, document.querySelector(".delete-confirm-submit"));
     }
-}
 
-document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") closeDeleteAnnouncementModal();
-});
-    
-</script><script>
-document.addEventListener('DOMContentLoaded', () => {
- const root = document.querySelector('.admin-announcements-page .dashboard-box');
- const own = document.getElementById('adminOwnAnnouncementsPanel');
- if (!root || !own) return;
- let busy = false, controller = null, timer = null, revision = 0;
- let ownSignature = own.querySelector('.announcement-list')?.innerHTML || '';
- const pageUrl = new URL(window.location.href); pageUrl.searchParams.delete('format');
- const notify = (text, type = 'success') => {
-  if (typeof window.showToast === 'function') {
-   window.showToast(text, type);
-   return;
-  }
-  let stack = document.getElementById('announcementToastStack');
-  if (!stack) {
-   stack = document.createElement('div'); stack.id = 'announcementToastStack';
-   stack.className = 'announcement-toast-stack';
-   stack.setAttribute('aria-live', 'polite');
-   document.body.append(stack);
-  }
-  const toast = document.createElement('div'); toast.className = 'announcement-toast';
-  toast.dataset.type = type; toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
-  toast.textContent = text;
-  stack.append(toast);
-  while (stack.childElementCount > 4) stack.firstElementChild.remove();
-  setTimeout(() => toast.remove(), 4500);
- };
- const editing = () => Array.from(own.querySelectorAll('.announcement-edit-box')).some(box => getComputedStyle(box).display !== 'none');
- function updateCounts() {
-  own.querySelectorAll('.announcement-item[id^="announcement-"]').forEach(card => {
-   const modal = document.getElementById('seen-modal-' + card.id.replace('announcement-',''));
-   const footer = card.querySelector('.announcement-footer'); if (!modal || !footer) return;
-   let label = footer.querySelector('.admin-seen-summary');
-   if (!label) { label = document.createElement('span'); label.className = 'admin-seen-summary'; footer.append(label); }
-   label.textContent = `${modal.querySelectorAll('.member-seen-badge.seen').length} / ${modal.querySelectorAll('.seen-member-row').length} Seen`;
-  });
- }
- function apply(fresh) {
-  const incoming = fresh.getElementById(own.id);
-  if (!incoming) throw new Error('Unable to load announcements. Check your login and connection.');
-  const nextList = incoming.querySelector('.announcement-list'), list = own.querySelector('.announcement-list');
-  if (!editing() && list && nextList && ownSignature !== nextList.innerHTML) {
-   const top = list.scrollTop;
-   const focused = document.activeElement;
-   const focusedCardId = list.contains(focused) ? focused.closest('.announcement-item')?.id : null;
-   const focusedAction = focused?.classList?.contains('edit-action') ? '.edit-action'
-    : focused?.classList?.contains('delete-action') ? '.delete-action'
-    : focused?.classList?.contains('view-action') ? '.view-action' : null;
-   list.replaceChildren(...Array.from(nextList.childNodes)); list.scrollTop = top;
-   ownSignature = nextList.innerHTML;
-   if (focusedCardId && focusedAction) {
-    document.getElementById(focusedCardId)?.querySelector(focusedAction)?.focus({preventScroll:true});
-   }
-  }
-  const count = own.querySelector('.history-count'), nextCount = incoming.querySelector('.history-count');
-  if (count && nextCount) count.textContent = nextCount.textContent;
-  const tabCount = document.querySelector('#adminOwnAnnouncementsTab .admin-announcement-tab-count');
-  if (tabCount) tabCount.textContent = incoming.querySelectorAll('.announcement-item[id^="announcement-"]').length;
-  const freshModals = Array.from(fresh.querySelectorAll('.seen-modal[id^="seen-modal-"]'));
-  freshModals.forEach(nextModal => {
-   const modal = document.getElementById(nextModal.id);
-   if (!modal) { root.after(nextModal.cloneNode(true)); return; }
-   const current = modal.querySelector('.seen-member-list'), next = nextModal.querySelector('.seen-member-list');
-   if (current && next && current.textContent !== next.textContent) {
-    const container = modal.querySelector('.seen-modal-body'), top = container.scrollTop;
-    current.replaceChildren(...Array.from(next.childNodes)); container.scrollTop = top;
-   }
-  });
-  document.querySelectorAll('.seen-modal[id^="seen-modal-"]').forEach(modal => {
-   if (freshModals.some(next => next.id === modal.id)) return;
-   if (modal === activeSeenModal) closeSeenModal(); modal.remove();
-  });
-  window.refreshAdminLeadAnnouncements?.(fresh);
-  updateCounts(); window.lucide?.createIcons();
- }
- async function refresh() {
-  controller?.abort(); const current = new AbortController(); controller = current;
-  const token = ++revision, timeout = setTimeout(() => current.abort(), 12000);
-  try {
-   const response = await fetch(pageUrl, {credentials:'same-origin',cache:'no-store',signal:current.signal});
-   if (!response.ok) throw new Error('Unable to update announcements.');
-   const fresh = new DOMParser().parseFromString(await response.text(),'text/html');
-   if (token !== revision || current.signal.aborted) return;
-   apply(fresh);
-  } finally { clearTimeout(timeout); if (controller === current) controller = null; }
- }
- function schedule() {
-  clearTimeout(timer); if (document.hidden) return;
-  timer = setTimeout(async () => {
-   const confirmOpen = document.getElementById('deleteAnnouncementModal')?.classList.contains('open');
-   if (!busy && !confirmOpen && !document.getElementById('adminLeadAnnouncementDialog')?.open) {
-    try { await refresh(); } catch (_) { /* retry on next scheduled sync */ }
-   }
-   schedule();
-  },10000);
- }
- window.saveAdminAnnouncement = async (form, button = null) => {
-  if (busy) return;
-  busy = true; controller?.abort(); ++revision;
-  const data = new FormData(form), action = data.get('action');
-  const draft = typeof data.get('message') === 'string' ? data.get('message').trim() : '';
-  if ((action === 'create_announcement' || action === 'edit_announcement') && !draft) {
-   busy = false; notify('Please enter an announcement message.', 'error'); schedule(); return;
-  }
-  if (action === 'create_announcement' && data.get('send_to') === 'selected' && !data.getAll('recipient_ids').length) {
-   busy = false; notify('Select at least one recipient.', 'error'); schedule(); return;
-  }
-  if (button?.name) data.append(button.name,button.value || '1');
-  const controls = Array.from(root.querySelectorAll('button[type=submit]'));
-  controls.push(document.querySelector('.delete-confirm-submit'));
-  const enabled = controls.filter(control => control && !control.disabled);
-  enabled.forEach(control => { control.disabled = true; });
-  form.querySelector('.announcement-live-error')?.remove();
-  let saved = false;
-  const saveAbort = new AbortController();
-  const saveTimeout = setTimeout(() => saveAbort.abort(), 30000);
-  try {
-   const response = await fetch(form.getAttribute('action') || pageUrl,{
-    method:'POST',body:data,credentials:'same-origin',signal:saveAbort.signal,
-    headers:{'X-Requested-With':'XMLHttpRequest'}
-   });
-   let result;
-   if ((response.headers.get('Content-Type') || '').includes('application/json')) {
-    result = await response.json();
-    if (!response.ok || result.ok !== true) throw new Error(result.message || 'Unable to save announcement.');
-   } else {
-    const doc = new DOMParser().parseFromString(await response.text(),'text/html');
-    if (!response.ok || !doc.getElementById(own.id)) throw new Error('Unable to save announcement. Check your login.');
-    const messages = Array.from(doc.querySelectorAll('[data-announcement-operation-message]'));
-    const error = messages.find(item => Number(item.dataset.level) >= 40);
-    if (error) throw new Error(error.textContent.trim());
-    const success = messages.find(item => Number(item.dataset.level) === 25);
-    if (!success) throw new Error('The server did not confirm this change. Please check the form.');
-    result = {ok:true,message:success.textContent.trim()};
-   }
-   saved = true;
-   if (action === 'delete_announcement') closeDeleteAnnouncementModal();
-   else if (action === 'edit_announcement') closeAnnouncementEdit(data.get('announcement_id'));
-   else { form.reset(); toggleAnnouncementRecipients(); }
-   notify(result.message || 'Announcement saved successfully.');
-   await refresh();
-  } catch(error) {
-   if (saved) notify('Saved successfully. Announcement updates will retry automatically.','warning');
-   else {
-    if (action === 'delete_announcement') {
-     const card = document.querySelector('#deleteAnnouncementModal .seen-modal-body');
-     if (card) {
-      let alert = card.querySelector('.delete-confirm-error');
-      if (!alert) { alert = document.createElement('p'); alert.className = 'delete-confirm-error'; alert.setAttribute('role','alert'); card.prepend(alert); }
-      alert.textContent = error.message;
-     }
-    } else {
-     const alert = document.createElement('p'); alert.className = 'announcement-live-error';
-     alert.setAttribute('role','alert'); alert.textContent = error.message; form.prepend(alert);
+
+    /* =========================================================
+       DELETE CONFIRMATION
+    ========================================================= */
+    let pendingDeleteAnnouncementForm = null;
+    let previousDeleteBodyOverflow = "";
+
+    function confirmDeleteAnnouncement(form) {
+        pendingDeleteAnnouncementForm = form;
+        document.querySelector("#deleteAnnouncementModal .delete-confirm-error")?.remove();
+        const modal = document.getElementById("deleteAnnouncementModal");
+        modal.classList.add("open");
+        modal.setAttribute("aria-hidden", "false");
+        previousDeleteBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        modal.querySelector(".seen-modal-close").focus();
+        return false;
     }
-    notify(error.name === 'AbortError' ? 'The request timed out. Check its status before retrying.' : error.message,'error');
-   }
-  } finally {
-   clearTimeout(saveTimeout);
-   enabled.forEach(control => { control.disabled = false; }); busy = false; schedule();
-  }
- };
- document.addEventListener('submit',event => {
-  const form = event.target;
-  if (!own.contains(form)) return;
-  const action = form.querySelector('input[name="action"]')?.value;
-  if (!['create_announcement','edit_announcement','delete_announcement'].includes(action)) return;
-  event.preventDefault();
-  if (action === 'delete_announcement') return; // Existing confirmation opens first.
-  window.saveAdminAnnouncement(form,event.submitter);
- });
- document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { clearTimeout(timer); controller?.abort(); }
-  else { if (!busy) refresh().catch(() => {}); schedule(); }
- });
- window.addEventListener('online', () => { if (!busy) refresh().catch(() => {}); });
- window.addEventListener('pagehide', () => { clearTimeout(timer); controller?.abort(); });
- window.addEventListener('pageshow',schedule);
- updateCounts(); schedule();
-});
+
+    function closeDeleteAnnouncementModal() {
+        const modal = document.getElementById("deleteAnnouncementModal");
+        modal.classList.remove("open");
+        modal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = previousDeleteBodyOverflow;
+        pendingDeleteAnnouncementForm = null;
+    }
+
+    function submitDeleteAnnouncement() {
+        if (pendingDeleteAnnouncementForm) {
+            window.saveAdminAnnouncement?.(pendingDeleteAnnouncementForm, document.querySelector(".delete-confirm-submit"));
+        }
+    }
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") closeDeleteAnnouncementModal();
+    });
 
 </script>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
- const tabs=[...document.querySelectorAll('.admin-announcement-tab')];
- function selectTab(selected) {
-  tabs.forEach(tab=>{const active=tab===selected;tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;document.getElementById(tab.getAttribute('aria-controls')).hidden=!active;});
- }
- tabs.forEach((tab,index)=>{
-  tab.addEventListener('click',()=>selectTab(tab));
-  tab.addEventListener('keydown',event=>{
-   if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
-   const target=event.key==='Home'?tabs[0]:event.key==='End'?tabs[tabs.length-1]:tabs[(index+(event.key==='ArrowLeft'?-1:1)+tabs.length)%tabs.length];
-   event.preventDefault();selectTab(target);target.focus();
-  });
- });
- const panel=document.getElementById('adminLeadAnnouncementsPanel');
- const dialog=document.getElementById('adminLeadAnnouncementDialog');
- let trigger=null,previousOverflow='';
- panel.addEventListener('click',event=>{
-  const button=event.target.closest('.admin-lead-view');if(!button)return;
-  const card=button.closest('.admin-lead-card');trigger=button;
-  document.getElementById('adminLeadAnnouncementTitle').textContent=card.querySelector('.announcement-title').textContent;
-  document.getElementById('adminLeadAnnouncementMeta').textContent=card.querySelector('.announcement-meta').textContent;
-  document.getElementById('adminLeadAnnouncementMessage').textContent=card.querySelector('template').content.textContent;
-  previousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';dialog.showModal();
-  document.getElementById('adminLeadAnnouncementClose').focus();
- });
- document.getElementById('adminLeadAnnouncementClose').addEventListener('click',()=>dialog.close());
- dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();});
- dialog.addEventListener('close',()=>{document.body.style.overflow=previousOverflow;trigger?.focus({preventScroll:true});});
- window.refreshAdminLeadAnnouncements=fresh=>{
-  if(dialog.open)return;
-  const incoming=fresh.getElementById(panel.id);if(!incoming)return;
-  const signature=node=>[...node.querySelectorAll('.admin-lead-card')].map(card=>[card.dataset.announcementId,card.textContent,card.querySelector('template').content.textContent]);
-  if(JSON.stringify(signature(panel))!==JSON.stringify(signature(incoming))){
-   const top=panel.querySelector('.announcement-list')?.scrollTop||0;
-   panel.innerHTML=incoming.innerHTML;
-   const list=panel.querySelector('.announcement-list');if(list)list.scrollTop=top;
-  }
-  document.querySelector('#adminLeadAnnouncementsTab .admin-announcement-tab-count').textContent=incoming.querySelectorAll('.admin-lead-card').length;
- };
-});
+    document.addEventListener('DOMContentLoaded', () => {
+        const root = document.querySelector('.admin-announcements-page .dashboard-box');
+        const own = document.getElementById('adminOwnAnnouncementsPanel');
+        if (!root || !own) return;
+        let busy = false, controller = null, timer = null, revision = 0;
+        let ownSignature = own.querySelector('.announcement-list')?.innerHTML || '';
+        const pageUrl = new URL(window.location.href); pageUrl.searchParams.delete('format');
+        const notify = (text, type = 'success') => {
+            if (typeof window.showToast === 'function') {
+                window.showToast(text, type);
+                return;
+            }
+            let stack = document.getElementById('announcementToastStack');
+            if (!stack) {
+                stack = document.createElement('div'); stack.id = 'announcementToastStack';
+                stack.className = 'announcement-toast-stack';
+                stack.setAttribute('aria-live', 'polite');
+                document.body.append(stack);
+            }
+            const toast = document.createElement('div'); toast.className = 'announcement-toast';
+            toast.dataset.type = type; toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
+            toast.textContent = text;
+            stack.append(toast);
+            while (stack.childElementCount > 4) stack.firstElementChild.remove();
+            setTimeout(() => toast.remove(), 4500);
+        };
+        const editing = () => Array.from(own.querySelectorAll('.announcement-edit-box')).some(box => getComputedStyle(box).display !== 'none');
+        function updateCounts() {
+            own.querySelectorAll('.announcement-item[id^="announcement-"]').forEach(card => {
+                const modal = document.getElementById('seen-modal-' + card.id.replace('announcement-', ''));
+                const footer = card.querySelector('.announcement-footer'); if (!modal || !footer) return;
+                let label = footer.querySelector('.admin-seen-summary');
+                if (!label) { label = document.createElement('span'); label.className = 'admin-seen-summary'; footer.append(label); }
+                label.textContent = `${modal.querySelectorAll('.member-seen-badge.seen').length} / ${modal.querySelectorAll('.seen-member-row').length} Seen`;
+            });
+        }
+        function apply(fresh) {
+            const incoming = fresh.getElementById(own.id);
+            if (!incoming) throw new Error('Unable to load announcements. Check your login and connection.');
+            const nextList = incoming.querySelector('.announcement-list'), list = own.querySelector('.announcement-list');
+            if (!editing() && list && nextList && ownSignature !== nextList.innerHTML) {
+                const top = list.scrollTop;
+                const focused = document.activeElement;
+                const focusedCardId = list.contains(focused) ? focused.closest('.announcement-item')?.id : null;
+                const focusedAction = focused?.classList?.contains('edit-action') ? '.edit-action'
+                    : focused?.classList?.contains('delete-action') ? '.delete-action'
+                        : focused?.classList?.contains('view-action') ? '.view-action' : null;
+                list.replaceChildren(...Array.from(nextList.childNodes)); list.scrollTop = top;
+                ownSignature = nextList.innerHTML;
+                if (focusedCardId && focusedAction) {
+                    document.getElementById(focusedCardId)?.querySelector(focusedAction)?.focus({ preventScroll: true });
+                }
+            }
+            const count = own.querySelector('.history-count'), nextCount = incoming.querySelector('.history-count');
+            if (count && nextCount) count.textContent = nextCount.textContent;
+            const tabCount = document.querySelector('#adminOwnAnnouncementsTab .admin-announcement-tab-count');
+            if (tabCount) tabCount.textContent = incoming.querySelectorAll('.announcement-item[id^="announcement-"]').length;
+            const freshModals = Array.from(fresh.querySelectorAll('.seen-modal[id^="seen-modal-"]'));
+            freshModals.forEach(nextModal => {
+                const modal = document.getElementById(nextModal.id);
+                if (!modal) { root.after(nextModal.cloneNode(true)); return; }
+                const current = modal.querySelector('.seen-member-list'), next = nextModal.querySelector('.seen-member-list');
+                if (current && next && current.textContent !== next.textContent) {
+                    const container = modal.querySelector('.seen-modal-body'), top = container.scrollTop;
+                    current.replaceChildren(...Array.from(next.childNodes)); container.scrollTop = top;
+                }
+            });
+            document.querySelectorAll('.seen-modal[id^="seen-modal-"]').forEach(modal => {
+                if (freshModals.some(next => next.id === modal.id)) return;
+                if (modal === activeSeenModal) closeSeenModal(); modal.remove();
+            });
+            window.refreshAdminLeadAnnouncements?.(fresh);
+            updateCounts(); window.lucide?.createIcons();
+        }
+        async function refresh() {
+            controller?.abort(); const current = new AbortController(); controller = current;
+            const token = ++revision, timeout = setTimeout(() => current.abort(), 12000);
+            try {
+                const response = await fetch(pageUrl, { credentials: 'same-origin', cache: 'no-store', signal: current.signal });
+                if (!response.ok) throw new Error('Unable to update announcements.');
+                const fresh = new DOMParser().parseFromString(await response.text(), 'text/html');
+                if (token !== revision || current.signal.aborted) return;
+                apply(fresh);
+            } finally { clearTimeout(timeout); if (controller === current) controller = null; }
+        }
+        function schedule() {
+            clearTimeout(timer); if (document.hidden) return;
+            timer = setTimeout(async () => {
+                const confirmOpen = document.getElementById('deleteAnnouncementModal')?.classList.contains('open');
+                if (!busy && !confirmOpen && !document.getElementById('adminLeadAnnouncementDialog')?.open) {
+                    try { await refresh(); } catch (_) { /* retry on next scheduled sync */ }
+                }
+                schedule();
+            }, 10000);
+        }
+        window.saveAdminAnnouncement = async (form, button = null) => {
+            if (busy) return;
+            busy = true; controller?.abort(); ++revision;
+            const data = new FormData(form), action = data.get('action');
+            const draft = typeof data.get('message') === 'string' ? data.get('message').trim() : '';
+            if ((action === 'create_announcement' || action === 'edit_announcement') && !draft) {
+                busy = false; notify('Please enter an announcement message.', 'error'); schedule(); return;
+            }
+            if (action === 'create_announcement' && data.get('send_to') === 'selected' && !data.getAll('recipient_ids').length) {
+                busy = false; notify('Select at least one recipient.', 'error'); schedule(); return;
+            }
+            if (button?.name) data.append(button.name, button.value || '1');
+            const controls = Array.from(root.querySelectorAll('button[type=submit]'));
+            controls.push(document.querySelector('.delete-confirm-submit'));
+            const enabled = controls.filter(control => control && !control.disabled);
+            enabled.forEach(control => { control.disabled = true; });
+            form.querySelector('.announcement-live-error')?.remove();
+            let saved = false;
+            const saveAbort = new AbortController();
+            const saveTimeout = setTimeout(() => saveAbort.abort(), 30000);
+            try {
+                const response = await fetch(form.getAttribute('action') || pageUrl, {
+                    method: 'POST', body: data, credentials: 'same-origin', signal: saveAbort.signal,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                let result;
+                if ((response.headers.get('Content-Type') || '').includes('application/json')) {
+                    result = await response.json();
+                    if (!response.ok || result.ok !== true) throw new Error(result.message || 'Unable to save announcement.');
+                } else {
+                    const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+                    if (!response.ok || !doc.getElementById(own.id)) throw new Error('Unable to save announcement. Check your login.');
+                    const messages = Array.from(doc.querySelectorAll('[data-announcement-operation-message]'));
+                    const error = messages.find(item => Number(item.dataset.level) >= 40);
+                    if (error) throw new Error(error.textContent.trim());
+                    const success = messages.find(item => Number(item.dataset.level) === 25);
+                    if (!success) throw new Error('The server did not confirm this change. Please check the form.');
+                    result = { ok: true, message: success.textContent.trim() };
+                }
+                saved = true;
+                if (action === 'delete_announcement') closeDeleteAnnouncementModal();
+                else if (action === 'edit_announcement') closeAnnouncementEdit(data.get('announcement_id'));
+                else { form.reset(); toggleAnnouncementRecipients(); }
+                notify(result.message || 'Announcement saved successfully.');
+                await refresh();
+            } catch (error) {
+                if (saved) notify('Saved successfully. Announcement updates will retry automatically.', 'warning');
+                else {
+                    if (action === 'delete_announcement') {
+                        const card = document.querySelector('#deleteAnnouncementModal .seen-modal-body');
+                        if (card) {
+                            let alert = card.querySelector('.delete-confirm-error');
+                            if (!alert) { alert = document.createElement('p'); alert.className = 'delete-confirm-error'; alert.setAttribute('role', 'alert'); card.prepend(alert); }
+                            alert.textContent = error.message;
+                        }
+                    } else {
+                        const alert = document.createElement('p'); alert.className = 'announcement-live-error';
+                        alert.setAttribute('role', 'alert'); alert.textContent = error.message; form.prepend(alert);
+                    }
+                    notify(error.name === 'AbortError' ? 'The request timed out. Check its status before retrying.' : error.message, 'error');
+                }
+            } finally {
+                clearTimeout(saveTimeout);
+                enabled.forEach(control => { control.disabled = false; }); busy = false; schedule();
+            }
+        };
+        document.addEventListener('submit', event => {
+            const form = event.target;
+            if (!own.contains(form)) return;
+            const action = form.querySelector('input[name="action"]')?.value;
+            if (!['create_announcement', 'edit_announcement', 'delete_announcement'].includes(action)) return;
+            event.preventDefault();
+            if (action === 'delete_announcement') return; // Existing confirmation opens first.
+            window.saveAdminAnnouncement(form, event.submitter);
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) { clearTimeout(timer); controller?.abort(); }
+            else { if (!busy) refresh().catch(() => { }); schedule(); }
+        });
+        window.addEventListener('online', () => { if (!busy) refresh().catch(() => { }); });
+        window.addEventListener('pagehide', () => { clearTimeout(timer); controller?.abort(); });
+        window.addEventListener('pageshow', schedule);
+        updateCounts(); schedule();
+    });
+
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabs = [...document.querySelectorAll('.admin-announcement-tab')];
+        function selectTab(selected) {
+            tabs.forEach(tab => { const active = tab === selected; tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; document.getElementById(tab.getAttribute('aria-controls')).hidden = !active; });
+        }
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => selectTab(tab));
+            tab.addEventListener('keydown', event => {
+                if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+                const target = event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs[tabs.length - 1] : tabs[(index + (event.key === 'ArrowLeft' ? -1 : 1) + tabs.length) % tabs.length];
+                event.preventDefault(); selectTab(target); target.focus();
+            });
+        });
+        const panel = document.getElementById('adminLeadAnnouncementsPanel');
+        const dialog = document.getElementById('adminLeadAnnouncementDialog');
+        let trigger = null, previousOverflow = '';
+        panel.addEventListener('click', event => {
+            const button = event.target.closest('.admin-lead-view'); if (!button) return;
+            const card = button.closest('.admin-lead-card'); trigger = button;
+            document.getElementById('adminLeadAnnouncementTitle').textContent = card.querySelector('.announcement-title').textContent;
+            document.getElementById('adminLeadAnnouncementMeta').textContent = card.querySelector('.announcement-meta').textContent;
+            document.getElementById('adminLeadAnnouncementMessage').textContent = card.querySelector('template').content.textContent;
+            previousOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden'; dialog.showModal();
+            document.getElementById('adminLeadAnnouncementClose').focus();
+        });
+        document.getElementById('adminLeadAnnouncementClose').addEventListener('click', () => dialog.close());
+        dialog.addEventListener('click', event => { if (event.target !== dialog) return; const r = dialog.getBoundingClientRect(); if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); });
+        dialog.addEventListener('close', () => { document.body.style.overflow = previousOverflow; trigger?.focus({ preventScroll: true }); });
+        window.refreshAdminLeadAnnouncements = fresh => {
+            if (dialog.open) return;
+            const incoming = fresh.getElementById(panel.id); if (!incoming) return;
+            const signature = node => [...node.querySelectorAll('.admin-lead-card')].map(card => [card.dataset.announcementId, card.textContent, card.querySelector('template').content.textContent]);
+            if (JSON.stringify(signature(panel)) !== JSON.stringify(signature(incoming))) {
+                const top = panel.querySelector('.announcement-list')?.scrollTop || 0;
+                panel.innerHTML = incoming.innerHTML;
+                const list = panel.querySelector('.announcement-list'); if (list) list.scrollTop = top;
+            }
+            document.querySelector('#adminLeadAnnouncementsTab .admin-announcement-tab-count').textContent = incoming.querySelectorAll('.admin-lead-card').length;
+        };
+    });
 </script>
 {% endblock %}

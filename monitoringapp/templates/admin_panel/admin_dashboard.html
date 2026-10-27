@@ -1488,7 +1488,7 @@ body.admin-dashboard-page #departmentDeleteDialog button:disabled {
     const details = document.createElement('details'); details.className = 'dashboard-dropdown';
     const summary = document.createElement('summary');
     const title = document.createElement('span'); summary.append(title);
-    summary.setAttribute('aria-label', select.name === 'department' ? 'Department filter' : 'Team filter');
+    summary.setAttribute('aria-label', 'Department filter');
     const menu = document.createElement('div'); menu.className = 'dashboard-dropdown-menu';
     menu.setAttribute('role','group'); menu.setAttribute('aria-label',summary.getAttribute('aria-label'));
     details.append(summary,menu);
