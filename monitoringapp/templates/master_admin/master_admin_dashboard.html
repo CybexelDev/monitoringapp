@@ -154,7 +154,7 @@ body.master-dashboard-page #adminMain>.master-dashboard{box-sizing:border-box;he
 
 <section class="master-panel" id="workforce"><div class="master-panel-heading"><div><h2>Recently added users</h2><p class="master-description">Latest ten employee portal registrations, across all roles.</p></div><a class="master-manage" href="{% url 'master_admin_usermanagement' %}"><i data-lucide="user-cog" aria-hidden="true"></i>Manage Users</a></div>
 
-<div class="master-table-scroll" tabindex="0" role="region" aria-label="Recent users; scroll horizontally for more columns"><table class="master-table"><thead><tr><th scope="col">Employee ID</th><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Department</th><th scope="col">Team</th></tr></thead><tbody id="masterRecentUsers">{% for item in recent_users %}<tr><td>{{ item.employee_id }}</td><td>{{ item.name }}</td><td><span class="master-role">{{ item.role }}</span></td><td>{{ item.department }}</td><td>{{ item.team }}</td></tr>{% empty %}<tr><td colspan="5">No users yet.</td></tr>{% endfor %}</tbody></table></div></section>
+<div class="master-table-scroll" tabindex="0" role="region" aria-label="Recent users; scroll horizontally for more columns"><table class="master-table"><thead><tr><th scope="col">Employee ID</th><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Department</th></tr></thead><tbody id="masterRecentUsers">{% for item in recent_users %}<tr><td>{{ item.employee_id }}</td><td>{{ item.name }}</td><td><span class="master-role">{{ item.role }}</span></td><td>{{ item.department }}</td></tr>{% empty %}<tr><td colspan="4">No users yet.</td></tr>{% endfor %}</tbody></table></div></section>
 
 <p class="master-live" id="masterLiveStatus" role="status" aria-live="polite" data-state="live">Updated {{ updated_at }}</p></div>
 
@@ -213,9 +213,9 @@ body.master-dashboard-page #adminMain>.master-dashboard{box-sizing:border-box;he
 
    const next=JSON.stringify(data.recent_users);
 
-   if(next!==signature){const scroller=root.querySelector('.master-table-scroll'),top=scroller?.scrollTop||0,left=scroller?.scrollLeft||0;const rows=data.recent_users.map(item=>{const row=document.createElement('tr');for(const key of ['employee_id','name','role','department','team']){const cell=document.createElement('td');if(key==='role'){const badge=document.createElement('span');badge.className='master-role';badge.textContent=item[key]??'';cell.append(badge);}else cell.textContent=item[key]??'';row.append(cell);}return row;});
+   if(next!==signature){const scroller=root.querySelector('.master-table-scroll'),top=scroller?.scrollTop||0,left=scroller?.scrollLeft||0;const rows=data.recent_users.map(item=>{const row=document.createElement('tr');for(const key of ['employee_id','name','role','department']){const cell=document.createElement('td');if(key==='role'){const badge=document.createElement('span');badge.className='master-role';badge.textContent=item[key]??'';cell.append(badge);}else cell.textContent=item[key]??'';row.append(cell);}return row;});
 
-    if(!rows.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=5;cell.textContent='No users yet.';row.append(cell);rows.push(row);}document.getElementById('masterRecentUsers').replaceChildren(...rows);if(scroller){scroller.scrollTop=top;scroller.scrollLeft=left;}signature=next;
+    if(!rows.length){const row=document.createElement('tr'),cell=document.createElement('td');cell.colSpan=4;cell.textContent='No users yet.';row.append(cell);rows.push(row);}document.getElementById('masterRecentUsers').replaceChildren(...rows);if(scroller){scroller.scrollTop=top;scroller.scrollLeft=left;}signature=next;
 
    }
 
