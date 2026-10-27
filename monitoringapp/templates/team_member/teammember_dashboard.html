@@ -814,7 +814,12 @@ margin:0;box-shadow:0 12px 36px #0006;overflow-wrap:anywhere;}
       const list = document.createElement('div'); list.className = 'member-status-options'; list.id = 'memberDashboardOptions'+(++serial); list.hidden = true;
       list.setAttribute('role','listbox'); document.body.append(list);
       const label = select.closest('.team-edit-field,.employee-filter-field')?.querySelector('label');
-      const name = label?.textContent.trim() || (select.name === 'team' ? 'Team' : select.name === 'department' ? 'Department' : select.name === 'morning_status' ? 'Morning report status' : select.name === 'evening_status' ? 'Evening report status' : 'Choose an option');
+const name = label?.textContent.trim() || (
+    select.name === 'department' ? 'Department' :
+    select.name === 'morning_status' ? 'Morning report status' :
+    select.name === 'evening_status' ? 'Evening report status' :
+    'Choose an option'
+);
       button.setAttribute('aria-haspopup','listbox'); button.setAttribute('aria-expanded','false'); button.setAttribute('aria-controls',list.id);
       list.setAttribute('aria-label',name);
       let active = select.selectedIndex, items = [], prefix = '', prefixTimer;

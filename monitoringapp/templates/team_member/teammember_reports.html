@@ -1,6 +1,6 @@
 {% extends "team_member/base3.html" %}
 {% load static tz %}
-{% block title %}Team Member - My Reports{% endblock %}
+{% block title %}Team Member Reports - Cybexel{% endblock %}
 {% block extra_css %}<style>
 .dashboard-header {
             position: relative;
@@ -1081,9 +1081,9 @@
 #memberReportsPage .report-table th:nth-child(1) {width:110px;}
 #memberReportsPage .report-table th:nth-child(2) {width:100px;}
 #memberReportsPage .report-table th:nth-child(3) {width:155px;}
-#memberReportsPage .report-table th:nth-child(4),#memberReportsPage .report-table th:nth-child(5) {width:125px;}
-#memberReportsPage .report-table th:nth-child(6) {width:290px;}
-#memberReportsPage .report-table th:nth-child(7) {width:110px;}
+#memberReportsPage .report-table th:nth-child(4) {width:125px;}
+#memberReportsPage .report-table th:nth-child(5) {width:290px;}
+#memberReportsPage .report-table th:nth-child(6) {width:110px;}
 #memberReportsPage .report-table td {overflow-wrap:anywhere;}
 #memberReportsPage .user-name {white-space:normal;}
 #memberReportsPage .report-text {white-space:pre-wrap;overflow-wrap:anywhere;max-height:100px;overflow:auto;}
@@ -1314,8 +1314,7 @@
                                 <tr>
                                     <th>Date</th>
                                     <th>Time</th>
-                                    <th>Name</th>
-                                    <th>Team</th>
+                                    <th>Name</th>  
                                     <th>Department</th>
                                     <th>Report</th>
                                     <th>Status</th>
@@ -1337,7 +1336,6 @@
                                         </div>
                                     </td>
 
-                                    <td>{{ report.team }}</td>
                                     <td>{{ report.department }}</td>
 
                                     <td>
@@ -1355,7 +1353,7 @@
 
                                 {% empty %}
                                 {% if not report_day_leave or not report_day_leave.morning_leave %}
-                                <tr><td colspan="7" class="empty-row">No morning reports found</td></tr>
+                                <tr><td colspan="6" class="empty-row">No morning reports found</td></tr>
                                 {% endif %}
                                 {% endfor %}
 
@@ -1365,7 +1363,6 @@
                                         <td>{{ report_date|date:"Y-m-d" }}</td>
                                         <td>—</td>
                                         <td><div class="user-name"><span class="user-dot"></span>{{ person.name }}</div></td>
-                                        <td>{{ person.team.name|default:"—" }}</td>
                                         <td>{{ person.department.name|default:"—" }}</td>
                                         <td><div class="report-text">{{ report_day_leave.reason|default:"Holiday — no report required" }}</div></td>
                                         <td><span class="status-badge" style="color:#fbbf24; border-color:rgba(251,191,36,.35); background:rgba(251,191,36,.09);">Holiday</span></td>
@@ -1405,7 +1402,6 @@
                                     <th>Date</th>
                                     <th>Time</th>
                                     <th>Name</th>
-                                    <th>Team</th>
                                     <th>Department</th>
                                     <th>Report</th>
                                     <th>Status</th>
@@ -1427,7 +1423,6 @@
                                         </div>
                                     </td>
 
-                                    <td>{{ report.team }}</td>
                                     <td>{{ report.department }}</td>
 
                                     <td>
@@ -1445,7 +1440,7 @@
 
                                 {% empty %}
                                 {% if not report_day_leave or not report_day_leave.evening_leave %}
-                                <tr><td colspan="7" class="empty-row">No evening reports found</td></tr>
+                                <tr><td colspan="6" class="empty-row">No evening reports found</td></tr>
                                 {% endif %}
                                 {% endfor %}
 
@@ -1455,7 +1450,6 @@
                                         <td>{{ report_date|date:"Y-m-d" }}</td>
                                         <td>—</td>
                                         <td><div class="user-name"><span class="user-dot"></span>{{ person.name }}</div></td>
-                                        <td>{{ person.team.name|default:"—" }}</td>
                                         <td>{{ person.department.name|default:"—" }}</td>
                                         <td><div class="report-text">{{ report_day_leave.reason|default:"Holiday — no report required" }}</div></td>
                                         <td><span class="status-badge" style="color:#fbbf24; border-color:rgba(251,191,36,.35); background:rgba(251,191,36,.09);">Holiday</span></td>
@@ -1482,7 +1476,7 @@
             {% for report in morning_reports %}
             <article class="report-detail-card">
                 <div class="report-detail-top"><strong>{{ report.user.name }}</strong><span class="status-badge{% if report.status == 'Completed' %} status-completed{% elif report.status == 'In Progress' %} status-progress{% elif report.status == 'Pending' %} status-pending{% endif %}">{{ report.status }}</span></div>
-                <p class="report-detail-meta">{{ report.created_at|date:"Y-m-d" }} · {{ report.created_at|time:"h:i A" }} · {{ report.team }} · {{ report.department }}</p>
+                <p class="report-detail-meta">{{ report.created_at|date:"Y-m-d" }} · {{ report.created_at|time:"h:i A" }} · {{ report.department }}</p>
                 <p class="report-detail-text">{{ report.report_text }}</p>
             </article>
             {% empty %}{% if not report_day_leave or not report_day_leave.morning_leave %}<p class="report-detail-empty">No morning reports found.</p>{% endif %}{% endfor %}
@@ -1492,7 +1486,7 @@
             {% for report in evening_reports %}
             <article class="report-detail-card">
                 <div class="report-detail-top"><strong>{{ report.user.name }}</strong><span class="status-badge{% if report.status == 'Completed' %} status-completed{% elif report.status == 'In Progress' %} status-progress{% elif report.status == 'Pending' %} status-pending{% endif %}">{{ report.status|default:"Submitted" }}</span></div>
-                <p class="report-detail-meta">{{ report.created_at|date:"Y-m-d" }} · {{ report.created_at|time:"h:i A" }} · {{ report.team }} · {{ report.department }}</p>
+                <p class="report-detail-meta">{{ report.created_at|date:"Y-m-d" }} · {{ report.created_at|time:"h:i A" }} · {{ report.department }}</p>
                 <p class="report-detail-text">{{ report.report_text }}</p>
             </article>
             {% empty %}{% if not report_day_leave or not report_day_leave.evening_leave %}<p class="report-detail-empty">No evening reports found.</p>{% endif %}{% endfor %}
