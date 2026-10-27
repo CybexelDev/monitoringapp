@@ -1507,12 +1507,11 @@
     border-spacing: 0;
 }
 
-.project-table th:nth-child(1), .project-table td:nth-child(1) { width: 12%; }
-.project-table th:nth-child(2), .project-table td:nth-child(2) { width: 18%; }
+.project-table th:nth-child(1), .project-table td:nth-child(1) { width: 20%; }
+.project-table th:nth-child(2), .project-table td:nth-child(2) { width: 25%; }
 .project-table th:nth-child(3), .project-table td:nth-child(3) { width: 20%; }
-.project-table th:nth-child(4), .project-table td:nth-child(4) { width: 15%; }
-.project-table th:nth-child(5), .project-table td:nth-child(5) { width: 12%; }
-.project-table th:nth-child(6), .project-table td:nth-child(6) { width: 23%; }
+.project-table th:nth-child(4), .project-table td:nth-child(4) { width: 12%; }
+.project-table th:nth-child(5), .project-table td:nth-child(5) { width: 23%; }
 
 .project-table th {
     padding: 14px 15px;
@@ -2620,39 +2619,6 @@
 
                     <div class="project-grid">
 
-                        <!-- Team -->
-                        <div class="project-field">
-
-                            <label for="team">
-                                Team
-                            </label>
-
-                            <select
-                                id="team"
-                                name="team"
-                                required
-                                class="project-select"
-                            >
-<option value="" disabled selected>Select Team</option>
-
-                                
-
-                                <option value="Team 1">
-                                    Team 1
-                                </option>
-
-                                <option value="Team 2">
-                                    Team 2
-                                </option>
-
-                                <option value="Management">
-                                    Management
-                                </option>
-                            </select>
-
-                        </div>
-
-
                         <!-- Department -->
                         <div class="project-field">
 
@@ -3023,7 +2989,7 @@
 
                             <tr>
 
-                                <th>Team</th>
+                                
                                 <th>Department</th>
                                 <th>Project Name</th>
                                 <th>Assigned To</th>
@@ -3041,17 +3007,7 @@
 
                             <tr>
 
-                                <td>
-
-                                    <div class="project-team">
-
-                                        <span class="project-team-dot"></span>
-
-                                        {{ project.team.name }}
-
-                                    </div>
-
-                                </td>
+                                
 
                                 <td>
                                     {{ project.department.name }}
@@ -3146,7 +3102,7 @@
 
                             <tr>
 
-                                <td colspan="6" class="project-empty">
+                                <td colspan="5" class="project-empty">
                                     No assigned projects found.
                                 </td>
 
@@ -3209,8 +3165,7 @@
                                 <p class="project-view-summary-label">Assigned Work</p>
                                 <h4>{{ project.work_name|default:"Untitled Project" }}</h4>
                                 <p>
-                                    {{ project.team.name|default:"No team" }}
-                                    &nbsp;•&nbsp;
+                                    
                                     {{ project.department.name|default:"No department" }}
                                     &nbsp;•&nbsp;
                                     {{ project.assign_to.name|default:"Not assigned" }}
@@ -3225,12 +3180,7 @@
 
                         <div class="project-view-grid">
 
-                            <div class="project-view-item">
-                                <span class="project-view-label">Team</span>
-                                <div class="project-view-value">
-                                    {{ project.team.name|default:"Not provided" }}
-                                </div>
-                            </div>
+                            
 
                             <div class="project-view-item">
                                 <span class="project-view-label">Department</span>
@@ -3435,37 +3385,6 @@
                             {% csrf_token %}
 
                             <div class="project-grid">
-
-                                <!-- Team -->
-                                <div class="project-field">
-
-                                    <label>
-                                        Team
-                                    </label>
-
-                                    <select
-                                        name="team"
-                                        required
-                                        class="project-select"
-                                    >
-                                        <option value="Team 1"
-                                            {% if project.team.name == "Team 1" %}selected{% endif %}>
-                                            Team 1
-                                        </option>
-
-                                        <option value="Team 2"
-                                            {% if project.team.name == "Team 2" %}selected{% endif %}>
-                                            Team 2
-                                        </option>
-
-                                        <option value="Management"
-                                            {% if project.team.name == "Management" %}selected{% endif %}>
-                                            Management
-                                        </option>
-                                    </select>
-
-                                </div>
-
 
                                 <!-- Department -->
                                 <div class="project-field">

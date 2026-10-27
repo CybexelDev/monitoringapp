@@ -391,7 +391,8 @@ def _valid_department_designation(department_id, designation):
 @require_http_methods(["GET", "POST"])
 def admin_dashboard(request):
     if _admin_notepad_owner(request) is None:
-        return redirect("admin_login")
+        request.session.flush()
+        return redirect("login_view")
     ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     def finish(message, ok=True):
@@ -501,7 +502,8 @@ def admin_dashboard(request):
 
     managed = _admin_managed_users(request)
     if managed is None:
-        return redirect("admin_login")
+        request.session.flush()
+        return redirect("login_view")
     all_teams = list(Team.objects.order_by("name"))
     department_ids = set(Department.objects.values_list("pk", flat=True))
     team_ids = {team.pk for team in all_teams}
@@ -1235,7 +1237,7 @@ def _admin_notepad_owner(request):
 def admin_notepad(request):
     owner = _admin_notepad_owner(request)
     if owner is None:
-        return redirect("admin_login")
+        return redirect("login_view")
     owned = AdminNotepad.objects.filter(**owner)
     params = request.POST if request.method == "POST" else request.GET
     query = params.get("q", "").strip()[:200]
@@ -1298,7 +1300,7 @@ def admin_notepad(request):
 def admin_notepad_delete(request, pk):
     owner = _admin_notepad_owner(request)
     if owner is None:
-        return redirect("admin_login")
+        return redirect("login_view")
     note = get_object_or_404(AdminNotepad, pk=pk, **owner)
     note.delete()
     messages.success(request, "Note deleted successfully.")
@@ -1374,7 +1376,7 @@ def admin_repository_file(request, pk):
 def admin_repository(request):
     owner = _admin_notepad_owner(request)
     if owner is None:
-        return redirect("admin_login")
+        return redirect("login_view")
 
     error = ""
     if request.method == "POST":
@@ -1422,7 +1424,7 @@ def admin_repository(request):
 @require_POST
 def admin_repository_delete(request, pk):
     if _admin_notepad_owner(request) is None:
-        return redirect("admin_login")
+        return redirect("login_view")
     resource = get_object_or_404(AdminKnowledge, pk=pk)
     resource.delete()
     messages.success(request, "Resource deleted successfully.")
@@ -2051,7 +2053,7 @@ def admin_notifications(request):
     if owned is None:
         if request.GET.get("format") == "json":
             return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
-        return redirect("admin_login")
+        return redirect("login_view")
     context = {"items": owned.order_by("-created_at", "-id"), "unread_count": _admin_notification_count(owned)}
     if request.GET.get("format") == "json":
         data = {"ok": True, "unread_count": context["unread_count"]}
@@ -2150,7 +2152,7 @@ def admin_reminders(request):
     if owner is None:
         if ajax or request.GET.get("format") == "json":
             return JsonResponse({"ok": False, "message": "Admin access required."}, status=403)
-        return redirect("admin_login")
+        return redirect("login_view")
     reminders = AdminReminder.objects.filter(**owner)
 
     def failure(message, status=400):
@@ -2706,10 +2708,6 @@ def teamlead_edit_member(request):
         ""
     ).strip()
 
-    team_name = request.POST.get(
-        "team",
-        ""
-    ).strip()
 
 
     # -----------------------------------------
@@ -2803,30 +2801,6 @@ def teamlead_edit_member(request):
             return redirect("teamlead_dashboard")
 
 
-    # -----------------------------------------
-    # TEAM
-    # -----------------------------------------
-    if team_name:
-
-        try:
-            team = Team.objects.get(
-                name__iexact=team_name
-            )
-
-            user.team = team
-
-        except Team.DoesNotExist:
-
-            messages.error(
-                request,
-                "Selected team does not exist."
-            )
-
-            return redirect("teamlead_dashboard")
-
-    else:
-
-        user.team = None
 
 
     # -----------------------------------------
@@ -3367,7 +3341,7 @@ def teamlead_dashboard(request):
 
     # Get filters from GET request
     search = request.GET.get("search", "").strip()
-    team_filter = request.GET.get("team", "")
+    
     position_filter = request.GET.get("position", "")
     department_filter = request.GET.get("department", "")
 
@@ -3376,15 +3350,12 @@ def teamlead_dashboard(request):
         team_members_qs = team_members_qs.filter(
             Q(name__icontains=search) | Q(email__icontains=search)
         )
-    if team_filter:
-        team_members_qs = team_members_qs.filter(team__name__iexact=team_filter)
     if position_filter:
         team_members_qs = team_members_qs.filter(job_Position__iexact=position_filter)
     if department_filter:
         team_members_qs = team_members_qs.filter(department__name__iexact=department_filter)
 
     # Dropdown data
-    teams = User.objects.filter(team__isnull=False).values_list('team__name', flat=True).distinct()
     positions = User.objects.filter(job_Position__isnull=False).values_list('job_Position', flat=True).distinct()
     departments = User.objects.filter(department__isnull=False).values_list('department__name', flat=True).distinct()
 
@@ -3812,7 +3783,6 @@ def teamlead_dashboard(request):
             "team_lead": team_lead,
             "ongoing_tasks": ongoing_tasks,
             "team_members": team_members_qs,
-            "teams": teams,
             "positions": positions,
             "departments": departments,
 
@@ -5422,13 +5392,13 @@ def teamlead_reports(request):
     report_date = filter_date or localtime().date()
     if report_tab == "my":
         report_filters = {"user": team_lead}
-    elif team_lead.team_id:
+    elif team_lead.department_id:
         report_filters = {
-            "user__team_id": team_lead.team_id,
+            "user__department_id": team_lead.department_id,
             "user__job_Position__iexact": "Team Member",
         }
     else:
-        # A lead without a team cannot see unrelated unassigned users' reports.
+        # No department assigned: do not show other members' reports.
         report_filters = {"user__id__in": []}
 
     morning_reports = MorningReport.objects.filter(
@@ -5451,11 +5421,13 @@ def teamlead_reports(request):
         ):
             if report_tab == "my":
                 holiday_users = [team_lead]
-            elif team_lead.team_id:
+            elif team_lead.department_id:
                 holiday_users = list(
                     User.objects.filter(
-                        team_id=team_lead.team_id,
+                        department_id=team_lead.department_id,
                         job_Position__iexact="Team Member",
+                    ).exclude(
+                        pk=team_lead.pk
                     ).order_by("name")
                 )
 
@@ -5465,7 +5437,7 @@ def teamlead_reports(request):
         ws.title = "My Reports" if report_tab == "my" else "Team Members Reports"
         ws.append([
             "Date", "Time", "Report Type", "Name",
-            "Team", "Department", "Report", "Status",
+            "Department", "Report", "Status",
         ])
 
         for reports, report_type in (
@@ -5479,7 +5451,6 @@ def teamlead_reports(request):
                     report_time.strftime("%I:%M %p"),
                     report_type,
                     str(report.user.name),
-                    str(report.team or ""),
                     str(report.department or ""),
                     str(report.report_text or ""),
                     str(report.status or ""),
@@ -5497,19 +5468,18 @@ def teamlead_reports(request):
                             "",
                             report_type,
                             str(person.name),
-                            str(person.team.name) if person.team else "",
-                            str(person.department.name) if person.department else "",
+                                str(person.department.name) if person.department else "",
                             report_day_leave.reason or "Holiday",
                             "Holiday",
                         ])
 
         for cell in ws[1]:
             cell.alignment = Alignment(horizontal="center", vertical="center")
-        for row in ws.iter_rows(min_row=2, min_col=7, max_col=7):
+        for row in ws.iter_rows(min_row=2, min_col=6, max_col=6):  
             for cell in row:
                 cell.alignment = Alignment(wrap_text=True, vertical="top")
         for column, width in enumerate(
-            [15, 12, 14, 22, 20, 22, 50, 16], start=1
+            [15, 12, 14, 22, 22, 50, 16], start=1
         ):
             ws.column_dimensions[get_column_letter(column)].width = width
 
@@ -5544,7 +5514,6 @@ def teamlead_reports(request):
         },
     )
 
-
 @never_cache
 def teamlead_project_assigning(request):
     # 🔒 Prevent KeyError: check session before accessing user
@@ -5555,22 +5524,26 @@ def teamlead_project_assigning(request):
     departments = Department.objects.all()
 
     team_members = User.objects.filter(
-        team=team_lead.team,
+        department_id=team_lead.department_id,
         job_Position__icontains="team member"
     ).exclude(id=team_lead.id)
 
+    if not team_lead.department_id:
+        team_members = User.objects.none()
+
     if request.method == "POST":
+        assignee = get_object_or_404(team_members, pk=request.POST.get("assign_to"))
+        department = get_object_or_404(Department, pk=request.POST.get("department"))
         # First create the project without files/images
         project = ProjectAssign.objects.create(
-            team=team_lead.team,
-            department_id=request.POST.get("department"),
-            assign_to_id=request.POST.get("assign_to"),
+            department=department,
+            assign_to=assignee,
             assigned_by=team_lead,
             work_name=request.POST.get("work_name"),
             work_type=request.POST.get("work_type"),
             category=request.POST.get("category"),
             description=request.POST.get("description"),
-            deadline=request.POST.get("deadline"),
+            deadline=request.POST.get("deadline") or None,
             additional_notes=request.POST.get("additional_notes"),
             color_preference=request.POST.get("color_preference"),
             content_example=request.POST.get("content_example"),
@@ -5589,7 +5562,7 @@ def teamlead_project_assigning(request):
 
         return redirect("teamlead_project_assigning")
 
-    projects = ProjectAssign.objects.filter(team=team_lead.team)
+    projects = ProjectAssign.objects.filter(assigned_by=team_lead).order_by("-assigned_date", "-pk")
 
     return render(request, "team_lead/teamlead_project_assigning.html", {
         "departments": departments,
@@ -5599,15 +5572,21 @@ def teamlead_project_assigning(request):
     })
 
 def project_assign_edit(request, pk):
-    project = get_object_or_404(ProjectAssign, id=pk)
+    if not request.session.get("user_id") or request.session.get("position") != "team_lead":
+        return redirect("index")
+    team_lead = get_object_or_404(User, pk=request.session["user_id"])
+    project = get_object_or_404(ProjectAssign, id=pk, assigned_by=team_lead)
     departments = Department.objects.all()
     team_members = User.objects.filter(
-        team=project.team, job_Position__iexact="Team Member"
+        department_id=team_lead.department_id, job_Position__iexact="Team Member"
     ).exclude(id=project.assigned_by.id)
 
+    if not team_lead.department_id:
+        team_members = User.objects.none()
+
     if request.method == "POST":
-        project.department_id = request.POST.get("department")
-        project.assign_to_id = request.POST.get("assign_to")
+        project.department = get_object_or_404(Department, pk=request.POST.get("department"))
+        project.assign_to = get_object_or_404(team_members, pk=request.POST.get("assign_to"))
         project.work_name = request.POST.get("work_name")
         project.work_type = request.POST.get("work_type")
         project.category = request.POST.get("category")
@@ -5636,15 +5615,26 @@ def project_assign_edit(request, pk):
 
     return render(request, "team_lead/teamlead_project_assigning.html", {
         "project": project,
+        "team_lead": team_lead,
+        "projects": ProjectAssign.objects.filter(assigned_by=team_lead).order_by("-assigned_date", "-pk"),
         "departments": departments,
         "team_members": team_members,
     })
 
 def project_assign_delete(request, pk):
-    project = get_object_or_404(ProjectAssign, id=pk)
+    if not request.session.get("user_id") or request.session.get("position") != "team_lead":
+        return redirect("index")
+    team_lead = get_object_or_404(User, pk=request.session["user_id"])
+    project = get_object_or_404(ProjectAssign, id=pk, assigned_by=team_lead)
+    if request.method != "POST":
+        from django.http import HttpResponseNotAllowed
+        return HttpResponseNotAllowed(["POST"])
     project.delete()
     messages.success(request, "Project deleted successfully.")
     return redirect("teamlead_project_assigning")
+
+
+
 
 def update_project_status(request, pk):
     user_id = request.session.get("user_id")  
@@ -6362,11 +6352,13 @@ def teamlead_task(request):
     # TEAM MEMBERS
     # =========================================================
 
-    team_members = User.objects.filter(
-        team=user.team
-    ).exclude(
-        id=user.id
-    ).order_by("name")
+    if user.department_id:
+        team_members = User.objects.filter(
+            department_id=user.department_id,
+            job_Position__iexact="Team Member",
+        ).exclude(id=user.id).order_by("name")
+    else:
+        team_members = User.objects.none()
 
 
     # =========================================================
@@ -6494,9 +6486,8 @@ def teamlead_task(request):
             # -------------------------------------------------
 
             assigned_user = get_object_or_404(
-                User,
+                team_members,
                 id=assigned_to_id,
-                team=user.team
             )
 
 
@@ -9225,6 +9216,36 @@ def accounts_reports(request):
         "report": data,
     }, status=400 if error else 200)
 
+# Replace the two existing views below and add the new URL helper.
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET, require_POST
+
+def _accounts_notification_target(item):
+    """Resolve existing Accounts destinations; never send users to another role's page."""
+    import re
+    from urllib.parse import urlsplit
+    from django.urls import reverse
+    routes = {
+        "income": "accounts_income", "expense": "accounts_expenses",
+        "sale": "accounts_sales", "payment": "accounts_sales",
+        "reminder": "accounts_reminders", "note": "accounts_notepad",
+    }
+    if item.kind in routes:
+        return reverse(routes[item.kind])
+    if item.kind == "announcement":
+        match = re.fullmatch(r"/portal/announcements/(\d+)/", item.url or "")
+        if match:
+            return reverse("portal_announcement_detail", args=[int(match.group(1))])
+    if item.kind == "meeting":
+        try:
+            parsed = urlsplit(item.url or "")
+            if parsed.scheme == "https" and parsed.netloc == "meet.google.com" and parsed.path not in {"", "/"}:
+                return item.url
+        except ValueError:
+            pass
+    return ""
+
+
 @never_cache
 @require_GET
 def accounts_notifications(request):
@@ -9253,7 +9274,7 @@ def accounts_notifications(request):
 
     query = request.GET.get("q", "").strip()[:200]
     selected_kind = request.GET.get("kind", "").strip()
-    if selected_kind not in {"", "income", "expense", "sale", "payment", "reminder", "note"}:
+    if selected_kind not in {"", "income", "expense", "sale", "payment", "reminder", "note", "announcement", "meeting"}:
         selected_kind = ""
     archived = AccountsNotification.objects.filter(recipient=current_user, is_archived=True)
     items = archived if selected_filter == "archived" else inbox
@@ -9267,7 +9288,10 @@ def accounts_notifications(request):
     elif selected_filter == "read":
         items = items.filter(is_read=True)
 
-    page_obj = Paginator(items, 20).get_page(request.GET.get("page"))
+    page_obj = Paginator(items.order_by("-created_at", "-pk"), 20).get_page(request.GET.get("page"))
+
+    for item in page_obj:
+        item.target_url = _accounts_notification_target(item)
 
     # Used for live sidebar badge and notification list updates.
     if request.GET.get("format") == "json":
@@ -9275,12 +9299,16 @@ def accounts_notifications(request):
             "ok": True,
             "unread_count": unread_count,
             "total_count": inbox.count(),
+            "archived_count": archived.count(),
+            "result_count": page_obj.paginator.count,
             "page": page_obj.number,
             "num_pages": page_obj.paginator.num_pages,
             "items": [
                 {
                     "id": item.pk,
                     "kind": item.kind,
+                    "url": item.target_url,
+                    "is_archived": item.is_archived,
                     "title": item.title,
                     "message": item.message,
                     "is_read": item.is_read,
@@ -9304,6 +9332,81 @@ def accounts_notifications(request):
         "unread_count": unread_count,
         "total_count": inbox.count(),
     })
+
+
+@never_cache
+@require_POST
+def accounts_notification_action(request, pk):
+    from django.http import JsonResponse
+    from django.urls import reverse
+    from .models import AccountsNotification
+
+    current_user = _accounts_user(request)
+    if current_user is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Accounts access required.",
+        }, status=403 if request.session.get("user_id") else 401)
+
+    item = AccountsNotification.objects.filter(
+        pk=pk,
+        recipient=current_user,
+    ).first()
+
+    if item is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Notification not found.",
+        }, status=404)
+
+    action = request.POST.get("action", "")
+    target_url = ""
+
+    if action in {"read", "open"}:
+        item.is_read = True
+        item.save(update_fields=["is_read"])
+
+        if action == "open":
+            target_url = _accounts_notification_target(item)
+
+    elif action == "unread":
+        item.is_read = False
+        item.save(update_fields=["is_read"])
+
+    elif action == "archive":
+        item.is_archived = True
+        item.save(update_fields=["is_archived"])
+
+    elif action == "restore":
+        item.is_archived = False
+        item.save(update_fields=["is_archived"])
+
+    else:
+        return JsonResponse({
+            "ok": False,
+            "message": "Invalid notification action.",
+        }, status=400)
+
+    unread_count = AccountsNotification.objects.filter(
+        recipient=current_user,
+        is_archived=False,
+        is_read=False,
+    ).count()
+
+    return JsonResponse({
+        "ok": True,
+        "message": {
+            "read": "Marked as read.",
+            "open": "Notification opened.",
+            "unread": "Marked as unread.",
+            "archive": "Notification archived.",
+            "restore": "Notification restored to inbox.",
+        }[action],
+        "unread_count": unread_count,
+        "url": target_url,
+    })
+
+
 
 
 
@@ -10566,85 +10669,6 @@ def master_admin_departments(request):
         return JsonResponse({"ok": True, "items": items})
     return render(request, "master_admin/master_admin_departments.html", {"department_items": items})
 
-
-
-@never_cache
-@require_http_methods(["GET", "POST"])
-def master_admin_teams(request):
-    from django.contrib import messages
-    from django.db import IntegrityError, transaction
-    from django.db.models import Count
-    from django.db.models.deletion import ProtectedError, RestrictedError
-    from django.http import JsonResponse, HttpResponseForbidden
-    from django.shortcuts import redirect, render
-    from .models import Team, User
-
-    ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-    if not _master_admin_allowed(request):
-        if request.method == "POST" or ajax or request.GET.get("format") == "json":
-            return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
-        if not request.user.is_authenticated:
-            return redirect("master_admin_login")
-        return HttpResponseForbidden("Master Admin access required.")
-
-    def finish(message, ok=True, status=400):
-        if ajax:
-            return JsonResponse({"ok": ok, "message": message}, status=200 if ok else status)
-        (messages.success if ok else messages.error)(request, message)
-        return redirect("master_admin_teams")
-
-    if request.method == "POST":
-        actions = [action for action in ("create", "update", "delete") if action in request.POST]
-        if len(actions) != 1:
-            return finish("Choose a valid team action.", False)
-        action = actions[0]
-        name = request.POST.get("team_name", "").strip()
-        if action != "delete" and (not name or len(name) > 100):
-            return finish("Enter a team name with up to 100 characters.", False)
-        try:
-            with transaction.atomic():
-                team = None
-                if action != "create":
-                    try:
-                        team_id = int(request.POST.get("team_id", ""))
-                    except (ValueError, TypeError):
-                        return finish("Invalid team ID.", False)
-                    team = Team.objects.select_for_update().filter(pk=team_id).first()
-                    if team is None:
-                        return finish("Team not found.", False, 404)
-                if action == "delete":
-                    # Preserve employee assignments and other linked records.
-                    for relation in Team._meta.related_objects:
-                        if relation.related_model._default_manager.filter(**{relation.field.name: team}).exists():
-                            return finish("This team is in use. Reassign its employees and linked records before deleting it.", False, 409)
-                    team.delete()
-                    return finish("Team deleted successfully.")
-                duplicates = Team.objects.filter(name__iexact=name)
-                if team is not None:
-                    duplicates = duplicates.exclude(pk=team.pk)
-                if duplicates.exists():
-                    return finish("A team with this name already exists.", False)
-                if action == "create":
-                    Team.objects.create(name=name)
-                    return finish("Team created successfully.")
-                team.name = name
-                team.save(update_fields=["name"])
-                return finish("Team updated successfully.")
-        except (ProtectedError, RestrictedError):
-            return finish("This team has protected records and cannot be deleted.", False, 409)
-        except IntegrityError:
-            return finish("The change conflicts with an existing team or linked record. No changes were saved.", False, 409)
-
-    counts = dict(User.objects.exclude(team_id=None).values_list("team_id").annotate(total=Count("pk")))
-    department_names = {}
-    for team_id, department_name in User.objects.exclude(team_id=None).exclude(department_id=None).values_list("team_id", "department__name").distinct():
-        department_names.setdefault(team_id, set()).add(department_name)
-    items = [{"id": team.pk, "name": team.name, "employees": counts.get(team.pk, 0),
-              "departments": sorted(department_names.get(team.pk, set()))}
-             for team in Team.objects.order_by("name", "id")]
-    if request.GET.get("format") == "json":
-        return JsonResponse({"ok": True, "items": items})
-    return render(request, "master_admin/master_admin_teams.html", {"team_items": items})
 
 
 
@@ -12236,7 +12260,9 @@ def master_admin_projects(request):
             if field:
                 attachments.append({"name": field.name.split("/")[-1], "url": field.url})
         data.append({"id": item.pk, **_master_project_snapshot(item), "assignee_name": item.assign_to.name,
-            "owner_name": item.assigned_by.name, "team_name": item.team.name, "department_name": item.department.name,
+            "owner_name": item.assigned_by.name,
+            "team_name": item.team.name if item.team else "—",
+            "department_name": item.department.name,
             "recorded_by": item.recorded_by_name, "attachments": attachments})
     page.object_list = items
     params = request.GET.copy()
@@ -12373,6 +12399,13 @@ def master_admin_announcements(request):
         if action == "create":
             audience = request.POST.get("audience", "all")
             if audience == "selected":
+                # Specific Recipients: Team Leads + Admins only.
+                employees = employees.filter(
+                    Q(job_Position__iexact="Team Lead")
+                    | Q(job_Position__iexact="Admin")
+                )
+                admins = admins.filter(is_superuser=False)
+
                 try:
                     employee_ids = set(map(int, request.POST.getlist("employee_ids")))
                     auth_ids = set(map(int, request.POST.getlist("auth_ids")))
@@ -12451,7 +12484,13 @@ def master_admin_announcements(request):
     return render(request, "master_admin/master_admin_announcements.html", {
         "master_announcements_active": True, "source": source, "query": query,
         "master_count": groups["master"].count(), "admin_count": groups["admin"].count(), "lead_count": groups["lead"].count(),
-        "page_obj": page, "announcement_items": data, "employees": employees, "auth_admins": admins,
+        "page_obj": page,
+        "announcement_items": data,
+        "employees": employees.filter(
+            Q(job_Position__iexact="Team Lead")
+            | Q(job_Position__iexact="Admin")
+        ),
+        "auth_admins": admins.filter(is_superuser=False),
         "filter_params": params.urlencode(),
     })
 
@@ -12514,7 +12553,7 @@ def portal_announcement_seen(request, pk):
 def admin_announcements(request):
     owner = _admin_notepad_owner(request)
     if owner is None:
-        return redirect("admin_login")
+        return redirect("login_view")
     recipients = MonitoringUser.objects.filter(
         Q(job_Position__iexact="Team Lead") | Q(job_Position__iexact="Team Member")
     ).order_by("name", "pk")
@@ -12548,16 +12587,41 @@ def admin_announcements(request):
             messages.error(request, "Please enter an announcement message.")
             return redirect("admin_announcements")
         send_to = request.POST.get("send_to", "team")
-        if send_to == "selected":
+
+        if send_to == "leads":
+            # All departments: Team Leads only.
+            recipients = recipients.filter(
+                job_Position__iexact="Team Lead"
+            )
+
+        elif send_to == "team":
+            # All departments: Team Leads + Team Members.
+            # The existing recipients queryset already includes both roles.
+            pass
+
+        elif send_to == "selected":
+            # Only the selected Team Leads / Team Members.
             try:
-                ids = [int(value) for value in request.POST.getlist("recipient_ids")]
+                ids = {
+                    int(value)
+                    for value in request.POST.getlist("recipient_ids")
+                }
             except (ValueError, TypeError):
                 messages.error(request, "Select valid recipients.")
                 return redirect("admin_announcements")
+
             recipients = recipients.filter(pk__in=ids)
-        elif send_to != "team":
+
+            if not ids or recipients.count() != len(ids):
+                messages.error(
+                    request,
+                    "Select valid Team Leads or Team Members."
+                )
+                return redirect("admin_announcements")
+
+        else:
             messages.error(request, "Invalid recipient option.")
-            return redirect("admin_announcements")
+            return redirect("admin_announcements")        
         recipients = list(recipients)
         if not recipients:
             messages.error(request, "Select at least one Team Lead or Team Member.")
@@ -12919,7 +12983,7 @@ def master_admin_google_meet_delete(request, pk):
 def admin_google_meet(request):
     owner = _admin_notepad_owner(request)
     if owner is None:
-        return redirect("admin_login")
+        return redirect("login_view")
 
     eligible = User.objects.filter(
         Q(job_Position__iexact="Team Lead")
@@ -13308,7 +13372,6 @@ _MASTER_NOTICE_VIEWS = {
     "master_admin_edit_user": ("user", "master_admin_usermanagement", "User"),
     "master_admin_delete_user": ("user", "master_admin_usermanagement", "User"),
     "master_admin_departments": ("department", "master_admin_departments", "Department"),
-    "master_admin_teams": ("team", "master_admin_teams", "Team"),
     "master_admin_accounts_income": ("income", "master_admin_accounts_income", "Income"),
     "master_admin_accounts_income_edit": ("income", "master_admin_accounts_income", "Income"),
     "master_admin_accounts_income_delete": ("income", "master_admin_accounts_income", "Income"),

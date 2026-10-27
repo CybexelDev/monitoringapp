@@ -2004,8 +2004,7 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
                                 <tr>
                                     <th>Date</th>
                                     <th>Time</th>
-                                    <th>Name</th>
-                                    <th>Team</th>
+                                    <th>Name</th>  
                                     <th>Department</th>
                                     <th>Report</th>
                                     <th>Status</th>
@@ -2027,7 +2026,6 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
                                         </div>
                                     </td>
 
-                                    <td>{{ report.team }}</td>
                                     <td>{{ report.department }}</td>
 
                                     <td>
@@ -2045,7 +2043,7 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
 
                                 {% empty %}
                                 {% if not report_day_leave or not report_day_leave.morning_leave %}
-                                <tr><td colspan="7" class="empty-row">No morning reports found</td></tr>
+                                <tr><td colspan="6" class="empty-row">No morning reports found</td></tr>
                                 {% endif %}
                                 {% endfor %}
 
@@ -2054,8 +2052,7 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
                                     <tr>
                                         <td>{{ report_date|date:"Y-m-d" }}</td>
                                         <td>—</td>
-                                        <td><div class="user-name"><span class="user-dot"></span>{{ person.name }}</div></td>
-                                        <td>{{ person.team.name|default:"—" }}</td>
+                                        <td><div class="user-name"><span class="user-dot"></span>{{ person.name }}</div></td> 
                                         <td>{{ person.department.name|default:"—" }}</td>
                                         <td><div class="report-text">{{ report_day_leave.reason|default:"Holiday — no report required" }}</div></td>
                                         <td><span class="status-badge" style="color:#fbbf24; border-color:rgba(251,191,36,.35); background:rgba(251,191,36,.09);">Holiday</span></td>
@@ -2095,7 +2092,6 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
                                     <th>Date</th>
                                     <th>Time</th>
                                     <th>Name</th>
-                                    <th>Team</th>
                                     <th>Department</th>
                                     <th>Report</th>
                                     <th>Status</th>
@@ -2117,7 +2113,6 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
                                         </div>
                                     </td>
 
-                                    <td>{{ report.team }}</td>
                                     <td>{{ report.department }}</td>
 
                                     <td>
@@ -2135,7 +2130,7 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
 
                                 {% empty %}
                                 {% if not report_day_leave or not report_day_leave.evening_leave %}
-                                <tr><td colspan="7" class="empty-row">No evening reports found</td></tr>
+                                <tr><td colspan="6" class="empty-row">No evening reports found</td></tr>
                                 {% endif %}
                                 {% endfor %}
 
@@ -2145,7 +2140,6 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
                                         <td>{{ report_date|date:"Y-m-d" }}</td>
                                         <td>—</td>
                                         <td><div class="user-name"><span class="user-dot"></span>{{ person.name }}</div></td>
-                                        <td>{{ person.team.name|default:"—" }}</td>
                                         <td>{{ person.department.name|default:"—" }}</td>
                                         <td><div class="report-text">{{ report_day_leave.reason|default:"Holiday — no report required" }}</div></td>
                                         <td><span class="status-badge" style="color:#fbbf24; border-color:rgba(251,191,36,.35); background:rgba(251,191,36,.09);">Holiday</span></td>
@@ -2552,19 +2546,24 @@ document.addEventListener('DOMContentLoaded', () => {
         return [...content.querySelectorAll('.report-section')].find(section =>
             section.querySelector('.report-section-view')?.dataset.reportSection === period);
     }
-    function readReport(row) {
-        const cells = row.cells;
-        if (!cells || cells.length < 7 || row.querySelector('.empty-row')) return null;
-        return {
-            date: cells[0].textContent.trim(),
-            time: cells[1].textContent.trim(),
-            name: cells[2].textContent.trim(),
-            team: cells[3].textContent.trim(),
-            department: cells[4].textContent.trim(),
-            report: cells[5].querySelector('.report-text')?.textContent.trim() || cells[5].textContent.trim(),
-            status: cells[6].textContent.trim() || 'Submitted'
-        };
+function readReport(row) {
+    const cells = row.cells;
+
+    if (!cells || cells.length < 6 || row.querySelector('.empty-row')) {
+        return null;
     }
+
+    return {
+        date: cells[0].textContent.trim(),
+        time: cells[1].textContent.trim(),
+        name: cells[2].textContent.trim(),
+        department: cells[3].textContent.trim(),
+        report:
+            cells[4].querySelector('.report-text')?.textContent.trim()
+            || cells[4].textContent.trim(),
+        status: cells[5].textContent.trim() || 'Submitted'
+    };
+}
     function displaySection(period, preserveScroll = false) {
         const section = selectedSection(period);
         if (!section) return;
@@ -2587,7 +2586,7 @@ document.addEventListener('DOMContentLoaded', () => {
             heading.append(element('strong', '', report.name || '—'), status);
             card.append(
                 heading,
-                element('p', 'report-view-section-meta', `${report.date} · ${report.time} · ${report.team} · ${report.department}`),
+                element('p', 'report-view-section-meta', `${report.date} · ${report.time} · ${report.department}`),
                 element('p', 'report-view-section-text', report.report || '—')
             );
             list.append(card);

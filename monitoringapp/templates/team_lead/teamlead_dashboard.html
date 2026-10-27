@@ -4198,8 +4198,8 @@
     }
     .team-members-card .team-members-table th:first-child,
     .team-members-card .team-members-table td:first-child,
-    .team-members-card .team-members-table th:nth-child(13),
-    .team-members-card .team-members-table td:nth-child(13),
+    .team-members-card .team-members-table th:nth-child(12),
+    .team-members-card .team-members-table td:nth-child(12),
     .team-members-card .team-members-table {
       text-align: center;
     }
@@ -4209,6 +4209,59 @@
     .team-members-card .team-members-table .team-empty-row {
       text-align: center; padding: 28px 14px !important;
     }
+    /* Search + Department */
+#filterForm .employee-filter-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 10px;
+}
+
+#filterForm .employee-filter-field {
+    min-width: 0;
+}
+
+#filterForm .employee-filter-field.search-field {
+    grid-column: auto;
+}
+
+#filterForm .employee-filter-field input,
+#filterForm .employee-filter-field select,
+#filterForm .tl-dashboard-select-button {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Keep the wide member table inside its scroll container */
+#filterForm {
+    min-width: 0;
+    max-width: 100%;
+}
+
+#filterForm .team-members-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#filterForm .team-members-table {
+    width: 100%;
+    min-width: 1754px;
+    table-layout: fixed;
+}
+
+#filterForm .team-members-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #181321;
+}
+
+@media (max-width: 640px) {
+    #filterForm .employee-filter-controls {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
   </style>
 <style>
 
@@ -5362,29 +5415,7 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
         </div>
 
 
-        <!-- TEAM -->
-        <div class="employee-filter-field custom-select">
 
-            <select
-                name="team"
-                class="select-dark"
-            >
-                <option value="">All Teams</option>
-
-                {% for t in teams %}
-                    <option
-                        value="{{ t }}"
-                        {% if request.GET.team == t %}
-                            selected
-                        {% endif %}
-                    >
-                        {{ t }}
-                    </option>
-                {% endfor %}
-
-            </select>
-
-        </div>
 
     </div>
 
@@ -5397,7 +5428,6 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
             <col style="width: 70px;">
             <col style="width: 100px;">
             <col style="width: 175px;">
-            <col style="width: 110px;">
             <col style="width: 145px;">
             <col style="width: 145px;">
             <col style="width: 165px;">
@@ -5416,7 +5446,6 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
                 <th>Image</th>
                 <th>Emp ID</th>
                 <th>Department</th>
-                <th>Team</th>
                 <th>Job Position</th>
                 <th>Designation</th>
                 <th>Name</th>
@@ -5477,14 +5506,6 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
                 </td>
 
 
-                <!-- TEAM -->
-                <td>
-                    {% if member.team %}
-                        {{ member.team.name }}
-                    {% else %}
-                        —
-                    {% endif %}
-                </td>
 
 
                 <!-- JOB POSITION -->
@@ -5566,7 +5587,6 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
     data-phone="{{ member.phone|default:'' }}"
 
     data-department="{{ member.department.name|default:'' }}"
-    data-team="{{ member.team.name|default:'' }}"
 
     data-position="{{ member.job_Position|default:'' }}"
     data-designation="{{ member.designation|default:'' }}"
@@ -5590,7 +5610,7 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
             {% empty %}
 
             <tr>
-                <td colspan="14" class="team-empty-row">
+                <td colspan="13" class="team-empty-row">
                     No team members found.
                 </td>
             </tr>
@@ -5604,6 +5624,19 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
   </form>
 
   <style>
+    #filterForm .employee-filter-controls {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+
+#filterForm .employee-filter-field.search-field {
+    grid-column: auto;
+}
+
+@media (max-width: 640px) {
+    #filterForm .employee-filter-controls {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
     /* Base dark select */
     .select-dark {
       background-color: #1a0b14;
@@ -5819,7 +5852,7 @@ function openTeamMemberEditModal(button) {
     const phone = button.dataset.phone || "";
 
 const department = button.dataset.department || "";
-const team = button.dataset.team || "";
+
 
     const position = button.dataset.position || "";
     const designation = button.dataset.designation || "";
@@ -5888,16 +5921,6 @@ if (departmentSelect && department) {
     departmentSelect.value = department;
 }
 
-
-    /* -----------------------------------------
-       TEAM
-    ----------------------------------------- */
-const teamSelect =
-    document.getElementById("editTeamMemberTeam");
-
-if (teamSelect && team) {
-    teamSelect.value = team;
-}
 
 
     /* -----------------------------------------
@@ -6117,21 +6140,6 @@ document.addEventListener("click", function(event) {
                     </select>
                 </div>
 
-                <!-- TEAM -->
-                <div class="team-edit-field">
-                    <label>Team</label>
-
-                    <select
-                        id="editTeamMemberTeam"
-                        name="team"
-                    >
-                        {% for team in teams %}
-                            <option value="{{ team }}">
-                                {{ team }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
 
                 <!-- JOB POSITION -->
                 <div class="team-edit-field">
@@ -7109,7 +7117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     list.style.bottom = up ? innerHeight-r.top+6 + 'px' : 'auto';
   };
   window.initTLDashboardSelects = (root = document) => {
-    root.querySelectorAll('#filterForm select[name="team"], #filterForm select[name="department"], #teamMemberEditModal select, #tlMorningEntry select[name="morning_status"], #tlEveningEntry select[name="evening_status"]').forEach(select => {
+    root.querySelectorAll(' #filterForm select[name="department"], #teamMemberEditModal select, #tlMorningEntry select[name="morning_status"], #tlEveningEntry select[name="evening_status"]').forEach(select => {
       if (select.dataset.themed) { select.dispatchEvent(new Event('tl-dashboard-select-sync')); return; }
       select.dataset.themed = '1';
       const wrapper = document.createElement('div'); wrapper.className = 'tl-dashboard-select';
