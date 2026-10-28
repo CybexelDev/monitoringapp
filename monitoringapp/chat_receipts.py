@@ -27,23 +27,74 @@ logger = logging.getLogger(__name__)
 
 
 
+# def _user(request):
+#     # Master Admin uses Django auth plus an explicit shared-chat identity.
+#     # Never interpret its auth user PK as a monitoringapp.User PK.
+#     route_name = getattr(getattr(request, "resolver_match", None), "url_name", None)
+#     if route_name in {"master_admin_chat_meta", "master_admin_chat_read"}:
+#         from .master_chat_identity import master_chat_user
+#         return master_chat_user(getattr(request, "user", None))
+
+#     position = (
+#         str(request.session.get("position", ""))
+#         .strip().lower().replace(" ", "_")
+#     )
+#     if position not in {"team_member", "team_lead", "management"}:
+#         return None
+#     users = User.objects.filter(pk=request.session.get("user_id"))
+#     if position == "management":
+#         users = users.filter(job_Position__iexact="Management")
+#     return users.first()
+
+
 def _user(request):
-    # Master Admin uses Django auth plus an explicit shared-chat identity.
-    # Never interpret its auth user PK as a monitoringapp.User PK.
-    route_name = getattr(getattr(request, "resolver_match", None), "url_name", None)
-    if route_name in {"master_admin_chat_meta", "master_admin_chat_read"}:
+    route_name = getattr(
+        getattr(request, "resolver_match", None),
+        "url_name",
+        None,
+    )
+
+    # Master Admin identity handling remains unchanged.
+    if route_name in {
+        "master_admin_chat_meta",
+        "master_admin_chat_read",
+    }:
         from .master_chat_identity import master_chat_user
         return master_chat_user(getattr(request, "user", None))
 
     position = (
         str(request.session.get("position", ""))
-        .strip().lower().replace(" ", "_")
+        .strip()
+        .lower()
+        .replace(" ", "_")
     )
-    if position not in {"team_member", "team_lead", "management"}:
+
+    if position == "admin":
+        position = "management"
+
+    if position not in {
+        "team_member",
+        "team_lead",
+        "management",
+    }:
         return None
-    users = User.objects.filter(pk=request.session.get("user_id"))
+
+    users = User.objects.filter(
+        pk=request.session.get("user_id")
+    )
+
     if position == "management":
-        users = users.filter(job_Position__iexact="Management")
+        person = users.filter(
+            job_Position__iexact="Management"
+        ).first()
+
+        if person is not None:
+            return person
+
+        return users.filter(
+            job_Position__iexact="Admin"
+        ).first()
+
     return users.first()
 
 

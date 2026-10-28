@@ -92,6 +92,27 @@ class MemberChatConsumer(AsyncWebsocketConsumer):
             )(result)
         except Exception:
             logger.exception("Team Member Chat Windows Push delivery failed.")
+            
+        # Admin Windows Push
+        try:
+            await sync_to_async(
+                self.send_admin_master_windows_push,
+                thread_sensitive=False,
+            )(result, "management")
+        except Exception:
+            logger.exception("Admin Chat Windows Push delivery failed.")
+
+        # Master Admin Windows Push
+        try:
+            await sync_to_async(
+                self.send_admin_master_windows_push,
+                thread_sensitive=False,
+            )(result, "master_admin")
+        except Exception:
+            logger.exception(
+                "Master Admin Chat Windows Push delivery failed."
+            )
+
 
     @database_sync_to_async
     def save_message(self, message):
@@ -274,6 +295,111 @@ class MemberChatConsumer(AsyncWebsocketConsumer):
             except Exception:
                 logger.exception("Team Member Chat Push failed for recipient %s", recipient.pk)
 
+
+    def send_admin_master_windows_push(self, result, portal):
+        """Send Chat Windows Push to Admin or Master Admin."""
+        from django.db.models import Q
+        from django.urls import reverse
+        from monitoringapp.models import User, Group
+        from chat.models import Conversation
+        from monitoringapp.components.windows_push.delivery import (
+            send_windows_push,
+        )
+
+        if portal not in {"management", "master_admin"}:
+            return
+
+        sender_id = result["sender_id"]
+        sender_name = result["sender"]
+        message_id = result["message_id"]
+        message = result["message"][:160]
+
+        def normalize_role(value):
+            role = str(value or "").strip().lower().replace(" ", "_")
+            return "management" if role == "admin" else role
+
+        if self.group_chat:
+            group = Group.objects.filter(
+                pk=self.target_id
+            ).only("name").first()
+
+            if group is None:
+                return
+
+            recipients = User.objects.filter(
+                group_memberships__group_id=self.target_id
+            ).exclude(pk=sender_id).distinct()
+
+            route_name = (
+                "admin_group_chat"
+                if portal == "management"
+                else "master_admin_group_chat"
+            )
+
+            url = reverse(
+                route_name,
+                kwargs={"group_id": self.target_id},
+            )
+
+            title = f"{group.name or 'Group Chat'} — New Group Message"
+            message = f"{sender_name}: {message}"
+
+        else:
+            conversation = Conversation.objects.filter(
+                pk=self.target_id
+            ).filter(
+                Q(user1_id=sender_id) | Q(user2_id=sender_id)
+            ).first()
+
+            if conversation is None:
+                return
+
+            recipient_id = (
+                conversation.user2_id
+                if conversation.user1_id == sender_id
+                else conversation.user1_id
+            )
+
+            recipients = User.objects.filter(pk=recipient_id)
+
+            route_name = (
+                "admin_chat_room"
+                if portal == "management"
+                else "master_admin_chat_room"
+            )
+
+            url = reverse(
+                route_name,
+                kwargs={"user_id": sender_id},
+            )
+
+            title = f"New message from {sender_name}"
+
+        for recipient in recipients:
+            if normalize_role(recipient.job_Position) != portal:
+                continue
+
+            try:
+                send_windows_push(
+                    recipient=recipient,
+                    portal=portal,
+                    title=title,
+                    message=message,
+                    url=url,
+                    tag=(
+                        f"{portal}-group-{self.target_id}-{message_id}"
+                        if self.group_chat
+                        else f"{portal}-personal-{self.target_id}-{message_id}"
+                    ),
+                )
+            except Exception:
+                logger.exception(
+                    "%s Chat Push failed for recipient %s",
+                    portal,
+                    recipient.pk,
+                )
+
+
     async def chat_change(self, event):
         if not await self.allowed():
             await self.close(code=4403)
@@ -302,20 +428,57 @@ class PersonalChatConsumer(MemberChatConsumer):
     allowed_positions = {"team_lead"}
 
 
+# class AdminChatConsumer(MemberChatConsumer):
+#     allowed_positions = {"management"}
+
+#     @database_sync_to_async
+#     def is_management_user(self):
+#         from monitoringapp.models import User
+#         return User.objects.filter(pk=self.user_id, job_Position__iexact="Management").exists()
+
+#     async def allowed(self):
+#         return await self.is_management_user() and await super().allowed()
+
+#     async def save_message(self, message):
+#         if not await self.is_management_user():
+#             return None
+#         return await super().save_message(message)
+
+
+
 class AdminChatConsumer(MemberChatConsumer):
-    allowed_positions = {"management"}
+    allowed_positions = {"management", "admin"}
 
     @database_sync_to_async
     def is_management_user(self):
         from monitoringapp.models import User
-        return User.objects.filter(pk=self.user_id, job_Position__iexact="Management").exists()
+
+        user = User.objects.filter(
+            pk=self.user_id
+        ).only("job_Position").first()
+
+        if user is None:
+            return False
+
+        position = (
+            str(user.job_Position or "")
+            .strip()
+            .lower()
+            .replace(" ", "_")
+        )
+
+        return position in {"management", "admin"}
 
     async def allowed(self):
-        return await self.is_management_user() and await super().allowed()
+        return (
+            await self.is_management_user()
+            and await super().allowed()
+        )
 
     async def save_message(self, message):
         if not await self.is_management_user():
             return None
+
         return await super().save_message(message)
 
 

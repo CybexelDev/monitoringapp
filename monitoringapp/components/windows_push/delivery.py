@@ -19,22 +19,57 @@ from monitoringapp.models import ChatPushSubscription
 
 logger = logging.getLogger(__name__)
 
-ENABLED_PORTALS = {"team_lead", "team_member"}
+ENABLED_PORTALS = {"team_lead", "team_member", "management",    "master_admin"}
 
+
+# def _normal_role(value):
+#     return str(value or "").strip().lower().replace(" ", "_")
 
 def _normal_role(value):
-    return str(value or "").strip().lower().replace(" ", "_")
+    role = str(value or "").strip().lower().replace(" ", "_")
+    if role == "admin":
+        return "management"
+    return role
+
+# def _valid_subscription(subscription):
+#     """Confirm that the browser belongs to an active login session."""
+
+#     if not subscription.enabled:
+#         return False
+
+#     if subscription.expiration_time:
+#         if subscription.expiration_time <= timezone.now():
+#             return False
+
+#     try:
+#         session = Session.objects.get(
+#             session_key=subscription.session_key,
+#             expire_date__gt=timezone.now(),
+#         )
+#         data = session.get_decoded()
+#     except Session.DoesNotExist:
+#         return False
+
+#     return (
+#         str(data.get("user_id")) == str(subscription.user_id)
+#         and _normal_role(data.get("position")) == subscription.portal
+#         and _normal_role(subscription.user.job_Position)
+#         == subscription.portal
+#     )
+
 
 
 def _valid_subscription(subscription):
-    """Confirm that the browser belongs to an active login session."""
+    """Verify the recipient's current login session."""
 
     if not subscription.enabled:
         return False
 
-    if subscription.expiration_time:
-        if subscription.expiration_time <= timezone.now():
-            return False
+    if (
+        subscription.expiration_time
+        and subscription.expiration_time <= timezone.now()
+    ):
+        return False
 
     try:
         session = Session.objects.get(
@@ -42,9 +77,45 @@ def _valid_subscription(subscription):
             expire_date__gt=timezone.now(),
         )
         data = session.get_decoded()
-    except Session.DoesNotExist:
+
+    except Exception as exc:
+        logger.warning("Push session validation failed: %s", exc)
         return False
 
+    # Master Admin uses Django authentication.
+    if subscription.portal == "master_admin":
+        from django.contrib.auth import get_user_model
+        from django.utils.crypto import constant_time_compare
+        from monitoringapp.master_chat_identity import master_chat_user
+
+        auth_id = data.get("_auth_user_id")
+        if not auth_id:
+            return False
+
+        auth_user = get_user_model().objects.filter(
+            pk=auth_id,
+            is_active=True,
+            is_superuser=True,
+        ).first()
+
+        if auth_user is None:
+            return False
+
+        session_hash = data.get("_auth_user_hash", "")
+        if not session_hash or not constant_time_compare(
+            session_hash,
+            auth_user.get_session_auth_hash(),
+        ):
+            return False
+
+        mapped_user = master_chat_user(auth_user, create=False)
+
+        return (
+            mapped_user is not None
+            and mapped_user.pk == subscription.user_id
+        )
+
+    # Existing Team Lead / Team Member / Management validation
     return (
         str(data.get("user_id")) == str(subscription.user_id)
         and _normal_role(data.get("position")) == subscription.portal

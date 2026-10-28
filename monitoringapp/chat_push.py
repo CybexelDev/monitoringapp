@@ -25,9 +25,14 @@ DEFAULT_PUSH_HOSTS = (
 )
 
 
-def _normal_role(value):
-    return str(value or "").strip().lower().replace(" ", "_")
+# def _normal_role(value):
+#     return str(value or "").strip().lower().replace(" ", "_")
 
+def _normal_role(value):
+    role = str(value or "").strip().lower().replace(" ", "_")
+    if role == "admin":
+        return "management"
+    return role
 
 def _identity(request, portal, *, create=False):
     if portal not in PORTALS:
@@ -139,7 +144,22 @@ def config(request, portal):
             ready = bool(getattr(settings, "CHAT_PUSH_ENABLED", False))
         except ValueError:
             public_key = ""
-    return JsonResponse({"ok": True, "configured": ready, "public_key": public_key,
+    # Report ownership for this exact browser, portal and current login only.
+    subscription_enabled = False
+    endpoint_hash = request.GET.get("endpoint_hash", "")
+    if re.fullmatch(r"[0-9a-f]{64}", endpoint_hash):
+        person = _identity(request, portal)
+        if person is not None and request.session.session_key:
+            from django.db.models import Q
+            subscription_enabled = ChatPushSubscription.objects.filter(
+                user=person, portal=portal, enabled=True,
+                session_key=request.session.session_key,
+                endpoint_hash=endpoint_hash,
+            ).filter(
+                Q(expiration_time__isnull=True) | Q(expiration_time__gt=timezone.now())
+            ).exists()
+    return JsonResponse({"ok": True, "configured": ready,
+                         "subscription_enabled": subscription_enabled, "public_key": public_key,
                          "message": "Chat push is configured." if ready else "Chat push setup is not complete yet."})
 
 

@@ -288,18 +288,49 @@ def admin_profile(request):
 
 from django.views.decorators.http import require_http_methods, require_POST
 
+# def _admin_managed_users(request):
+#     """Admin portal access; only Team Leads and Team Members are managed here."""
+#     from django.db.models import Q
+#     allowed = request.user.is_authenticated and request.user.is_superuser
+#     if not allowed:
+#         session_user = User.objects.filter(pk=request.session.get("user_id")).first()
+#         allowed = bool(session_user and session_user.status == "active" and
+#                        session_user.job_Position.strip().lower() == "management")
+#     if not allowed:
+#         return None
+#     return User.objects.filter(Q(job_Position__iexact="Team Lead") |
+#                                Q(job_Position__iexact="Team Member"))
+
+
 def _admin_managed_users(request):
     """Admin portal access; only Team Leads and Team Members are managed here."""
     from django.db.models import Q
-    allowed = request.user.is_authenticated and request.user.is_superuser
+
+    allowed = (
+        request.user.is_authenticated
+        and request.user.is_active
+        and request.user.is_superuser
+    )
+
     if not allowed:
-        session_user = User.objects.filter(pk=request.session.get("user_id")).first()
-        allowed = bool(session_user and session_user.status == "active" and
-                       session_user.job_Position.strip().lower() == "management")
+        user_id = request.session.get("user_id")
+        position = str(request.session.get("position", "")).strip().lower()
+
+        session_user = User.objects.filter(
+            pk=user_id,
+            job_Position__in=["Management", "Admin"],
+            status__iexact="active",
+        ).first() if user_id and position in {"management", "admin"} else None
+
+        allowed = session_user is not None
+
     if not allowed:
         return None
-    return User.objects.filter(Q(job_Position__iexact="Team Lead") |
-                               Q(job_Position__iexact="Team Member"))
+
+    return User.objects.filter(
+        Q(job_Position__iexact="Team Lead")
+        | Q(job_Position__iexact="Team Member")
+    )
 
 from django.contrib import messages
 from django.core.paginator import Paginator
@@ -1184,22 +1215,46 @@ from django.views.decorators.http import require_POST, require_http_methods
 from .models import AdminNotepad, User as MonitoringUser
 
 
+# def _admin_notepad_owner(request):
+#     auth_user = request.user
+#     if auth_user.is_authenticated and auth_user.is_active and auth_user.is_superuser:
+#         return {"auth_owner": auth_user}
+#     if request.session.get("position") != "management":
+#         return None
+#     user_id = request.session.get("user_id")
+#     if not user_id:
+#         return None
+#     user = MonitoringUser.objects.filter(
+#         pk=user_id, job_Position__iexact="Management"
+#     ).first()
+#     if user is None:
+#         return None
+#     return {"management_owner": user}
+
 def _admin_notepad_owner(request):
     auth_user = request.user
+
     if auth_user.is_authenticated and auth_user.is_active and auth_user.is_superuser:
         return {"auth_owner": auth_user}
-    if request.session.get("position") != "management":
+
+    position = str(request.session.get("position", "")).strip().lower()
+    if position not in {"management", "admin"}:
         return None
+
     user_id = request.session.get("user_id")
     if not user_id:
         return None
+
     user = MonitoringUser.objects.filter(
-        pk=user_id, job_Position__iexact="Management"
+        pk=user_id,
+        job_Position__in=["Management", "Admin"],
+        status__iexact="active",
     ).first()
+
     if user is None:
         return None
-    return {"management_owner": user}
 
+    return {"management_owner": user}
 
 @never_cache
 @require_http_methods(["GET", "POST"])
@@ -1531,13 +1586,37 @@ from django.views.decorators.http import require_http_methods
 from .models import User, Group, GroupMember, GroupMessage
 
 
+# def _admin_chat_user(request):
+#     position = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
+#     if position != "management" or not request.session.get("user_id"):
+#         return None
+#     # Chat identity is the same custom User used by Lead/Member messages.
+#     return User.objects.filter(
+#         pk=request.session["user_id"], job_Position__iexact="Management"
+#     ).first()
+
+
+
 def _admin_chat_user(request):
-    position = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
-    if position != "management" or not request.session.get("user_id"):
+    position = (
+        str(request.session.get("position", ""))
+        .strip()
+        .lower()
+        .replace(" ", "_")
+    )
+
+    if position not in {"management", "admin"}:
         return None
-    # Chat identity is the same custom User used by Lead/Member messages.
+
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return None
+
+    # Accept both existing database role values:
+    # "Management" and "Admin".
     return User.objects.filter(
-        pk=request.session["user_id"], job_Position__iexact="Management"
+        pk=user_id,
+        job_Position__in=["Management", "Admin"],
     ).first()
 
 
@@ -2224,7 +2303,7 @@ def login_view(request):
             return redirect("teamlead_dashboard")
         elif str(position).strip().lower().replace(" ", "_") in {"accounts", "accounts_team"}:
             return redirect("accounts_dashboard")
-        elif position == "management":
+        elif position in {"management", "admin"}:
             return redirect("admin_dashboard")
         else:
             return redirect("teammember_dashboard")
@@ -2273,7 +2352,7 @@ def login_view(request):
             return redirect("teamlead_dashboard")
         elif db_position in {"accounts", "accounts_team"}:
             return redirect("accounts_dashboard")
-        elif db_position == "management":
+        elif db_position in {"management", "admin"}:
             return redirect("admin_dashboard")
         else:
             return redirect("teammember_dashboard")
@@ -4343,10 +4422,24 @@ def teamlead_announcements(request):
                     recipients
                 )
 
-                messages.success(
+            #     messages.success(
+            #         request,
+            #         "Announcement sent to selected members."
+            #     )
+
+            # return redirect(
+            #     "teamlead_announcements"
+            # )
+
+            messages.success(
                     request,
                     "Announcement sent to selected members."
                 )
+
+            from .notification_signals import (
+                queue_announcement_recipient_notifications,
+            )
+            queue_announcement_recipient_notifications(announcement.pk)
 
             return redirect(
                 "teamlead_announcements"
@@ -11928,19 +12021,74 @@ def _master_task_snapshot(task):
         "assigned_to": task.assigned_to_id, "status": task.status, "progress": task.progress}
 
 
+# def _master_task_record(request, task, action, before=None):
+#     audit = MasterAdminTaskAudit.objects.create(
+#         actor=request.user, actor_name=(request.user.get_full_name() or request.user.username)[:255],
+#         task_number=task.pk, action=action, before=before or {},
+#         after={} if action == "deleted" else _master_task_snapshot(task))
+#     recipients = {task.assigned_to_id}
+#     if before and before.get("assigned_to"):
+#         recipients.add(before["assigned_to"])
+#     for person in _master_task_people().filter(pk__in=recipients):
+#         role = person.task_role
+#         TeamLeadNotification.objects.create(recipient=person, kind="task",
+#             title=f"Task {action}", message=f"Master Admin {audit.actor_name} {action} task #{task.pk}: {task.title}",
+#             url=reverse("teamlead_task" if role in {"team lead", "team_lead"} else "teammember_task"))
+
+
 def _master_task_record(request, task, action, before=None):
     audit = MasterAdminTaskAudit.objects.create(
-        actor=request.user, actor_name=(request.user.get_full_name() or request.user.username)[:255],
-        task_number=task.pk, action=action, before=before or {},
-        after={} if action == "deleted" else _master_task_snapshot(task))
+        actor=request.user,
+        actor_name=(
+            request.user.get_full_name() or request.user.username
+        )[:255],
+        task_number=task.pk,
+        action=action,
+        before=before or {},
+        after={} if action == "deleted" else _master_task_snapshot(task),
+    )
+
     recipients = {task.assigned_to_id}
+
     if before and before.get("assigned_to"):
         recipients.add(before["assigned_to"])
+
+    # Notify the related Team Lead when Master Admin
+    # assigns a new task to a Team Member.
+    if action == "created":
+        assignee = _master_task_people().filter(
+            pk=task.assigned_to_id
+        ).first()
+
+        if (
+            assignee
+            and assignee.task_role in {"team member", "team_member"}
+            and assignee.department_id
+        ):
+            team_lead_ids = _master_task_people().filter(
+                department_id=assignee.department_id,
+                task_role__in=["team lead", "team_lead"],
+            ).values_list("pk", flat=True)
+
+            recipients.update(team_lead_ids)
+
     for person in _master_task_people().filter(pk__in=recipients):
         role = person.task_role
-        TeamLeadNotification.objects.create(recipient=person, kind="task",
-            title=f"Task {action}", message=f"Master Admin {audit.actor_name} {action} task #{task.pk}: {task.title}",
-            url=reverse("teamlead_task" if role in {"team lead", "team_lead"} else "teammember_task"))
+
+        TeamLeadNotification.objects.create(
+            recipient=person,
+            kind="task",
+            title=f"Task {action}",
+            message=(
+                f"Master Admin {audit.actor_name} {action} "
+                f"task #{task.pk}: {task.title}"
+            ),
+            url=reverse(
+                "teamlead_task"
+                if role in {"team lead", "team_lead"}
+                else "teammember_task"
+            ),
+        )
 
 
 def _master_task_denied(request):
@@ -12374,27 +12522,59 @@ def master_admin_announcements(request):
         if action != "delete" and (not title or len(title) > 200 or not message):
             return JsonResponse({"ok": False, "message": "Enter a title (maximum 200 characters) and message."}, status=400)
         if action == "create":
+            
             audience = request.POST.get("audience", "all")
-            if audience == "selected":
-                # Specific Recipients: Team Leads + Admins only.
-                employees = employees.filter(
-                    Q(job_Position__iexact="Team Lead")
-                    | Q(job_Position__iexact="Admin")
-                )
-                admins = admins.filter(is_superuser=False)
 
+            if audience == "all":
+                # All employee roles + active Admin/Master Admin accounts.
+                pass
+
+            elif audience == "team_lead":
+                employees = employees.filter(job_Position__iexact="Team Lead")
+                admins = admins.none()
+
+            elif audience == "admin":
+                # Admin-role employee records + regular Django Admin accounts.
+                employees = employees.filter(job_Position__iexact="Admin")
+                admins = admins.filter(is_staff=True, is_superuser=False)
+
+            elif audience == "selected":
+                # Specific Recipients: allow selection from the full recipient lists.
                 try:
                     employee_ids = set(map(int, request.POST.getlist("employee_ids")))
                     auth_ids = set(map(int, request.POST.getlist("auth_ids")))
                 except (TypeError, ValueError):
-                    return JsonResponse({"ok": False, "message": "Select valid recipients."}, status=400)
+                    return JsonResponse(
+                        {"ok": False, "message": "Select valid recipients."},
+                        status=400,
+                    )
+
                 employees = employees.filter(pk__in=employee_ids)
                 admins = admins.filter(pk__in=auth_ids)
-                if employees.count() != len(employee_ids) or admins.count() != len(auth_ids):
-                    return JsonResponse({"ok": False, "message": "A selected recipient is no longer available."}, status=400)
-            elif audience != "all":
-                return JsonResponse({"ok": False, "message": "Invalid audience."}, status=400)
+
+                if (
+                    employees.count() != len(employee_ids)
+                    or admins.count() != len(auth_ids)
+                ):
+                    return JsonResponse(
+                        {"ok": False, "message": "A selected recipient is no longer available."},
+                        status=400,
+                    )
+
+            else:
+                return JsonResponse(
+                    {"ok": False, "message": "Invalid audience."},
+                    status=400,
+                )
+
             employees, admins = list(employees), list(admins)
+
+            if not employees and not admins:
+                return JsonResponse(
+                    {"ok": False, "message": "Choose at least one recipient."},
+                    status=400,
+                )
+
             if not employees and not admins:
                 return JsonResponse({"ok": False, "message": "Choose at least one recipient."}, status=400)
             with transaction.atomic():
@@ -12463,11 +12643,8 @@ def master_admin_announcements(request):
         "master_count": groups["master"].count(), "admin_count": groups["admin"].count(), "lead_count": groups["lead"].count(),
         "page_obj": page,
         "announcement_items": data,
-        "employees": employees.filter(
-            Q(job_Position__iexact="Team Lead")
-            | Q(job_Position__iexact="Admin")
-        ),
-        "auth_admins": admins.filter(is_superuser=False),
+        "employees": employees,
+        "auth_admins": admins,
         "filter_params": params.urlencode(),
     })
 
@@ -12613,6 +12790,10 @@ def admin_announcements(request):
                 AnnouncementRecipient(announcement=announcement, recipient=user)
                 for user in recipients
             ])
+        from .notification_signals import (
+            queue_announcement_recipient_notifications,
+        )
+        queue_announcement_recipient_notifications(announcement.pk)
         messages.success(request, "Announcement sent successfully.")
         return redirect("admin_announcements")
     response = render(request, "admin_panel/admin_announcements.html", {
