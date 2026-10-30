@@ -2824,10 +2824,14 @@
                                             aria-hidden="true"></i></button></div>
                             </div>
                             <p class="announcement-message tl-announcement-preview">{{ item.message }}</p>
-                            <div class="announcement-meta">Sent by <strong>{{ item.author_name }}</strong>{% if
-                                item.created_by.department %} · {{ item.created_by.department }}{% endif %} {{
-                                item.created_at|localtime|date:'d M Y, h:i A' }}</div><template>{{ item.message
-                                }}</template>
+                         <div class="announcement-meta">
+    Sent by <strong>{{ item.author_name }}</strong>
+    {% if item.created_by.department %}
+        · {{ item.created_by.department }}
+    {% endif %}
+    {{ item.created_at|localtime|date:'d M Y, h:i A' }}
+</div>
+<template>{{ item.message }}</template>
                         </div>
                     </article>
                     {% empty %}<div class="empty-state"><i data-lucide="megaphone-off" aria-hidden="true"></i>

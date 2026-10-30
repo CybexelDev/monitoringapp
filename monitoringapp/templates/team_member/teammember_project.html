@@ -1118,6 +1118,182 @@ html.member-project-status-open body,html.member-project-view-open body {overflo
  .project-status-trigger,.project-status-option{font-size:16px;min-height:44px;}
  #toastContainer.toast-container{bottom:16px!important;right:16px!important;max-width:calc(100vw - 32px);}
 }
+.project-action-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+
+.view-button,
+.project-edit-button {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    padding: 0;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0;
+}
+
+.view-button svg,
+.project-edit-button svg {
+    width: 16px;
+    height: 16px;
+}
+/* =========================================
+   TEAM MEMBER PROJECT ACTION ICONS
+   Match Team Lead square icon style
+========================================= */
+
+
+#memberProjectsPage .project-action-buttons .view-button,
+#memberProjectsPage .project-action-buttons .project-edit-button {
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 46px;
+
+    width: 40px;
+    min-width: 40px;
+
+    height: 40px;
+    min-height: 40px;
+
+    padding: 0;
+    margin: 0;
+
+    gap: 0;
+
+    border-radius: 12px;
+
+    font-size: 0;
+    line-height: 1;
+
+    box-shadow: none;
+
+    cursor: pointer;
+
+    transition:
+        background .2s ease,
+        border-color .2s ease,
+        transform .2s ease;
+}
+
+
+/* VIEW ICON */
+
+#memberProjectsPage .project-action-buttons .view-button {
+
+    background: rgba(139, 92, 246, .12);
+
+    border: 1px solid rgba(167, 139, 250, .28);
+
+    color: #c4b5fd;
+}
+
+
+/* EDIT ICON */
+
+#memberProjectsPage .project-action-buttons .project-edit-button {
+
+    background: rgba(59, 130, 246, .11);
+
+    border: 1px solid rgba(96, 165, 250, .28);
+
+    color: #93c5fd;
+}
+
+
+/* ICON SIZE */
+
+#memberProjectsPage .project-action-buttons svg {
+
+    width: 19px;
+    height: 19px;
+
+    stroke-width: 1.9;
+
+    flex-shrink: 0;
+}
+
+
+/* HOVER */
+
+#memberProjectsPage .project-action-buttons .view-button:hover {
+
+    background: rgba(139, 92, 246, .22);
+
+    border-color: rgba(167, 139, 250, .48);
+
+    transform: translateY(-1px);
+}
+
+#memberProjectsPage .project-action-buttons .project-edit-button:hover {
+
+    background: rgba(59, 130, 246, .22);
+
+    border-color: rgba(96, 165, 250, .48);
+
+    transform: translateY(-1px);
+}
+
+
+/* KEYBOARD FOCUS */
+
+#memberProjectsPage .project-action-buttons button:focus-visible {
+
+    outline: 2px solid #a78bfa;
+
+    outline-offset: 3px;
+}
+
+
+/* ACTION COLUMN WIDTH */
+
+#memberProjectsPage .table-wrapper th:nth-child(7) {
+
+    width: 140px;
+
+}
+
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+
+    #memberProjectsPage .project-action-buttons .view-button,
+    #memberProjectsPage .project-action-buttons .project-edit-button {
+
+        flex-basis: 42px;
+
+        width: 42px;
+        min-width: 42px;
+
+        height: 42px;
+        min-height: 42px;
+
+        border-radius: 11px;
+
+    }
+
+    #memberProjectsPage .project-action-buttons svg {
+
+        width: 18px;
+        height: 18px;
+
+    }
+
+}
+.project-edit-button {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+}
 
 </style>
 
@@ -1335,7 +1511,7 @@ html.member-project-status-open body,html.member-project-view-open body {overflo
 
 
                     <!-- ACTIONS -->
-
+<!-- 
                     <td>
 
                         <button
@@ -1367,7 +1543,59 @@ html.member-project-status-open body,html.member-project-view-open body {overflo
 <button type="button" class="project-edit-button" data-project-edit="{{ project.id }}" onclick="openMemberProjectStatus('{{ project.id }}')" aria-label="Edit project status"><i data-lucide="square-pen"></i> Edit</button>
 
 
-                    </td>
+                    </td> -->
+
+                    <!-- ACTIONS -->
+
+<td>
+
+    <div class="project-action-buttons">
+
+        <!-- VIEW PROJECT -->
+
+        <button
+            type="button"
+            onclick="openMemberProjectView(this)"
+            data-seen-url="{% url 'teammember_project_seen' project.id %}"
+            data-work_name="{{ project.work_name }}"
+            data-work_type="{{ project.work_type }}"
+            data-category="{{ project.category }}"
+            data-description="{{ project.description }}"
+            data-deadline="{{ project.deadline|date:'Y-m-d' }}"
+            data-additional_notes="{{ project.additional_notes }}"
+            data-color_preference="{{ project.color_preference }}"
+            data-priority="{{ project.priority }}"
+            data-content_example="{{ project.content_example }}"
+            data-files='{% for f in project.files.all %}{{ f.file.url }}{% if not forloop.last %},{% endif %}{% endfor %}'
+            data-images='{% for i in project.images.all %}{{ i.image.url }}{% if not forloop.last %},{% endif %}{% endfor %}'
+            class="view-button"
+            title="View project"
+            aria-label="View project"
+        >
+
+            <i data-lucide="eye" aria-hidden="true"></i>
+
+        </button>
+
+
+        <!-- EDIT PROJECT STATUS -->
+
+        <button
+            type="button"
+            class="project-edit-button"
+            data-project-edit="{{ project.id }}"
+            onclick="openMemberProjectStatus('{{ project.id }}')"
+            title="Edit project status"
+            aria-label="Edit project status"
+        >
+
+            <i data-lucide="pencil" aria-hidden="true"></i>
+
+        </button>
+
+    </div>
+
+</td>
 
 
                     <!-- =================================================

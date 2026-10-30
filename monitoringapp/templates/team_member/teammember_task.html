@@ -2838,8 +2838,20 @@ select.status-select option {
                         </span>
 
                         <strong>
-                            {{ task.created_by.name|default:task.created_by.username|default:"Team Lead" }}
-                        </strong>
+                            
+{% if task.created_by %}
+    {% if task.created_by.name %}
+        {{ task.created_by.name }}
+    {% elif task.created_by.username %}
+        {{ task.created_by.username }}
+    {% else %}
+        Team Lead
+    {% endif %}
+{% else %}
+    Team Lead
+{% endif %}
+
+                       </strong>
 
                     </div>
 

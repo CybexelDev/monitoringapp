@@ -1518,7 +1518,7 @@
     text-align: left;
     white-space: nowrap;
     color: rgba(196, 181, 253, 0.62);
-    background: rgba(255, 255, 255, 0.035);
+    background: #211a32;
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
     font-size: 10px;
     font-weight: 800;
@@ -1606,10 +1606,13 @@
     background: rgba(139, 92, 246, 0.08);
 }
 
+/* Action buttons - compact icon-only alignment */
+
 .project-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: flex-start;
+    gap: 9px;
     flex-wrap: nowrap;
     white-space: nowrap;
 }
@@ -1618,100 +1621,92 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    min-width: 68px;
-    min-height: 34px;
-    padding: 0 11px;
-    border-radius: 10px;
-    font-size: 10px;
-    font-weight: 800;
-    line-height: 1;
-    text-decoration: none;
+
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+    flex: 0 0 46px;
+
+    padding: 0;
+    border-radius: 12px;
+
     cursor: pointer;
-    transition:
-        background 0.18s ease,
-        border-color 0.18s ease,
-        box-shadow 0.18s ease,
-        color 0.18s ease,
-        transform 0.18s ease;
+    text-decoration: none;
+    transition: all .18s ease;
 }
 
 .project-action svg {
-    width: 15px;
-    height: 15px;
-    flex: 0 0 15px;
+    width: 21px;
+    height: 21px;
     stroke-width: 2;
+}
+
+.project-action span {
+    display: none !important;
+}
+
+/* VIEW - Purple */
+.project-action.view {
+    color: #c4b5fd;
+    border: 1px solid rgba(139, 92, 246, .30);
+    background: rgba(124, 58, 237, .10);
+}
+
+/* EDIT - Blue */
+.project-action.edit {
+    color: #93c5fd;
+    border: 1px solid rgba(59, 130, 246, .30);
+    background: rgba(37, 99, 235, .10);
+}
+
+/* DELETE - Red */
+.project-action.delete {
+    color: #fb7185;
+    border: 1px solid rgba(244, 63, 94, .28);
+    background: rgba(225, 29, 72, .08);
 }
 
 .project-action:hover {
     transform: translateY(-1px);
 }
 
-.project-action:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.16);
-}
-
-.project-action.view {
-    color: #c7d2fe;
-    border: 1px solid rgba(99, 102, 241, 0.30);
-    background: rgba(79, 70, 229, 0.11);
-}
-
 .project-action.view:hover {
-    color: #eef2ff;
-    border-color: rgba(129, 140, 248, 0.52);
-    background: rgba(79, 70, 229, 0.20);
-    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.12);
-}
-
-.project-action.edit {
-    color: #ddd6fe;
-    border: 1px solid rgba(139, 92, 246, 0.30);
-    background: rgba(124, 58, 237, 0.13);
+    background: rgba(124, 58, 237, .20);
 }
 
 .project-action.edit:hover {
-    color: #f5f3ff;
-    border-color: rgba(167, 139, 250, 0.52);
-    background: rgba(124, 58, 237, 0.21);
-    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.12);
-}
-
-.project-action.delete {
-    color: #fecaca;
-    border: 1px solid rgba(239, 68, 68, 0.25);
-    background: rgba(239, 68, 68, 0.075);
+    background: rgba(37, 99, 235, .20);
 }
 
 .project-action.delete:hover {
-    color: #fff1f2;
-    border-color: rgba(248, 113, 113, 0.50);
-    background: rgba(239, 68, 68, 0.15);
-    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.10);
+    background: rgba(225, 29, 72, .18);
+}
+
+.project-action:focus-visible {
+    outline: 2px solid #a78bfa;
+    outline-offset: 2px;
 }
 
 @media (max-width: 700px) {
     .project-actions {
-        gap: 6px;
+        gap: 7px;
     }
 
     .project-action {
-        min-width: 34px;
-        width: 34px;
-        padding: 0;
+        width: 42px;
+        min-width: 42px;
+        height: 42px;
+        min-height: 42px;
+        flex-basis: 42px;
     }
 
-    .project-action span {
-        display: none;
+    .project-action svg {
+        width: 19px;
+        height: 19px;
     }
 }
 
-.project-empty {
-    padding: 50px 20px !important;
-    text-align: center;
-    color: rgba(226, 232, 240, 0.36) !important;
-}
 
 .project-modal {
     position: fixed;
@@ -2342,23 +2337,62 @@
 .project-modal-header { flex: 0 0 auto; background: #241b37; }
 .project-modal-body { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #8b5cf6 #211a32; }
 .project-modal-panel:focus { outline: none; }
-.project-delete-panel { max-height: min(90dvh, 420px); }
-@media (max-width: 640px) {
-    .project-modal { padding: 12px; }
-    .project-modal-panel { max-height: calc(100dvh - 24px); }
-}
 
+/* Delete Confirmation Popup - Cybexel Purple Theme */
+/* 
 .project-delete-panel {
     width: min(430px, 100%);
+    border-radius: 18px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #261b3d, #171120 75%);
+    border: 1px solid rgba(167, 139, 250, .42);
+    box-shadow:
+        0 28px 80px rgba(0, 0, 0, .62),
+        0 0 35px rgba(124, 58, 237, .18);
+}
+
+.project-delete-panel .project-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 19px 22px;
+    background: linear-gradient(135deg, #302047, #21172f);
+    border-bottom: 1px solid rgba(167, 139, 250, .20);
+}
+
+.project-delete-panel .project-modal-header h3 {
+    color: #f5efff;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.project-delete-panel .project-modal-close {
+    color: #d8c9ff;
+    background: rgba(124, 58, 237, .14);
+    border: 1px solid rgba(167, 139, 250, .25);
+    border-radius: 10px;
+}
+
+.project-delete-panel .project-modal-close:hover {
+    color: #fff;
+    background: rgba(124, 58, 237, .30);
+}
+
+.project-delete-panel .project-modal-body {
+    padding: 22px;
+    background: transparent;
 }
 
 .project-delete-text {
-    color: #c9c3d5;
-    line-height: 1.6;
+    margin: 0;
+    color: #d0c6df;
+    font-size: 14px;
+    line-height: 1.8;
 }
 
 .project-delete-text strong {
     color: #fff;
+    font-weight: 800;
 }
 
 .project-delete-actions {
@@ -2367,6 +2401,8 @@
     flex-wrap: wrap;
     gap: 10px;
     margin-top: 24px;
+    padding-top: 17px;
+    border-top: 1px solid rgba(167, 139, 250, .15);
 }
 
 .project-delete-cancel,
@@ -2375,28 +2411,215 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 10px 16px;
+    padding: 10px 17px;
     border-radius: 10px;
     font-weight: 700;
     text-decoration: none;
     cursor: pointer;
+    transition: .18s ease;
 }
 
 .project-delete-cancel {
-    color: #e5ddf2;
-    border: 1px solid rgba(255,255,255,.15);
-    background: rgba(255,255,255,.06);
+    color: #e9ddff;
+    border: 1px solid rgba(167, 139, 250, .28);
+    background: rgba(124, 58, 237, .10);
+}
+
+.project-delete-cancel:hover {
+    color: #fff;
+    background: rgba(124, 58, 237, .22);
+    border-color: rgba(196, 181, 253, .5);
 }
 
 .project-delete-confirm {
     color: #fff;
-    background: #d43f50;
+    border: 1px solid rgba(196, 181, 253, .30);
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    box-shadow: 0 6px 18px rgba(124, 58, 237, .22);
 }
 
 .project-delete-confirm:hover {
-    background: #b92f40;
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    box-shadow: 0 8px 22px rgba(124, 58, 237, .30);
+    transform: translateY(-1px);
+} */
+
+
+/* Team Lead - Bubble Style Delete Confirmation */
+
+.project-delete-panel {
+    width: min(650px, 100%);
+    max-height: min(90dvh, 550px);
+    border-radius: 28px;
+    overflow: hidden;
+    background: #0d0b14;
+    border: 1px solid rgba(167, 139, 250, .25);
+    box-shadow: 0 30px 90px rgba(0, 0, 0, .65);
 }
 
+/* Header */
+.project-delete-header {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 32px 35px;
+    background: linear-gradient(
+        110deg,
+        #281b40 0%,
+        #191525 65%,
+        #171e2d 100%
+    );
+    border-bottom: 1px solid rgba(255,255,255,.08);
+}
+
+.project-delete-icon {
+    width: 74px;
+    height: 74px;
+    flex: 0 0 74px;
+    display: grid;
+    place-items: center;
+    border-radius: 22px;
+    color: #d2baff;
+    background: rgba(124, 58, 237, .20);
+    border: 1px solid rgba(167, 139, 250, .25);
+}
+
+.project-delete-icon svg {
+    width: 29px;
+    height: 29px;
+}
+
+.project-delete-heading {
+    flex: 1;
+    min-width: 0;
+}
+
+.project-delete-eyebrow {
+    display: block;
+    margin-bottom: 12px;
+    color: #b68cff;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+.project-delete-heading h3 {
+    margin: 0;
+    color: #f8f5ff;
+    font-size: 27px;
+    font-weight: 800;
+}
+
+.project-delete-heading p {
+    margin: 7px 0 0;
+    color: #9991a8;
+    font-size: 14px;
+}
+
+.project-delete-panel .project-modal-close {
+    width: 62px;
+    height: 62px;
+    flex: 0 0 62px;
+    border: 2px solid #a78bfa;
+    border-radius: 20px;
+    color: #c4b5fd;
+    background: rgba(255,255,255,.035);
+}
+
+/* Body */
+.project-delete-body {
+    padding: 42px 40px;
+    min-height: 142px;
+    background: #0d0b14;
+}
+
+.project-delete-body p {
+    margin: 0;
+    color: #f1edf8;
+    font-size: 15px;
+    overflow-wrap: anywhere;
+}
+
+.project-delete-body span {
+    display: block;
+    margin-top: 20px;
+    color: #958ba4;
+    font-size: 13px;
+}
+
+/* Footer */
+.project-delete-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px;
+    padding: 27px 40px 35px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    background: #0d0b14;
+}
+
+.project-delete-cancel,
+.project-delete-confirm {
+    min-height: 58px;
+    padding: 0 25px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.project-delete-cancel {
+    color: #c9bfd6;
+    background: #191520;
+    border: 1px solid rgba(255,255,255,.10);
+}
+
+.project-delete-confirm {
+    color: #fff;
+    background: linear-gradient(135deg, #8747d9, #6330ae);
+    border: 1px solid rgba(196,181,253,.25);
+}
+
+.project-delete-confirm:hover {
+    background: linear-gradient(135deg, #9858eb, #7540c5);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 600px) {
+    .project-delete-header {
+        padding: 22px;
+        gap: 14px;
+    }
+
+    .project-delete-icon {
+        width: 52px;
+        height: 52px;
+        flex-basis: 52px;
+    }
+
+    .project-delete-heading h3 {
+        font-size: 21px;
+    }
+
+    .project-delete-panel .project-modal-close {
+        width: 40px;
+        height: 40px;
+        flex-basis: 40px;
+    }
+
+    .project-delete-body {
+        padding: 28px 24px;
+    }
+
+    .project-delete-footer {
+        padding: 20px 24px;
+    }
+}
 
 /* Assign New Project: aligned field rows and consistent controls */
 .project-form-card {
@@ -2529,8 +2752,81 @@
  .project-field .project-input,.project-field .custom-date-input,
  .project-field .tl-project-select-button { height:46px; min-height:46px; }
 }
+.project-modal-panel.status-modal-panel {
+    width: min(560px, calc(100vw - 32px));
+    max-width: 560px;
+}
+/* Compact Delete Confirmation Popup */
 
+.project-delete-panel {
+    width: min(540px, 100%);
+    border-radius: 22px;
+}
 
+.project-delete-header {
+    padding: 23px 27px;
+    gap: 17px;
+}
+
+.project-delete-icon {
+    width: 60px;
+    height: 60px;
+    flex-basis: 60px;
+    border-radius: 18px;
+}
+
+.project-delete-icon svg {
+    width: 25px;
+    height: 25px;
+}
+
+.project-delete-eyebrow {
+    font-size: 10px;
+    margin-bottom: 8px;
+}
+
+.project-delete-heading h3 {
+    font-size: 23px;
+}
+
+.project-delete-heading p {
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.project-delete-panel .project-modal-close {
+    width: 46px;
+    height: 46px;
+    flex-basis: 46px;
+    border-radius: 14px;
+}
+
+.project-delete-body {
+    min-height: 110px;
+    padding: 28px 32px;
+}
+
+.project-delete-body p {
+    font-size: 14px;
+}
+
+.project-delete-body span {
+    margin-top: 13px;
+    font-size: 12px;
+}
+
+.project-delete-footer {
+    padding: 19px 32px 23px;
+    gap: 12px;
+}
+
+.project-delete-cancel,
+.project-delete-confirm {
+    min-height: 46px;
+    padding: 0 20px;
+    border-radius: 12px;
+    font-size: 13px;
+}
 </style>
 
 
@@ -3055,44 +3351,61 @@
 
                                 <td>
 
-                                    <div class="project-actions">
+<div class="project-actions">
 
-                                        <button
-                                            type="button"
-                                            class="project-action view"
-                                            onclick="openProjectModal('viewModal{{ project.id }}')"
-                                            title="View project details"
-                                            aria-label="View project details"
-                                        >
-                                            <i data-lucide="eye"></i>
-                                            <span>View</span>
-                                        </button>
+    <!-- VIEW -->
+    <button
+        type="button"
+        class="project-action view"
+        onclick="openProjectModal('viewModal{{ project.id }}')"
+        title="View"
+        aria-label="View project"
+    >
+        <i data-lucide="eye"></i>
+    </button>
 
-                                        <button
-                                            type="button"
-                                            class="project-action edit"
-                                            onclick="openProjectModal('editModal{{ project.id }}')"
-                                            title="Edit project"
-                                            aria-label="Edit project"
-                                        >
-                                            <i data-lucide="square-pen"></i>
-                                            <span>Edit</span>
-                                        </button>
+    {% if project.assign_to_id == team_lead.id %}
 
-                                       <button
-    type="button"
-    class="project-action delete"
-    data-delete-url="{% url 'project_assign_delete' project.id %}"
-    data-project-name="{{ project.work_name }}"
-    onclick="openProjectDeleteModal(this)"
-    title="Delete project"
-    aria-label="Delete project"
->
-    <i data-lucide="trash-2"></i>
-    <span>Delete</span>
-</button>
+        <!-- MASTER ADMIN PROJECT: STATUS UPDATE -->
+        <button
+            type="button"
+            class="project-action edit"
+            onclick="openProjectModal('editModalStatus{{ project.id }}')"
+            title="Update Status"
+            aria-label="Update project status"
+        >
+            <i data-lucide="pencil"></i>
+        </button>
 
-                                    </div>
+    {% else %}
+
+        <!-- EDIT -->
+        <button
+            type="button"
+            class="project-action edit"
+            onclick="openProjectModal('editModal{{ project.id }}')"
+            title="Edit"
+            aria-label="Edit project"
+        >
+            <i data-lucide="pencil"></i>
+        </button>
+
+        <!-- DELETE -->
+        <button
+            type="button"
+            class="project-action delete"
+            data-delete-url="{% url 'project_assign_delete' project.id %}"
+            data-project-name="{{ project.work_name }}"
+            onclick="openProjectDeleteModal(this)"
+            title="Delete"
+            aria-label="Delete project"
+        >
+            <i data-lucide="trash-2"></i>
+        </button>
+
+    {% endif %}
+
+</div>
 
                                 </td>
 
@@ -3778,12 +4091,144 @@
             </div>
 
             {% endfor %}
+            
+<!-- =================================================
+     MASTER ADMIN ASSIGNED PROJECT - STATUS MODALS
+================================================== -->
+
+{% for project in projects %}
+
+    {% if project.assign_to_id == team_lead.id %}
+
+    <div
+        id="editModalStatus{{ project.id }}"
+        class="project-modal"
+        aria-hidden="true"
+    >
+
+        <div
+            class="project-modal-panel status-modal-panel""
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="statusTitle{{ project.id }}"
+        >
+
+            <!-- HEADER -->
+            <div class="project-modal-header">
+
+                <h3 id="statusTitle{{ project.id }}">
+                    Update Project Status
+                </h3>
+
+                <button
+                    type="button"
+                    class="project-modal-close"
+                    onclick="closeProjectModal('editModalStatus{{ project.id }}')"
+                    aria-label="Close"
+                >
+                    <i data-lucide="x"></i>
+                </button>
+
+            </div>
+
+
+            <!-- BODY -->
+            <div class="project-modal-body">
+
+                <form
+                    method="POST"
+                    action="{% url 'project_assign_edit' project.id %}"
+                >
+
+                    {% csrf_token %}
+
+                    <input
+                        type="hidden"
+                        name="mode"
+                        value="status"
+                    >
+
+                    <div class="project-grid">
+
+                        <div class="project-field full">
+
+                            <label for="projectStatus{{ project.id }}">
+                                Project Status
+                            </label>
+
+                            <select
+                                id="projectStatus{{ project.id }}"
+                                name="status"
+                                class="project-select"
+                                required
+                            >
+
+                                <option
+                                    value="Not Started"
+                                    {% if project.status == "Not Started" %}selected{% endif %}
+                                >
+                                    Not Started
+                                </option>
+
+                                <option
+                                    value="In Progress"
+                                    {% if project.status == "In Progress" %}selected{% endif %}
+                                >
+                                    In Progress
+                                </option>
+
+                                <option
+                                    value="On Hold"
+                                    {% if project.status == "On Hold" %}selected{% endif %}
+                                >
+                                    On Hold
+                                </option>
+
+                                <option
+                                    value="Completed"
+                                    {% if project.status == "Completed" %}selected{% endif %}
+                                >
+                                    Completed
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- FOOTER -->
+                    <div class="project-submit-row">
+
+                        <button
+                            type="submit"
+                            class="project-submit"
+                        >
+                            <i data-lucide="save"></i>
+                            Save Status
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+{% endfor %}
+
 
         </section>
 
     </div>
 
-    <div id="projectDeleteModal" class="project-modal"
+    <!-- <div id="projectDeleteModal" class="project-modal"
      aria-hidden="true" role="dialog" aria-modal="true"
      aria-labelledby="projectDeleteTitle">
 
@@ -3813,6 +4258,78 @@
                 </a>
             </div>
         </div>
+    </div>
+</div> -->
+
+<div id="projectDeleteModal"
+     class="project-modal"
+     aria-hidden="true"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="projectDeleteTitle">
+
+    <div class="project-modal-panel project-delete-panel">
+
+        <!-- HEADER -->
+        <div class="project-delete-header">
+
+            <div class="project-delete-icon">
+                <i data-lucide="trash-2"></i>
+            </div>
+
+            <div class="project-delete-heading">
+
+                <span class="project-delete-eyebrow">
+                    PROJECT MANAGEMENT
+                </span>
+
+                <h3 id="projectDeleteTitle">
+                    Delete project?
+                </h3>
+
+                <p>
+                    Confirm removal of this project assignment.
+                </p>
+
+            </div>
+
+            <button type="button"
+                    class="project-modal-close"
+                    onclick="closeProjectModal('projectDeleteModal')"
+                    aria-label="Close">
+                <i data-lucide="x"></i>
+            </button>
+
+        </div>
+
+        <!-- BODY -->
+        <div class="project-delete-body">
+
+            <p id="projectDeleteName"></p>
+
+            <span>
+                This removes the project assignment.
+            </span>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="project-delete-footer">
+
+            <button type="button"
+                    class="project-delete-cancel"
+                    onclick="closeProjectModal('projectDeleteModal')">
+                Cancel
+            </button>
+
+            <a id="confirmProjectDelete"
+               class="project-delete-confirm"
+               href="#">
+                Delete project
+            </a>
+
+        </div>
+
     </div>
 </div>
 
