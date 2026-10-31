@@ -4023,7 +4023,6 @@
         data-participants="{% for member in meeting.participants.all %}{{ member.id }}{% if not forloop.last %},{% endif %}{% endfor %}"
     >
         <i data-lucide="pencil"></i>
-        <span>Edit</span>
     </button>
 {% endif %}
 
@@ -4041,7 +4040,6 @@
         data-participants="{% for member in meeting.participants.all %}{{ member.name|escape }}{% if not forloop.last %}, {% endif %}{% endfor %}"
     >
         <i data-lucide="eye"></i>
-        <span>View</span>
     </button>
 
 
@@ -6439,6 +6437,76 @@ function toast(text, error = false) {
  #meetingModal .meeting-modal-box {
   max-width: calc(100vw - 24px);
  }
+}
+
+/* =========================================================
+   MEETING ACTION BUTTONS - STANDARD 32x32 SIZE
+========================================================= */
+
+/* EDIT BUTTON */
+.meeting-actions .edit-meeting-btn,
+.meeting-actions .delete-meeting-btn,
+.meeting-actions .view-meeting-btn {
+
+    width: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    flex: 0 0 32px !important;
+    flex-shrink: 0 !important;
+
+    display: inline-flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 0 !important;
+
+    border-radius: 9px !important;
+
+    box-sizing: border-box !important;
+}
+
+/* ALL ACTION ICONS */
+.meeting-actions .edit-meeting-btn svg,
+.meeting-actions .delete-meeting-btn svg,
+.meeting-actions .view-meeting-btn svg,
+.meeting-actions .edit-meeting-btn i,
+.meeting-actions .delete-meeting-btn i,
+.meeting-actions .view-meeting-btn i {
+
+    width: 14px !important;
+    height: 14px !important;
+
+    min-width: 14px !important;
+    min-height: 14px !important;
+
+    max-width: 14px !important;
+    max-height: 14px !important;
+
+    flex: 0 0 14px !important;
+
+    margin: 0 !important;
+}
+
+/* DISABLED EDIT BUTTON */
+.meeting-actions .edit-meeting-btn:disabled {
+    cursor: not-allowed !important;
+}
+
+/* ACTION ALIGNMENT */
+.meeting-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
 }
 </style>
 </body>

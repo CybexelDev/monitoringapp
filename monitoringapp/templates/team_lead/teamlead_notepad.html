@@ -2243,6 +2243,21 @@
 .note-delete-overlay {box-sizing:border-box;overscroll-behavior:contain;}
 .note-delete-box {box-sizing:border-box;max-height:calc(100dvh - 32px);overflow-y:auto;}
 html.note-delete-open,body.note-delete-open,.note-delete-open .dashboard-box {overflow:hidden!important;overscroll-behavior:none;}
+/* Notepad action buttons - same size as Project Assigning */
+.saved-notes-section .saved-note-actions button {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px;
+    min-height: 32px;
+    flex: 0 0 32px;
+    padding: 0;
+    border-radius: 9px;
+}
+
+.saved-notes-section .saved-note-actions button svg {
+    width: 14px !important;
+    height: 14px !important;
+}
 </style>
 </head>
 
