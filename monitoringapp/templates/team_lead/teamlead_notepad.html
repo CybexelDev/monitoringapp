@@ -1962,22 +1962,26 @@
 }
 
 /* Explicit edit control beside each saved note. */
-.saved-note-edit  {
-    flex:0 0 auto;
-    display:grid;
-    place-items:center;
-    width:38px;
-    height:38px;
-    border-radius:11px;
-    border:1px solid rgba(196,181,253,.24);
-    background:rgba(139,92,246,.10);
-    color:#c4b5fd;
-    text-decoration:none;
-    transition:background .2s,border-color .2s;
-    
+.saved-note-edit {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    border: 1px solid rgba(147, 197, 253, .22);
+    background: rgba(59, 130, 246, .08);
+    color: #93c5fd;
+    text-decoration: none;
+    transition: background .2s, border-color .2s;
 }
 
-.saved-note-edit:hover,.saved-note-edit[aria-current="true"] {background:rgba(139,92,246,.22);border-color:rgba(196,181,253,.5);color:#fff;}
+.saved-note-edit:hover,
+.saved-note-edit[aria-current="true"] {
+    background: rgba(59, 130, 246, .18);
+    border-color: rgba(147, 197, 253, .45);
+    color: #dbeafe;
+}
 .saved-note-edit:focus-visible {outline:2px solid #c4b5fd;outline-offset:3px;}
 .saved-note-edit svg {width:17px;height:17px;}
 .saved-note-delete-form {margin-left:0;}
@@ -2095,14 +2099,15 @@
     outline-offset: 3px;
 }
 .saved-note-view {
-    color: #93c5fd;
-    background: rgba(59, 130, 246, .08);
-    border: 1px solid rgba(147, 197, 253, .22);
+    color: #c4b5fd;
+    background: rgba(139, 92, 246, .10);
+    border: 1px solid rgba(196, 181, 253, .24);
 }
+
 .saved-note-view:hover {
-    color: #dbeafe;
-    background: rgba(59, 130, 246, .18);
-    border-color: rgba(147, 197, 253, .45);
+    color: #ffffff;
+    background: rgba(139, 92, 246, .22);
+    border-color: rgba(196, 181, 253, .5);
 }
 #noteViewDialog {
     box-sizing: border-box;
