@@ -527,7 +527,7 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
 <div class="announcement-icon"><i data-lucide="megaphone"></i></div>
 <div class="announcement-body"><div class="announcement-title-row"><h3 class="announcement-title">{{ row.announcement.title|default:"Team Announcement" }}</h3>
 <div class="announcement-actions"><span class="read-badge{% if not row.read_at %} unread{% endif %}">{% if row.read_at %}Seen{% else %}New{% endif %}</span>
-<form method="post" action="{% url 'teammember_announcement_seen' row.announcement_id %}" class="announcement-seen-form">{% csrf_token %}<button class="view-button" type="button" aria-label="View announcement"><i data-lucide="eye"></i>View</button></form></div></div>
+<form method="post" action="{% url 'teammember_announcement_seen' row.announcement_id %}" class="announcement-seen-form">{% csrf_token %}<button class="view-button" type="button" aria-label="View announcement"><i data-lucide="eye"></i></button></form></div></div>
 <p class="announcement-message">{{ row.announcement.message }}</p>
 <div class="announcement-meta">Posted by <strong>{{ row.announcement.author_name }}</strong> · {{ row.announcement.created_at|localtime|date:"d M Y, h:i A" }}</div>
 </div></article>

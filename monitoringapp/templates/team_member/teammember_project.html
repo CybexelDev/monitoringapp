@@ -1145,35 +1145,37 @@ html.member-project-status-open body,html.member-project-view-open body {overflo
 }
 /* =========================================
    TEAM MEMBER PROJECT ACTION ICONS
-   Match Team Lead square icon style
+   STANDARD 32x32 SIZE
 ========================================= */
-
 
 #memberProjectsPage .project-action-buttons .view-button,
 #memberProjectsPage .project-action-buttons .project-edit-button {
 
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 
-    flex: 0 0 46px;
+    flex: 0 0 32px !important;
 
-    width: 40px;
-    min-width: 40px;
+    width: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
 
-    height: 40px;
-    min-height: 40px;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
 
-    padding: 0;
-    margin: 0;
+    padding: 0 !important;
+    margin: 0 !important;
 
-    gap: 0;
+    gap: 0 !important;
 
-    border-radius: 12px;
+    border-radius: 9px !important;
 
-    font-size: 0;
-    line-height: 1;
+    font-size: 0 !important;
+    line-height: 1 !important;
 
+    box-sizing: border-box !important;
     box-shadow: none;
 
     cursor: pointer;
@@ -1185,39 +1187,39 @@ html.member-project-status-open body,html.member-project-view-open body {overflo
 }
 
 
-/* VIEW ICON */
+/* VIEW ICON - PURPLE */
 
 #memberProjectsPage .project-action-buttons .view-button {
-
     background: rgba(139, 92, 246, .12);
-
     border: 1px solid rgba(167, 139, 250, .28);
-
     color: #c4b5fd;
 }
 
 
-/* EDIT ICON */
+/* EDIT ICON - BLUE */
 
 #memberProjectsPage .project-action-buttons .project-edit-button {
-
-    background: rgba(59, 130, 246, .11);
-
-    border: 1px solid rgba(96, 165, 250, .28);
-
-    color: #93c5fd;
+    background: rgba(59, 130, 246, .11) !important;
+    border: 1px solid rgba(96, 165, 250, .28) !important;
+    color: #93c5fd !important;
 }
 
 
-/* ICON SIZE */
+/* ICON SIZE - 14x14 */
 
-#memberProjectsPage .project-action-buttons svg {
+#memberProjectsPage .project-action-buttons .view-button svg,
+#memberProjectsPage .project-action-buttons .project-edit-button svg {
 
-    width: 19px;
-    height: 19px;
+    width: 14px !important;
+    height: 14px !important;
+
+    min-width: 14px !important;
+    min-height: 14px !important;
+
+    max-width: 14px !important;
+    max-height: 14px !important;
 
     stroke-width: 1.9;
-
     flex-shrink: 0;
 }
 
@@ -1225,20 +1227,14 @@ html.member-project-status-open body,html.member-project-view-open body {overflo
 /* HOVER */
 
 #memberProjectsPage .project-action-buttons .view-button:hover {
-
     background: rgba(139, 92, 246, .22);
-
     border-color: rgba(167, 139, 250, .48);
-
     transform: translateY(-1px);
 }
 
 #memberProjectsPage .project-action-buttons .project-edit-button:hover {
-
-    background: rgba(59, 130, 246, .22);
-
-    border-color: rgba(96, 165, 250, .48);
-
+    background: rgba(59, 130, 246, .22) !important;
+    border-color: rgba(96, 165, 250, .48) !important;
     transform: translateY(-1px);
 }
 
@@ -1246,9 +1242,7 @@ html.member-project-status-open body,html.member-project-view-open body {overflo
 /* KEYBOARD FOCUS */
 
 #memberProjectsPage .project-action-buttons button:focus-visible {
-
     outline: 2px solid #a78bfa;
-
     outline-offset: 3px;
 }
 
@@ -1256,9 +1250,32 @@ html.member-project-status-open body,html.member-project-view-open body {overflo
 /* ACTION COLUMN WIDTH */
 
 #memberProjectsPage .table-wrapper th:nth-child(7) {
-
     width: 140px;
+}
 
+
+/* MOBILE - SAME 32x32 SIZE */
+
+@media (max-width: 768px) {
+
+    #memberProjectsPage .project-action-buttons .view-button,
+    #memberProjectsPage .project-action-buttons .project-edit-button {
+
+        flex: 0 0 32px !important;
+
+        width: 32px !important;
+        min-width: 32px !important;
+
+        height: 32px !important;
+        min-height: 32px !important;
+
+        border-radius: 9px;
+    }
+
+    #memberProjectsPage .project-action-buttons svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
 }
 
 

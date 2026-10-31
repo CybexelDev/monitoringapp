@@ -2413,6 +2413,133 @@ html.note-popup-open,html.note-delete-open,body.note-popup-open,body.note-delete
 #toastContainer.toast-container{position:fixed!important;top:auto!important;bottom:24px!important;right:24px!important;left:auto!important;}
 @media(max-width:600px){#memberNotepadPage .note-sort-picker{flex:1 1 100%;width:100%;}#memberNotepadPage .note-sort-options{min-width:0;}#noteEditDialog,#noteViewDialog,.note-delete-box{padding:20px;max-height:calc(100dvh - 24px);}#noteEditDialog input,#noteEditDialog textarea,.note-sort-trigger,.note-sort-option{font-size:16px;}#toastContainer.toast-container{bottom:16px!important;right:16px!important;max-width:calc(100vw - 32px);}}
 
+/* =========================================
+   SAVED NOTE ACTIONS — STANDARD 32x32
+========================================= */
+
+#memberNotepadPage .saved-note-actions button,
+#memberNotepadPage .saved-note-actions a {
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    flex: 0 0 32px !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 9px !important;
+}
+
+/* ICON SIZE — 14x14 */
+#memberNotepadPage .saved-note-actions button svg,
+#memberNotepadPage .saved-note-actions a svg {
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+    min-height: 14px !important;
+    max-width: 14px !important;
+    max-height: 14px !important;
+    flex-shrink: 0 !important;
+}
+
+/* MOBILE — SAME SIZE */
+@media (max-width: 600px) {
+    #memberNotepadPage .saved-note-actions button,
+    #memberNotepadPage .saved-note-actions a {
+        flex: 0 0 32px !important;
+        width: 32px !important;
+        min-width: 32px !important;
+        height: 32px !important;
+        min-height: 32px !important;
+    }
+
+    #memberNotepadPage .saved-note-actions svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+}
+
+/* =========================================
+   SAVED NOTE ACTION COLORS & SIZES
+========================================= */
+
+/* ALL BUTTONS — 32x32 */
+#memberNotepadPage .saved-note-actions button,
+#memberNotepadPage .saved-note-actions a {
+    box-sizing: border-box !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    flex: 0 0 32px !important;
+    padding: 0 !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    border-radius: 9px !important;
+}
+
+/* ALL ICONS — 14x14 */
+#memberNotepadPage .saved-note-actions svg {
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+    min-height: 14px !important;
+    max-width: 14px !important;
+    max-height: 14px !important;
+}
+
+/* VIEW — PURPLE */
+#memberNotepadPage .saved-note-actions .saved-note-view {
+    color: #c4b5fd !important;
+    background: rgba(139, 92, 246, 0.12) !important;
+    border: 1px solid rgba(167, 139, 250, 0.35) !important;
+}
+
+#memberNotepadPage .saved-note-actions .saved-note-view:hover {
+    color: #ede9fe !important;
+    background: rgba(139, 92, 246, 0.24) !important;
+    border-color: rgba(167, 139, 250, 0.65) !important;
+}
+
+/* EDIT — BLUE */
+#memberNotepadPage .saved-note-actions .saved-note-edit {
+    color: #60a5fa !important;
+    background: rgba(59, 130, 246, 0.12) !important;
+    border: 1px solid rgba(59, 130, 246, 0.35) !important;
+}
+
+#memberNotepadPage .saved-note-actions .saved-note-edit:hover {
+    color: #dbeafe !important;
+    background: rgba(59, 130, 246, 0.24) !important;
+    border-color: rgba(96, 165, 250, 0.65) !important;
+}
+
+/* DELETE — RED */
+#memberNotepadPage .saved-note-actions .saved-note-delete {
+    color: #f87171 !important;
+    background: rgba(239, 68, 68, 0.10) !important;
+    border: 1px solid rgba(239, 68, 68, 0.30) !important;
+}
+
+#memberNotepadPage .saved-note-actions .saved-note-delete:hover {
+    color: #ffffff !important;
+    background: rgba(239, 68, 68, 0.22) !important;
+    border-color: rgba(248, 113, 113, 0.60) !important;
+}
+
 </style>
 
 {% endblock %}

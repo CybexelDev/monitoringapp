@@ -2874,66 +2874,58 @@
 }
 
 /* =========================================================
-   VIEW MEETING BUTTON
-   ========================================================= */
+   VIEW MEETING BUTTON — 32x32
+========================================================= */
+
+
 
 .view-meeting-btn {
-    width: 78px;
-    min-width: 78px;
-    height: 38px;
+    box-sizing: border-box !important;
 
-    flex-shrink: 0;
+    width: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+
+    padding: 0 !important;
+    flex: 0 0 32px !important;
 
     display: inline-flex;
     align-items: center;
     justify-content: center;
 
-    gap: 6px;
-
-    padding: 0 10px;
-
     border-radius: 9px;
-
     border: 1px solid rgba(59, 130, 246, 0.25);
-
-    background:
-        rgba(59, 130, 246, 0.08);
-
+    background: rgba(59, 130, 246, 0.08);
     color: #93c5fd;
 
-    font-size: 9px;
-    font-weight: 800;
-
     cursor: pointer;
-
     transition: all 0.2s ease;
 }
 
 .view-meeting-btn:hover {
-
-    background:
-        rgba(59, 130, 246, 0.17);
-
-    border-color:
-        rgba(96, 165, 250, 0.45);
-
+    background: rgba(59, 130, 246, 0.17);
+    border-color: rgba(96, 165, 250, 0.45);
     color: #bfdbfe;
-
     transform: translateY(-1px);
-
-    box-shadow:
-        0 6px 18px rgba(59, 130, 246, 0.12);
 }
 
+/* Eye icon: exactly 14x14px */
+.view-meeting-btn i,
 .view-meeting-btn svg {
-
-    width: 14px;
-    height: 14px;
-
+    display: block !important;
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+    min-height: 14px !important;
+    max-width: 14px !important;
+    max-height: 14px !important;
+    flex-shrink: 0 !important;
     stroke-width: 2.3;
 }
-
-
 /* =========================================================
    VIEW MEETING MODAL
    ========================================================= */
@@ -3711,7 +3703,6 @@
         data-participants="{% for member in meeting.participants.all %}{{ member.name }}{% if not forloop.last %}, {% endif %}{% endfor %}"
     >
         <i data-lucide="eye"></i>
-        <span>View</span>
     </button>
 
 
