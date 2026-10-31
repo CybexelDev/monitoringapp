@@ -4993,5 +4993,80 @@ input.project-file[type="file"]:disabled::file-selector-button { cursor: wait; }
   input.project-file[type="file"]::file-selector-button { margin-right: 8px; padding-inline: 10px; }
 }
 </style>
+
+<style>
+/* Project table alignment and responsive horizontal scrolling only */
+.project-table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.project-table {
+    width: 100%;
+    min-width: 900px;
+    table-layout: fixed;
+}
+
+.project-table th,
+.project-table td {
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+.project-table th:nth-child(4),
+.project-table td:nth-child(4),
+.project-table th:nth-child(5),
+.project-table td:nth-child(5) {
+    text-align: center;
+}
+
+.project-table td:nth-child(1),
+.project-table td:nth-child(2),
+.project-table td:nth-child(3) {
+    text-align: left;
+}
+
+.project-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+    width: 100%;
+}
+
+.project-actions .project-action {
+    flex: 0 0 32px;
+}
+
+.project-team {
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 700px) {
+    .project-table {
+        min-width: 820px;
+    }
+
+    .project-table th,
+    .project-table td {
+        padding: 12px 10px;
+    }
+
+    .project-actions {
+        gap: 7px;
+    }
+
+    .project-actions .project-action {
+        flex-basis: 42px;
+    }
+}
+</style>
+
 </body>
 </html>
