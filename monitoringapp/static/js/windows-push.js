@@ -16,7 +16,9 @@
         "team_lead",
         "team_member",
         "management",
-        "master_admin"
+        "master_admin",
+        "accounts",
+        "accounts_team"
     ];
 
     const SERVICE_WORKER_URL = "/chat-sw.js";
@@ -65,9 +67,9 @@
         );
     }
 
-    async function getConfig(portal) {
+    async function getConfig(portal, endpointHash = "") {
         const response = await fetch(
-            apiUrl(portal, "config"),
+            apiUrl(portal, "config") + (endpointHash ? "?endpoint_hash=" + encodeURIComponent(endpointHash) : ""),
             {
                 credentials: "same-origin",
                 cache: "no-store"
@@ -98,10 +100,12 @@
             );
         }
 
-        return navigator.serviceWorker.register(
+        await navigator.serviceWorker.register(
             SERVICE_WORKER_URL,
             { scope: "/" }
         );
+        // A first installation must activate before PushManager.subscribe().
+        return navigator.serviceWorker.ready;
     }
 
     function getCsrfToken() {
@@ -245,13 +249,21 @@
             ? await registration.pushManager.getSubscription()
             : null;
 
+        let serverEnabled = false;
+        if (Notification.permission === "granted" && subscription) {
+            const digest = await crypto.subtle.digest(
+                "SHA-256", new TextEncoder().encode(subscription.endpoint)
+            );
+            const endpointHash = Array.from(new Uint8Array(digest),
+                value => value.toString(16).padStart(2, "0")).join("");
+            const config = await getConfig(portal, endpointHash);
+            serverEnabled = config.subscription_enabled === true;
+        }
+
         return {
             supported: true,
             permission: Notification.permission,
-            enabled: (
-                Notification.permission === "granted" &&
-                Boolean(subscription)
-            )
+            enabled: serverEnabled
         };
     }
 

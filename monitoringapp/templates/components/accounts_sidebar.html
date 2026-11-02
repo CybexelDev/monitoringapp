@@ -53,8 +53,11 @@
     {% if profile_url %}</a>{% else %}</button>{% endif %}
   </nav>
   <div class="accounts-sidebar-bottom">
-    {% if logout_url %}<form method="post" action="{{ logout_url }}">{% csrf_token %}<button type="submit" class="accounts-nav-item accounts-logout"><i data-lucide="log-out" aria-hidden="true"></i><span>Logout</span></button></form>{% else %}<button type="button" class="accounts-nav-item accounts-logout" disabled title="Logout will be connected with Accounts login"><i data-lucide="log-out" aria-hidden="true"></i><span>Logout</span></button>{% endif %}
-  </div>
+    {% if logout_url %}
+  <form method="post" action="{{ logout_url }}">{% csrf_token %}<button type="submit" class="accounts-nav-item accounts-logout"><i data-lucide="log-out" aria-hidden="true"></i><span>Logout</span></button></form>{% else %}<button type="button" class="accounts-nav-item accounts-logout" disabled title="Logout will be connected with Accounts login"><i data-lucide="log-out" aria-hidden="true"></i><span>Logout</span></button>{% endif %}
+        {% include "components/windows_push.html" with portal=request.session.position %}
+  
+</div>
 </aside>
 <style>
 #accountsSidebar .accounts-nav-item {

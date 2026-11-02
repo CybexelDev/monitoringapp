@@ -19,11 +19,8 @@ from monitoringapp.models import ChatPushSubscription
 
 logger = logging.getLogger(__name__)
 
-ENABLED_PORTALS = {"team_lead", "team_member", "management",    "master_admin"}
+ENABLED_PORTALS = {"team_lead", "team_member", "management",  "admin",  "master_admin" ,"accounts","accounts_team",}
 
-
-# def _normal_role(value):
-#     return str(value or "").strip().lower().replace(" ", "_")
 
 def _normal_role(value):
     role = str(value or "").strip().lower().replace(" ", "_")

@@ -17,7 +17,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from .models import ChatPushSubscription, User
 
-PORTALS = {"team_lead", "team_member", "management", "master_admin"}
+PORTALS = {"team_lead", "team_member", "management", "master_admin", "accounts", "accounts_team",}
 DEFAULT_PUSH_HOSTS = (
     "fcm.googleapis.com", "updates.push.services.mozilla.com",
     "web.push.apple.com", "*.push.apple.com",
