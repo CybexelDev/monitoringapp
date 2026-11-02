@@ -3007,7 +3007,116 @@ body.master-google-meet-page .view-meeting-footer{flex:0 0 auto;padding:20px 28p
 body.master-google-meet-page :is(.meeting-modal-title,.view-meeting-title-wrap){gap:16px;min-width:0}
 body.master-google-meet-page #meetingTimePopover{z-index:100030}
 @media(max-width:650px){body.master-google-meet-page :is(#meetingModal,#viewMeetingModal){padding:10px}body.master-google-meet-page :is(.meeting-modal-box,.view-meeting-card){max-height:calc(100dvh - 20px)}body.master-google-meet-page :is(.meeting-modal-header,.view-meeting-header){padding:20px 18px;min-height:100px}body.master-google-meet-page #createMeetingForm>.meeting-form-grid,body.master-google-meet-page .view-meeting-body{padding:20px 18px;scrollbar-gutter:auto}body.master-google-meet-page #createMeetingForm>.meeting-modal-footer,body.master-google-meet-page .view-meeting-footer{padding:16px 18px}body.master-google-meet-page :is(.meeting-modal-title,.view-meeting-title-wrap){gap:12px}}
+/* =========================================
+   MEETING ACTION BUTTONS - UNIFORM DESIGN
+========================================= */
 
+body.master-google-meet-page .meeting-actions
+:is(
+    .edit-meeting-btn,
+    .view-meeting-btn,
+    .master-meeting-delete
+) {
+    width: 38px !important;
+    min-width: 38px !important;
+    max-width: 38px !important;
+
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    flex-shrink: 0 !important;
+
+    border-radius: 9px !important;
+
+    gap: 0 !important;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+}
+
+/* REMOVE ALL BUTTON TEXT */
+
+body.master-google-meet-page .meeting-actions
+:is(.edit-meeting-btn, .view-meeting-btn) span {
+    display: none !important;
+}
+
+/* SAME ICON SIZE */
+
+body.master-google-meet-page .meeting-actions
+:is(
+    .edit-meeting-btn,
+    .view-meeting-btn,
+    .master-meeting-delete
+) svg {
+    width: 16px !important;
+    height: 16px !important;
+    stroke-width: 2.3;
+}
+
+/* EDIT - BLUE */
+
+body.master-google-meet-page .edit-meeting-btn {
+    color: #60a5fa !important;
+    background: rgba(59, 130, 246, 0.10) !important;
+    border: 1px solid rgba(59, 130, 246, 0.28) !important;
+}
+
+body.master-google-meet-page .edit-meeting-btn svg {
+    color: #60a5fa !important;
+}
+
+body.master-google-meet-page .edit-meeting-btn:hover {
+    background: rgba(59, 130, 246, 0.20) !important;
+    border-color: rgba(96, 165, 250, 0.55) !important;
+}
+
+/* VIEW - PURPLE */
+
+body.master-google-meet-page .view-meeting-btn {
+    color: #c4b5fd !important;
+    background: rgba(139, 92, 246, 0.10) !important;
+    border: 1px solid rgba(167, 139, 250, 0.28) !important;
+}
+
+body.master-google-meet-page .view-meeting-btn svg {
+    color: #c4b5fd !important;
+}
+
+body.master-google-meet-page .view-meeting-btn:hover {
+    background: rgba(139, 92, 246, 0.20) !important;
+    border-color: rgba(167, 139, 250, 0.55) !important;
+}
+
+/* DELETE - RED (KEEP EXISTING DESIGN) */
+
+body.master-google-meet-page .master-meeting-delete {
+    color: #efa2ae !important;
+    background: rgba(239, 68, 68, 0.08) !important;
+    border: 1px solid rgba(239, 162, 174, 0.25) !important;
+}
+
+body.master-google-meet-page .master-meeting-delete svg {
+    color: #efa2ae !important;
+}
+
+/* DISABLED EDIT */
+
+body.master-google-meet-page .edit-meeting-btn:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+}
 </style>{% endblock %}
 {% block content %}
 {% for message in messages %}<span hidden data-meeting-operation-message data-level="{{ message.level }}">{{ message }}</span>{% endfor %}<div class="dashboard-box">
@@ -3252,39 +3361,41 @@ body.master-google-meet-page #meetingTimePopover{z-index:100030}
     <!-- ACTIONS -->
     <td>
 
-        <div class="meeting-actions"><button type="button" class="master-meeting-delete" data-delete-url="{% url 'master_admin_google_meet_delete' meeting.pk %}" data-purpose="{{ meeting.purpose|escape }}" aria-label="Remove meeting"><i data-lucide="trash-2" aria-hidden="true"></i></button>
+        <div class="meeting-actions">
+            <button type="button" class="master-meeting-delete" data-delete-url="{% url 'master_admin_google_meet_delete' meeting.pk %}" data-purpose="{{ meeting.purpose|escape }}" aria-label="Remove meeting"><i data-lucide="trash-2" aria-hidden="true"></i></button>
 
     <!-- EDIT -->
-    <button
-        type="button"
-        class="edit-meeting-btn"
-        data-meeting-id="{{ meeting.id }}"
-        data-purpose="{{ meeting.purpose|escape }}"
-        data-date="{{ meeting.date|date:'Y-m-d' }}"
-        data-time="{{ meeting.time|time:'H:i' }}"
-        data-link="{{ meeting.meeting_link|escape }}"
-        data-participants="{{ meeting.participant_ids }}"
-    >
-        <i data-lucide="pencil"></i>
-        <span>Edit</span>
-    </button>
+<!-- EDIT -->
+<button
+    type="button"
+    class="edit-meeting-btn"
+    data-meeting-id="{{ meeting.id }}"
+    data-purpose="{{ meeting.purpose|escape }}"
+    data-date="{{ meeting.date|date:'Y-m-d' }}"
+    data-time="{{ meeting.time|time:'H:i' }}"
+    data-link="{{ meeting.meeting_link|escape }}"
+    data-participants="{{ meeting.participant_ids }}"
+    aria-label="Edit meeting"
+    title="Edit"
+>
+    <i data-lucide="pencil"></i>
+</button>
 
-
-    <!-- VIEW -->
-    <button
-        type="button"
-        class="view-meeting-btn"
-
-        data-meeting-id="{{ meeting.id }}"
-        data-purpose="{{ meeting.purpose|escape }}"
-        data-date="{{ meeting.date|date:'d M Y' }}"
-        data-time="{{ meeting.time|time:'h:i A' }}"
-        data-link="{{ meeting.meeting_link|escape }}"
-        data-participants="{{ meeting.participant_names|escape }}"
-    >
-        <i data-lucide="eye"></i>
-        <span>View</span>
-    </button>
+<!-- VIEW -->
+<button
+    type="button"
+    class="view-meeting-btn"
+    data-meeting-id="{{ meeting.id }}"
+    data-purpose="{{ meeting.purpose|escape }}"
+    data-date="{{ meeting.date|date:'d M Y' }}"
+    data-time="{{ meeting.time|time:'h:i A' }}"
+    data-link="{{ meeting.meeting_link|escape }}"
+    data-participants="{{ meeting.participant_names|escape }}"
+    aria-label="View meeting"
+    title="View"
+>
+    <i data-lucide="eye"></i>
+</button>
 
 
     <!-- JOIN / WAITING / ENDED -->
@@ -5018,20 +5129,53 @@ document.addEventListener('DOMContentLoaded', () => {
       button.dataset.meetingAction = '';
       const glyph = document.createElement('i');
       const text = document.createElement('span');
-      if (state === 'live') {
-        let url;
-        try { url = new URL(row.dataset.meetingLink); } catch (_) { return; }
-        if (url.protocol !== 'https:' || url.hostname !== 'meet.google.com') return;
-        button.href = url.href; button.target = '_blank'; button.rel = 'noopener noreferrer';
-        button.className = 'meeting-join-btn active'; glyph.dataset.lucide = 'video'; text.textContent = 'Join Meeting';
-      } else {
-        button.type = 'button'; button.disabled = true;
-        button.className = `meeting-join-btn disabled ${state === 'ended' ? 'meeting-ended-btn' : 'meeting-waiting-btn'}`;
-        glyph.dataset.lucide = state === 'ended' ? 'check-circle-2' : 'lock';
-        text.className = 'meeting-status-text';
-        text.textContent = state === 'ended' ? 'Meeting Ended' : `Starts at ${new Date(start).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
-      }
-      button.append(glyph, text);
+if (state === 'live') {
+    let url;
+
+    try {
+        url = new URL(row.dataset.meetingLink);
+    } catch (_) {
+        return;
+    }
+
+    if (url.protocol !== 'https:' || url.hostname !== 'meet.google.com') return;
+
+    button.href = url.href;
+    button.target = '_blank';
+    button.rel = 'noopener noreferrer';
+    button.className = 'meeting-join-btn active';
+
+    glyph.dataset.lucide = 'video';
+    text.textContent = 'Join Meeting';
+
+    button.append(glyph, text);
+
+} else {
+    button.type = 'button';
+    button.disabled = true;
+
+    button.className = `meeting-join-btn disabled ${state === 'ended' ? 'meeting-ended-btn' : 'meeting-waiting-btn'}`;
+
+    glyph.dataset.lucide = state === 'ended' ? 'check-circle-2' : 'lock';
+    text.className = 'meeting-status-text';
+
+    text.textContent = state === 'ended'
+        ? 'Meeting Ended'
+        : `Starts at ${new Date(start).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+        })}`;
+
+    if (state === 'upcoming') {
+        const lockWrapper = document.createElement('span');
+        lockWrapper.className = 'waiting-lock-icon';
+
+        lockWrapper.append(glyph);
+        button.append(lockWrapper, text);
+    } else {
+        button.append(glyph, text);
+    }
+}
       const old = actions.querySelector('[data-meeting-action]');
       if (old) old.replaceWith(button); else actions.append(button);
       changed = true;

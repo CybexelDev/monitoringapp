@@ -11,7 +11,7 @@ from django.db import transaction
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.urls import reverse
-
+from django.db.models import Q
 from chat.models import ChatMessage
 from .models import (
     AdminKnowledge, AdminNotepad, AdminNotification, AdminReminder,
@@ -37,6 +37,21 @@ def _admin_recipients():
     for auth_id in get_user_model().objects.filter(is_superuser=True, is_active=True).values_list("pk", flat=True):
         yield {"auth_owner_id": auth_id}
 
+def _report_recipients():
+    """Active Admin/Management users and existing auth superadmins."""
+
+    for user_id in User.objects.filter(
+        Q(job_Position__iexact="Admin")
+        | Q(job_Position__iexact="Management"),
+        status="active",
+    ).values_list("pk", flat=True):
+        yield {"management_owner_id": user_id}
+
+    for auth_id in get_user_model().objects.filter(
+        is_superuser=True,
+        is_active=True,
+    ).values_list("pk", flat=True):
+        yield {"auth_owner_id": auth_id}
 
 def _one_owner(instance):
     if getattr(instance, "management_owner_id", None):
@@ -114,17 +129,43 @@ def admin_resource_delete(sender, instance, **kwargs):
                  url=_safe_reverse("admin_repository"), event_key=f"adminresource:{instance.pk}:deleted")
 
 
-# Public activity, shown in every Admin's feed. Do not expose private note text.
-@receiver(post_save, sender=MorningReport, dispatch_uid="admin_feed_morning_report_v1")
-@receiver(post_save, sender=EveningReport, dispatch_uid="admin_feed_evening_report_v1")
+# # Public activity, shown in every Admin's feed. Do not expose private note text.
+# @receiver(post_save, sender=MorningReport, dispatch_uid="admin_feed_morning_report_v1")
+# @receiver(post_save, sender=EveningReport, dispatch_uid="admin_feed_evening_report_v1")
+# def admin_report_activity(sender, instance, created, **kwargs):
+#     label = "Morning" if sender is MorningReport else "Evening"
+#     verb = "submitted" if created else "updated"
+#     _broadcast(kind="report", title=f"{label} report {verb}",
+#                message=f"{_person(instance.user)} · {instance.status}",
+#                url=_safe_reverse("admin_reports"),
+#                event_key=f"{label.lower()}report:{instance.pk}:created" if created else None)
+
+
+@receiver(
+    post_save,
+    sender=MorningReport,
+    dispatch_uid="admin_feed_morning_report_v1",
+)
+@receiver(
+    post_save,
+    sender=EveningReport,
+    dispatch_uid="admin_feed_evening_report_v1",
+)
 def admin_report_activity(sender, instance, created, **kwargs):
     label = "Morning" if sender is MorningReport else "Evening"
     verb = "submitted" if created else "updated"
-    _broadcast(kind="report", title=f"{label} report {verb}",
-               message=f"{_person(instance.user)} · {instance.status}",
-               url=_safe_reverse("admin_reports"),
-               event_key=f"{label.lower()}report:{instance.pk}:created" if created else None)
 
+    _commit_notification(
+        _report_recipients(),
+        kind="report",
+        title=f"{label} report {verb}",
+        message=f"{_person(instance.user)} · {instance.status}",
+        url=_safe_reverse("admin_reports"),
+        event_key=(
+            f"{label.lower()}report:{instance.pk}:created"
+            if created else None
+        ),
+    )
 
 @receiver(post_save, sender=ProjectAssign, dispatch_uid="admin_feed_project_save_v1")
 def admin_project_save(sender, instance, created, **kwargs):
@@ -170,16 +211,69 @@ def shared_resource_delete(sender, instance, **kwargs):
                url=_safe_reverse("admin_repository"), event_key=f"sharedresource:{instance.pk}:deleted")
 
 
-@receiver(post_save, sender=Announcement, dispatch_uid="admin_feed_announcement_save_v1")
+# @receiver(post_save, sender=Announcement, dispatch_uid="admin_feed_announcement_save_v1")
+# def admin_announcement_save(sender, instance, created, **kwargs):
+#     # Master Admin's announcements are handled separately by the Master portal.
+#     if instance.is_master_admin_announcement:
+#         return
+#     verb = "published" if created else ("deleted" if not instance.is_active else "updated")
+#     who = "Admin" if instance.is_admin_announcement else _person(instance.created_by)
+#     _broadcast(kind="announcement", title=f"Announcement {verb}",
+#                message=f"{who} · {instance.title}", url=_safe_reverse("admin_announcements"),
+#                event_key=f"announcement:{instance.pk}:published" if created else None)
+
+
+
+@receiver(
+    post_save,
+    sender=Announcement,
+    dispatch_uid="admin_feed_announcement_save_v1",
+)
 def admin_announcement_save(sender, instance, created, **kwargs):
-    # Master Admin's announcements are handled separately by the Master portal.
+    # Master Admin announcements are handled by the Master portal.
     if instance.is_master_admin_announcement:
         return
-    verb = "published" if created else ("deleted" if not instance.is_active else "updated")
-    who = "Admin" if instance.is_admin_announcement else _person(instance.created_by)
-    _broadcast(kind="announcement", title=f"Announcement {verb}",
-               message=f"{who} · {instance.title}", url=_safe_reverse("admin_announcements"),
-               event_key=f"announcement:{instance.pk}:published" if created else None)
+
+    verb = (
+        "published"
+        if created
+        else ("deleted" if not instance.is_active else "updated")
+    )
+    who = (
+        "Admin"
+        if instance.is_admin_announcement
+        else _person(instance.created_by)
+    )
+
+    # Exclude the announcement sender from their own Admin feed event.
+    owners = []
+    for owner in _admin_recipients():
+        if (
+            instance.created_by_id is not None
+            and owner.get("management_owner_id") == instance.created_by_id
+        ):
+            continue
+
+        if (
+            instance.admin_created_by_id is not None
+            and owner.get("auth_owner_id") == instance.admin_created_by_id
+        ):
+            continue
+
+        owners.append(owner)
+
+    _commit_notification(
+        owners,
+        kind="announcement",
+        title=f"Announcement {verb}",
+        message=f"{who} · {instance.title}",
+        url=_safe_reverse("admin_announcements"),
+        event_key=(
+            f"announcement:{instance.pk}:published"
+            if created
+            else None
+        ),
+    )
 
 
 @receiver(post_save, sender=GoogleMeeting, dispatch_uid="admin_feed_meeting_save_v1")
@@ -301,7 +395,14 @@ def admin_report_windows_push_created(sender, instance, created, **kwargs):
                 return
 
             recipient = notification.management_owner
-            if str(recipient.job_Position or "").strip().lower().replace(" ", "_") != "management":
+            role = (
+                str(recipient.job_Position or "")
+                .strip()
+                .lower()
+                .replace(" ", "_")
+            )
+
+            if role not in {"admin", "management"}:
                 return
 
             result = send_windows_push(
@@ -378,107 +479,53 @@ def admin_chat_windows_push_created(sender, instance, created, **kwargs):
 
     transaction.on_commit(deliver)
 
-# ==============================================================
-# ADMIN WINDOWS PUSH - NEW GOOGLE MEET SCHEDULED
-# Reuses the existing AdminNotification in-app event.
-# ==============================================================
-@receiver(
-    post_save,
-    sender=AdminNotification,
-    dispatch_uid="cybexel_admin_meeting_windows_push_v1",
-)
-def admin_meeting_windows_push_created(sender, instance, created, **kwargs):
-    if not created or instance.kind != "meeting" or not instance.management_owner_id:
-        return
-
-    # Only new Google Meet schedules. Meeting edits stay in the Admin feed.
-    event_key = instance.event_key or ""
-    if not (event_key.startswith("feed:meeting:") and
-            ":scheduled:management_owner_id:" in event_key):
-        return
-
-    notification_id = instance.pk
-
-    def deliver():
-        try:
-            from .components.windows_push.delivery import send_windows_push
-
-            notification = (
-                AdminNotification.objects.select_related("management_owner")
-                .filter(pk=notification_id, kind="meeting")
-                .first()
-            )
-            if notification is None or not notification.management_owner_id:
-                return
-
-            recipient = notification.management_owner
-            role = str(recipient.job_Position or "").strip().lower().replace(" ", "_")
-            if role != "management":
-                return
-
-            destination = _safe_reverse("admin_google_meet")
-            if not destination:
-                logger.warning("Admin Google Meet push URL unavailable: %s", notification_id)
-                return
-
-            result = send_windows_push(
-                recipient=recipient,
-                portal="management",
-                title=notification.title,
-                message=notification.message,
-                url=destination,
-                tag=f"admin-meeting-{notification.pk}",
-            )
-            logger.info("Admin Google Meet Windows Push %s: %s", notification.pk, result)
-        except Exception:
-            logger.exception("Admin Google Meet Windows Push failed for %s", notification_id)
-
-    transaction.on_commit(deliver)
 
 
-# ==============================================================
-# ADMIN WINDOWS PUSH — DUE REMINDER ONLY
-# Existing AdminReminder worker creates AdminNotification with
-# event_key: admin-reminder:<id>:<schedule_version>.
-# ==============================================================
-@receiver(
-    post_save,
-    sender=AdminNotification,
-    dispatch_uid="cybexel_admin_due_reminder_windows_push_v1",
-)
-def admin_due_reminder_windows_push(sender, instance, created, **kwargs):
-    if (not created or instance.kind != "reminder"
-            or not instance.management_owner_id
-            or not (instance.event_key or "").startswith("admin-reminder:")):
-        return
+# # ==============================================================
+# # ADMIN WINDOWS PUSH — DUE REMINDER ONLY
+# # Existing AdminReminder worker creates AdminNotification with
+# # event_key: admin-reminder:<id>:<schedule_version>.
+# # ==============================================================
+# @receiver(
+#     post_save,
+#     sender=AdminNotification,
+#     dispatch_uid="cybexel_admin_due_reminder_windows_push_v1",
+# )
+# def admin_due_reminder_windows_push(sender, instance, created, **kwargs):
+#     if (not created or instance.kind != "reminder"
+#             or not instance.management_owner_id
+#             or not (instance.event_key or "").startswith("admin-reminder:")):
+#         return
 
-    notification_id = instance.pk
+#     notification_id = instance.pk
 
-    def deliver():
-        try:
-            notification = (
-                AdminNotification.objects.select_related("management_owner")
-                .filter(pk=notification_id, kind="reminder").first()
-            )
-            if notification is None or not notification.management_owner_id:
-                return
-            user = notification.management_owner
-            if str(user.job_Position or "").strip().lower().replace(" ", "_") != "management":
-                return
-            destination = _safe_reverse("admin_reminders")
-            if not destination:
-                return
-            from .components.windows_push.delivery import send_windows_push
-            result = send_windows_push(
-                recipient=user,
-                portal="management",
-                title=f"Reminder: {notification.title}",
-                message=notification.message,
-                url=destination,
-                tag=f"admin-due-reminder-{notification.pk}",
-            )
-            logger.info("Admin due reminder Windows Push %s: %s", notification.pk, result)
-        except Exception:
-            logger.exception("Admin due reminder Windows Push failed for %s", notification_id)
+#     def deliver():
+#         try:
+#             notification = (
+#                 AdminNotification.objects.select_related("management_owner")
+#                 .filter(pk=notification_id, kind="reminder").first()
+#             )
+#             if notification is None or not notification.management_owner_id:
+#                 return
+#             user = notification.management_owner
+#             if str(user.job_Position or "").strip().lower().replace(" ", "_") != "management":
+#                 return
+#             destination = _safe_reverse("admin_reminders")
+#             if not destination:
+#                 return
+#             from .components.windows_push.delivery import send_windows_push
+#             result = send_windows_push(
+#                 recipient=user,
+#                 portal="management",
+#                 title=f"Reminder: {notification.title}",
+#                 message=notification.message,
+#                 url=destination,
+#                 tag=f"admin-due-reminder-{notification.pk}",
+#             )
+#             logger.info("Admin due reminder Windows Push %s: %s", notification.pk, result)
+#         except Exception:
+#             logger.exception("Admin due reminder Windows Push failed for %s", notification_id)
 
-    transaction.on_commit(deliver)
+#     transaction.on_commit(deliver)
+
+

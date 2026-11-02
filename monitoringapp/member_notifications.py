@@ -100,21 +100,6 @@ def member_announcement_changed(sender, instance, created, **kwargs):
             _notify(row.recipient, 'announcement', 'Announcement updated' if instance.is_active else 'Announcement removed',
                     instance.title, 'teammember_announcements')
 
-
-@receiver(post_save, sender=MorningReport, dispatch_uid='member_morning_report_notification')
-def member_morning_report(sender, instance, created, **kwargs):
-    if created:
-        _notify(instance.user, 'report', 'Morning report submitted', 'Your morning report was saved.',
-                'teammember_reports', f'member-report:morning:{instance.pk}:{instance.user_id}')
-
-
-@receiver(post_save, sender=EveningReport, dispatch_uid='member_evening_report_notification')
-def member_evening_report(sender, instance, created, **kwargs):
-    if created:
-        _notify(instance.user, 'report', 'Evening report submitted', 'Your evening report was saved.',
-                'teammember_reports', f'member-report:evening:{instance.pk}:{instance.user_id}')
-
-
 # Polling on every member page creates each current meeting/window alert once.
 def sync_member_meetings(user):
     import hashlib

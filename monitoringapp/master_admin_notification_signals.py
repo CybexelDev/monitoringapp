@@ -67,16 +67,43 @@ def _emit(sender, instance, action, **kwargs):
             for account in recipients
         ])
 
+        # Preserve the in-app notification above, but do not send
+        # Windows Push to Master Admin for Master Admin's own project action.
+        if (
+            kind == "project"
+            and getattr(instance, "_master_admin_action", None) == action
+        ):
+            logger.info(
+                "Master Admin Project Windows Push skipped: "
+                "action=%s project=%s",
+                action,
+                instance.pk,
+            )
+            return
+
         # Windows Push for important business events
         PUSH_KINDS = {
             "announcement",
             "report",
             "task",
             "project",
-            "meeting",
+            # "meeting",
         }
 
         if kind not in PUSH_KINDS:
+            return
+
+        if kind == "task" and (
+            action != "created"
+            or getattr(instance, "created_by_id", None) is None
+        ):
+            logger.info(
+                "Master Admin Task Windows Push skipped: "
+                "action=%s task=%s created_by=%s",
+                action,
+                instance.pk,
+                getattr(instance, "created_by_id", None),
+            )
             return
 
         for account in recipients:

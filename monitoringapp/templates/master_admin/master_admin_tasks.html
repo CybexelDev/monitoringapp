@@ -10,7 +10,7 @@
 .mt .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:6px;border:1px solid var(--mt-line);background:rgba(255,255,255,.035);border-radius:15px;margin-bottom:18px}.mt .tabs a{display:flex;justify-content:center;align-items:center;gap:8px;min-height:46px;padding:9px;border:1px solid transparent;border-radius:10px;text-decoration:none;color:var(--mt-muted);font-size:13px;font-weight:700;text-align:center}.mt .tabs a[aria-current]{color:#fff;border-color:rgba(181,146,255,.28);background:linear-gradient(110deg,rgba(116,68,200,.34),rgba(81,68,167,.24))}
 .mt .filters{display:grid;grid-template-columns:minmax(180px,2fr) 1fr 1fr auto;gap:10px;margin-bottom:20px}.mt .search{position:relative}.mt .search svg{position:absolute;left:12px;top:13px;color:var(--mt-muted)}.mt input,.mt textarea,.mt select{width:100%;padding:10px 12px;border:1px solid var(--mt-line);border-radius:8px;background:#231b35;color:#f4f0fc;min-width:0;font-size:13px}.mt .search input{padding-left:38px}.mt select option{background:#231b35;color:#f4f0fc}.mt .list-head{margin-bottom:12px}.mt .list-head h2{font-size:15px}.mt .small{font-size:12px;color:var(--mt-muted)}
 .mt .task-list{display:grid;gap:10px}.mt .task-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 20px;border:1px solid var(--mt-line);border-radius:12px;background:rgba(255,255,255,.035)}.mt .task-main{min-width:0;flex:1}.mt .task-title{font-size:15px;font-weight:700;overflow-wrap:anywhere;margin-bottom:7px}.mt .task-desc{color:var(--mt-muted);font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.mt .meta{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--mt-muted);margin-top:11px}.mt .task-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.mt .status{font-size:11px;font-weight:700;padding:6px 9px;border-radius:6px;background:rgba(148,163,184,.12);color:#cbd5e1}.mt .status.in_progress{background:rgba(245,190,70,.13);color:#efc56b}.mt .status.completed{background:rgba(83,185,141,.13);color:#83d3ab}.mt .task-actions select{width:125px;font-size:11px;padding:7px}.mt .icon{display:inline-flex;align-items:center;justify-content:center;width:31px;height:31px;padding:0;border:1px solid var(--mt-line);background:rgba(139,92,246,.07);border-radius:7px;color:#d4c0fa}.mt .danger{color:#ef9ca6}.mt .pagination{margin-top:18px}.mt .empty{text-align:center;padding:40px;border:1px dashed var(--mt-line);border-radius:12px;color:var(--mt-muted)}
-.mt dialog{position:fixed;max-width:540px;width:calc(100% - 28px);max-height:85dvh;margin:auto;padding:0;border:1px solid #65517e;border-radius:15px;color:#f4f0fc;background:#251c35;box-shadow:0 20px 70px #0005;overflow:auto}.mt dialog::backdrop{background:rgba(12,8,20,.35);backdrop-filter:blur(2px)}.mt dialog .dialog-inner{padding:24px}.mt .dialog-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}.mt .dialog-head h2{font-size:19px}.mt .field{margin-bottom:15px}.mt label{display:block;font-size:12px;margin-bottom:7px;color:#d1c5e4}.mt .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mt .dialog-footer{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}.mt .error{color:#ffacb6;font-size:12px;white-space:pre-wrap;margin-top:6px}.mt .view-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;color:#d9cee7;font-size:13px}.mt #mtFeedback{position:fixed;bottom:24px;right:24px;max-width:calc(100vw - 40px);padding:13px 18px;border:1px solid #8161a5;border-radius:10px;background:#322244;color:#fff;z-index:99999;font-size:13px}.mt [hidden]{display:none!important}
+.mt dialog{position:fixed;max-width:540px;width:calc(100% - 28px);max-height:85dvh;margin:auto;padding:0;border:1px solid #65517e;border-radius:15px;color:#f4f0fc;background:#251c35;box-shadow:0 20px 70px #0005;overflow:auto}.mt dialog::backdrop{background:rgba(12,8,20,.35);backdrop-filter:blur(2px)}.mt dialog .dialog-inner{padding:24px}.mt .dialog-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}.mt .dialog-head h2{font-size:19px}.mt .field{margin-bottom:15px}.mt label{display:block;font-size:12px;margin-bottom:7px;color:#d1c5e4}.mt .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mt .dialog-footer{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}.mt .error{color:#ffacb6;font-size:12px;white-space:pre-wrap;margin-top:6px}.mt .view-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;color:#d9cee7;font-size:13px}.mt [hidden]{display:none!important}
 @media(max-width:850px){.mt .filters{grid-template-columns:1fr 1fr}.mt .search{grid-column:1/-1}.mt .task-row{align-items:flex-start;flex-direction:column;gap:13px}.mt .task-actions{width:100%}.mt .stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.master-tasks-page .mt{padding:12px}.mt .tabs a{font-size:11px;gap:5px;padding:8px 3px}.mt .tabs svg{display:none}.mt .task-row{padding:15px}.mt .form-grid{grid-template-columns:1fr}.mt .stat{padding:14px}.mt .top{gap:14px}}
 
@@ -95,10 +95,6 @@ body.master-tasks-page .finance-select-option[aria-selected=true]:after{content:
 body.master-tasks-page .finance-select-option.is-active{box-shadow:inset 0 0 0 1px #9970d14d}
 body.master-tasks-page .finance-select-option:hover{background-color:#9760d733}
 body.master-tasks-page .finance-select-option[aria-disabled=true]{opacity:.4;cursor:default}
-body.master-tasks-page .finance-toast-stack{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));width:min(370px,calc(100vw - 36px));z-index:100020;display:grid;gap:10px;pointer-events:none}
-body.master-tasks-page .finance-toast{display:flex;align-items:center;gap:12px;background:#21172f;border:1px solid #7950ae;border-radius:12px;padding:13px 16px;color:#eee5fc;font-size:13px;line-height:1.5;box-shadow:0 12px 35px #0006;pointer-events:auto}
-body.master-tasks-page .finance-toast span{flex:1;min-width:0;overflow-wrap:anywhere}
-body.master-tasks-page .finance-toast button{background:transparent;border:0;color:#d7c4f0;font-size:22px;min-width:30px;min-height:32px;cursor:pointer}
 body.master-tasks-page .finance-select-toggle:after{border-color:#c4a5fa}
 body.master-tasks-page .finance-select-option.is-active{background-color:#9760d726;box-shadow:inset 0 0 0 1px #b18aff66}
 body.master-tasks-page .finance-select-option[aria-disabled=true]{background:transparent;box-shadow:none}
@@ -191,27 +187,15 @@ body.master-tasks-page .mt .task-filter-actions>.btn{min-height:46px;height:46px
 <dialog id="mtEditDialog" aria-labelledby="mtEditHeading"><div class="dialog-inner"><div class="dialog-head"><div class="task-popup-title"><span class="task-popup-badge" aria-hidden="true"><i data-lucide="clipboard-plus"></i></span><div><span class="task-popup-eyebrow">TASK MANAGEMENT</span><h2 id="mtEditHeading">Assign Task</h2></div></div><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><form id="mtEditor" method="post" action="{% url 'master_admin_tasks' %}">{% csrf_token %}<div class="field"><label for="mtTitle">Task title</label><input id="mtTitle" name="title" maxlength="255" required></div><div class="field"><label for="mtDescription">Description</label><textarea id="mtDescription" name="description" rows="4"></textarea></div><div class="field"><label for="mtAssignee">Assign to</label><select id="mtAssignee" name="assigned_to" required><option value="">Choose team lead or member</option>{% for person in people %}<option value="{{ person.pk }}">{{ person.name }} — {{ person.job_Position }}</option>{% endfor %}</select></div><div class="form-grid"><div class="field"><label for="mtState">Status</label><select name="status" id="mtState"><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="completed">Completed</option></select></div><div class="field"><label for="mtProgress">Progress %</label><input id="mtProgress" name="progress" type="number" min="0" max="100" value="0" required></div></div><div id="mtErrors" class="error" role="alert"></div><div class="dialog-footer"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit" id="mtSave">Save task</button></div></form></div></dialog>
 <dialog id="mtViewDialog" aria-labelledby="mtViewHeading"><div class="dialog-inner"><div class="dialog-head"><div class="task-popup-title"><span class="task-popup-badge" aria-hidden="true"><i data-lucide="eye"></i></span><div><span class="task-popup-eyebrow">TASK MANAGEMENT</span><h2 id="mtViewHeading">Task details</h2></div></div><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><div class="task-popup-body"><div id="mtViewBody" class="view-text"></div></div><div class="dialog-footer"><button class="btn" type="button" data-close>Close</button></div></div></dialog>
 <dialog id="mtDeleteDialog" aria-labelledby="mtDeleteHeading"><div class="dialog-inner"><div class="dialog-head"><div class="task-popup-title"><span class="task-popup-badge" aria-hidden="true"><i data-lucide="trash-2"></i></span><div><span class="task-popup-eyebrow">TASK MANAGEMENT</span><h2 id="mtDeleteHeading">Delete task?</h2></div></div><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><div class="task-popup-body"><p id="mtDeleteText" class="view-text"></p><p class="small" style="margin-top:10px">This removes the task from the assignee’s task list.</p><div class="error" id="mtDeleteError" role="alert"></div></div><div class="dialog-footer"><button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn danger" id="mtConfirmDelete">Delete task</button></div></div></dialog>
-<div id="mtFeedback" role="status" hidden></div>
 </section>
 {% endblock %}
 {% block extra_js %}
 <script>
 
-/* Purple dropdowns and toast fallback shared by this page only. */
+/* Purple dropdown enhancement; notifications use the shared toast component only. */
 (() => {
  'use strict';
  if(window.masterTaskEnhancements)return;window.masterTaskEnhancements=true;
- function localToast(message,type='success'){
-  const host=document.querySelector('dialog[open]')||document.body;
-  let stack=host.querySelector(':scope > .finance-toast-stack');
-  if(!stack){stack=document.createElement('div');stack.className='finance-toast-stack';host.append(stack);}
-  const box=document.createElement('div'),text=document.createElement('span'),dismiss=document.createElement('button');
-  box.className='finance-toast';box.setAttribute('role',type==='error'?'alert':'status');text.textContent=String(message);dismiss.type='button';dismiss.textContent='×';dismiss.setAttribute('aria-label','Dismiss notification');
-  let timer;const remove=()=>{clearTimeout(timer);box.remove();if(!stack.children.length)stack.remove();};const start=()=>{clearTimeout(timer);timer=setTimeout(remove,7000);};dismiss.addEventListener('click',remove);box.addEventListener('mouseenter',()=>clearTimeout(timer));box.addEventListener('mouseleave',start);box.addEventListener('focusin',()=>clearTimeout(timer));box.addEventListener('focusout',start);box.append(text,dismiss);if(stack.children.length>=3)stack.firstChild.remove();stack.append(box);start();
- }
- const sharedToast=typeof window.showToast==='function'?window.showToast:null;
- window.masterFinanceToast=(message,type='success')=>{if(!document.querySelector('dialog[open]')&&sharedToast){try{sharedToast(message,type);return;}catch(_){}}localToast(message,type);};
- window.showToast=window.masterFinanceToast;
  let current=null,active=-1,counter=0,typed='',typeTimer;
  const entries=new Set();
  function sync(entry){const text=entry.select.selectedOptions[0]?.textContent.trim()||'Select';if(entry.text.textContent!==text)entry.text.textContent=text;if(entry.button.disabled!==entry.select.disabled)entry.button.disabled=entry.select.disabled;entry.button.setAttribute('aria-required',String(entry.select.required));}
@@ -241,7 +225,7 @@ body.master-tasks-page .mt .task-filter-actions>.btn{min-height:46px;height:46px
  let queued=false;const queue=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;init();});};
  new MutationObserver(queue).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open']});
  document.addEventListener('pointerdown',event=>{if(current&&!current.button.contains(event.target)&&!current.menu.contains(event.target))close();});document.addEventListener('scroll',event=>{if(current&&!current.menu.contains(event.target))close();},true);window.addEventListener('resize',close);document.addEventListener('reset',()=>setTimeout(init,0));
- document.addEventListener('close',event=>{const dialog=event.target;dialog.querySelectorAll?.(':scope > .finance-toast-stack').forEach(stack=>document.body.append(stack));if(current&&dialog.contains(current.select))close();},true);
+ document.addEventListener('close',event=>{const dialog=event.target;if(current&&dialog.contains(current.select))close();},true);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 
@@ -259,22 +243,16 @@ body.master-tasks-page .mt .task-filter-actions>.btn{min-height:46px;height:46px
  current.searchParams.delete('team');if(new URL(location.href).searchParams.has('team'))history.replaceState({},'',current);
  const items=()=>JSON.parse(document.getElementById('mtTaskData').textContent);
  const icons=()=>{if(window.lucide)window.lucide.createIcons();};
- let toastTimer;
  const toast=(message,type='success')=>{
   const host=(document.getElementById('toastContainer')||document.getElementById('toast-container'));
   const active=[edit,view,del].find(dialog=>dialog.open);
-  // Native dialogs occupy the top layer; put feedback in that layer too.
+  // Move the one shared toast container into the active dialog's top layer.
   if(host){(active||document.body).append(host);}
-  if(typeof window.showToast==='function'&&(!active||host||window.masterTaskEnhancements)){try{window.showToast(message,type);return;}catch(_){}}
-  const el=document.getElementById('mtFeedback');
-  (active||document.body).append(el);el.textContent=message;el.hidden=false;
-  el.setAttribute('role',type==='error'?'alert':'status');
-  el.style.cssText='position:fixed;right:20px;bottom:20px;z-index:99999;max-width:calc(100vw - 40px);padding:14px 18px;border:1px solid '+(type==='error'?'#b76678':'#8161a5')+';border-radius:12px;background:#241b30;color:#fff;font:12px/1.6 system-ui';
-  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{el.hidden=true;},5000);
+  if(typeof window.showToast==='function'){window.showToast(message,type);}
  };
  [edit,view,del].forEach(dialog=>dialog.addEventListener('close',()=>{
-  const host=(document.getElementById('toastContainer')||document.getElementById('toast-container'));if(host&&dialog.contains(host))document.body.append(host);
-  const feedback=document.getElementById('mtFeedback');if(dialog.contains(feedback))document.body.append(feedback);
+  const host=(document.getElementById('toastContainer')||document.getElementById('toast-container'));
+  if(host&&dialog.contains(host))document.body.append(host);
  }));
  const anyOpen=()=>edit.open||view.open||del.open||!!document.querySelector('.finance-select-menu:not([hidden])');
  let savedOverflow='';

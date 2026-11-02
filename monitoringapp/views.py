@@ -2150,27 +2150,177 @@ from django.views.decorators.http import require_http_methods
 from .models import AdminReminder, AdminNotification
 
 
+# def _process_admin_reminders(owner=None):
+#     now = timezone.now()
+#     due = AdminReminder.objects.filter(is_completed=False, notified_at__isnull=True, remind_at__lte=now)
+#     if owner is not None:
+#         due = due.filter(**owner)
+#     created = 0
+#     for reminder_id in due.values_list("pk", flat=True).iterator():
+#         with transaction.atomic():
+#             reminder = AdminReminder.objects.select_for_update().filter(pk=reminder_id, is_completed=False, notified_at__isnull=True, remind_at__lte=now).first()
+#             if reminder is None:
+#                 continue
+#             recipient = {"management_owner_id": reminder.management_owner_id} if reminder.management_owner_id else {"auth_owner_id": reminder.auth_owner_id}
+#             event = timezone.localtime(reminder.event_at).strftime("%d %b %Y, %I:%M %p")
+#             notification, added = AdminNotification.objects.get_or_create(
+#                 event_key=f"admin-reminder:{reminder.pk}:{reminder.schedule_version}",
+#                 defaults=dict(recipient, kind="reminder", title=reminder.title, message=f"Event: {event}\n{reminder.description}".strip(), url=""),
+#             )
+#             reminder.notification = notification
+#             reminder.notified_at = now
+#             reminder.save(update_fields=["notification", "notified_at", "updated_at"])
+#             created += int(added)
+#     return created
+
+
 def _process_admin_reminders(owner=None):
+    import logging
+
+    from monitoringapp.components.windows_push.delivery import (
+        send_windows_push,
+    )
+    from monitoringapp.master_chat_identity import master_chat_user
+
+    push_logger = logging.getLogger(__name__)
     now = timezone.now()
-    due = AdminReminder.objects.filter(is_completed=False, notified_at__isnull=True, remind_at__lte=now)
+
+    due = AdminReminder.objects.filter(
+        is_completed=False,
+        notified_at__isnull=True,
+        remind_at__lte=now,
+    )
+
     if owner is not None:
         due = due.filter(**owner)
+
     created = 0
+
     for reminder_id in due.values_list("pk", flat=True).iterator():
         with transaction.atomic():
-            reminder = AdminReminder.objects.select_for_update().filter(pk=reminder_id, is_completed=False, notified_at__isnull=True, remind_at__lte=now).first()
+            reminder = (
+                AdminReminder.objects
+                .select_for_update()
+                .select_related("management_owner", "auth_owner")
+                .filter(
+                    pk=reminder_id,
+                    is_completed=False,
+                    notified_at__isnull=True,
+                    remind_at__lte=now,
+                )
+                .first()
+            )
+
             if reminder is None:
                 continue
-            recipient = {"management_owner_id": reminder.management_owner_id} if reminder.management_owner_id else {"auth_owner_id": reminder.auth_owner_id}
-            event = timezone.localtime(reminder.event_at).strftime("%d %b %Y, %I:%M %p")
+
+            if reminder.management_owner_id:
+                notification_owner = {
+                    "management_owner_id": reminder.management_owner_id
+                }
+                push_recipient = reminder.management_owner
+                portal = "management"
+                push_url = "/admin-panel/reminders/"
+
+            elif reminder.auth_owner_id:
+                notification_owner = {
+                    "auth_owner_id": reminder.auth_owner_id
+                }
+                push_recipient = master_chat_user(
+                    reminder.auth_owner,
+                    create=False,
+                )
+                portal = "master_admin"
+                push_url = "/master-admin/reminders/"
+
+            else:
+                push_logger.error(
+                    "Reminder %s has no notification owner.",
+                    reminder.pk,
+                )
+                continue
+
+            event = timezone.localtime(
+                reminder.event_at
+            ).strftime("%d %b %Y, %I:%M %p")
+
+            message = (
+                f"Event: {event}\n{reminder.description}"
+            ).strip()
+
             notification, added = AdminNotification.objects.get_or_create(
-                event_key=f"admin-reminder:{reminder.pk}:{reminder.schedule_version}",
-                defaults=dict(recipient, kind="reminder", title=reminder.title, message=f"Event: {event}\n{reminder.description}".strip(), url=""),
+                event_key=(
+                    f"admin-reminder:{reminder.pk}:"
+                    f"{reminder.schedule_version}"
+                ),
+                defaults={
+                    **notification_owner,
+                    "kind": "reminder",
+                    "title": reminder.title,
+                    "message": message,
+                    "url": push_url,
+                },
             )
+
             reminder.notification = notification
             reminder.notified_at = now
-            reminder.save(update_fields=["notification", "notified_at", "updated_at"])
+            reminder.save(
+                update_fields=[
+                    "notification",
+                    "notified_at",
+                    "updated_at",
+                ]
+            )
+
             created += int(added)
+
+            if push_recipient is None:
+                push_logger.error(
+                    "No mapped push recipient for reminder %s.",
+                    reminder.pk,
+                )
+                continue
+
+            push_tag = (
+                f"cybexel-reminder-{portal}-"
+                f"{reminder.pk}-v{reminder.schedule_version}"
+            )
+
+            def deliver_push(
+                recipient=push_recipient,
+                target_portal=portal,
+                title=reminder.title,
+                body=message,
+                url=push_url,
+                tag=push_tag,
+                reminder_pk=reminder.pk,
+            ):
+                try:
+                    result = send_windows_push(
+                        recipient=recipient,
+                        portal=target_portal,
+                        title=title,
+                        message=body,
+                        url=url,
+                        tag=tag,
+                    )
+
+                    if result["sent"] == 0:
+                        push_logger.warning(
+                            "Reminder %s push had no successful "
+                            "deliveries: %s",
+                            reminder_pk,
+                            result,
+                        )
+
+                except Exception:
+                    push_logger.exception(
+                        "Windows Push failed for reminder %s.",
+                        reminder_pk,
+                    )
+
+            transaction.on_commit(deliver_push)
+
     return created
 
 
@@ -3864,6 +4014,144 @@ def is_within_time_range(start_time, end_time, now=None):
 # =========================================================
 # 🎥 TEAM LEAD GOOGLE MEET
 # =========================================================
+def _queue_google_meet_windows_push(meeting_id, *, edited=False):
+    import logging
+
+    from django.db import transaction
+    from django.urls import reverse
+
+    from .components.windows_push.delivery import send_windows_push
+    from .models import GoogleMeeting, MasterAdminChatIdentity
+
+    logger = logging.getLogger(__name__)
+
+    def route_for_role(job_position):
+        role = (
+            str(job_position or "")
+            .strip()
+            .lower()
+            .replace(" ", "_")
+        )
+
+        if role in {"team_lead", "teamleader", "team_leader", "teamlead"}:
+            return "team_lead", "teamlead_google_meet"
+
+        if role in {"team_member", "team_members", "teammember"}:
+            return "team_member", "teammember_google_meet"
+
+        if role in {"admin", "management"}:
+            return "management", "admin_google_meet"
+
+        # Do not send a notification through an unsupported portal.
+        return None
+
+    def deliver():
+        meeting = GoogleMeeting.objects.filter(pk=meeting_id).first()
+
+        if meeting is None:
+            return
+
+        title = (
+            "Google Meet Updated"
+            if edited
+            else "New Google Meet Scheduled"
+        )
+
+        message = (
+            f"{meeting.purpose}\n"
+            f"Date: {meeting.date:%d %b %Y}\n"
+            f"Time: {meeting.time:%I:%M %p}"
+        )
+
+        def push_to(recipient, portal, route_name, tag):
+            try:
+                result = send_windows_push(
+                    recipient=recipient,
+                    portal=portal,
+                    title=title,
+                    message=message,
+                    url=reverse(route_name),
+                    tag=tag,
+                )
+
+                logger.info(
+                    "Google Meet Windows Push: meeting=%s "
+                    "recipient=%s portal=%s result=%s",
+                    meeting.pk,
+                    recipient.pk,
+                    portal,
+                    result,
+                )
+
+            except Exception:
+                logger.exception(
+                    "Google Meet Windows Push failed: "
+                    "meeting=%s recipient=%s",
+                    meeting.pk,
+                    recipient.pk,
+                )
+
+        # Employee participants: use the portal for their role.
+        for person in meeting.participants.all():
+            route = route_for_role(person.job_Position)
+
+            if route is None:
+                continue
+
+            portal, route_name = route
+
+            push_to(
+                recipient=person,
+                portal=portal,
+                route_name=route_name,
+                tag=f"google-meet-{meeting.pk}-employee-{person.pk}",
+            )
+
+        # Django auth participants: Master Admin subscriptions are
+        # supported through the existing master_admin delivery path.
+        for auth_person in meeting.auth_participants.filter(is_active=True):
+            if auth_person.is_superuser:
+                push_to(
+                    recipient=auth_person,
+                    portal="master_admin",
+                    route_name="master_admin_google_meet",
+                    tag=f"google-meet-{meeting.pk}-auth-{auth_person.pk}",
+                )
+                continue
+
+            # If a staff account has a linked employee identity,
+            # deliver through that identity's supported portal.
+            identity = (
+                MasterAdminChatIdentity.objects
+                .select_related("chat_user")
+                .filter(account_id=auth_person.pk)
+                .first()
+            )
+
+            if identity is None:
+                continue
+
+            route = route_for_role(identity.chat_user.job_Position)
+
+            if route is None:
+                continue
+
+            portal, route_name = route
+
+            push_to(
+                recipient=identity.chat_user,
+                portal=portal,
+                route_name=route_name,
+                tag=(
+                    f"google-meet-{meeting.pk}-employee-"
+                    f"{identity.chat_user.pk}"
+                ),
+            )
+
+    # Re-fetch the meeting after the database transaction commits.
+    # That ensures we notify the final participant list, not removed users.
+    transaction.on_commit(deliver)
+
 
 @never_cache
 def teamlead_google_meet(request):
@@ -4124,6 +4412,8 @@ def teamlead_google_meet(request):
             meeting.participants.set(
                 final_members
             )
+            _queue_google_meet_windows_push(meeting.pk, edited=True)
+            
 
             messages.success(
                 request,
@@ -4148,6 +4438,7 @@ def teamlead_google_meet(request):
         meeting.participants.set(
             final_members
         )
+        _queue_google_meet_windows_push(meeting.pk, edited=False)
 
         messages.success(
             request,
@@ -4257,6 +4548,14 @@ def teamlead_announcements(request):
             # updated message.
             announcement.message = edited_message
             announcement.save()
+            from .notification_signals import (
+                queue_announcement_recipient_notifications,
+            )
+
+            queue_announcement_recipient_notifications(
+                announcement.pk,
+                event_type="updated",
+            )
 
             messages.success(
                 request,
@@ -4299,6 +4598,14 @@ def teamlead_announcements(request):
             announcement.is_active = False
             announcement.save(
                 update_fields=["is_active"]
+            )
+            from .notification_signals import (
+                queue_announcement_recipient_notifications,
+            )
+
+            queue_announcement_recipient_notifications(
+                announcement.pk,
+                event_type="deleted",
             )
 
             messages.success(
@@ -5154,12 +5461,22 @@ def teammember_dashboard(request):
     current_day = today.weekday()
 
     # Use the lead of this member's team.
+    # team_lead = None
+    # if team_member.team_id:
+    #     team_lead = User.objects.filter(
+    #         team_id=team_member.team_id,
+    #         job_Position__iexact="Team Lead",
+    #     ).first()
+    
+    # Find the Team Lead assigned to this member's department.
     team_lead = None
-    if team_member.team_id:
+
+    if team_member.department_id:
         team_lead = User.objects.filter(
-            team_id=team_member.team_id,
+            department_id=team_member.department_id,
             job_Position__iexact="Team Lead",
-        ).first()
+        ).order_by("id").first()
+
 
     today_leave = (
         TeamReportLeave.objects.filter(team_lead=team_lead, date=today).first()
@@ -5638,6 +5955,35 @@ def project_assign_edit(request, pk):
         return redirect("index")
     team_lead = get_object_or_404(User, pk=request.session["user_id"])
     project = get_object_or_404(ProjectAssign, id=pk, assigned_by=team_lead)
+    
+    # Master Admin → Team Lead project status update only.
+    if request.method == "POST" and request.POST.get("mode") == "status":
+
+        # Only projects directly assigned to this Team Lead.
+        if project.assign_to_id != team_lead.pk:
+            messages.error(
+                request,
+                "You cannot update the status of this project."
+            )
+            return redirect("teamlead_project_assigning")
+
+        new_status = request.POST.get("status", "").strip()
+
+        if new_status not in dict(ProjectAssign.STATUS_CHOICES):
+            messages.error(request, "Invalid project status.")
+            return redirect("teamlead_project_assigning")
+
+        old_status = project.status
+        project.status = new_status
+        project.save(update_fields=["status"])
+
+        messages.success(
+            request,
+            f"Project status updated from {old_status} to {new_status}."
+        )
+
+        return redirect("teamlead_project_assigning")
+
     departments = Department.objects.all()
     team_members = User.objects.filter(
         department_id=team_lead.department_id, job_Position__iexact="Team Member"
@@ -9526,6 +9872,9 @@ def _process_accounts_reminders(owner):
     from django.utils import timezone
 
     from .models import AccountsNotification, AccountsReminder
+    import logging
+
+    logger = logging.getLogger(__name__)
 
     now = timezone.now()
 
@@ -9595,6 +9944,57 @@ def _process_accounts_reminders(owner):
             AccountsReminder.objects.filter(
                 pk=reminder.pk
             ).update(notification=notification)
+
+            # Windows Push: Accounts Reminders only.
+            push_portal = str(
+                owner.job_Position or ""
+            ).strip().lower().replace(" ", "_")
+
+            if push_portal in {"accounts", "accounts_team"}:
+
+                def deliver_accounts_reminder_push(
+                    recipient=owner,
+                    portal=push_portal,
+                    push_title=f"Reminder: {reminder.title}",
+                    push_message=(
+                        f"Event: {event_time}"
+                        + (
+                            f"\n{reminder.description[:180]}"
+                            if reminder.description else ""
+                        )
+                    ),
+                    push_url=reverse("accounts_reminders"),
+                    push_tag=f"accounts-due-reminder-{reminder.pk}",
+                ):
+                    try:
+                        from .components.windows_push.delivery import (
+                            send_windows_push,
+                        )
+
+                        result = send_windows_push(
+                            recipient=recipient,
+                            portal=portal,
+                            title=push_title,
+                            message=push_message,
+                            url=push_url,
+                            tag=push_tag,
+                        )
+
+                        logger.info(
+                            "Accounts reminder Windows Push %s: %s",
+                            push_tag,
+                            result,
+                        )
+
+                    except Exception:
+                        logger.exception(
+                            "Accounts reminder Windows Push failed for %s",
+                            push_tag,
+                        )
+
+                transaction.on_commit(
+                    deliver_accounts_reminder_push
+                )
 
             created_count += 1
 
@@ -12296,6 +12696,7 @@ def _master_project_snapshot(project):
 
 
 def _master_project_audit(request, project, action, before=None):
+    project._master_admin_action = action
     before = before or {}
     record = MasterAdminProjectAudit.objects.create(actor=request.user,
         actor_name=(request.user.get_full_name() or request.user.username)[:255],
@@ -12303,10 +12704,35 @@ def _master_project_audit(request, project, action, before=None):
         after={} if action == "deleted" else _master_project_snapshot(project))
     recipients = {project.assign_to_id, project.assigned_by_id,
         before.get("assign_to"), before.get("assigned_by")} - {None}
+
     for person in _master_project_people().filter(pk__in=recipients):
-        TeamLeadNotification.objects.create(recipient=person, kind="project",
-            title=f"Project {action}", message=f"Master Admin {record.actor_name} {action} project #{project.pk}: {project.work_name}",
-            url=reverse("teamlead_project_assigning" if person.project_role in {"team lead", "team_lead"} else "teammember_project"))
+        role = (
+            str(person.project_role or "")
+            .strip()
+            .lower()
+            .replace("_", " ")
+        )
+
+        # Current Team Member already receives the project
+        # notification through member_notifications.py.
+        if person.pk == project.assign_to_id and role == "team member":
+            continue
+
+        TeamLeadNotification.objects.create(
+            recipient=person,
+            kind="project",
+            title=f"Project {action}",
+            message=(
+                f"Master Admin {record.actor_name} {action} "
+                f"project #{project.pk}: {project.work_name}"
+            ),
+            url=reverse(
+                "teamlead_project_assigning"
+                if person.project_role in {"team lead", "team_lead"}
+                else "teammember_project"
+            ),
+        )
+
 
 
 def _master_project_uploads(request):
@@ -13006,9 +13432,11 @@ def _master_meet_notify(meeting, edited=False):
         else:
             AdminNotification.objects.update_or_create(event_key=key, defaults={"management_owner": user, "auth_owner": None, "url": meeting.meeting_link, **defaults})
     for user in meeting.auth_participants.all():
+        
         AdminNotification.objects.update_or_create(event_key=f"master-meeting:{meeting.pk}:auth:{user.pk}",
             defaults={"management_owner": None, "auth_owner": user, "title": title[:180], "message": message,
                 "kind": "meeting", "url": meeting.meeting_link, "is_read": False, "is_archived": False})
+
 
 
 @never_cache
@@ -13049,7 +13477,14 @@ def master_admin_google_meet(request):
                 return fail("Choose a valid department.")
             if not Department.objects.filter(pk=department).exists():
                 return fail("Choose a valid department.")
-            employees, admins = list(eligible.filter(department_id=department)), []
+            department_people = eligible.filter(
+                department_id=department
+                ).filter(
+                    Q(job_Position__iexact="Team Lead")
+                    | Q(job_Position__iexact="Team Member")
+                )
+
+            employees, admins = list(department_people), []
         elif mode == "selected":
             try:
                 tokens = set(map(int, request.POST.getlist("participants")))
@@ -13093,6 +13528,10 @@ def master_admin_google_meet(request):
             for model in [TeamLeadNotification, AccountsNotification, AdminNotification]:
                 model.objects.filter(event_key__startswith=prefix).exclude(event_key__in=keys).update(is_archived=True)
             _master_meet_notify(meeting, edited=action == "edit_meeting")
+            _queue_google_meet_windows_push(
+                meeting.pk,
+                edited=(action == "edit_meeting"),
+            )
         return JsonResponse({"ok": True, "message": "Meeting updated successfully." if action == "edit_meeting" else "Meeting scheduled successfully.", "id": meeting.pk}, status=200 if action == "edit_meeting" else 201)
     meetings = list(GoogleMeeting.objects.select_related("created_by", "admin_created_by").prefetch_related("participants", "auth_participants"))
     now = timezone.now()
@@ -13246,6 +13685,10 @@ def admin_google_meet(request):
             meeting.meeting_link = link
             meeting.save()
             meeting.participants.set(participants)
+            _queue_google_meet_windows_push(
+                meeting.pk,
+                edited=(action == "edit_meeting"),
+            )
             
             # Windows notifications for invited Team Leads.
             teamlead_participants = [

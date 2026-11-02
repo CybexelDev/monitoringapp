@@ -1,7 +1,8 @@
 {% extends "team_member/base3.html" %}
 {% load static tz %}
 {% block title %}Team Member Google Meet - Cybexel{% endblock %}
-{% block extra_css %}<style>
+{% block extra_css %}
+<style>
 .dashboard-header {
             position: relative;
 
@@ -2825,48 +2826,29 @@
     gap: 9px;
 }
 
+
+/* UPCOMING LOCK ICON — LARGE SIZE */
+
 .waiting-lock-icon {
-    width: auto;
-    height: auto;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-
-    flex-shrink: 0;
-
-    background: transparent;
-    border: none;
-    border-radius: 0;
-
-    box-shadow: none;
-
-    color: #fde68a;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    width: 26px !important;
+    height: 26px !important;
 }
 
 .waiting-lock-icon svg {
-    width: 20px;
-    height: 20px;
+    display: block !important;
 
+    width: 24px !important;
+    height: 24px !important;
+
+    min-width: 24px !important;
+    min-height: 24px !important;
+
+    stroke-width: 2.6 !important;
     color: #fde68a !important;
-
-    stroke-width: 2.3;
-
-    filter: none;
-}
-
-.waiting-lock-icon svg {
-    width: 15px;
-    height: 15px;
-
-    color: #fde68a !important;
-
-    stroke-width: 2.3;
-
-    filter:
-        drop-shadow(
-            0 0 4px rgba(253, 230, 138, 0.35)
-        );
 }
 
 .meeting-waiting-btn .meeting-status-text {
@@ -3461,7 +3443,8 @@
  #toastContainer {right:16px!important;bottom:16px!important;}
 }
 
-</style>{% endblock %}
+</style>
+{% endblock %}
 {% block content %}
 <section class="dashboard-header">
 

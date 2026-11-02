@@ -99,13 +99,8 @@ body.master-dashboard-page #adminMain>.master-dashboard{box-sizing:border-box;he
 @media(max-width:480px){.master-dashboard-page .master-dashboard>.dashboard-header{padding:20px 16px}.master-dashboard-page .master-dashboard>.dashboard-header .dashboard-eyebrow{font-size:9px;letter-spacing:1.8px}.master-dashboard-page .master-panel-heading>div{width:100%}.master-dashboard-page .master-section-heading h2{line-height:1.4}.master-dashboard-page .master-meta a{flex:1 1 120px}}
 
 
-/* Dashboard toast notifications. */
 .master-dashboard-page .master-finance strong{overflow-wrap:anywhere}
-.master-dashboard-page .master-toast-stack{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:10000;display:grid;gap:10px;width:min(360px,calc(100vw - 36px));pointer-events:none}
-.master-dashboard-page .master-toast{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#241933;border:1px solid #7953b8;border-radius:12px;color:#eee7ff;box-shadow:0 12px 35px #0006;font-size:13px;line-height:1.5;pointer-events:auto;overflow-wrap:anywhere}
-.master-dashboard-page .master-toast span{flex:1;min-width:0}
-.master-dashboard-page .master-toast button{background:transparent;border:0;color:#ddd0f7;font:inherit;font-size:22px;cursor:pointer;min-width:32px;min-height:32px}
-.master-dashboard-page .master-toast button:focus-visible{outline:2px solid #c4b5fd;outline-offset:2px}
+
 
 </style>{% endblock %}
 
@@ -158,7 +153,6 @@ body.master-dashboard-page #adminMain>.master-dashboard{box-sizing:border-box;he
 
 <p class="master-live" id="masterLiveStatus" role="status" aria-live="polite" data-state="live">Updated {{ updated_at }}</p></div>
 
-<div id="masterToastStack" class="master-toast-stack" role="status" aria-live="polite" aria-atomic="false"></div>
 
 {{ dashboard_data|json_script:"masterDashboardData" }}
 
@@ -170,16 +164,7 @@ body.master-dashboard-page #adminMain>.master-dashboard{box-sizing:border-box;he
 
  if(!root||!status||root.dataset.liveInitialized==='true')return;
  root.dataset.liveInitialized='true';
- function toast(message){
-  const stack=document.getElementById('masterToastStack');if(!stack)return;
-  const box=document.createElement('div'),text=document.createElement('span'),close=document.createElement('button');
-  box.className='master-toast';text.textContent=message;close.type='button';close.setAttribute('aria-label','Dismiss notification');close.textContent='×';
-  let dismiss;const remove=()=>{clearTimeout(dismiss);box.remove();};
-  close.addEventListener('click',remove);box.append(text,close);stack.replaceChildren(box);
-  const start=()=>{clearTimeout(dismiss);dismiss=setTimeout(remove,8000);};
-  box.addEventListener('mouseenter',()=>clearTimeout(dismiss));box.addEventListener('mouseleave',start);
-  box.addEventListener('focusin',()=>clearTimeout(dismiss));box.addEventListener('focusout',start);start();
- }
+
  let initial={};try{initial=JSON.parse(document.getElementById('masterDashboardData')?.textContent||'{}')||{};}catch(error){/* Server-rendered values remain visible until the next successful update. */}
 
 
@@ -205,7 +190,7 @@ body.master-dashboard-page #adminMain>.master-dashboard{box-sizing:border-box;he
 
    const response=await fetch(endpoint,{credentials:'same-origin',cache:'no-store',signal:controller.signal,headers:{'X-Requested-With':'XMLHttpRequest'}});
 
-   if(response.redirected||response.status===401||response.status===403){stopped=true;status.dataset.state='expired';setText(status,'Session access unavailable. Sign in again.');toast('Your session is unavailable. Please sign in again.');return;}
+   if(response.redirected||response.status===401||response.status===403){stopped=true;status.dataset.state='expired';setText(status,'Session access unavailable. Sign in again.');window.showToast?.('Your session is unavailable. Please sign in again.');return;}
 
    if(!response.ok)throw Error('Update unavailable');const data=await response.json();if(!data.ok||!data.counts||!data.financial||!Array.isArray(data.recent_users))throw Error('Invalid update');if(stopped||document.hidden)return;
 
@@ -219,10 +204,10 @@ body.master-dashboard-page #adminMain>.master-dashboard{box-sizing:border-box;he
 
    }
 
-   if(failures>0)toast('Dashboard live updates restored.');
+   if(failures>0)window.showToast?.('Dashboard live updates restored.');
    failures=0;status.dataset.state='live';setText(status,'Updated '+data.updated_at);
 
-  }catch(error){if(!stopped&&!document.hidden){failures++;if(failures===1)toast('Live updates are temporarily unavailable. Retrying automatically.');status.dataset.state='retry';setText(status,'Live update unavailable. Your last data is retained; retrying automatically.');}}
+  }catch(error){if(!stopped&&!document.hidden){failures++;if(failures===1)window.showToast?.('Live updates are temporarily unavailable. Retrying automatically.');status.dataset.state='retry';setText(status,'Live update unavailable. Your last data is retained; retrying automatically.');}}
 
   finally{clearTimeout(timeout);if(pending===controller)pending=null;schedule(Math.min(60000,15000*Math.pow(2,Math.min(failures,2))));}
 

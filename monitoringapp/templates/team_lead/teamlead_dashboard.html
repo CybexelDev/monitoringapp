@@ -1702,23 +1702,62 @@
     font-size: 18px;
 }
 
+
+/* PREMIUM PURPLE EDIT SCHEDULE BUTTON */
+
 .report-edit-btn {
-    border: 1px solid rgba(168, 85, 247, 0.45);
-    background: rgba(124, 58, 237, 0.14);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    min-height: 42px;
+    padding: 0 19px;
+
+    border: 1px solid rgba(167, 139, 250, 0.35);
+    border-radius: 12px;
+
+    background: linear-gradient(135deg, #7c4bd4, #5b32a7);
     color: #ffffff;
-    padding: 10px 18px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 700;
+
+    font-size: 12px;
+    font-weight: 750;
+    letter-spacing: 0.15px;
+
     cursor: pointer;
-    transition: all 0.25s ease;
     white-space: nowrap;
+
+    box-shadow:
+        0 8px 20px rgba(124, 75, 212, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+
+    transition: all 0.22s ease;
+}
+
+.report-edit-btn svg {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
 }
 
 .report-edit-btn:hover {
-    background: rgba(124, 58, 237, 0.28);
-    border-color: rgba(168, 85, 247, 0.75);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #8b5cf6, #7048c6);
+    border-color: rgba(196, 181, 253, 0.55);
+
+    box-shadow:
+        0 10px 24px rgba(124, 75, 212, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+    transform: translateY(-2px);
+}
+
+.report-edit-btn:active {
+    transform: translateY(0);
+}
+
+.report-edit-btn:focus-visible {
+    outline: 3px solid rgba(167, 139, 250, 0.30);
+    outline-offset: 3px;
 }
 
 
@@ -4701,13 +4740,35 @@ body.tl-dashboard-page .report-modal-content,body.tl-dashboard-page .team-edit-m
       </p>
     </div>
 
-    <button
+    <!-- <button
       type="button"
       class="report-edit-btn"
       onclick="openReportScheduleModal()"
     >
       ✏️ Edit Schedule
-    </button>
+    </button> -->
+    <button
+    type="button"
+    class="report-edit-btn"
+    onclick="openReportScheduleModal()"
+>
+    <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.7"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+    >
+        <rect x="3.5" y="4.5" width="17" height="16" rx="2.2"/>
+        <path d="M7.5 2.8v3.5M16.5 2.8v3.5M3.5 9h17"/>
+        <circle cx="16.3" cy="15.5" r="3.2"/>
+        <path d="M16.3 13.8v1.9l1.2.7"/>
+    </svg>
+
+    <span>Edit Schedule</span>
+</button>
   </div>
 
 
