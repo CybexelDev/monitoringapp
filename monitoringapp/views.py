@@ -6,6 +6,7 @@ from .models import *
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from datetime import date
+from django.urls import reverse
 import openpyxl
 from django.views.decorators.http import (
     require_GET,
@@ -365,16 +366,7 @@ def _announcement_inbox(user):
     ).select_related("announcement", "announcement__created_by", "announcement__admin_created_by")
 
 
-# @never_cache
-# @require_POST
-# def teamlead_admin_announcement_seen(request, pk):
-#     user = _announcement_role_user(request, "team_lead")
-#     if user is None:
-#         return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
-#     rows = _announcement_inbox(user).filter(announcement__is_admin_announcement=True)
-#     row = get_object_or_404(rows, announcement_id=pk)
-#     rows.filter(pk=row.pk, read_at__isnull=True).update(read_at=timezone.now())
-#     return JsonResponse({"ok": True})
+
 
 @never_cache
 @require_POST
@@ -388,7 +380,12 @@ def teamlead_admin_announcement_seen(request, pk):
     if first_seen:
         from .admin_notification_events import admin_announcement_was_seen
         admin_announcement_was_seen(row.announcement, user)
-    return JsonResponse({"ok": True})
+    unread_count = rows.filter(read_at__isnull=True).count()
+
+    return JsonResponse({
+        "ok": True,
+        "unread_count": unread_count,
+    })
 
 
 
@@ -4477,6 +4474,353 @@ def teamlead_google_meet(request):
     )
 
 
+# @never_cache
+# def teamlead_announcements(request):
+#     # 🔒 Restrict access
+#     if (
+#         not request.session.get("user_id")
+#         or request.session.get("position") != "team_lead"
+#     ):
+#         return redirect("index")
+
+#     try:
+#         team_lead = User.objects.get(
+#             id=request.session["user_id"]
+#         )
+#     except User.DoesNotExist:
+#         request.session.flush()
+#         return redirect("index")
+
+#     if team_lead.job_Position.lower() != "team lead":
+#         return redirect("index")
+
+#     # =========================================================
+#     # 📢 ANNOUNCEMENT ACTIONS
+#     # =========================================================
+
+#     if request.method == "POST":
+
+#         action = request.POST.get("action", "").strip()
+
+#         # =====================================================
+#         # ✏️ EDIT ANNOUNCEMENT
+#         # =====================================================
+
+#         if action == "edit_announcement":
+
+#             announcement_id = request.POST.get(
+#                 "announcement_id"
+#             )
+
+#             edited_message = request.POST.get(
+#                 "message", ""
+#             ).strip()
+
+#             if not edited_message:
+#                 messages.error(
+#                     request,
+#                     "Announcement message cannot be empty."
+#                 )
+#                 return redirect(
+#                     "teamlead_announcements"
+#                 )
+
+#             try:
+#                 announcement = Announcement.objects.get(
+#                     id=announcement_id,
+#                     created_by=team_lead,
+#                     is_active=True
+#                 )
+#             except Announcement.DoesNotExist:
+#                 messages.error(
+#                     request,
+#                     "Announcement not found."
+#                 )
+#                 return redirect(
+#                     "teamlead_announcements"
+#                 )
+
+#             # Update the SAME announcement.
+#             # All existing recipients will see the
+#             # updated message.
+#             announcement.message = edited_message
+#             announcement.save()
+#             from .notification_signals import (
+#                 queue_announcement_recipient_notifications,
+#             )
+
+#             queue_announcement_recipient_notifications(
+#                 announcement.pk,
+#                 event_type="updated",
+#             )
+
+#             messages.success(
+#                 request,
+#                 "Announcement updated successfully."
+#             )
+
+#             return redirect(
+#                 "teamlead_announcements"
+#             )
+
+
+#         # =====================================================
+#         # 🗑️ DELETE ANNOUNCEMENT
+#         # =====================================================
+
+#         elif action == "delete_announcement":
+
+#             announcement_id = request.POST.get(
+#                 "announcement_id"
+#             )
+
+#             try:
+#                 announcement = Announcement.objects.get(
+#                     id=announcement_id,
+#                     created_by=team_lead,
+#                     is_active=True
+#                 )
+#             except Announcement.DoesNotExist:
+#                 messages.error(
+#                     request,
+#                     "Announcement not found."
+#                 )
+#                 return redirect(
+#                     "teamlead_announcements"
+#                 )
+
+#             # Soft delete.
+#             # Recipient records stay safe, but the
+#             # announcement will no longer be displayed.
+#             announcement.is_active = False
+#             announcement.save(
+#                 update_fields=["is_active"]
+#             )
+#             from .notification_signals import (
+#                 queue_announcement_recipient_notifications,
+#             )
+
+#             queue_announcement_recipient_notifications(
+#                 announcement.pk,
+#                 event_type="deleted",
+#             )
+
+#             messages.success(
+#                 request,
+#                 "Announcement deleted successfully."
+#             )
+
+#             return redirect(
+#                 "teamlead_announcements"
+#             )
+
+
+#         # =====================================================
+#         # 📢 CREATE ANNOUNCEMENT
+#         # =====================================================
+
+#         elif action == "create_announcement":
+
+#             announcement_message = request.POST.get(
+#                 "message", ""
+#             ).strip()
+
+#             send_to = request.POST.get(
+#                 "send_to",
+#                 "team"
+#             )
+
+#             selected_member_ids = request.POST.getlist(
+#                 "recipient_ids"
+#             )
+
+#             # Empty message validation
+#             if not announcement_message:
+#                 messages.error(
+#                     request,
+#                     "Please enter an announcement message."
+#                 )
+#                 return redirect(
+#                     "teamlead_announcements"
+#                 )
+
+#             # -------------------------------------------------
+#             # Create announcement
+#             # -------------------------------------------------
+
+#             announcement = Announcement.objects.create(
+#                 title="Team Lead Announcement",
+#                 message=announcement_message,
+#                 created_by=team_lead
+#             )
+
+#             # -------------------------------------------------
+#             # Only Team Members under this Team Lead's
+#             # department
+#             # -------------------------------------------------
+
+#             eligible_members = User.objects.filter(
+#                 department=team_lead.department,
+#                 job_Position__iexact="Team Member"
+#             ).exclude(
+#                 id=team_lead.id
+#             )
+
+#             # -------------------------------------------------
+#             # Send to Entire Team
+#             # -------------------------------------------------
+
+#             if send_to == "team":
+
+#                 recipients = [
+#                     AnnouncementRecipient(
+#                         announcement=announcement,
+#                         recipient=member
+#                     )
+#                     for member in eligible_members
+#                 ]
+
+#                 if recipients:
+#                     AnnouncementRecipient.objects.bulk_create(
+#                         recipients
+#                     )
+
+#                 messages.success(
+#                     request,
+#                     "Announcement sent to the entire team."
+#                 )
+
+
+#             # -------------------------------------------------
+#             # Send to Selected Members
+#             # -------------------------------------------------
+
+#             elif send_to == "selected":
+
+#                 selected_members = eligible_members.filter(
+#                     id__in=selected_member_ids
+#                 )
+
+#                 if not selected_members.exists():
+
+#                     announcement.delete()
+
+#                     messages.error(
+#                         request,
+#                         "Please select at least one team member."
+#                     )
+
+#                     return redirect(
+#                         "teamlead_announcements"
+#                     )
+
+#                 recipients = [
+#                     AnnouncementRecipient(
+#                         announcement=announcement,
+#                         recipient=member
+#                     )
+#                     for member in selected_members
+#                 ]
+
+#                 AnnouncementRecipient.objects.bulk_create(
+#                     recipients
+#                 )
+
+#             #     messages.success(
+#             #         request,
+#             #         "Announcement sent to selected members."
+#             #     )
+
+#             # return redirect(
+#             #     "teamlead_announcements"
+#             # )
+
+#             messages.success(
+#                     request,
+#                     "Announcement sent to selected members."
+#                 )
+
+#             from .notification_signals import (
+#                 queue_announcement_recipient_notifications,
+#             )
+#             queue_announcement_recipient_notifications(announcement.pk)
+
+#             return redirect(
+#                 "teamlead_announcements"
+#             )
+
+
+#     # =========================================================
+#     # 📢 PREVIOUS ANNOUNCEMENTS
+#     # =========================================================
+
+#     announcements = Announcement.objects.filter(
+#     created_by=team_lead,
+#     is_active=True
+# ).prefetch_related(
+#     "recipients__recipient"
+# ).order_by(
+#     "-created_at"
+# )[:20]
+
+
+#     # =========================================================
+#     # 👥 TEAM MEMBERS
+#     # =========================================================
+
+#     team_members = User.objects.filter(
+#         department=team_lead.department,
+#         job_Position__iexact="Team Member"
+#     ).exclude(
+#         id=team_lead.id
+#     ).order_by("name")
+
+#     # =========================================================
+#     # 📊 UNREAD ANNOUNCEMENT COUNTS
+#     # =========================================================
+
+#     my_announcement_unread_count = AnnouncementRecipient.objects.filter(
+#         announcement__created_by=team_lead,
+#         announcement__is_active=True,
+#         read_at__isnull=True
+#     ).values(
+#         "announcement_id"
+#     ).distinct().count()
+
+#     admin_received = _announcement_inbox(team_lead).filter(
+#         announcement__is_admin_announcement=True
+#     ).order_by(
+#         "-announcement__created_at", "-pk"
+#     )
+
+#     admin_announcement_unread_count = admin_received.filter(
+#         read_at__isnull=True
+#     ).count()
+
+
+#     response = render(
+#         request,
+#         "team_lead/teamlead_announcements.html",
+#         # {
+#         #     "announcements": announcements,
+#         #     "team_members": team_members,
+#         #     "team_lead": team_lead,
+#         #     "admin_received": _announcement_inbox(team_lead).filter(announcement__is_admin_announcement=True).order_by("-announcement__created_at", "-pk"),
+#         # }
+#         {
+#             "announcements": announcements,
+#             "team_members": team_members,
+#             "team_lead": team_lead,
+#             "admin_received": admin_received,
+#             "my_announcement_unread_count": my_announcement_unread_count,
+#             "admin_announcement_unread_count": admin_announcement_unread_count,
+#         }
+#     )
+
+#     if request.method == "GET" and request.GET.get("format") == "json":
+#         return JsonResponse({"ok": True, "html": response.content.decode(response.charset)})
+#     return response
+
 @never_cache
 def teamlead_announcements(request):
     # 🔒 Restrict access
@@ -4778,21 +5122,55 @@ def teamlead_announcements(request):
         id=team_lead.id
     ).order_by("name")
 
+    # =========================================================
+    # 📢 SEPARATE ANNOUNCEMENT INBOXES + UNREAD COUNTS
+    # =========================================================
+
+    announcement_inbox = _announcement_inbox(team_lead)
+
+    # Admin and Master Admin announcements are intentionally separate.
+    admin_received = announcement_inbox.filter(
+        announcement__is_admin_announcement=True,
+        announcement__is_master_admin_announcement=False,
+    ).order_by("-announcement__created_at", "-pk")
+
+    master_admin_received = announcement_inbox.filter(
+        announcement__is_master_admin_announcement=True,
+    ).order_by("-announcement__created_at", "-pk")
+
+    admin_announcement_unread_count = admin_received.filter(
+        read_at__isnull=True
+    ).count()
+
+    master_admin_announcement_unread_count = master_admin_received.filter(
+        read_at__isnull=True
+    ).count()
+
 
     response = render(
         request,
         "team_lead/teamlead_announcements.html",
+        # {
+        #     "announcements": announcements,
+        #     "team_members": team_members,
+        #     "team_lead": team_lead,
+        #     "admin_received": _announcement_inbox(team_lead).filter(announcement__is_admin_announcement=True).order_by("-announcement__created_at", "-pk"),
+        # }
         {
             "announcements": announcements,
             "team_members": team_members,
             "team_lead": team_lead,
-            "admin_received": _announcement_inbox(team_lead).filter(announcement__is_admin_announcement=True).order_by("-announcement__created_at", "-pk"),
+            "admin_received": admin_received,
+            "master_admin_received": master_admin_received,
+            "admin_announcement_unread_count": admin_announcement_unread_count,
+            "master_admin_announcement_unread_count": master_admin_announcement_unread_count,
         }
     )
 
     if request.method == "GET" and request.GET.get("format") == "json":
         return JsonResponse({"ok": True, "html": response.content.decode(response.charset)})
     return response
+
 
 @never_cache
 def teamlead_chat(request):
@@ -6350,8 +6728,13 @@ def teammember_announcements(request):
         "page_obj": page_obj,
         "unread_count": recipients.filter(read_at__isnull=True).count(),
         "announcement_source": source,
-        "lead_announcement_count": lead_rows.count(),
-        "admin_announcement_count": admin_rows.count(),
+        "lead_announcement_count": lead_rows.filter(
+            read_at__isnull=True
+        ).count(),
+
+        "admin_announcement_count": admin_rows.filter(
+            read_at__isnull=True
+        ).count(),
     })
 
 
@@ -12893,9 +13276,10 @@ from .models import Announcement, AnnouncementRecipient, AnnouncementAuthRecipie
 def _master_announcement_employees():
     return User.objects.select_related("team", "department").order_by("name", "pk")
 
-
 def _master_announcement_admins():
-    return get_user_model().objects.filter(is_active=True).filter(Q(is_staff=True) | Q(is_superuser=True)).order_by("username", "pk")
+    return User.objects.filter(
+        job_Position__iexact="Admin"
+    ).order_by("username", "pk")
 
 
 def _master_announcement_notify(announcement, *, edited=False):
@@ -12925,12 +13309,10 @@ def _master_announcement_notify(announcement, *, edited=False):
                 "title": title[:180], "message": announcement.message,
                 "url": reverse("portal_announcement_detail", args=[announcement.pk]), "is_read": False, "is_archived": False})
 
-
 def _master_announcement_denied(request):
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
     return redirect("master_admin_login") if not request.user.is_authenticated else HttpResponseForbidden("Master Admin access required.")
-
 
 @never_cache
 @require_http_methods(["GET", "POST"])
@@ -12960,9 +13342,10 @@ def master_admin_announcements(request):
                 admins = admins.none()
 
             elif audience == "admin":
-                # Admin-role employee records + regular Django Admin accounts.
-                employees = employees.filter(job_Position__iexact="Admin")
-                admins = admins.filter(is_staff=True, is_superuser=False)
+                employees = employees.filter(
+                    job_Position__iexact="Admin"
+                )
+                admins = admins.none()
 
             elif audience == "selected":
                 # Specific Recipients: allow selection from the full recipient lists.
@@ -12996,20 +13379,47 @@ def master_admin_announcements(request):
             employees, admins = list(employees), list(admins)
 
             if not employees and not admins:
-                return JsonResponse(
-                    {"ok": False, "message": "Choose at least one recipient."},
-                    status=400,
-                )
-
-            if not employees and not admins:
                 return JsonResponse({"ok": False, "message": "Choose at least one recipient."}, status=400)
             with transaction.atomic():
-                announcement = Announcement.objects.create(title=title, message=message,
-                    admin_created_by=request.user, is_admin_announcement=True, is_master_admin_announcement=True)
-                AnnouncementRecipient.objects.bulk_create([AnnouncementRecipient(announcement=announcement, recipient=user) for user in employees])
-                AnnouncementAuthRecipient.objects.bulk_create([AnnouncementAuthRecipient(announcement=announcement, recipient=user) for user in admins])
+                announcement = Announcement.objects.create(
+                    title=title,
+                    message=message,
+                    admin_created_by=request.user,
+                    is_admin_announcement=True,
+                    is_master_admin_announcement=True
+                )
+
+                # Save employee recipients only once
+                if employees:
+                    AnnouncementRecipient.objects.bulk_create([
+                        AnnouncementRecipient(
+                            announcement=announcement,
+                            recipient=user
+                        )
+                        for user in employees
+                    ])
+
+                # Save auth recipients only when available
+                if admins:
+                    AnnouncementAuthRecipient.objects.bulk_create([
+                        AnnouncementAuthRecipient(
+                            announcement=announcement,
+                            recipient=user
+                        )
+                        for user in admins
+                    ])
+                    # Save Master Admin's own receipt for NEW / SEEN status
+                    AnnouncementAuthRecipient.objects.get_or_create(
+                        announcement=announcement,
+                        recipient=request.user,
+                    )
+
                 _master_announcement_notify(announcement)
-            return JsonResponse({"ok": True, "message": "Announcement sent successfully."}, status=201)
+
+            return JsonResponse({
+                "ok": True,
+                "message": "Announcement sent successfully."
+            }, status=201)
         try:
             pk = int(request.POST.get("announcement_id", ""))
         except (ValueError, TypeError):
@@ -13039,6 +13449,28 @@ def master_admin_announcements(request):
         "admin": all_items.filter(is_admin_announcement=True, is_master_admin_announcement=False),
         "lead": all_items.filter(is_admin_announcement=False),
     }
+    employee_id = request.session.get("user_id")
+
+    def get_unread_count(announcement_group):
+        employee_unread = AnnouncementRecipient.objects.filter(
+            announcement__in=announcement_group,
+            announcement__is_active=True,
+            read_at__isnull=True,
+            recipient_id=employee_id,
+        ).values_list("announcement_id", flat=True) if employee_id else []
+
+        admin_unread = AnnouncementAuthRecipient.objects.filter(
+            announcement__in=announcement_group,
+            announcement__is_active=True,
+            read_at__isnull=True,
+            recipient=request.user,
+        ).values_list("announcement_id", flat=True) if request.user.is_authenticated else []
+
+        return len(set(employee_unread) | set(admin_unread))
+
+
+    admin_unread_count = get_unread_count(groups["admin"])
+    lead_unread_count = get_unread_count(groups["lead"])
     query = request.GET.get("q", "").strip()[:200]
     items = groups[source]
     if query:
@@ -13050,8 +13482,33 @@ def master_admin_announcements(request):
     data = []
     for item in page:
         auth = item.admin_created_by
-        author = (auth.get_full_name() or auth.username) if auth else (item.created_by.name if item.created_by else "Not recorded")
-        item.sender_label = ("Master Admin: " if item.is_master_admin_announcement else "Admin: " if item.is_admin_announcement else "Team Lead: ") + author
+
+        my_receipt = _portal_announcement_receipt(request, item.pk)
+
+        item.current_user_can_mark_seen = my_receipt is not None
+        item.current_user_seen = bool(
+            my_receipt and my_receipt.read_at is not None
+        )
+
+        author = (
+            (auth.get_full_name() or auth.username)
+            if auth
+            else (
+                item.created_by.name
+                if item.created_by
+                else "Not recorded"
+            )
+        )
+
+        item.sender_label = (
+            "Master Admin: "
+            if item.is_master_admin_announcement
+            else "Admin: "
+            if item.is_admin_announcement
+            else "Team Lead: "
+        ) + author
+
+        my_is_seen = item.current_user_seen
         recipients = [{"name": row.recipient.name, "role": row.recipient.job_Position,
             "read_at": timezone.localtime(row.read_at).strftime("%d %b %Y, %I:%M %p") if row.read_at else None} for row in item.recipients.all()]
         recipients += [{"name": row.recipient.get_full_name() or row.recipient.username, "role": "Admin",
@@ -13060,13 +13517,15 @@ def master_admin_announcements(request):
         item.seen_total = sum(bool(row["read_at"]) for row in recipients)
         data.append({"id": item.pk, "title": item.title, "message": item.message,
             "sender": item.sender_label, "created": timezone.localtime(item.created_at).strftime("%d %b %Y, %I:%M %p"),
-            "recipients": recipients, "seen": item.seen_total, "total": item.recipient_total})
+            "recipients": recipients, "seen": item.seen_total, "total": item.recipient_total ,"my_is_seen": my_is_seen,"seen_url": reverse("portal_announcement_seen",args=[item.pk]),})
     params = request.GET.copy()
     params.pop("page", None)
     params.pop("source", None)
     return render(request, "master_admin/master_admin_announcements.html", {
         "master_announcements_active": True, "source": source, "query": query,
-        "master_count": groups["master"].count(), "admin_count": groups["admin"].count(), "lead_count": groups["lead"].count(),
+        "master_count": None,
+        "admin_count": admin_unread_count,
+        "lead_count": lead_unread_count,
         "page_obj": page,
         "announcement_items": data,
         "employees": employees,
@@ -13074,13 +13533,68 @@ def master_admin_announcements(request):
         "filter_params": params.urlencode(),
     })
 
+# def _portal_announcement_receipt(request, pk):
+#     employee_id = request.session.get("user_id")
+
+#     if employee_id:
+#         receipt = AnnouncementRecipient.objects.filter(
+#             announcement_id=pk,
+#             recipient_id=employee_id,
+#             announcement__is_active=True,
+#         ).select_related("announcement").first()
+
+#         if receipt:
+#             return receipt
+
+#     if request.user.is_authenticated and request.user.is_active:
+#         return AnnouncementAuthRecipient.objects.filter(
+#             announcement_id=pk,
+#             recipient=request.user,
+#             announcement__is_active=True,
+#         ).select_related("announcement").first()
+
+#     return None
+
+
 
 def _portal_announcement_receipt(request, pk):
     employee_id = request.session.get("user_id")
+
     if employee_id:
-        return AnnouncementRecipient.objects.filter(announcement_id=pk, recipient_id=employee_id, announcement__is_active=True).select_related("announcement").first()
+        receipt = AnnouncementRecipient.objects.filter(
+            announcement_id=pk,
+            recipient_id=employee_id,
+            announcement__is_active=True,
+        ).select_related("announcement").first()
+
+        if receipt:
+            return receipt
+
     if request.user.is_authenticated and request.user.is_active:
-        return AnnouncementAuthRecipient.objects.filter(announcement_id=pk, recipient=request.user, announcement__is_active=True).select_related("announcement").first()
+        receipt = AnnouncementAuthRecipient.objects.filter(
+            announcement_id=pk,
+            recipient=request.user,
+            announcement__is_active=True,
+        ).select_related("announcement").first()
+
+        if receipt:
+            return receipt
+
+        # Allow Master Admin to maintain their own NEW / SEEN status
+        # for announcements created by Admins and Team Leads too.
+        if _master_admin_allowed(request):
+            announcement = Announcement.objects.filter(
+                pk=pk,
+                is_active=True,
+            ).first()
+
+            if announcement:
+                receipt, created = AnnouncementAuthRecipient.objects.get_or_create(
+                    announcement=announcement,
+                    recipient=request.user,
+                )
+                return receipt
+
     return None
 
 
@@ -13117,26 +13631,313 @@ def portal_announcement_detail(request, pk):
     })
 
 
+def _master_admin_announcement_unread_ids(request):
+    announcement_scope = (
+        Q(
+            announcement__is_admin_announcement=True,
+            announcement__is_master_admin_announcement=False,
+        )
+        | Q(
+            announcement__is_admin_announcement=False,
+            announcement__is_master_admin_announcement=False,
+            announcement__created_by__job_Position__iexact="Team Lead",
+        )
+    )
+
+    unread_ids = set()
+    employee_id = request.session.get("user_id")
+
+    if employee_id:
+        unread_ids.update(
+            AnnouncementRecipient.objects.filter(
+                recipient_id=employee_id,
+                announcement__is_active=True,
+                read_at__isnull=True,
+            ).filter(
+                announcement_scope
+            ).values_list("announcement_id", flat=True)
+        )
+
+    if request.user.is_authenticated and request.user.is_active:
+        unread_ids.update(
+            AnnouncementAuthRecipient.objects.filter(
+                recipient=request.user,
+                announcement__is_active=True,
+                read_at__isnull=True,
+            ).filter(
+                announcement_scope
+            ).values_list("announcement_id", flat=True)
+        )
+
+    return unread_ids
+
+@never_cache
+@require_http_methods(["GET"])
+def master_admin_announcement_unread_count(request):
+    if not _master_admin_allowed(request):
+        return JsonResponse(
+            {"ok": False, "message": "Master Admin access required."},
+            status=403,
+        )
+
+    unread_count = len(
+        _master_admin_announcement_unread_ids(request)
+    )
+
+    return JsonResponse({
+        "ok": True,
+        "unread_count": unread_count,
+    })
+
+# @never_cache
+# @require_POST
+# def portal_announcement_seen(request, pk):
+#     receipt = _portal_announcement_receipt(request, pk)
+#     if receipt is None:
+#         return JsonResponse({"ok": False, "message": "This announcement is not addressed to you."}, status=403)
+#     type(receipt).objects.filter(pk=receipt.pk, read_at__isnull=True).update(read_at=timezone.now())
+#     return JsonResponse({"ok": True})
+
 @never_cache
 @require_POST
 def portal_announcement_seen(request, pk):
+
+    # Master Admin: update both possible receipt types.
+    if _master_admin_allowed(request):
+
+        employee_id = request.session.get("user_id")
+
+        employee_receipts = AnnouncementRecipient.objects.none()
+        if employee_id:
+            employee_receipts = AnnouncementRecipient.objects.filter(
+                announcement_id=pk,
+                recipient_id=employee_id,
+                announcement__is_active=True,
+            )
+
+        auth_receipts = AnnouncementAuthRecipient.objects.none()
+        if request.user.is_authenticated and request.user.is_active:
+            auth_receipts = AnnouncementAuthRecipient.objects.filter(
+                announcement_id=pk,
+                recipient=request.user,
+                announcement__is_active=True,
+            )
+
+        if not employee_receipts.exists() and not auth_receipts.exists():
+            return JsonResponse({
+                "ok": False,
+                "message": "This announcement is not addressed to you."
+            }, status=403)
+
+        now = timezone.now()
+
+        employee_receipts.filter(
+            read_at__isnull=True
+        ).update(read_at=now)
+
+        auth_receipts.filter(
+            read_at__isnull=True
+        ).update(read_at=now)
+
+        unread_count = len(
+            _master_admin_announcement_unread_ids(request)
+        )
+
+        return JsonResponse({
+            "ok": True,
+            "unread_count": unread_count,
+        })
+
+    # Other portals: preserve existing behavior.
     receipt = _portal_announcement_receipt(request, pk)
+
     if receipt is None:
-        return JsonResponse({"ok": False, "message": "This announcement is not addressed to you."}, status=403)
-    type(receipt).objects.filter(pk=receipt.pk, read_at__isnull=True).update(read_at=timezone.now())
+        return JsonResponse({
+            "ok": False,
+            "message": "This announcement is not addressed to you."
+        }, status=403)
+
+    type(receipt).objects.filter(
+        pk=receipt.pk,
+        read_at__isnull=True
+    ).update(read_at=timezone.now())
+
     return JsonResponse({"ok": True})
 
-
+from django.urls import reverse
 
 @never_cache
 @require_http_methods(["GET", "POST"])
 def admin_announcements(request):
     owner = _admin_notepad_owner(request)
+
+    is_seen_action = (
+        request.method == "POST"
+        and request.POST.get("action") == "mark_source_announcement_seen"
+    )
+
+    # AJAX Seen request should receive JSON, not a login HTML redirect.
     if owner is None:
+        if is_seen_action:
+            return JsonResponse({
+                "ok": False,
+                "message": "Your session has expired. Please log in again."
+            }, status=401)
+
         return redirect("login_view")
+
+    if "management_owner" in owner:
+        owner_filter = Q(
+            management_owner=owner["management_owner"],
+            auth_owner__isnull=True
+        )
+        owner_key = f"management_owner_id:{owner['management_owner'].pk}"
+        own_filter = Q(created_by=owner["management_owner"])
+        master_key = f"employee:{owner['management_owner'].pk}"
+    else:
+        owner_filter = Q(
+            auth_owner=owner["auth_owner"],
+            management_owner__isnull=True
+        )
+        owner_key = f"auth_owner_id:{owner['auth_owner'].pk}"
+        own_filter = Q(admin_created_by=owner["auth_owner"])
+        master_key = f"auth:{owner['auth_owner'].pk}"
+
+    if is_seen_action:
+        try:
+            announcement_id = int(request.POST.get("announcement_id", ""))
+        except (TypeError, ValueError):
+            return JsonResponse({
+                "ok": False,
+                "message": "Invalid announcement ID."
+            }, status=400)
+
+        source = request.POST.get("source", "")
+
+        if source == "team_lead":
+            announcement = Announcement.objects.filter(
+                pk=announcement_id,
+                is_admin_announcement=False,
+                is_master_admin_announcement=False,
+                is_active=True,
+                created_by__job_Position__iexact="Team Lead",
+            ).first()
+
+            if announcement is None:
+                return JsonResponse({
+                    "ok": False,
+                    "message": "Team Lead announcement not found."
+                }, status=404)
+
+            owner_field = (
+                "management_owner"
+                if "management_owner" in owner
+                else "auth_owner"
+            )
+            owner_obj = owner[owner_field]
+
+            event_key = (
+                f"feed:announcement:{announcement.pk}:published:"
+                f"{owner_field}_id:{owner_obj.pk}"
+            )
+
+            notification, created_notification = (
+                AdminNotification.objects.get_or_create(
+                    event_key=event_key,
+                    defaults={
+                        f"{owner_field}_id": owner_obj.pk,
+                        "kind": "announcement",
+                        "title": "Team Lead announcement",
+                        "message": announcement.title or "Team Announcement",
+                        "url": reverse("admin_announcements"),
+                        "is_read": True,
+                    },
+                )
+            )
+
+        elif source == "master_admin":
+            announcement = Announcement.objects.filter(
+                pk=announcement_id,
+                is_master_admin_announcement=True,
+                is_active=True,
+            ).first()
+
+            if announcement is None:
+                return JsonResponse({
+                    "ok": False,
+                    "message": "Master Admin announcement not found."
+                }, status=404)
+
+            key = f"master-announcement:{announcement.pk}:{master_key}"
+
+            notification = AdminNotification.objects.filter(
+                owner_filter,
+                event_key=key,
+                kind="announcement",
+            ).first()
+
+            if notification is None:
+                return JsonResponse({
+                    "ok": False,
+                    "message": "Announcement notification not found for this Admin."
+                }, status=404)
+
+        else:
+            return JsonResponse({
+                "ok": False,
+                "message": "Invalid announcement source."
+            }, status=400)
+
+        changed = not notification.is_read
+
+        if changed:
+            notification.is_read = True
+            notification.save(update_fields=["is_read"])
+        if source == "team_lead":
+            active_lead_ids = Announcement.objects.filter(
+                is_admin_announcement=False,
+                is_master_admin_announcement=False,
+                is_active=True,
+                created_by__job_Position__iexact="Team Lead",
+            ).values_list("pk", flat=True)
+
+            active_lead_keys = [
+                (
+                    f"feed:announcement:{announcement_id}:published:"
+                    f"{owner_field}_id:{owner_obj.pk}"
+                )
+                for announcement_id in active_lead_ids
+            ]
+
+            unread = AdminNotification.objects.filter(
+                owner_filter,
+                kind="announcement",
+                is_read=False,
+                is_archived=False,
+                event_key__in=active_lead_keys,
+            ).count()
+
+        else:
+            unread = AdminNotification.objects.filter(
+                owner_filter,
+                kind="announcement",
+                is_read=False,
+                is_archived=False,
+                event_key__startswith="master-announcement:",
+            ).count()
+
+        return JsonResponse({
+            "ok": True,
+            "seen": True,
+            "changed": changed,
+            "unread_count": unread,
+        })
+
     recipients = MonitoringUser.objects.filter(
-        Q(job_Position__iexact="Team Lead") | Q(job_Position__iexact="Team Member")
+        Q(job_Position__iexact="Team Lead")
+        | Q(job_Position__iexact="Team Member")
     ).order_by("name", "pk")
+
     if request.method == "POST":
         action = request.POST.get("action", "")
         if action in {"edit_announcement", "delete_announcement"}:
@@ -13145,7 +13946,10 @@ def admin_announcements(request):
             except (ValueError, TypeError):
                 messages.error(request, "Invalid announcement ID.")
                 return redirect("admin_announcements")
-            announcement = get_object_or_404(Announcement, pk=pk, is_admin_announcement=True, is_master_admin_announcement=False, is_active=True)
+            announcement = get_object_or_404(
+                Announcement.objects.filter(own_filter, is_admin_announcement=True,
+                    is_master_admin_announcement=False, is_active=True), pk=pk
+            )
             if action == "delete_announcement":
                 announcement.is_active = False
                 announcement.save(update_fields=["is_active", "updated_at"])
@@ -13167,73 +13971,141 @@ def admin_announcements(request):
             messages.error(request, "Please enter an announcement message.")
             return redirect("admin_announcements")
         send_to = request.POST.get("send_to", "team")
-
         if send_to == "leads":
-            # All departments: Team Leads only.
-            recipients = recipients.filter(
-                job_Position__iexact="Team Lead"
-            )
-
+            recipients = recipients.filter(job_Position__iexact="Team Lead")
         elif send_to == "team":
-            # All departments: Team Leads + Team Members.
-            # The existing recipients queryset already includes both roles.
             pass
-
         elif send_to == "selected":
-            # Only the selected Team Leads / Team Members.
             try:
-                ids = {
-                    int(value)
-                    for value in request.POST.getlist("recipient_ids")
-                }
+                ids = {int(value) for value in request.POST.getlist("recipient_ids")}
             except (ValueError, TypeError):
                 messages.error(request, "Select valid recipients.")
                 return redirect("admin_announcements")
-
             recipients = recipients.filter(pk__in=ids)
-
             if not ids or recipients.count() != len(ids):
-                messages.error(
-                    request,
-                    "Select valid Team Leads or Team Members."
-                )
+                messages.error(request, "Select valid Team Leads or Team Members.")
                 return redirect("admin_announcements")
-
         else:
             messages.error(request, "Invalid recipient option.")
-            return redirect("admin_announcements")        
+            return redirect("admin_announcements")
         recipients = list(recipients)
         if not recipients:
             messages.error(request, "Select at least one Team Lead or Team Member.")
             return redirect("admin_announcements")
         sender = {"admin_created_by": owner["auth_owner"]} if "auth_owner" in owner else {"created_by": owner["management_owner"]}
         with transaction.atomic():
-            announcement = Announcement.objects.create(
-                title="Admin Announcement", message=message,
-                is_admin_announcement=True, **sender,
-            )
+            announcement = Announcement.objects.create(title="Admin Announcement", message=message,
+                is_admin_announcement=True, **sender)
             AnnouncementRecipient.objects.bulk_create([
-                AnnouncementRecipient(announcement=announcement, recipient=user)
-                for user in recipients
+                AnnouncementRecipient(announcement=announcement, recipient=user) for user in recipients
             ])
-        from .notification_signals import (
-            queue_announcement_recipient_notifications,
-        )
+        from .notification_signals import queue_announcement_recipient_notifications
         queue_announcement_recipient_notifications(announcement.pk)
         messages.success(request, "Announcement sent successfully.")
         return redirect("admin_announcements")
-    response = render(request, "admin_panel/admin_announcements.html", {
-        "announcements": Announcement.objects.filter(is_admin_announcement=True, is_master_admin_announcement=False, is_active=True).prefetch_related("recipients__recipient").order_by("-created_at", "-pk")[:50],
-        "team_members": recipients,
-        "lead_announcements": Announcement.objects.filter(
-            is_admin_announcement=False, is_active=True,
-            created_by__job_Position__iexact="Team Lead",
-        ).select_related("created_by", "created_by__department").order_by("-created_at", "-pk"),
-    })
 
+    own_announcements = Announcement.objects.filter(
+        own_filter, is_admin_announcement=True, is_master_admin_announcement=False, is_active=True
+    ).prefetch_related("recipients__recipient").order_by("-created_at", "-pk")[:50]
+
+    lead_announcements = list(
+        Announcement.objects.filter(
+            is_admin_announcement=False,
+            is_master_admin_announcement=False,
+            is_active=True,
+            created_by__job_Position__iexact="Team Lead",
+        )
+        .select_related("created_by", "created_by__department")
+        .order_by("-created_at", "-pk")
+    )
+
+    owner_field = (
+        "management_owner"
+        if "management_owner" in owner
+        else "auth_owner"
+    )
+    owner_obj = owner[owner_field]
+
+    lead_event_keys = []
+
+    for item in lead_announcements:
+        event_key = (
+            f"feed:announcement:{item.pk}:published:"
+            f"{owner_field}_id:{owner_obj.pk}"
+        )
+        lead_event_keys.append(event_key)
+
+        AdminNotification.objects.get_or_create(
+            event_key=event_key,
+            defaults={
+                f"{owner_field}_id": owner_obj.pk,
+                "kind": "announcement",
+                "title": "Team Lead announcement",
+                "message": item.title or "Team Announcement",
+                "url": reverse("admin_announcements"),
+                "is_read": False,
+                "is_archived": False,
+            },
+        )
+
+    # Active Team Lead announcements-ന്റെ notification മാത്രം count ചെയ്യുക.
+    lead_notifications = AdminNotification.objects.filter(
+        owner_filter,
+        kind="announcement",
+        is_archived=False,
+        event_key__in=lead_event_keys,
+    )
+
+    lead_read_keys = set(
+        lead_notifications.filter(is_read=True)
+        .values_list("event_key", flat=True)
+    )
+
+    lead_unread_count = lead_notifications.filter(is_read=False).count()
+
+    for item in lead_announcements:
+        item_key = (
+            f"feed:announcement:{item.pk}:published:"
+            f"{owner_field}_id:{owner_obj.pk}"
+        )
+        item.admin_seen = item_key in lead_read_keys
+    for item in lead_announcements:
+        item_key = (
+            f"feed:announcement:{item.pk}:published:"
+            f"{owner_field}_id:{owner_obj.pk}"
+        )
+        item.admin_seen = item_key in lead_read_keys
+
+    master_announcements = list(Announcement.objects.filter(
+        is_master_admin_announcement=True, is_active=True,
+        recipients__recipient=owner["management_owner"],
+    ).distinct().order_by("-created_at", "-pk")[:100]) if "management_owner" in owner else []
+    # Auth superadmins are recipients through AnnouncementAuthRecipient rather than custom User rows.
+    if "auth_owner" in owner:
+        master_announcements = list(Announcement.objects.filter(
+            is_master_admin_announcement=True, is_active=True,
+            auth_recipients__recipient=owner["auth_owner"],
+        ).distinct().order_by("-created_at", "-pk")[:100])
+    master_notifications = AdminNotification.objects.filter(owner_filter, kind="announcement", is_archived=False,
+        event_key__startswith="master-announcement:")
+    master_read = set(master_notifications.filter(is_read=True).values_list("event_key", flat=True))
+    master_unread_count = master_notifications.filter(is_read=False).count()
+    for item in master_announcements:
+        item.admin_seen = f"master-announcement:{item.pk}:{master_key}" in master_read
+
+    response = render(request, "admin_panel/admin_announcements.html", {
+        "announcements": own_announcements,
+        "team_members": recipients,
+        "lead_announcements": lead_announcements,
+        "master_announcements": master_announcements,
+        "lead_unread_count": lead_unread_count,
+        "master_unread_count": master_unread_count,
+    })
     if request.method == "GET" and request.GET.get("format") == "json":
         return JsonResponse({"ok": True, "html": response.content.decode(response.charset)})
     return response
+
+
 
 
 from pathlib import Path

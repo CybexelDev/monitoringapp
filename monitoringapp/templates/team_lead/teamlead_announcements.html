@@ -2341,8 +2341,9 @@ body.tl-announcements-page .seen-member-details{min-width:0}
 
             <section class="dashboard-content">
 <div class="announcement-tabs" role="tablist" aria-label="Announcement sections">
-<button type="button" id="myAnnouncementTab" class="announcement-tab active" role="tab" aria-selected="true" aria-controls="myAnnouncementPanel" tabindex="0"><i data-lucide="megaphone" aria-hidden="true"></i><span>My Announcements</span><span class="announcement-tab-count">{{ announcements|length }}</span></button>
-<button type="button" id="adminAnnouncementTab" class="announcement-tab" role="tab" aria-selected="false" aria-controls="adminAnnouncementPanel" tabindex="-1"><i data-lucide="shield" aria-hidden="true"></i><span>Admin Announcements</span><span class="announcement-tab-count">{{ admin_received|length }}</span></button>
+<button type="button" id="myAnnouncementTab" class="announcement-tab active" role="tab" aria-selected="true" aria-controls="myAnnouncementPanel" tabindex="0"><i data-lucide="megaphone" aria-hidden="true"></i><span>My Announcements</span></button>
+<button type="button" id="adminAnnouncementTab" class="announcement-tab" role="tab" aria-selected="false" aria-controls="adminAnnouncementPanel" tabindex="-1"><i data-lucide="shield" aria-hidden="true"></i><span>Admin Announcements</span><span class="announcement-tab-count">{{ admin_announcement_unread_count }}</span></button>
+<button type="button" id="masterAdminAnnouncementTab" class="announcement-tab" role="tab" aria-selected="false" aria-controls="masterAdminAnnouncementPanel" tabindex="-1"><i data-lucide="shield-check" aria-hidden="true"></i><span>Master Admin</span><span class="announcement-tab-count">{{ master_admin_announcement_unread_count }}</span></button>
 </div>
 <div id="myAnnouncementPanel" class="announcement-tab-panel" role="tabpanel" aria-labelledby="myAnnouncementTab">
 
@@ -2878,7 +2879,7 @@ body.tl-announcements-page .seen-member-details{min-width:0}
 <div class="history-top"><span class="history-label">Recent admin announcements</span><span class="history-count">{{ admin_received|length }} Announcements</span></div>
 <div class="announcement-list">
 {% for row in admin_received %}
-<article class="announcement-item admin-announcement-card" tabindex="0" data-announcement-id="{{ row.announcement_id }}" aria-label="Announcement: select to mark as seen" data-seen-url="{% url 'teamlead_admin_announcement_seen' row.announcement_id %}">
+<article class="announcement-item admin-announcement-card" tabindex="0" data-announcement-id="{{ row.announcement_id }}" aria-label="Announcement: select to mark as seen" data-seen-url="{% url 'teamlead_admin_announcement_seen' row.announcement_id %}" data-source-label="Admin">
 <div class="announcement-icon"><i data-lucide="megaphone" aria-hidden="true"></i></div>
 <div class="announcement-body">
 <div class="announcement-title-row"><h3 class="announcement-title">{{ row.announcement.title|default:'Admin Announcement' }}</h3><div class="announcement-actions"><button type="button" class="announcement-action view-action admin-announcement-view" title="View announcement" aria-label="View announcement"><i data-lucide="eye" aria-hidden="true"></i></button></div></div>
@@ -2888,6 +2889,24 @@ body.tl-announcements-page .seen-member-details{min-width:0}
 <form hidden method="post" action="{% url 'teamlead_admin_announcement_seen' row.announcement_id %}">{% csrf_token %}</form>
 </div></article>
 {% empty %}<div class="empty-state"><i data-lucide="megaphone-off" aria-hidden="true"></i><div>No admin announcements yet.</div></div>{% endfor %}
+</div></section>
+</div>
+<div id="masterAdminAnnouncementPanel" class="announcement-tab-panel" role="tabpanel" aria-labelledby="masterAdminAnnouncementTab" hidden>
+<div class="section-heading"><div class="section-title-block"><span class="section-eyebrow">MASTER ADMIN COMMUNICATION</span><h2>Master Admin Announcements</h2></div><div class="heading-line"></div></div>
+<section class="history-card">
+<div class="history-top"><span class="history-label">Recent Master Admin announcements</span><span class="history-count">{{ master_admin_received|length }} Announcements</span></div>
+<div class="announcement-list">
+{% for row in master_admin_received %}
+<article class="announcement-item admin-announcement-card" tabindex="0" data-announcement-id="{{ row.announcement_id }}" aria-label="Master Admin announcement: select to mark as seen" data-seen-url="{% url 'teamlead_admin_announcement_seen' row.announcement_id %}?source=master" data-source-label="Master Admin">
+<div class="announcement-icon"><i data-lucide="shield-check" aria-hidden="true"></i></div>
+<div class="announcement-body">
+<div class="announcement-title-row"><h3 class="announcement-title">{{ row.announcement.title|default:'Master Admin Announcement' }}</h3><div class="announcement-actions"><button type="button" class="announcement-action view-action admin-announcement-view" title="View announcement" aria-label="View announcement"><i data-lucide="eye" aria-hidden="true"></i></button></div></div>
+<p class="announcement-message admin-message-preview">{{ row.announcement.message }}</p>
+<div class="announcement-footer"><div class="announcement-meta"><strong>Master Admin</strong> · {{ row.announcement.created_at|localtime|date:'d M Y, h:i A' }}</div><span class="admin-read-label{% if row.read_at %} is-seen{% endif %}">{% if row.read_at %}Seen{% else %}New{% endif %}</span></div>
+<template class="admin-full-message">{{ row.announcement.message }}</template>
+<form hidden method="post" action="{% url 'teamlead_admin_announcement_seen' row.announcement_id %}?source=master">{% csrf_token %}</form>
+</div></article>
+{% empty %}<div class="empty-state"><i data-lucide="megaphone-off" aria-hidden="true"></i><div>No Master Admin announcements yet.</div></div>{% endfor %}
 </div></section>
 </div>
             </section>
@@ -3325,15 +3344,15 @@ document.addEventListener("keydown", function (event) {
 <div id="tlAnnouncementFeedback" role="status" hidden></div>
 {% include "components/toast_notification.html" %}
 <div class="seen-modal" id="adminAnnouncementViewModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="adminAnnouncementViewTitle">
-<div class="seen-modal-card"><div class="seen-modal-header"><div><span class="seen-modal-eyebrow">ADMIN ANNOUNCEMENT</span><h3 id="adminAnnouncementViewTitle"></h3><p id="adminAnnouncementViewDate"></p></div><button type="button" class="seen-modal-close" id="adminAnnouncementViewClose" aria-label="Close announcement"><i data-lucide="x" aria-hidden="true"></i></button></div><div class="seen-modal-body"><p id="adminAnnouncementViewMessage"></p></div></div></div>
+<div class="seen-modal-card"><div class="seen-modal-header"><div><span class="seen-modal-eyebrow" id="announcementViewEyebrow">ADMIN ANNOUNCEMENT</span><h3 id="adminAnnouncementViewTitle"></h3><p id="adminAnnouncementViewDate"></p></div><button type="button" class="seen-modal-close" id="adminAnnouncementViewClose" aria-label="Close announcement"><i data-lucide="x" aria-hidden="true"></i></button></div><div class="seen-modal-body"><p id="adminAnnouncementViewMessage"></p></div></div></div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   'use strict';
-  const panel = document.getElementById('adminAnnouncementPanel');
+  const panels = ['adminAnnouncementPanel','masterAdminAnnouncementPanel'].map(id => document.getElementById(id)).filter(Boolean);
   const modal = document.getElementById('adminAnnouncementViewModal');
   const close = document.getElementById('adminAnnouncementViewClose');
-  if (!panel || !modal) return;
+  if (!panels.length || !modal) return;
   let pending = null, sequence = 0, paused = false, expired = false, busy = false;
   let trigger = null, viewId = null, previousOverflow = '', toastTimer;
   const marking = new Set();
@@ -3382,14 +3401,17 @@ document.addEventListener('DOMContentLoaded', () => {
     for(const [id, value] of [
       ['adminAnnouncementViewTitle',card.querySelector('.announcement-title').textContent],
       ['adminAnnouncementViewMessage',card.querySelector('template').content.textContent],
-      ['adminAnnouncementViewDate',card.querySelector('.announcement-meta').textContent]
+      ['adminAnnouncementViewDate',card.querySelector('.announcement-meta').textContent],
+      ['announcementViewEyebrow',(card.dataset.sourceLabel || 'Admin').toUpperCase() + ' ANNOUNCEMENT']
     ]){const target=document.getElementById(id);if(target.textContent!==value)target.textContent=value;}
   }
   function apply(page) {
     let changed = false;
     // Keep the create form and open inline edits intact.
     if (!editing() && !document.querySelector('.seen-modal.open')) changed = replaceContent(document.getElementById('tlOwnHistory'),page.getElementById('tlOwnHistory')) || changed;
-    changed = replaceContent(panel,page.getElementById('adminAnnouncementPanel')) || changed;
+    for (const id of ['adminAnnouncementPanel','masterAdminAnnouncementPanel']) {
+      changed = replaceContent(document.getElementById(id),page.getElementById(id)) || changed;
+    }
     const holder = document.getElementById('tlSeenModals'), nextHolder = page.getElementById('tlSeenModals');
     if (holder && nextHolder) {
       const open = holder.querySelector('.seen-modal.open');
@@ -3399,13 +3421,13 @@ document.addEventListener('DOMContentLoaded', () => {
         else window.closeSeenModal?.();
       } else changed = replaceContent(holder,nextHolder) || changed;
     }
-    for (const id of ['myAnnouncementTab','adminAnnouncementTab']) {
+    for (const id of ['myAnnouncementTab','adminAnnouncementTab','masterAdminAnnouncementTab']) {
       const current = document.querySelector('#'+id+' .announcement-tab-count');
       const next = page.querySelector('#'+id+' .announcement-tab-count');
       if (current && next) current.textContent = next.textContent;
     }
     if (viewId && modal.classList.contains('open')) {
-      const card = [...panel.querySelectorAll('.admin-announcement-card')].find(item => item.dataset.announcementId === viewId);
+      const card = panels.flatMap(item => [...item.querySelectorAll('.admin-announcement-card')]).find(item => item.dataset.announcementId === viewId);
       if (card) { const top = modal.querySelector('.seen-modal-body').scrollTop; fillView(card); modal.querySelector('.seen-modal-body').scrollTop = top; }
       else closeView();
     }
@@ -3422,10 +3444,27 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
       if (!data.ok || typeof data.html !== 'string' || token !== sequence || controller.signal.aborted || !active() || busy || marking.size) return;
       const page = new DOMParser().parseFromString(data.html,'text/html');
-      if (page.getElementById('adminAnnouncementPanel')) apply(page);
+      if (page.getElementById('adminAnnouncementPanel') && page.getElementById('masterAdminAnnouncementPanel')) apply(page);
     } catch (_) { /* Visible-page polling recovers temporary connection failures. */ }
     finally { if (pending === controller) pending = null; }
   }
+  function updateAnnouncementDot(count) {
+    const icon = document.querySelector('.sidebar-announcement-icon');
+    if (!icon) return;
+
+    let dot = icon.querySelector('.sidebar-announcement-dot');
+
+    if (count > 0) {
+        if (!dot) {
+            dot = document.createElement('span');
+            dot.className = 'sidebar-announcement-dot';
+            dot.setAttribute('aria-label', 'Unread announcements');
+            icon.appendChild(dot);
+        }
+    } else if (dot) {
+        dot.remove();
+    }
+}
   async function markSeen(card) {
     const id = card.dataset.announcementId, label = card.querySelector('.admin-read-label');
     if (!active() || busy || !label || label.classList.contains('is-seen') || marking.has(id)) return;
@@ -3433,11 +3472,20 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const response = await request(card.dataset.seenUrl,{method:'POST',body:new FormData(card.querySelector('form')),headers:{'X-Requested-With':'XMLHttpRequest'}});
       if (!response.ok) throw new Error('Unable to mark announcement as seen.');
-      const data = await response.json(); if (!data.ok) throw new Error(data.message || 'Unable to mark announcement as seen.');
-      label.textContent = 'Seen'; label.classList.add('is-seen');
+const data = await response.json();
+
+if (!data.ok) {
+    throw new Error(data.message || 'Unable to mark announcement as seen.');
+}
+
+label.textContent = 'Seen';
+label.classList.add('is-seen');
+
+updateAnnouncementDot(Number(data.unread_count || 0));
     } catch (error) { toast(error.message,'error'); }
     finally { marking.delete(id); refresh(); }
   }
+  
   function openView(card, button) {
     trigger = button; viewId = card.dataset.announcementId; previousOverflow = document.body.style.overflow;
     fillView(card); modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; close.focus();
@@ -3446,12 +3494,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!modal.classList.contains('open')) return;
     modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); document.body.style.overflow=previousOverflow;
     if (trigger?.isConnected) trigger.focus();
-    else [...panel.querySelectorAll('.admin-announcement-card')].find(item => item.dataset.announcementId === viewId)?.querySelector('.admin-announcement-view')?.focus();
+    else panels.flatMap(item => [...item.querySelectorAll('.admin-announcement-card')]).find(item => item.dataset.announcementId === viewId)?.querySelector('.admin-announcement-view')?.focus();
     viewId=null; trigger=null;
   }
-  panel.addEventListener('pointerdown',event => { const card=event.target.closest('.admin-announcement-card'); if(card && (event.button === undefined || event.button === 0))markSeen(card); });
-  panel.addEventListener('click',event => { const card=event.target.closest('.admin-announcement-card'); if(!card)return; markSeen(card); const button=event.target.closest('.admin-announcement-view'); if(button)openView(card,button); });
-  panel.addEventListener('keydown',event => { if(event.target.matches('.admin-announcement-card') && ['Enter',' '].includes(event.key)){event.preventDefault();markSeen(event.target);} });
+  panels.forEach(panel => {
+    panel.addEventListener('pointerdown',event => { const card=event.target.closest('.admin-announcement-card'); if(card && (event.button === undefined || event.button === 0))markSeen(card); });
+    panel.addEventListener('click',event => { const card=event.target.closest('.admin-announcement-card'); if(!card)return; markSeen(card); const button=event.target.closest('.admin-announcement-view'); if(button)openView(card,button); });
+    panel.addEventListener('keydown',event => { if(event.target.matches('.admin-announcement-card') && ['Enter',' '].includes(event.key)){event.preventDefault();markSeen(event.target);} });
+  });
   close.addEventListener('click',closeView);
   modal.addEventListener('click',event => {if(event.target===modal)closeView();});
   document.addEventListener('keydown',event => {
@@ -3476,7 +3526,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if((response.headers.get('content-type')||'').includes('application/json')){
         const data=await response.json();if(!data.ok)throw new Error(data.message||'Announcement could not be saved.');success=true;toast(data.message||'Changes saved.','success');
       }else{
-        page=new DOMParser().parseFromString(await response.text(),'text/html');if(!page.getElementById('adminAnnouncementPanel'))throw new Error('Session expired or unexpected response.');
+        page=new DOMParser().parseFromString(await response.text(),'text/html');if(!page.getElementById('adminAnnouncementPanel') || !page.getElementById('masterAdminAnnouncementPanel'))throw new Error('Session expired or unexpected response.');
         const alerts=[...page.querySelectorAll('#tlAnnouncementMessages [data-level]')];
         const error=alerts.find(item=>Number(item.dataset.level)>=40);if(error)throw new Error(error.textContent.trim());
         success=alerts.some(item=>Number(item.dataset.level)===25);
@@ -3501,6 +3551,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('online',refresh);window.addEventListener('focus',refresh);
   window.addEventListener('pagehide',()=>{paused=true;invalidate();});window.addEventListener('pageshow',()=>{paused=false;refresh();});
   document.getElementById('adminAnnouncementTab')?.addEventListener('click',refresh);
+  document.getElementById('masterAdminAnnouncementTab')?.addEventListener('click',refresh);
   document.getElementById('myAnnouncementTab')?.addEventListener('click',refresh);
   setInterval(refresh,10000);refresh();
 });

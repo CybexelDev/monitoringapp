@@ -751,6 +751,23 @@ html { background: #08070b; color-scheme: dark; }
     border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.sidebar-announcement-icon {
+    position: relative;
+    overflow: visible;
+}
+
+.sidebar-announcement-dot {
+    position: absolute;
+    top: 0;
+    right: -4px;
+    width: 8px;
+    height: 8px;
+    background-color: #ef4444;
+    border-radius: 50%;
+    z-index: 10;
+    pointer-events: none;
+}
+
 </style>
 
 <!-- =========================================================
@@ -854,21 +871,20 @@ html { background: #08070b; color-scheme: dark; }
         </a>
 
         <!-- Announcements -->
-
         <a
-
             href="{% url 'teamlead_announcements' %}"
-
             class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_announcements' %}active{% endif %}">
 
-            <span class="sidebar-icon">
-
+            <span class="sidebar-icon sidebar-announcement-icon">
                 <i data-lucide="megaphone"></i>
 
+                {% if teamlead_announcement_unread_count > 0 %}
+                    <span class="sidebar-announcement-dot"
+                        aria-label="Unread announcements"></span>
+                {% endif %}
             </span>
 
             <span>Announcements</span>
-
         </a>
 
         <!-- Reports -->

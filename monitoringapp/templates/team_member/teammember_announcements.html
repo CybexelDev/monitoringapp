@@ -617,6 +617,22 @@ html.announcement-dialog-open,html.announcement-dialog-open body,html.announceme
    badge.textContent='Seen';badge.classList.remove('unread');
    const count=page.querySelector('#announcementUnreadCount');
    if(count && Number.isSafeInteger(data.unread_count) && data.unread_count>=0)count.textContent=data.unread_count;
+   // Update the selected sender's unread announcement count.
+    const activeTab = page.querySelector(
+        '.member-announcement-tab[aria-selected="true"]'
+    );
+
+    const tabCount = activeTab?.querySelector(
+        '.member-announcement-tab-count'
+    );
+
+    if (tabCount) {
+        const currentCount = Number.parseInt(
+            tabCount.textContent.trim(), 10
+        ) || 0;
+
+        tabCount.textContent = Math.max(0, currentCount - 1);
+    }
    baseline=fingerprint(page.querySelector('.history-card'));
    window.dispatchEvent(new CustomEvent('member:notifications-changed'));
    notice('Announcement marked as seen.','success');

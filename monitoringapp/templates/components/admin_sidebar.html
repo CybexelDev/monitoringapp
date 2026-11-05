@@ -21,10 +21,24 @@
             <span class="sidebar-icon"><i data-lucide="users" aria-hidden="true"></i></span>
             <span>User Management</span>
         </a>
-        <a href="{% url 'admin_announcements' %}" class="sidebar-item {% if active_route == 'admin_announcements' %}active{% endif %}" {% if active_route == 'admin_announcements' %}aria-current="page"{% endif %}>
-            <span class="sidebar-icon"><i data-lucide="megaphone" aria-hidden="true"></i></span>
-            <span>Announcements</span>
-        </a>
+       
+<a href="{% url 'admin_announcements' %}"
+   class="sidebar-item {% if active_route == 'admin_announcements' %}active{% endif %}"
+   {% if active_route == 'admin_announcements' %}aria-current="page"{% endif %}>
+
+    <span class="sidebar-icon admin-announcement-icon">
+        <i data-lucide="megaphone" aria-hidden="true"></i>
+
+        <span
+    id="adminAnnouncementUnreadDot"
+    class="admin-announcement-unread-dot"
+    {% if admin_announcement_unread_count <= 0 %}hidden{% endif %}
+></span>
+    </span>
+
+    <span>Announcements</span>
+</a>
+
         <a href="{% url 'admin_reports' %}" class="sidebar-item {% if active_route == 'admin_reports' %}active{% endif %}" {% if active_route == 'admin_reports' %}aria-current="page"{% endif %}>
             <span class="sidebar-icon"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span>
             <span>Reports</span>
@@ -151,6 +165,25 @@ body.admin-workspace #sidebar .sidebar-item > span:last-child { min-width: 0; ov
 }
 @media (prefers-reduced-motion: reduce) {
     body.admin-workspace #sidebar { transition: none !important; }
+}
+.admin-announcement-icon {
+    position: relative;
+}
+
+
+.admin-announcement-unread-dot {
+    position: absolute;
+    top: -2px;
+    right: -4px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border: 2px solid #171827;
+    border-radius: 50%;
+}
+
+.admin-announcement-unread-dot[hidden] {
+    display: none !important;
 }
 </style>
 
@@ -302,5 +335,23 @@ body.admin-workspace #sidebar .sidebar-item > span:last-child { min-width: 0; ov
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initAdminChatBadge, {once: true});
     } else initAdminChatBadge();
+})();
+</script>
+<script>
+(function () {
+    function updateAnnouncementDot(count) {
+        const dot = document.getElementById('adminAnnouncementUnreadDot');
+        if (!dot) return;
+
+        const unreadCount = Number(count);
+
+        if (!Number.isFinite(unreadCount)) return;
+
+        dot.hidden = unreadCount <= 0;
+    }
+
+    window.updateAdminAnnouncementDot = updateAnnouncementDot;
+
+    // Initial state comes from Django template.
 })();
 </script>

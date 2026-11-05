@@ -358,6 +358,11 @@ path("master-admin/projects/<int:pk>/delete/", views.master_admin_project_delete
 path("master-admin/announcements/", views.master_admin_announcements, name="master_admin_announcements"),
 path("portal/announcements/<int:pk>/", views.portal_announcement_detail, name="portal_announcement_detail"),
 path("portal/announcements/<int:pk>/seen/", views.portal_announcement_seen, name="portal_announcement_seen"),
+path(
+    "master-admin/announcements/unread-count/",
+    views.master_admin_announcement_unread_count,
+    name="master_admin_announcement_unread_count",
+),
 path("master-admin/repository/", views.master_admin_repository, name="master_admin_repository"),
 path("master-admin/repository/<str:source>/<int:pk>/update/", views.master_admin_repository_update, name="master_admin_repository_update"),
 path("master-admin/repository/<str:source>/<int:pk>/delete/", views.master_admin_repository_delete, name="master_admin_repository_delete"),

@@ -1395,7 +1395,6 @@ def admin_knowledge_storage():
 
 from django.conf import settings
 
-# Append to monitoringapp/models.py. Keep existing models.
 class AdminNotification(models.Model):
     management_owner = models.ForeignKey("User", null=True, blank=True, on_delete=models.CASCADE, related_name="admin_notifications")
     auth_owner = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.CASCADE, related_name="admin_panel_notifications")
@@ -1487,7 +1486,6 @@ class MasterAdminTaskAudit(models.Model):
     class Meta:
         ordering = ["-created_at", "-pk"]
 
-# APPEND to monitoringapp/models.py. Existing ProjectAssign stays unchanged.
 class MasterAdminProjectAudit(models.Model):
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
         on_delete=models.SET_NULL, related_name="master_project_actions")
@@ -1501,7 +1499,6 @@ class MasterAdminProjectAudit(models.Model):
     class Meta:
         ordering = ["-created_at", "-pk"]
 
-
 class AnnouncementAuthRecipient(models.Model):
     announcement = models.ForeignKey("Announcement", on_delete=models.CASCADE,
         related_name="auth_recipients")
@@ -1514,7 +1511,6 @@ class AnnouncementAuthRecipient(models.Model):
             name="unique_announcement_auth_recipient")]
 
 
-# Append to monitoringapp/models.py. Do not replace existing models.
 class MasterAdminProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name="master_admin_profile")
@@ -1545,7 +1541,6 @@ class ChatPushSubscription(models.Model):
     endpoint_hash = models.CharField(max_length=64, unique=True, editable=False)
     p256dh = models.CharField(max_length=100)
     auth = models.CharField(max_length=32)
-    # Delivery must verify this login session before sending (Step 2).
     session_key = models.TextField(editable=False)
     expiration_time = models.DateTimeField(null=True, blank=True)
     enabled = models.BooleanField(default=True)

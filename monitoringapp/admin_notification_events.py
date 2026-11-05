@@ -247,7 +247,9 @@ def admin_announcement_save(sender, instance, created, **kwargs):
 
     # Exclude the announcement sender from their own Admin feed event.
     owners = []
-    for owner in _admin_recipients():
+    # for owner in _admin_recipients()
+
+    for owner in _report_recipients():
         if (
             instance.created_by_id is not None
             and owner.get("management_owner_id") == instance.created_by_id

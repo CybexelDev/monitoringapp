@@ -1187,6 +1187,24 @@ html {background:#08070b;color-scheme:dark;}
 @media(max-width:480px){
  .glass-sidebar {height:calc(100dvh - 16px);max-height:calc(100dvh - 16px);}
 }
+.sidebar-icon.member-announcement-icon {
+    position: relative;
+    overflow: visible;
+}
+
+.member-announcement-dot {
+    position: absolute;
+    top: -2px;
+    right: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    border: 2px solid #17121f;
+    box-sizing: content-box;
+    z-index: 2;
+    pointer-events: none;
+}
 </style>
 </head>
 <body>
@@ -1249,13 +1267,20 @@ html {background:#08070b;color-scheme:dark;}
                     Dashboard
                 </span>
             </a>
-                        <!-- Announcements -->
-            <a href="{% url 'teammember_announcements' %}"
-               class="sidebar-item {% if request.resolver_match.url_name == 'teammember_announcements' %}active{% endif %}"
-               {% if request.resolver_match.url_name == 'teammember_announcements' %}aria-current="page"{% endif %}>
-                <span class="sidebar-icon"><i data-lucide="megaphone"></i></span>
-                <span>Announcements</span>
-            </a>
+<!-- Announcements -->
+<a href="{% url 'teammember_announcements' %}"
+   class="sidebar-item {% if request.resolver_match.url_name == 'teammember_announcements' %}active{% endif %}"
+   {% if request.resolver_match.url_name == 'teammember_announcements' %}aria-current="page"{% endif %}>
+    <span class="sidebar-icon member-announcement-icon">
+        <i data-lucide="megaphone"></i>
+
+        {% if teammember_announcement_unread_count > 0 %}
+            <span class="member-announcement-dot"
+                  aria-label="Unread announcements"></span>
+        {% endif %}
+    </span>
+    <span>Announcements</span>
+</a>
             <!-- Reports -->
             <a href="{% url 'teammember_reports' %}"
                class="sidebar-item {% if request.resolver_match.url_name == 'teammember_reports' %}active{% endif %}"

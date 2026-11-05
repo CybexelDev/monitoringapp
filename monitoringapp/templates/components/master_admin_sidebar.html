@@ -13,6 +13,24 @@ body.admin-workspace #masterNotificationBadge{box-sizing:content-box;white-space
 body.admin-workspace #sidebar .sidebar-profile-text{min-width:0}
 @media(max-width:768px){body.admin-workspace #sidebar{max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}body.admin-workspace #sidebar .sidebar-item{min-height:44px}body.admin-workspace #adminMenuButton{touch-action:manipulation}}
 @media(max-height:500px){body.admin-workspace #sidebar .sidebar-nav{padding-top:6px;padding-bottom:6px}}
+
+.sidebar-icon.master-announcement-icon {
+    position: relative;
+    overflow: visible;
+}
+
+.master-announcement-dot {
+    position: absolute;
+    top: -2px;
+    right: -4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ef4444;
+    z-index: 2;
+    pointer-events: none;
+}
+
 </style>
 
 <button id="adminMenuButton" class="menu-toggle mobile-menu-button" type="button" aria-label="Open sidebar" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu" aria-hidden="true"></i></button>
@@ -27,7 +45,21 @@ body.admin-workspace #sidebar .sidebar-profile-text{min-width:0}
     <a href="{% url 'master_admin_usermanagement' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_usermanagement' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_usermanagement' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="user-cog" aria-hidden="true"></i></span><span>User Management</span></a>
     <a href="{% url 'master_admin_departments' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_departments' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_departments' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="building-2" aria-hidden="true"></i></span><span>Departments</span></a>
     <a href="{% url 'master_admin_accounts_overview' %}" class="sidebar-item {% if accounts_active %}active{% endif %}"><span class="sidebar-icon"><i data-lucide="wallet" aria-hidden="true"></i></span><span>Accounts Management</span></a>
-    <a href="{% url 'master_admin_announcements' %}" class="sidebar-item {% if master_announcements_active %}active{% endif %}" {% if master_announcements_active %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="megaphone" aria-hidden="true"></i></span><span>Announcements</span></a>
+
+    <a href="{% url 'master_admin_announcements' %}" data-announcement-count-url="{% url 'master_admin_announcement_unread_count' %}"
+   class="sidebar-item {% if master_announcements_active %}active{% endif %}"
+   {% if master_announcements_active %}aria-current="page"{% endif %}>
+    <span class="sidebar-icon master-announcement-icon">
+        <i data-lucide="megaphone" aria-hidden="true"></i>
+
+        {% if masteradmin_announcement_unread_count > 0 %}
+            <span class="master-announcement-dot"
+                  aria-label="Unread announcements"></span>
+        {% endif %}
+    </span>
+    <span>Announcements</span>
+</a>
+
     <a href="{% url 'master_admin_reports' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_reports' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_reports' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="file-chart-column" aria-hidden="true"></i></span><span>Reports</span></a>
     <a href="{% url 'master_admin_projects' %}" class="sidebar-item {% if master_projects_active %}active{% endif %}" {% if master_projects_active %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="folder-kanban" aria-hidden="true"></i></span><span>Projects</span></a>
     <a href="{% url 'master_admin_notepad' %}" class="sidebar-item {% if master_notepad_active %}active{% endif %}" {% if master_notepad_active %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="notebook-pen" aria-hidden="true"></i></span><span>Notepad</span></a>
@@ -197,4 +229,96 @@ document.addEventListener('DOMContentLoaded',()=>{
   else startMasterChatBadge();
 })();
 
+</script>
+
+<script>
+(() => {
+    if (window.masterAnnouncementDotPollerReady) return;
+    window.masterAnnouncementDotPollerReady = true;
+
+    const link = document.querySelector(
+        '[data-announcement-count-url]'
+    );
+
+    const icon = document.querySelector(
+        '.sidebar-icon.master-announcement-icon'
+    );
+
+    if (!link || !icon) return;
+
+    let pending = false;
+
+    function updateDot(count) {
+        count = Number(count) || 0;
+
+        let dot = icon.querySelector('.master-announcement-dot');
+
+        if (count > 0) {
+            if (!dot) {
+                dot = document.createElement('span');
+                dot.className = 'master-announcement-dot';
+                dot.setAttribute(
+                    'aria-label',
+                    'Unread announcements'
+                );
+                icon.appendChild(dot);
+            }
+        } else if (dot) {
+            dot.remove();
+        }
+    }
+
+    async function refreshAnnouncementCount() {
+        if (pending || document.hidden) return;
+
+        pending = true;
+
+        try {
+            const response = await fetch(
+                link.dataset.announcementCountUrl,
+                {
+                    credentials: 'same-origin',
+                    cache: 'no-store',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }
+            );
+
+            if (!response.ok) return;
+
+            const data = await response.json();
+
+            if (data.ok) {
+                updateDot(data.unread_count);
+            }
+
+        } catch (_) {
+            // Next polling cycle will retry.
+        } finally {
+            pending = false;
+        }
+    }
+
+    window.addEventListener(
+        'master-announcement-count',
+        event => {
+            updateDot(event.detail?.count);
+        }
+    );
+
+    refreshAnnouncementCount();
+
+    setInterval(refreshAnnouncementCount, 15000);
+
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            refreshAnnouncementCount();
+        }
+    });
+
+    window.addEventListener('online', refreshAnnouncementCount);
+
+})();
 </script>
