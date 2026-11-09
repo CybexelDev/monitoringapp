@@ -22,18 +22,20 @@
             <span>User Management</span>
         </a>
        
+<!-- Announcements -->
 <a href="{% url 'admin_announcements' %}"
    class="sidebar-item {% if active_route == 'admin_announcements' %}active{% endif %}"
    {% if active_route == 'admin_announcements' %}aria-current="page"{% endif %}>
 
-    <span class="sidebar-icon admin-announcement-icon">
+    <span class="sidebar-icon sidebar-announcement-icon">
         <i data-lucide="megaphone" aria-hidden="true"></i>
 
         <span
-    id="adminAnnouncementUnreadDot"
-    class="admin-announcement-unread-dot"
-    {% if admin_announcement_unread_count <= 0 %}hidden{% endif %}
-></span>
+            id="adminAnnouncementUnreadDot"
+            class="sidebar-announcement-dot"
+            aria-label="Unread announcements"
+            {% if admin_announcement_unread_count <= 0 %}hidden{% endif %}
+        ></span>
     </span>
 
     <span>Announcements</span>
@@ -166,20 +168,25 @@ body.admin-workspace #sidebar .sidebar-item > span:last-child { min-width: 0; ov
 @media (prefers-reduced-motion: reduce) {
     body.admin-workspace #sidebar { transition: none !important; }
 }
-.admin-announcement-icon {
+.sidebar-announcement-icon {
     position: relative;
+    overflow: visible;
 }
 
-
-.admin-announcement-unread-dot {
+.sidebar-announcement-dot {
     position: absolute;
-    top: -2px;
+    top: 0;
     right: -4px;
     width: 8px;
     height: 8px;
-    background: #ef4444;
-    border: 2px solid #171827;
+    background-color: #ef4444;
     border-radius: 50%;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.sidebar-announcement-dot[hidden] {
+    display: none !important;
 }
 
 .admin-announcement-unread-dot[hidden] {
