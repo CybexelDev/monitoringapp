@@ -207,44 +207,6 @@ def admin_reports(request):
     return render(request, 'admin_panel/admin_reports.html', context)
 
 
-# @never_cache
-# @require_http_methods(["GET", "POST"])
-# def admin_profile(request):
-#     from django.http import HttpResponseForbidden
-#     if _admin_notepad_owner(request) is None:
-#         return HttpResponseForbidden("Admin access required.")
-#     user = _admin_chat_user(request)
-#     if user is None:
-#         return HttpResponseForbidden("A Management employee login is required for this profile.")
-
-#     if request.method == "POST":
-#         action = request.POST.get("action")
-
-#         # AJAX Profile Image Update
-#         if action == "edit_profile" and request.FILES.get("profile_image"):
-#             user.profile_image = request.FILES["profile_image"]
-#             user.save()
-#             return JsonResponse({
-#                 "success": True,
-#                 "image_url": user.profile_image.url
-#             })
-
-#         # Normal form update for other details
-#         elif action == "edit_profile":
-#             user.name = request.POST.get("name")
-#             user.email = request.POST.get("email")
-#             user.phone = request.POST.get("phone")
-#             user.work_location = request.POST.get("work_location", user.work_location)
-#             user.save()
-#             messages.success(request, "Profile updated successfully!")
-#             return redirect("admin_profile")
-
-#     # Render page
-#     response = render(request, "admin_panel/admin_profile.html", {"user": user})
-#     response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-#     response["Pragma"] = "no-cache"
-#     response["Expires"] = "0"
-#     return response
 
 
 @never_cache
@@ -288,19 +250,6 @@ def admin_profile(request):
 
 
 from django.views.decorators.http import require_http_methods, require_POST
-
-# def _admin_managed_users(request):
-#     """Admin portal access; only Team Leads and Team Members are managed here."""
-#     from django.db.models import Q
-#     allowed = request.user.is_authenticated and request.user.is_superuser
-#     if not allowed:
-#         session_user = User.objects.filter(pk=request.session.get("user_id")).first()
-#         allowed = bool(session_user and session_user.status == "active" and
-#                        session_user.job_Position.strip().lower() == "management")
-#     if not allowed:
-#         return None
-#     return User.objects.filter(Q(job_Position__iexact="Team Lead") |
-#                                Q(job_Position__iexact="Team Member"))
 
 
 def _admin_managed_users(request):
@@ -557,207 +506,6 @@ def admin_dashboard(request):
     })
 
 
-# @never_cache
-# @require_http_methods(["GET", "POST"])
-# def admin_usermanagement(request):
-#     from django.http import HttpResponseForbidden
-#     managed_users = _admin_managed_users(request)
-#     if managed_users is None:
-#         return HttpResponseForbidden("Admin access required.")
-
-#     if request.method == "GET" and "designation_department" in request.GET:
-#         from django.http import JsonResponse
-#         from .models import Designation
-#         try:
-#             department_id = int(request.GET.get("designation_department", ""))
-#         except (TypeError, ValueError):
-#             return JsonResponse({"ok": False, "message": "Invalid department."}, status=400)
-#         if not Department.objects.filter(pk=department_id).exists():
-#             return JsonResponse({"ok": False, "message": "Department not found."}, status=404)
-#         names = list(Designation.objects.filter(
-#             department_id=department_id
-#         ).order_by("name").values_list("name", flat=True))
-#         return JsonResponse({"ok": True, "items": names})
-
-#     users = managed_users.select_related("department", "team").order_by("-id")
-
-#     # Hide currently logged-in management/admin user
-#     current_user_id = request.session.get("user_id")
-
-#     if current_user_id:
-#         users = users.exclude(id=current_user_id)
-#     departments = Department.objects.all()
-#     teams = Team.objects.all()
-#     job_positions = (
-#         managed_users.exclude(job_Position__isnull=True)
-#         .exclude(job_Position__exact="")
-#         .values_list('job_Position', flat=True)
-#         .distinct()
-#         .order_by('job_Position')
-#     )
-
-#     if request.method == "POST":
-#         if request.POST.get("job_Position", "") not in {"Team Lead", "Team Member"}:
-#             messages.error(request, "Choose Team Lead or Team Member.")
-#             return redirect("admin_usermanagement")
-#         date_value = request.POST.get("joining_date", "")
-#         if date_value:
-#             try:
-#                 datetime.strptime(date_value, "%Y-%m-%d")
-#             except ValueError:
-#                 messages.error(request, "Enter a valid joining date.")
-#                 return redirect("admin_usermanagement")
-#         user_id = request.POST.get("id")  # for edit (None for new user)
-#         name = request.POST.get("name")
-#         employee_id = request.POST.get("employee_id")
-#         email = request.POST.get("email")
-#         phone = request.POST.get("phone")
-#         department_id = request.POST.get("department")
-#         team_id = request.POST.get("team")
-#         job_Position = request.POST.get("job_Position")
-#         designation = request.POST.get("designation")
-#         work_location = request.POST.get("work_location")
-#         username = request.POST.get("username")
-#         password = request.POST.get("password")
-#         status = request.POST.get("status")
-#         image = request.FILES.get("profile_image")
-#         joining_date = request.POST.get("joining_date")
-
-#         designation = (designation or "").strip()
-#         if not _valid_department_designation(department_id, designation):
-#             messages.error(request, "Choose a designation belonging to the selected department.")
-#             return redirect("admin_usermanagement")
-
-#         # Foreign key fetch
-#         department = Department.objects.get(id=department_id) if department_id else None
-#         team = Team.objects.get(id=team_id) if team_id else None
-
-#         # Helper for uniqueness validation
-#         def check_unique(field_name, value):
-#             qs = User.objects.filter(**{field_name: value})
-#             if user_id:
-#                 qs = qs.exclude(id=user_id)
-#             return qs.exists()
-
-#         # ========== EDIT EXISTING USER ==========
-#         if user_id:
-#             user = get_object_or_404(managed_users, id=user_id)
-
-#             # Uniqueness checks
-#             if check_unique("employee_id", employee_id):
-#                 messages.error(request, "⚠️ Employee ID already exists for another user.")
-#                 return redirect("admin_usermanagement")
-#             if check_unique("username", username):
-#                 messages.error(request, "⚠️ Username already exists for another user.")
-#                 return redirect("admin_usermanagement")
-#             if check_unique("email", email):
-#                 messages.error(request, "⚠️ Email already exists for another user.")
-#                 return redirect("admin_usermanagement")
-
-#             # Update details
-#             user.name = name
-#             user.employee_id = employee_id
-#             user.email = email
-#             user.phone = phone
-#             user.department = department
-#             user.team = team
-#             user.job_Position = job_Position
-#             user.designation = designation
-            
-#             _retain_work_location(user.work_location, work_location)
-        
-#             user.username = username
-#             user.status = status
-
-#             if password:
-#                 user.password = make_password(password)
-#             if image:
-#                 user.profile_image = image
-#             if joining_date:
-#                 try:
-#                     user.joining_date = datetime.strptime(joining_date, "%Y-%m-%d").date()
-#                 except ValueError:
-#                     messages.error(request, "❌ Invalid date format! Use YYYY-MM-DD.")
-#                     return redirect("admin_usermanagement")
-
-#             try:
-#                 user.save()
-#                 messages.success(request, "✅ User updated successfully!")
-#             except IntegrityError as e:
-#                 messages.error(request, f"⚠️ Cannot update user. Unique field conflict ({str(e)})")
-#                 return redirect("admin_usermanagement")
-
-#         # ========== CREATE NEW USER ==========
-#         else:
-#             if check_unique("employee_id", employee_id):
-#                 messages.error(request, "⚠️ Employee ID already exists. Please choose another one.")
-#                 return redirect("admin_usermanagement")
-#             if check_unique("username", username):
-#                 messages.error(request, "⚠️ Username already exists. Please choose another one.")
-#                 return redirect("admin_usermanagement")
-#             if check_unique("email", email):
-#                 messages.error(request, "⚠️ Email already exists. Please choose another one.")
-#                 return redirect("admin_usermanagement")
-
-#             try:
-#                 User.objects.create(
-#                     name=name,
-#                     employee_id=employee_id,
-#                     email=email,
-#                     phone=phone,
-#                     department=department,
-#                     team=team,
-#                     job_Position=job_Position,
-#                     designation=designation,
-#                     work_location=work_location,
-#                     username=username,
-#                     password=make_password(password) if password else "",
-#                     status=status,
-#                     profile_image=image,
-#                     joining_date=datetime.strptime(joining_date, "%Y-%m-%d").date() if joining_date else None,
-#                 )
-#                 messages.success(request, "✅ User created successfully!")
-#             except IntegrityError as e:
-#                 messages.error(request, f"⚠️ Cannot create user. Unique field conflict ({str(e)})")
-#                 return redirect("admin_usermanagement")
-
-#         return redirect("admin_usermanagement")
-
-#     # =======================================================
-#     # ===============   GET REQUEST (FILTERS)   =============
-#     # =======================================================
-
-#     search = request.GET.get("search", "").strip()
-#     department_filter = request.GET.get("department", "")
-#     team_filter = request.GET.get("team", "")
-#     position_filter = request.GET.get("position", "")
-
-#     if search:
-#         users = users.filter(
-#             Q(name__icontains=search) |
-#             Q(email__icontains=search) |
-#             Q(employee_id__icontains=search)
-#         )
-
-#     if department_filter:
-#         users = users.filter(department__name=department_filter)
-
-#     if team_filter:
-#         users = users.filter(team__name=team_filter)
-
-#     if position_filter:
-#         users = users.filter(job_Position=position_filter)
-
-#     context = {
-#         "users": users,
-#         "departments": departments,
-#         "teams": teams,
-#         "job_positions": job_positions,
-#         "designation_options": _department_designation_options(),
-#     }
-#     return render(request, "admin_panel/admin_usermanagement.html", context)
-
-
 @never_cache
 @require_http_methods(["GET", "POST"])
 def admin_usermanagement(request):
@@ -950,117 +698,6 @@ def admin_usermanagement(request):
 
 from django.views.decorators.http import require_POST
 
-# @never_cache
-# @require_POST
-# def edit_user(request):
-#     from django.http import HttpResponseForbidden, JsonResponse
-
-#     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-
-#     def finish(message, ok=False, status=400):
-#         if is_ajax:
-#             payload = {"ok": ok, "message": message}
-#             if ok:
-#                 payload["id"] = user.pk
-#             return JsonResponse(payload, status=200 if ok else status)
-#         if ok:
-#             messages.success(request, message)
-#         else:
-#             messages.error(request, message)
-#         return redirect("admin_usermanagement")
-#     managed_users = _admin_managed_users(request)
-#     if managed_users is None:
-#         if is_ajax:
-#             return JsonResponse({"ok": False, "message": "Admin access required."}, status=403)
-#         return HttpResponseForbidden("Admin access required.")
-
-#     if request.method == "POST":
-#         if request.POST.get("edit_job_position", "") not in {"Team Lead", "Team Member"}:
-#             return finish("Choose Team Lead or Team Member.")
-#         date_value = request.POST.get("edit_joining_date", "")
-#         if date_value:
-#             try:
-#                 datetime.strptime(date_value, "%Y-%m-%d")
-#             except ValueError:
-#                 return finish("Enter a valid joining date.")
-#         user_id = request.POST.get("id")
-#         user = get_object_or_404(managed_users, id=user_id)
-
-#         # Get form values
-#         employee_id = request.POST.get("edit_emp_id")
-#         username = request.POST.get("edit_username")
-#         email = request.POST.get("edit_email")
-#         name = request.POST.get("edit_name")
-#         phone = request.POST.get("edit_phone")
-#         job_position = request.POST.get("edit_job_position")
-#         designation = request.POST.get("edit_designation")
-#         work_location = request.POST.get("edit_work_location")
-#         status = request.POST.get("edit_status")
-#         password = request.POST.get("edit_password")
-#         joining_date = request.POST.get("edit_joining_date")
-#         dept_id = request.POST.get("edit_department")
-#         team_id = request.POST.get("edit_team")
-
-#         designation = (designation or "").strip()
-#         if not _valid_department_designation(dept_id, designation):
-#             return finish("Choose a designation belonging to the selected department.")
-
-#         # ========== Check uniqueness before saving ==========
-#         if User.objects.filter(employee_id=employee_id).exclude(id=user.id).exists():
-#             return finish("⚠️ Employee ID already exists for another user.")
-
-#         if User.objects.filter(username=username).exclude(id=user.id).exists():
-#             return finish("⚠️ Username already exists for another user.")
-
-#         if User.objects.filter(email=email).exclude(id=user.id).exists():
-#             return finish("⚠️ Email already exists for another user.")
-
-#         # ========== Update fields ==========
-#         user.employee_id = employee_id
-#         user.username = username
-#         user.email = email
-#         user.name = name
-#         user.phone = phone
-#         user.job_Position = job_position
-#         user.designation = designation
-#         user.work_location = _retain_work_location(
-#             user.work_location,
-#             work_location
-#         )
-
-#         user.status = status
-
-#         if password:
-#             user.password = make_password(password)
-
-#         # Department & Team
-#         try:
-#             user.department = Department.objects.get(id=dept_id) if dept_id else None
-#             user.team = Team.objects.get(id=team_id) if team_id else None
-#         except (Department.DoesNotExist, Team.DoesNotExist, ValueError, TypeError):
-#             return finish("Choose a valid department and team.")
-
-#         # Joining Date
-#         if joining_date:
-#             try:
-#                 user.joining_date = datetime.strptime(joining_date, "%Y-%m-%d").date()
-#             except ValueError:
-#                 return finish("❌ Invalid date format! Use YYYY-MM-DD.")
-
-#         # Profile Image
-#         if request.FILES.get("edit_profile_upload"):
-#             user.profile_image = request.FILES["edit_profile_upload"]
-
-#         # ========== Save with try-except ==========
-#         try:
-#             user.save()
-
-#         except IntegrityError as e:
-#             return finish("Cannot update user: employee ID, username or email is already in use.")
-
-#         return finish("User updated successfully!", ok=True)
-
-#     return redirect("admin_usermanagement")
 
 
 @never_cache
@@ -1211,22 +848,6 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST, require_http_methods
 from .models import AdminNotepad, User as MonitoringUser
 
-
-# def _admin_notepad_owner(request):
-#     auth_user = request.user
-#     if auth_user.is_authenticated and auth_user.is_active and auth_user.is_superuser:
-#         return {"auth_owner": auth_user}
-#     if request.session.get("position") != "management":
-#         return None
-#     user_id = request.session.get("user_id")
-#     if not user_id:
-#         return None
-#     user = MonitoringUser.objects.filter(
-#         pk=user_id, job_Position__iexact="Management"
-#     ).first()
-#     if user is None:
-#         return None
-#     return {"management_owner": user}
 
 def _admin_notepad_owner(request):
     auth_user = request.user
@@ -1583,14 +1204,6 @@ from django.views.decorators.http import require_http_methods
 from .models import User, Group, GroupMember, GroupMessage
 
 
-# def _admin_chat_user(request):
-#     position = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
-#     if position != "management" or not request.session.get("user_id"):
-#         return None
-#     # Chat identity is the same custom User used by Lead/Member messages.
-#     return User.objects.filter(
-#         pk=request.session["user_id"], job_Position__iexact="Management"
-#     ).first()
 
 
 
@@ -2147,30 +1760,6 @@ from django.views.decorators.http import require_http_methods
 from .models import AdminReminder, AdminNotification
 
 
-# def _process_admin_reminders(owner=None):
-#     now = timezone.now()
-#     due = AdminReminder.objects.filter(is_completed=False, notified_at__isnull=True, remind_at__lte=now)
-#     if owner is not None:
-#         due = due.filter(**owner)
-#     created = 0
-#     for reminder_id in due.values_list("pk", flat=True).iterator():
-#         with transaction.atomic():
-#             reminder = AdminReminder.objects.select_for_update().filter(pk=reminder_id, is_completed=False, notified_at__isnull=True, remind_at__lte=now).first()
-#             if reminder is None:
-#                 continue
-#             recipient = {"management_owner_id": reminder.management_owner_id} if reminder.management_owner_id else {"auth_owner_id": reminder.auth_owner_id}
-#             event = timezone.localtime(reminder.event_at).strftime("%d %b %Y, %I:%M %p")
-#             notification, added = AdminNotification.objects.get_or_create(
-#                 event_key=f"admin-reminder:{reminder.pk}:{reminder.schedule_version}",
-#                 defaults=dict(recipient, kind="reminder", title=reminder.title, message=f"Event: {event}\n{reminder.description}".strip(), url=""),
-#             )
-#             reminder.notification = notification
-#             reminder.notified_at = now
-#             reminder.save(update_fields=["notification", "notified_at", "updated_at"])
-#             created += int(added)
-#     return created
-
-
 def _process_admin_reminders(owner=None):
     import logging
 
@@ -2524,294 +2113,6 @@ def get_logged_in_user_api(request):
 
 
 
-
-# @never_cache
-# def teamlead_edit_member(request):
-
-#     # -----------------------------------------
-#     # TEAM LEAD ACCESS CHECK
-#     # -----------------------------------------
-#     if (
-#         not request.session.get("user_id")
-#         or request.session.get("position") != "team_lead"
-#     ):
-#         return redirect("index")
-
-#     try:
-#         team_lead = User.objects.get(
-#             id=request.session["user_id"]
-#         )
-#     except User.DoesNotExist:
-#         request.session.flush()
-#         return redirect("index")
-
-
-#     # -----------------------------------------
-#     # ONLY POST ALLOWED
-#     # -----------------------------------------
-#     if request.method != "POST":
-#         return redirect("teamlead_dashboard")
-
-
-#     member_id = request.POST.get("id")
-
-#     if not member_id:
-#         messages.error(request, "Member ID is missing.")
-#         return redirect("teamlead_dashboard")
-
-
-#     # -----------------------------------------
-#     # SECURITY:
-#     # ONLY TEAM MEMBERS FROM TL'S DEPARTMENT
-#     # -----------------------------------------
-#     user = get_object_or_404(
-#         User,
-#         id=member_id,
-#         department=team_lead.department,
-#         job_Position__iexact="Team Member",
-#     )
-
-
-#     # -----------------------------------------
-#     # FORM VALUES
-#     # -----------------------------------------
-#     employee_id = request.POST.get("employee_id", "").strip()
-#     username = request.POST.get("username", "").strip()
-#     email = request.POST.get("email", "").strip()
-#     name = request.POST.get("name", "").strip()
-#     phone = request.POST.get("phone", "").strip()
-
-#     job_position = request.POST.get(
-#         "job_position",
-#         "Team Member"
-#     ).strip()
-
-#     designation = request.POST.get(
-#         "designation",
-#         ""
-#     ).strip()
-
-#     work_location = request.POST.get(
-#         "work_location",
-#         ""
-#     ).strip()
-
-#     status = request.POST.get(
-#         "status",
-#         ""
-#     ).strip()
-
-#     password = request.POST.get(
-#         "password",
-#         ""
-#     ).strip()
-
-#     joining_date = request.POST.get(
-#         "joining_date",
-#         ""
-#     ).strip()
-
-#     department_name = request.POST.get(
-#         "department",
-#         ""
-#     ).strip()
-
-#     team_name = request.POST.get(
-#         "team",
-#         ""
-#     ).strip()
-
-
-#     # -----------------------------------------
-#     # UNIQUENESS CHECKS
-#     # -----------------------------------------
-#     if User.objects.filter(
-#         employee_id=employee_id
-#     ).exclude(id=user.id).exists():
-
-#         messages.error(
-#             request,
-#             "Employee ID already exists for another user."
-#         )
-
-#         return redirect("teamlead_dashboard")
-
-
-#     if User.objects.filter(
-#         username=username
-#     ).exclude(id=user.id).exists():
-
-#         messages.error(
-#             request,
-#             "Username already exists for another user."
-#         )
-
-#         return redirect("teamlead_dashboard")
-
-
-#     if User.objects.filter(
-#         email=email
-#     ).exclude(id=user.id).exists():
-
-#         messages.error(
-#             request,
-#             "Email already exists for another user."
-#         )
-
-#         return redirect("teamlead_dashboard")
-
-
-#     # -----------------------------------------
-#     # UPDATE BASIC DETAILS
-#     # -----------------------------------------
-#     user.employee_id = employee_id
-#     user.username = username
-#     user.email = email
-#     user.name = name
-#     user.phone = phone
-
-#     user.designation = designation
-#     user.work_location = work_location
-#     user.status = status
-
-
-#     # -----------------------------------------
-#     # KEEP JOB POSITION AS TEAM MEMBER
-#     # -----------------------------------------
-#     user.job_Position = "Team Member"
-
-
-#     # -----------------------------------------
-#     # DEPARTMENT
-#     # -----------------------------------------
-#     if department_name:
-
-#         try:
-#             department = Department.objects.get(
-#                 name__iexact=department_name
-#             )
-
-#             # Team Lead can only keep member
-#             # inside their own department.
-#             if department.id != team_lead.department_id:
-#                 messages.error(
-#                     request,
-#                     "You can only edit members from your department."
-#                 )
-
-#                 return redirect("teamlead_dashboard")
-
-#             user.department = department
-
-#         except Department.DoesNotExist:
-
-#             messages.error(
-#                 request,
-#                 "Selected department does not exist."
-#             )
-
-#             return redirect("teamlead_dashboard")
-
-
-#     # -----------------------------------------
-#     # TEAM
-#     # -----------------------------------------
-#     if team_name:
-
-#         try:
-#             team = Team.objects.get(
-#                 name__iexact=team_name
-#             )
-
-#             user.team = team
-
-#         except Team.DoesNotExist:
-
-#             messages.error(
-#                 request,
-#                 "Selected team does not exist."
-#             )
-
-#             return redirect("teamlead_dashboard")
-
-#     else:
-
-#         user.team = None
-
-
-#     # -----------------------------------------
-#     # JOINING DATE
-#     # -----------------------------------------
-#     if joining_date:
-
-#         try:
-
-#             user.joining_date = datetime.strptime(
-#                 joining_date,
-#                 "%Y-%m-%d"
-#             ).date()
-
-#         except ValueError:
-
-#             messages.error(
-#                 request,
-#                 "Invalid joining date."
-#             )
-
-#             return redirect("teamlead_dashboard")
-
-#     else:
-
-#         user.joining_date = None
-
-
-#     # -----------------------------------------
-#     # PASSWORD
-#     # Blank = Keep Existing Password
-#     # -----------------------------------------
-#     if password:
-
-#         user.password = make_password(
-#             password
-#         )
-
-
-#     # -----------------------------------------
-#     # PROFILE IMAGE
-#     # -----------------------------------------
-#     if request.FILES.get("profile_image"):
-
-#         user.profile_image = request.FILES[
-#             "profile_image"
-#         ]
-
-
-#     # -----------------------------------------
-#     # SAVE
-#     # -----------------------------------------
-#     try:
-
-#         user.save()
-
-#         messages.success(
-#             request,
-#             "Team member updated successfully."
-#         )
-
-#     except IntegrityError:
-
-#         messages.error(
-#             request,
-#             "Unable to update member because of a unique field conflict."
-#         )
-
-#         return redirect("teamlead_dashboard")
-
-
-#     return redirect("teamlead_dashboard")
-
-
-
 @never_cache
 def teamlead_edit_member(request):
 
@@ -3017,11 +2318,18 @@ def teamlead_edit_member(request):
                 "Invalid joining date."
             )
 
+    if joining_date:
+        try:
+            user.joining_date = datetime.strptime(
+                joining_date,
+                "%Y-%m-%d"
+            ).date()
+
+        except ValueError:
+            messages.error(request, "Invalid joining date.")
             return redirect("teamlead_dashboard")
+    # Blank date: keep the existing joining date (the column cannot be NULL).
 
-    else:
-
-        user.joining_date = None
 
 
     # -----------------------------------------
@@ -3432,16 +2740,10 @@ def teamlead_dashboard(request):
             messages.success(request, "Report schedule updated successfully.")
         return redirect("teamlead_dashboard")
 
-      
-
-
-    
-        # ---------------------------------
+    # ---------------------------------
     # 📢 Team Lead Announcements
     # ---------------------------------
-# ---------------------------------
-# 📢 Team Lead Announcements
-# ---------------------------------
+    
     if request.method == "POST" and request.POST.get("announcement_submit") == "1":
 
         announcement_message = request.POST.get("message", "").strip()
@@ -4008,9 +3310,8 @@ def is_within_time_range(start_time, end_time, now=None):
     now = now or localtime().time()
     return start_time <= now <= end_time
 
-# =========================================================
-# 🎥 TEAM LEAD GOOGLE MEET
-# =========================================================
+
+
 def _queue_google_meet_windows_push(meeting_id, *, edited=False):
     import logging
 
@@ -4474,352 +3775,6 @@ def teamlead_google_meet(request):
     )
 
 
-# @never_cache
-# def teamlead_announcements(request):
-#     # 🔒 Restrict access
-#     if (
-#         not request.session.get("user_id")
-#         or request.session.get("position") != "team_lead"
-#     ):
-#         return redirect("index")
-
-#     try:
-#         team_lead = User.objects.get(
-#             id=request.session["user_id"]
-#         )
-#     except User.DoesNotExist:
-#         request.session.flush()
-#         return redirect("index")
-
-#     if team_lead.job_Position.lower() != "team lead":
-#         return redirect("index")
-
-#     # =========================================================
-#     # 📢 ANNOUNCEMENT ACTIONS
-#     # =========================================================
-
-#     if request.method == "POST":
-
-#         action = request.POST.get("action", "").strip()
-
-#         # =====================================================
-#         # ✏️ EDIT ANNOUNCEMENT
-#         # =====================================================
-
-#         if action == "edit_announcement":
-
-#             announcement_id = request.POST.get(
-#                 "announcement_id"
-#             )
-
-#             edited_message = request.POST.get(
-#                 "message", ""
-#             ).strip()
-
-#             if not edited_message:
-#                 messages.error(
-#                     request,
-#                     "Announcement message cannot be empty."
-#                 )
-#                 return redirect(
-#                     "teamlead_announcements"
-#                 )
-
-#             try:
-#                 announcement = Announcement.objects.get(
-#                     id=announcement_id,
-#                     created_by=team_lead,
-#                     is_active=True
-#                 )
-#             except Announcement.DoesNotExist:
-#                 messages.error(
-#                     request,
-#                     "Announcement not found."
-#                 )
-#                 return redirect(
-#                     "teamlead_announcements"
-#                 )
-
-#             # Update the SAME announcement.
-#             # All existing recipients will see the
-#             # updated message.
-#             announcement.message = edited_message
-#             announcement.save()
-#             from .notification_signals import (
-#                 queue_announcement_recipient_notifications,
-#             )
-
-#             queue_announcement_recipient_notifications(
-#                 announcement.pk,
-#                 event_type="updated",
-#             )
-
-#             messages.success(
-#                 request,
-#                 "Announcement updated successfully."
-#             )
-
-#             return redirect(
-#                 "teamlead_announcements"
-#             )
-
-
-#         # =====================================================
-#         # 🗑️ DELETE ANNOUNCEMENT
-#         # =====================================================
-
-#         elif action == "delete_announcement":
-
-#             announcement_id = request.POST.get(
-#                 "announcement_id"
-#             )
-
-#             try:
-#                 announcement = Announcement.objects.get(
-#                     id=announcement_id,
-#                     created_by=team_lead,
-#                     is_active=True
-#                 )
-#             except Announcement.DoesNotExist:
-#                 messages.error(
-#                     request,
-#                     "Announcement not found."
-#                 )
-#                 return redirect(
-#                     "teamlead_announcements"
-#                 )
-
-#             # Soft delete.
-#             # Recipient records stay safe, but the
-#             # announcement will no longer be displayed.
-#             announcement.is_active = False
-#             announcement.save(
-#                 update_fields=["is_active"]
-#             )
-#             from .notification_signals import (
-#                 queue_announcement_recipient_notifications,
-#             )
-
-#             queue_announcement_recipient_notifications(
-#                 announcement.pk,
-#                 event_type="deleted",
-#             )
-
-#             messages.success(
-#                 request,
-#                 "Announcement deleted successfully."
-#             )
-
-#             return redirect(
-#                 "teamlead_announcements"
-#             )
-
-
-#         # =====================================================
-#         # 📢 CREATE ANNOUNCEMENT
-#         # =====================================================
-
-#         elif action == "create_announcement":
-
-#             announcement_message = request.POST.get(
-#                 "message", ""
-#             ).strip()
-
-#             send_to = request.POST.get(
-#                 "send_to",
-#                 "team"
-#             )
-
-#             selected_member_ids = request.POST.getlist(
-#                 "recipient_ids"
-#             )
-
-#             # Empty message validation
-#             if not announcement_message:
-#                 messages.error(
-#                     request,
-#                     "Please enter an announcement message."
-#                 )
-#                 return redirect(
-#                     "teamlead_announcements"
-#                 )
-
-#             # -------------------------------------------------
-#             # Create announcement
-#             # -------------------------------------------------
-
-#             announcement = Announcement.objects.create(
-#                 title="Team Lead Announcement",
-#                 message=announcement_message,
-#                 created_by=team_lead
-#             )
-
-#             # -------------------------------------------------
-#             # Only Team Members under this Team Lead's
-#             # department
-#             # -------------------------------------------------
-
-#             eligible_members = User.objects.filter(
-#                 department=team_lead.department,
-#                 job_Position__iexact="Team Member"
-#             ).exclude(
-#                 id=team_lead.id
-#             )
-
-#             # -------------------------------------------------
-#             # Send to Entire Team
-#             # -------------------------------------------------
-
-#             if send_to == "team":
-
-#                 recipients = [
-#                     AnnouncementRecipient(
-#                         announcement=announcement,
-#                         recipient=member
-#                     )
-#                     for member in eligible_members
-#                 ]
-
-#                 if recipients:
-#                     AnnouncementRecipient.objects.bulk_create(
-#                         recipients
-#                     )
-
-#                 messages.success(
-#                     request,
-#                     "Announcement sent to the entire team."
-#                 )
-
-
-#             # -------------------------------------------------
-#             # Send to Selected Members
-#             # -------------------------------------------------
-
-#             elif send_to == "selected":
-
-#                 selected_members = eligible_members.filter(
-#                     id__in=selected_member_ids
-#                 )
-
-#                 if not selected_members.exists():
-
-#                     announcement.delete()
-
-#                     messages.error(
-#                         request,
-#                         "Please select at least one team member."
-#                     )
-
-#                     return redirect(
-#                         "teamlead_announcements"
-#                     )
-
-#                 recipients = [
-#                     AnnouncementRecipient(
-#                         announcement=announcement,
-#                         recipient=member
-#                     )
-#                     for member in selected_members
-#                 ]
-
-#                 AnnouncementRecipient.objects.bulk_create(
-#                     recipients
-#                 )
-
-#             #     messages.success(
-#             #         request,
-#             #         "Announcement sent to selected members."
-#             #     )
-
-#             # return redirect(
-#             #     "teamlead_announcements"
-#             # )
-
-#             messages.success(
-#                     request,
-#                     "Announcement sent to selected members."
-#                 )
-
-#             from .notification_signals import (
-#                 queue_announcement_recipient_notifications,
-#             )
-#             queue_announcement_recipient_notifications(announcement.pk)
-
-#             return redirect(
-#                 "teamlead_announcements"
-#             )
-
-
-#     # =========================================================
-#     # 📢 PREVIOUS ANNOUNCEMENTS
-#     # =========================================================
-
-#     announcements = Announcement.objects.filter(
-#     created_by=team_lead,
-#     is_active=True
-# ).prefetch_related(
-#     "recipients__recipient"
-# ).order_by(
-#     "-created_at"
-# )[:20]
-
-
-#     # =========================================================
-#     # 👥 TEAM MEMBERS
-#     # =========================================================
-
-#     team_members = User.objects.filter(
-#         department=team_lead.department,
-#         job_Position__iexact="Team Member"
-#     ).exclude(
-#         id=team_lead.id
-#     ).order_by("name")
-
-#     # =========================================================
-#     # 📊 UNREAD ANNOUNCEMENT COUNTS
-#     # =========================================================
-
-#     my_announcement_unread_count = AnnouncementRecipient.objects.filter(
-#         announcement__created_by=team_lead,
-#         announcement__is_active=True,
-#         read_at__isnull=True
-#     ).values(
-#         "announcement_id"
-#     ).distinct().count()
-
-#     admin_received = _announcement_inbox(team_lead).filter(
-#         announcement__is_admin_announcement=True
-#     ).order_by(
-#         "-announcement__created_at", "-pk"
-#     )
-
-#     admin_announcement_unread_count = admin_received.filter(
-#         read_at__isnull=True
-#     ).count()
-
-
-#     response = render(
-#         request,
-#         "team_lead/teamlead_announcements.html",
-#         # {
-#         #     "announcements": announcements,
-#         #     "team_members": team_members,
-#         #     "team_lead": team_lead,
-#         #     "admin_received": _announcement_inbox(team_lead).filter(announcement__is_admin_announcement=True).order_by("-announcement__created_at", "-pk"),
-#         # }
-#         {
-#             "announcements": announcements,
-#             "team_members": team_members,
-#             "team_lead": team_lead,
-#             "admin_received": admin_received,
-#             "my_announcement_unread_count": my_announcement_unread_count,
-#             "admin_announcement_unread_count": admin_announcement_unread_count,
-#         }
-#     )
-
-#     if request.method == "GET" and request.GET.get("format") == "json":
-#         return JsonResponse({"ok": True, "html": response.content.decode(response.charset)})
-#     return response
 
 @never_cache
 def teamlead_announcements(request):
@@ -6420,8 +5375,6 @@ def project_assign_delete(request, pk):
     return redirect("teamlead_project_assigning")
 
 
-
-
 def update_project_status(request, pk):
     user_id = request.session.get("user_id")  
     if not user_id:
@@ -6630,42 +5583,6 @@ def teammember_notepad_delete(request, pk):
 from django.shortcuts import redirect, get_object_or_404
 from django.views.decorators.cache import never_cache
 
-# @never_cache
-# def teamlead_profile(request):
-#     user_id = request.session.get("user_id")
-#     if not user_id:
-#         return redirect("index")
-
-#     user = get_object_or_404(User, id=user_id)
-
-#     if request.method == "POST":
-#         action = request.POST.get("action")
-
-#         # AJAX Profile Image Update
-#         if action == "edit_profile" and request.FILES.get("profile_image"):
-#             user.profile_image = request.FILES["profile_image"]
-#             user.save()
-#             return JsonResponse({
-#                 "success": True,
-#                 "image_url": user.profile_image.url
-#             })
-
-#         # Normal form update for other details
-#         elif action == "edit_profile":
-#             user.name = request.POST.get("name")
-#             user.email = request.POST.get("email")
-#             user.phone = request.POST.get("phone")
-#             user.work_location = request.POST.get("work_location")
-#             user.save()
-#             messages.success(request, "Profile updated successfully!")
-#             return redirect("teamlead_profile")
-
-#     # Render page
-#     response = render(request, "team_lead/teamlead_profile.html", {"user": user})
-#     response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-#     response["Pragma"] = "no-cache"
-#     response["Expires"] = "0"
-#     return response
 
 @never_cache
 def teamlead_profile(request):
@@ -6738,44 +5655,6 @@ def teammember_announcements(request):
     })
 
 
-# @never_cache
-# @require_POST
-# def teammember_announcement_seen(request, pk):
-#     """Opening a member's own announcement records its first read time."""
-#     member = _announcement_role_user(request, "team_member")
-#     if member is None:
-#         return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
-#     user_id = member.pk
-#     recipients = _announcement_inbox(member)
-#     row = get_object_or_404(
-#         recipients.select_related("announcement", "announcement__created_by"),
-#         announcement_id=pk,
-#     )
-#     # Keep the first read timestamp; repeated views must not overwrite it.
-#     first_seen = recipients.filter(announcement_id=pk, read_at__isnull=True).update(read_at=timezone.now())
-#     if first_seen and not row.announcement.is_admin_announcement:
-#         member = get_object_or_404(User, pk=user_id)
-#         TeamLeadNotification.objects.get_or_create(
-#             event_key=f"announcement-seen:{pk}:{user_id}",
-#             defaults={
-#                 "recipient": row.announcement.created_by, "kind": "announcement",
-#                 "title": "Announcement seen",
-#                 "message": f"{member.name} saw your announcement: {row.announcement.title}",
-#                 "url": reverse("teamlead_announcements"),
-#             },
-#         )
-#     announcement = row.announcement
-#     author_name = announcement.author_name
-#     created = timezone.localtime(announcement.created_at).strftime("%d %b %Y, %I:%M %p")
-#     return JsonResponse({
-#         "ok": True,
-#         "title": announcement.title or "Team Announcement",
-#         "message": announcement.message,
-#         "meta": f"Posted by {author_name} · {created}",
-#         "unread_count": recipients.filter(read_at__isnull=True).count(),
-#     })
-
-
 @never_cache
 @require_POST
 def teammember_announcement_seen(request, pk):
@@ -6815,8 +5694,6 @@ def teammember_announcement_seen(request, pk):
         "meta": f"Posted by {author_name} · {created}",
         "unread_count": recipients.filter(read_at__isnull=True).count(),
     })
-
-
 
 
 from django.shortcuts import get_object_or_404, redirect, render
@@ -7380,7 +6257,6 @@ def delete_task_teamlead(request, task_id):
     return redirect("teamlead_task")
 
 
-
 @never_cache
 def teamlead_logout(request):
     if "user_id" in request.session:
@@ -7427,7 +6303,6 @@ def teammember_logout(request):
 
 
 def update_inactive_users():
-    # Heartbeats from several tabs must not all run the same bulk write.
     from django.core.cache import cache
 
     if not cache.add("monitoring:inactive-presence-sweep:v1", True, timeout=30):
@@ -7461,8 +6336,6 @@ def update_activity(request):
     return JsonResponse({"success": True, "status": "active"})
 
 
-
-
 def get_user_status(request, user_id):
     from datetime import timedelta
     from django.http import JsonResponse
@@ -7485,8 +6358,6 @@ def get_user_status(request, user_id):
     })
     response["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     return response
-
-
 
 from django.views.decorators.http import require_POST
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -7906,53 +6777,6 @@ def teammember_project(request):
 
     return render(request, "team_member/teammember_project.html", {"projects": projects})
 
-
-# @never_cache
-# def teammember_profile(request):
-#     user_id = request.session.get("user_id")
-#     if not user_id:
-#         return redirect("index")
-
-#     user = get_object_or_404(User, id=user_id)
-
-#     if request.method == "POST":
-#         action = request.POST.get("action")
-
-#         # Profile image AJAX upload
-#         if action == "edit_profile" and request.FILES.get("profile_image"):
-#             user.profile_image = request.FILES["profile_image"]
-#             user.save()
-#             _notify_member_operation(user, "profile", "Profile image updated", "Your profile image was updated.", "teammember_profile")
-
-#             # Check if AJAX
-#             if request.headers.get("x-requested-with") == "XMLHttpRequest":
-#                 return JsonResponse({
-#                     "success": True,
-#                     "image_url": user.profile_image.url
-#                 })
-
-#             # fallback redirect for normal form submit
-#             messages.success(request, "Profile image updated successfully!")
-#             return redirect("teammember_profile")
-
-#         # Normal form update (other details)
-#         elif action == "edit_profile":
-#             user.name = request.POST.get("name")
-#             user.email = request.POST.get("email")
-#             user.phone = request.POST.get("phone")
-#             user.work_location = request.POST.get("work_location")
-
-#             if "profile_image" in request.FILES:
-#                 user.profile_image = request.FILES["profile_image"]
-
-#             user.save()
-#             _notify_member_operation(user, "profile", "Profile updated", "Your profile details were updated.", "teammember_profile")
-#             messages.success(request, "Profile updated successfully!")
-#             return redirect("teammember_profile")
-
-#     return render(request, "team_member/teammember_profile.html", {"user": user})
-
-
 @never_cache
 def teammember_profile(request):
     user_id = request.session.get("user_id")
@@ -8322,7 +7146,6 @@ def teammember_notification_open(request, notification_id):
             target = notification.url
         return redirect(target)
     return redirect("teammember_notifications")
-
 
 
 """Team Member chat pages, sharing Lead conversations and group messages."""
@@ -8980,9 +7803,6 @@ def accounts_income(request):
         "month_income": income_total(all_entries.filter(date__range=(month_start, month_end))),
         "month_label": month_start.strftime("%B %Y"),
     }, status=400 if request.method == "POST" or filter_error else 200)
-
-
-
 
 @never_cache
 @require_POST
@@ -9647,52 +8467,6 @@ def accounts_sales(request):
     }, status=400 if request.method == "POST" or filter_error else 200)
 
 
-# @never_cache
-# @require_http_methods(["GET", "POST"])
-# def accounts_sale_edit(request, pk):
-#     actor = _accounts_user(request)
-#     if actor is None:
-#         return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
-#             status=403 if request.session.get("user_id") else 401)
-#     with transaction.atomic():
-#         sale = AccountsSale.objects.select_for_update().filter(pk=pk).first()
-#         if sale is None:
-#             return JsonResponse({"ok": False, "message": "This sale no longer exists."}, status=404)
-#         if request.method == "GET":
-#             return JsonResponse({"ok": True, "item": {
-#                 "date": sale.date.isoformat(), "customer_name": sale.customer_name,
-#                 "invoice_number": sale.invoice_number, "description": sale.description,
-#                 "amount": str(sale.amount), "due_date": sale.due_date.isoformat() if sale.due_date else ""},
-#                 "invoice_url": reverse("accounts_sale_invoice", args=[sale.pk]) if sale.invoice_file else "",
-#                 "received_amount": str(sale.received_amount)})
-#         before = {"date": sale.date.isoformat(), "customer_name": sale.customer_name,
-#             "invoice_number": sale.invoice_number, "amount": str(sale.amount)}
-#         form = AccountsSaleForm(request.POST, request.FILES, instance=sale)
-#         if not form.is_valid():
-#             return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
-#                 "errors": form.errors.get_json_data()}, status=400)
-#         if (any(str(form.cleaned_data.get(key) or "") != value for key, value in before.items())
-#                 and _sale_duplicate(form, sale.pk) and request.POST.get("confirm_duplicate") != "1"):
-#             return _sale_duplicate_response()
-#         sale = form.save(commit=False)
-#         if request.POST.get("remove_invoice") == "1" and not request.FILES.get("invoice_file"):
-#             sale.invoice_file = ""
-#             sale.save()
-#         _create_accounts_notification(
-#             kind="sale",
-#             title="Sale updated",
-#             message=(
-#                 f"{actor.name} updated sale "
-#                 f"#{sale.pk} for {sale.customer_name}: "
-#                 f"₹{sale.amount:,.2f}."
-#             ),
-#             actor=actor,
-#         )
-#     return JsonResponse({
-#         "ok": True,
-#         "message": "Sale updated successfully.",
-#         "id": sale.pk,
-#     })
 
 @never_cache
 @require_POST
@@ -10225,27 +8999,7 @@ def accounts_notifications_read_all(request):
         "message": "All notifications marked as read.",
         "unread_count": 0,
     })
-    from django.http import JsonResponse
-    from .models import AccountsNotification
 
-    current_user = _accounts_user(request)
-    if current_user is None:
-        return JsonResponse({
-            "ok": False,
-            "message": "Accounts access required.",
-        }, status=403 if request.session.get("user_id") else 401)
-
-    AccountsNotification.objects.filter(
-        recipient=current_user,
-        is_archived=False,
-        is_read=False,
-    ).update(is_read=True)
-
-    return JsonResponse({
-        "ok": True,
-        "message": "All notifications marked as read.",
-        "unread_count": 0,
-    })
 
 def _process_accounts_reminders(owner):
     from uuid import uuid4
@@ -11198,44 +9952,6 @@ def _master_employee_form(data=None, files=None, instance=None):
     return EmployeeForm(data, files, instance=instance)
 
 
-# def _master_employee_save(request, instance=None):
-#     from django.db import IntegrityError, transaction
-#     from django.http import JsonResponse
-
-#     editing = instance is not None
-#     keys = {
-#         "employee_id": "edit_emp_id", "name": "edit_name", "email": "edit_email",
-#         "phone": "edit_phone", "department": "edit_department", "team": "edit_team",
-#         "job_Position": "edit_job_position", "designation": "edit_designation",
-#         "work_location": "edit_work_location", "username": "edit_username",
-#         "status": "edit_status",
-#     }
-#     data = {key: request.POST.get(source if editing else key, "") for key, source in keys.items()}
-#     data["password_input"] = request.POST.get("edit_password" if editing else "password", "")
-#     data["joining_date_input"] = request.POST.get("edit_joining_date" if editing else "joining_date", "")
-#     image = request.FILES.get("edit_profile_upload" if editing else "profile_image")
-#     files = {"profile_image": image} if image else None
-#     form = _master_employee_form(data, files, instance)
-#     ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-
-#     def result(ok, message, status=400, errors=None, employee=None):
-#         if ajax:
-#             return JsonResponse({"ok": ok, "message": message, "errors": errors or {},
-#                                  "id": employee.pk if employee else None}, status=(200 if editing else 201) if ok else status)
-#         (messages.success if ok else messages.error)(request, message)
-#         return redirect("master_admin_usermanagement")
-
-#     if not form.is_valid():
-#         details = " ".join(f"{form.fields[field].label or field.replace('_', ' ').title()}: {error}"
-#                            for field, errors in form.errors.items() for error in errors if field in form.fields)
-#         return result(False, details or "Please correct the form fields.", errors=form.errors.get_json_data())
-#     try:
-#         with transaction.atomic():
-#             employee = form.save()
-#     except IntegrityError:
-#         return result(False, "Employee ID, username or email is already in use.")
-#     return result(True, "User updated successfully." if editing else "User created successfully.", employee=employee)
-
 
 def _master_employee_save(request, instance=None):
     from django.db import IntegrityError, transaction
@@ -11374,10 +10090,6 @@ def master_admin_delete_user(request, pk):
     messages.success(request, "User deleted successfully.")
     return redirect("master_admin_usermanagement")
 
-
-
-# ADD this NEW function once to monitoringapp/views.py.
-# Requires the existing _master_admin_allowed() helper. No migrations.
 
 @never_cache
 @require_http_methods(["GET", "POST"])
@@ -11518,8 +10230,6 @@ def master_admin_departments(request):
     if request.GET.get("format") == "json":
         return JsonResponse({"ok": True, "items": items})
     return render(request, "master_admin/master_admin_departments.html", {"department_items": items})
-
-
 
 
 @never_cache
@@ -12804,21 +11514,6 @@ def _master_task_snapshot(task):
         "assigned_to": task.assigned_to_id, "status": task.status, "progress": task.progress}
 
 
-# def _master_task_record(request, task, action, before=None):
-#     audit = MasterAdminTaskAudit.objects.create(
-#         actor=request.user, actor_name=(request.user.get_full_name() or request.user.username)[:255],
-#         task_number=task.pk, action=action, before=before or {},
-#         after={} if action == "deleted" else _master_task_snapshot(task))
-#     recipients = {task.assigned_to_id}
-#     if before and before.get("assigned_to"):
-#         recipients.add(before["assigned_to"])
-#     for person in _master_task_people().filter(pk__in=recipients):
-#         role = person.task_role
-#         TeamLeadNotification.objects.create(recipient=person, kind="task",
-#             title=f"Task {action}", message=f"Master Admin {audit.actor_name} {action} task #{task.pk}: {task.title}",
-#             url=reverse("teamlead_task" if role in {"team lead", "team_lead"} else "teammember_task"))
-
-
 def _master_task_record(request, task, action, before=None):
     audit = MasterAdminTaskAudit.objects.create(
         actor=request.user,
@@ -13096,8 +11791,7 @@ def _master_project_audit(request, project, action, before=None):
             .replace("_", " ")
         )
 
-        # Current Team Member already receives the project
-        # notification through member_notifications.py.
+
         if person.pk == project.assign_to_id and role == "team member":
             continue
 
@@ -13533,27 +12227,6 @@ def master_admin_announcements(request):
         "filter_params": params.urlencode(),
     })
 
-# def _portal_announcement_receipt(request, pk):
-#     employee_id = request.session.get("user_id")
-
-#     if employee_id:
-#         receipt = AnnouncementRecipient.objects.filter(
-#             announcement_id=pk,
-#             recipient_id=employee_id,
-#             announcement__is_active=True,
-#         ).select_related("announcement").first()
-
-#         if receipt:
-#             return receipt
-
-#     if request.user.is_authenticated and request.user.is_active:
-#         return AnnouncementAuthRecipient.objects.filter(
-#             announcement_id=pk,
-#             recipient=request.user,
-#             announcement__is_active=True,
-#         ).select_related("announcement").first()
-
-#     return None
 
 
 
@@ -14441,11 +13114,6 @@ def master_admin_google_meet_delete(request, pk):
     return JsonResponse({"ok": True, "message": "Meeting removed from the portal."})
 
 
-
-# REPLACE only these TWO existing functions in monitoringapp/views.py. Do not append duplicates.
-# Admin: Master meetings cannot be edited in regular Admin portal.
-# Accounts: meeting notifications open the validated Google Meet link.
-# Previous announcement notification handling is preserved.
 
 @never_cache
 @require_http_methods(["GET", "POST"])
@@ -15692,4 +14360,3 @@ for _notice_view_name, _notice_config in _MASTER_NOTICE_VIEWS.items():
     _notice_original = globals()[_notice_view_name]
     if not getattr(_notice_original, "_master_operation_notice", False):
         globals()[_notice_view_name] = _master_operation_notice(_notice_original, *_notice_config)
-# Notepad/profile already create the Master's own inbox entry in the supplied views.
