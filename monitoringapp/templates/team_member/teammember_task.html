@@ -3219,13 +3219,35 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     cancel.addEventListener('click', function () { dialog.close(); });
     dialog.addEventListener('close', function () { pendingForm = null; document.documentElement.classList.remove('member-task-popup-open'); });
-    confirmDelete.addEventListener('click', function () {
+    // confirmDelete.addEventListener('click', function () {
+    //     if (!pendingForm) return;
+    //     const form = pendingForm;
+    //     pendingForm = null;
+    //     confirmDelete.disabled = true;
+    //     form.submit();
+    // });
+
+        confirmDelete.addEventListener('click', function () {
         if (!pendingForm) return;
         const form = pendingForm;
         pendingForm = null;
         confirmDelete.disabled = true;
-        form.submit();
+        fetch(form.getAttribute('action'), {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) { location.reload(); }
+            else { confirmDelete.disabled = false; dialog.close(); alert(data.message || 'Delete failed.'); }
+        })
+        .catch(() => { confirmDelete.disabled = false; dialog.close(); alert('Delete failed.'); });
     });
+
 });
 
 function initTaskStatusPicker(dialog,index){

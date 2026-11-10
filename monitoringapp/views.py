@@ -1189,20 +1189,32 @@ def teammember_repository(request):
         "knowledge_items": knowledge_items
     })
 
-@require_POST
+# @require_POST
+# @never_cache
+# def teammember_repository_delete(request, pk):
+#     user = _repository_role_user(request, "team_member")
+#     if user is None:
+#         return redirect("index")
+
+#     department = user.department if hasattr(user, "department") and user.department else Department.objects.first()
+#     resource = get_object_or_404(Knowledge, id=pk, department=department)
+
+#     # Delete only after the confirmation form submits.
+#     resource.delete()
+#     messages.success(request, "Resource deleted successfully.")
+#     return redirect("teammember_repository")
+
 @never_cache
+@require_http_methods(["DELETE"])
 def teammember_repository_delete(request, pk):
     user = _repository_role_user(request, "team_member")
     if user is None:
-        return redirect("index")
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
 
     department = user.department if hasattr(user, "department") and user.department else Department.objects.first()
     resource = get_object_or_404(Knowledge, id=pk, department=department)
-
-    # Delete only after the confirmation form submits.
     resource.delete()
-    messages.success(request, "Resource deleted successfully.")
-    return redirect("teammember_repository")
+    return JsonResponse({"ok": True, "message": "Resource deleted successfully."})
 
 from chat.models import Conversation
 from django.db import transaction
@@ -5479,24 +5491,34 @@ def teammember_notepad(request):
     return response
 
 
+# @never_cache
+# @require_POST
+# def teammember_notepad_delete(request, pk):
+#     user_id = request.session.get("user_id")
+#     if not user_id or request.session.get("position") != "team_member":
+#         return redirect("index")
+#     user = get_object_or_404(User, pk=user_id)
+#     note = get_object_or_404(Notepad, pk=pk, user=user)
+#     note.delete()
+#     messages.success(request, "Note deleted successfully.")
+#     sort = request.POST.get("sort", "updated")
+#     if sort not in {"updated", "created", "title"}:
+#         sort = "updated"
+#     return redirect(reverse("teammember_notepad") + "?" + urlencode({
+#         "q": request.POST.get("q", "").strip()[:200],
+#         "sort": sort, "page": request.POST.get("page", "1"),
+#     }))
+
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def teammember_notepad_delete(request, pk):
     user_id = request.session.get("user_id")
     if not user_id or request.session.get("position") != "team_member":
-        return redirect("index")
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
     user = get_object_or_404(User, pk=user_id)
     note = get_object_or_404(Notepad, pk=pk, user=user)
     note.delete()
-    messages.success(request, "Note deleted successfully.")
-    sort = request.POST.get("sort", "updated")
-    if sort not in {"updated", "created", "title"}:
-        sort = "updated"
-    return redirect(reverse("teammember_notepad") + "?" + urlencode({
-        "q": request.POST.get("q", "").strip()[:200],
-        "sort": sort, "page": request.POST.get("page", "1"),
-    }))
-
+    return JsonResponse({"ok": True, "message": "Note deleted successfully."})
 
 from django.shortcuts import redirect, get_object_or_404
 from django.views.decorators.cache import never_cache
@@ -5929,12 +5951,28 @@ def teammember_task(request):
     })
 
 
+# @never_cache
+# @require_POST
+# def delete_task(request, task_id):
+#     user_id = request.session.get("user_id")
+#     if not user_id or request.session.get("position") != "team_member":
+#         return redirect("index")
+#     user = get_object_or_404(User, pk=user_id)
+#     # A member cannot delete a task assigned by their team lead.
+#     personal_tasks = Task.objects.filter(created_by=user).filter(
+#         Q(assigned_to=user) | Q(assigned_to__isnull=True)
+#     )
+#     task = get_object_or_404(personal_tasks, pk=task_id)
+#     task.delete()
+#     messages.success(request, "Task deleted successfully.")
+#     return redirect("teammember_task")
+
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def delete_task(request, task_id):
     user_id = request.session.get("user_id")
     if not user_id or request.session.get("position") != "team_member":
-        return redirect("index")
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
     user = get_object_or_404(User, pk=user_id)
     # A member cannot delete a task assigned by their team lead.
     personal_tasks = Task.objects.filter(created_by=user).filter(
@@ -5943,8 +5981,7 @@ def delete_task(request, task_id):
     task = get_object_or_404(personal_tasks, pk=task_id)
     task.delete()
     messages.success(request, "Task deleted successfully.")
-    return redirect("teammember_task")
-
+    return JsonResponse({"ok": True, "message": "Task deleted successfully."})
 
 @never_cache
 def teamlead_task(request):
@@ -6881,10 +6918,6 @@ def teammember_reminders(request):
                 pk=request.POST.get("reminder_id"),
             )
 
-        if action == "delete":
-            reminder.delete()
-            reminder_messages.success(request, "Reminder deleted.")
-            return redirect("teammember_reminders")
 
         if action in {"complete", "reopen"}:
             reminder.is_completed = action == "complete"
@@ -7033,6 +7066,19 @@ def teammember_reminders(request):
         },
     )
 
+@never_cache
+@require_http_methods(["DELETE"])
+def teammember_reminder_delete(request, pk):
+    team_member = _notification_teammember(request)
+    if team_member is None:
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
+
+    reminder = TeamLeadReminder.objects.filter(pk=pk, owner=team_member).first()
+    if reminder is None:
+        return JsonResponse({"ok": False, "message": "Reminder not found."}, status=404)
+
+    reminder.delete()
+    return JsonResponse({"ok": True, "message": "Reminder deleted."})
 
 @require_POST
 def teammember_notifications_read_all(request):

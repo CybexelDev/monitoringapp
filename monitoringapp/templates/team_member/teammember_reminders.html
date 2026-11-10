@@ -1452,11 +1452,16 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
         <h2 id="deleteHeading">Delete reminder?</h2>
         <p id="deleteDescription"></p>
         <p>This removes the reminder from your calendar.</p>
-        <form method="post" action="{% url 'teammember_reminders' %}">{% csrf_token %}<input type="hidden" name="action"
+        <!-- <form method="post" action="{% url 'teammember_reminders' %}">{% csrf_token %}<input type="hidden" name="action"
                 value="delete"><input type="hidden" name="reminder_id" id="deleteId">
             <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Cancel</button><button
                     type="submit" class="reminder-btn danger">Delete reminder</button></div>
-        </form>
+        </form> -->
+        <form method="post" id="deleteForm" data-delete-url-template="{% url 'teammember_reminder_delete' 0 %}">{% csrf_token %}<input type="hidden" name="action"
+        value="delete"><input type="hidden" name="reminder_id" id="deleteId">
+    <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Cancel</button><button
+            type="submit" class="reminder-btn danger">Delete reminder</button></div>
+</form>
     </dialog>
 <dialog class="reminder-dialog" id="viewDialog" aria-labelledby="viewHeading">
  <div class="dialog-header"><h2 id="viewHeading">Reminder details</h2><button type="button" class="reminder-btn" data-close aria-label="Close">×</button></div>
@@ -1743,14 +1748,33 @@ html.modal-open,html.modal-open body,html.modal-open .dashboard-box {overflow:hi
                 const submit = targetForm.querySelector('[type=submit]'); const label = submit.textContent;
                 submit.disabled = true; submit.textContent = 'Saving…';
                 try {
-                    const response = await request(targetForm.getAttribute('action'), {method:'POST',body:new FormData(targetForm),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'text/html'}});
-                    const {doc} = parsePage(await response.text());
-                    const messages = [...doc.querySelectorAll('#toast-django-messages [data-type]')];
-                    const error = messages.find(el => /error|warning/.test(el.dataset.type || ''));
-                    if(error || !response.ok) throw new Error(error?.textContent.trim() || 'Unable to save this reminder.');
-                    const success = messages.find(el => el.dataset.type === 'success' && /Reminder (created|updated|deleted)/i.test(el.textContent));
-                    if(!success) throw new Error('Save was not confirmed. Check the reminder details and try again.');
+                    // const response = await request(targetForm.getAttribute('action'), {method:'POST',body:new FormData(targetForm),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'text/html'}});
+                    // const {doc} = parsePage(await response.text());
+                    // const messages = [...doc.querySelectorAll('#toast-django-messages [data-type]')];
+                    // const error = messages.find(el => /error|warning/.test(el.dataset.type || ''));
+                    // if(error || !response.ok) throw new Error(error?.textContent.trim() || 'Unable to save this reminder.');
+                    // const success = messages.find(el => el.dataset.type === 'success' && /Reminder (created|updated|deleted)/i.test(el.textContent));
+                    // if(!success) throw new Error('Save was not confirmed. Check the reminder details and try again.');
+                    // const action = targetForm.elements.action.value;
                     const action = targetForm.elements.action.value;
+                    let successText;
+                    if(action === 'delete') {
+                        const id = targetForm.elements.reminder_id.value;
+                        const url = targetForm.dataset.deleteUrlTemplate.replace(/\/0\/delete\/$/, '/' + id + '/delete/');
+                        const response = await request(url, {method:'DELETE',credentials:'same-origin',headers:{'X-CSRFToken':targetForm.elements.csrfmiddlewaretoken.value,'X-Requested-With':'XMLHttpRequest','Accept':'application/json'}});
+                        let result = null; try { result = await response.json(); } catch(_) {}
+                        if(!response.ok || !result?.ok) throw new Error(result?.message || 'Unable to delete this reminder.');
+                        successText = result.message || 'Reminder deleted.';
+                    } else {
+                        const response = await request(targetForm.getAttribute('action'), {method:'POST',body:new FormData(targetForm),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','Accept':'text/html'}});
+                        const {doc} = parsePage(await response.text());
+                        const messages = [...doc.querySelectorAll('#toast-django-messages [data-type]')];
+                        const error = messages.find(el => /error|warning/.test(el.dataset.type || ''));
+                        if(error || !response.ok) throw new Error(error?.textContent.trim() || 'Unable to save this reminder.');
+                        const success = messages.find(el => el.dataset.type === 'success' && /Reminder (created|updated)/i.test(el.textContent));
+                        if(!success) throw new Error('Save was not confirmed. Check the reminder details and try again.');
+                        successText = success.textContent.trim();
+                    }
                     if(action === 'delete') {items=items.filter(i=>Number(i.id)!==Number(targetForm.elements.reminder_id.value));render();}
                     if(action !== 'delete') { selected = eventAt.value.slice(0,10); month = selected.slice(0,7); }
                     saving = false; dialog.close(); notify(success.textContent.trim(), 'success');

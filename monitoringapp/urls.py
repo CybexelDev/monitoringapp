@@ -236,7 +236,11 @@ path(
     path("teammember/announcements/", views.teammember_announcements, name="teammember_announcements"),
 path("teammember/announcements/<int:pk>/seen/", views.teammember_announcement_seen, name="teammember_announcement_seen"),
 path("teammember/reminders/", views.teammember_reminders, name="teammember_reminders"),
-
+path(
+    "teammember/reminders/<int:pk>/delete/",
+    views.teammember_reminder_delete,
+    name="teammember_reminder_delete",
+),
 path("teammember/notifications/", views.teammember_notifications, name="teammember_notifications"),
 path("teammember/notifications/read-all/", views.teammember_notifications_read_all, name="teammember_notifications_read_all"),
 path("teammember/notifications/<int:notification_id>/open/", views.teammember_notification_open, name="teammember_notification_open"),

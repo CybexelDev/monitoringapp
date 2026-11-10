@@ -1997,11 +1997,20 @@ body .resource-tab-empty {grid-column:1/-1;text-align:center;padding:32px 16px;c
   saving=true;controller?.abort();revision++;busy=false;controls.forEach(el=>el.disabled=true);buttons.forEach(el=>el.disabled=true);target.setAttribute('aria-busy','true');
   const activeSave=new AbortController();saveController=activeSave;const timeout=setTimeout(()=>activeSave.abort(),120000);
   try{
-   const response=await fetch(target.getAttribute('action')||location.href,{method:'POST',signal:activeSave.signal,credentials:'same-origin',body,headers:{Accept:'text/html'}});const doc=await html(response);
-   const success=[...doc.querySelectorAll('#toast-django-messages [data-type]')].find(el=>/success/.test(el.dataset.type||''));
-   if(!success)throw new Error('The operation could not be confirmed. Check the resource before retrying.');
-   if(kind==='delete'){saving=false;closeDelete();saving=true;}draw(doc);
-   if(kind==='add')form.reset();notice(success?.textContent.trim()||(kind==='add'?'Resource added successfully.':'Resource deleted successfully.'),'success');
+if(kind==='delete'){
+ const response=await fetch(target.getAttribute('action'),{method:'DELETE',signal:activeSave.signal,credentials:'same-origin',headers:{'X-CSRFToken':body.get('csrfmiddlewaretoken')||'','X-Requested-With':'XMLHttpRequest',Accept:'application/json'}});
+ let result=null;try{result=await response.json();}catch(_){}
+ if(response.status===401||response.status===403){expired=true;throw new Error('Please sign in again or check your repository access.');}
+ if(!response.ok||!result?.ok)throw new Error(result?.message||'Could not delete the resource.');
+ const listDoc=await html(await fetch(location.href,{credentials:'same-origin',cache:'no-store',signal:activeSave.signal,headers:{Accept:'text/html'}}));
+ saving=false;closeDelete();saving=true;draw(listDoc);
+ notice(result.message||'Resource deleted successfully.','success');
+}else{
+ const response=await fetch(target.getAttribute('action')||location.href,{method:'POST',signal:activeSave.signal,credentials:'same-origin',body,headers:{Accept:'text/html'}});const doc=await html(response);
+ const success=[...doc.querySelectorAll('#toast-django-messages [data-type]')].find(el=>/success/.test(el.dataset.type||''));
+ if(!success)throw new Error('The operation could not be confirmed. Check the resource before retrying.');
+ draw(doc);form.reset();notice(success.textContent.trim()||'Resource added successfully.','success');
+}
   }catch(error){notice(error.name==='AbortError'?'The operation timed out. Check the repository before retrying.':error instanceof TypeError?'Unable to confirm the save. Check the repository before retrying.':error.message);}
   finally{clearTimeout(timeout);saveController=null;saving=false;controls.forEach((el,i)=>el.disabled=states[i]);buttons.forEach(el=>el.disabled=false);target.removeAttribute('aria-busy');}
  }
