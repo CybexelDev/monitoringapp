@@ -1446,11 +1446,16 @@ body.modal-open .reminder-main{overflow:hidden}
         <h2 id="deleteHeading">Delete reminder?</h2>
         <p id="deleteDescription"></p>
         <p>This removes the reminder from your calendar.</p>
-        <form method="post" action="{% url 'teamlead_reminders' %}">{% csrf_token %}<input type="hidden" name="action"
+        <!-- <form method="post" action="{% url 'teamlead_reminders' %}">{% csrf_token %}<input type="hidden" name="action"
                 value="delete"><input type="hidden" name="reminder_id" id="deleteId">
             <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Cancel</button><button
                     type="submit" class="reminder-btn danger">Delete reminder</button></div>
-        </form>
+        </form> -->
+        <form method="post" id="deleteForm" data-delete-url-template="{% url 'teamlead_reminder_delete' 0 %}">{% csrf_token %}<input type="hidden" name="action"
+        value="delete"><input type="hidden" name="reminder_id" id="deleteId">
+    <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Cancel</button><button
+            type="submit" class="reminder-btn danger">Delete reminder</button></div>
+</form>
     </dialog>
     {{ calendar_items|json_script:"reminderData" }}
     <div id="reminderServerMessages" hidden>{% for message in messages %}<span data-level="{{ message.level }}">{{ message }}</span>{% endfor %}</div>
@@ -1667,7 +1672,13 @@ body.modal-open .reminder-main{overflow:hidden}
                 const data=new FormData(f),action=data.get('action');busy=true;sequence++;pending?.abort();pending=null;
                 const states=[...f.querySelectorAll('button,input,select,textarea')].map(n=>[n,n.disabled]);states.forEach(([n])=>n.disabled=true);f.setAttribute('aria-busy','true');const c=new AbortController(),timer=setTimeout(()=>c.abort(),30000);
                 try{
-                    const r=await fetch(f.getAttribute('action')||endpoint,{method:'POST',body:data,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':data.get('csrfmiddlewaretoken')||''},signal:c.signal});let message='';
+                // const r=await fetch(f.getAttribute('action')||endpoint,{method:'POST',body:data,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':data.get('csrfmiddlewaretoken')||''},signal:c.signal});
+                const deleting=action==='delete';
+                const target=deleting?f.dataset.deleteUrlTemplate.replace(/\/0\/delete\/$/,'/'+data.get('reminder_id')+'/delete/'):(f.getAttribute('action')||endpoint);
+                const r=await fetch(target,deleting
+                ?{method:'DELETE',credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':data.get('csrfmiddlewaretoken')||''},signal:c.signal}
+                :{method:'POST',body:data,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':data.get('csrfmiddlewaretoken')||''},signal:c.signal});
+                    let message='';
                     if((r.headers.get('content-type')||'').includes('application/json')){const result=await r.json();if(!r.ok||!result.ok)throw Error(result.message||'Unable to save reminder.');message=result.message||'Reminder updated.';}
                     else{const page=new DOMParser().parseFromString(await r.text(),'text/html'),msgs=[...page.querySelectorAll('#reminderServerMessages [data-level]')],error=msgs.find(n=>+n.dataset.level>=40),ok=msgs.find(n=>+n.dataset.level===25);if(error)throw Error(error.textContent.trim());if(!r.ok||!ok||!page.getElementById('reminderData'))throw Error('Save could not be confirmed. Check your reminders before retrying.');message=ok.textContent.trim();}
                     if(editDialog.open)editDialog.close();if(deleteDialog.open)deleteDialog.close();notify(message);await reloadItems(true);

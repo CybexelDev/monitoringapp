@@ -119,6 +119,11 @@ path("admin-panel/reminders/", views.admin_reminders, name="admin_reminders"),
         views.teamlead_announcements,
         name="teamlead_announcements",
     ),
+    path(
+    "teamlead/announcements/<int:pk>/delete/",
+    views.teamlead_announcement_delete,
+    name="teamlead_announcement_delete",
+),
     path("teamlead_repository/", views.teamlead_repository, name="teamlead_repository"),
     path(
         "teamlead_repository/delete/<int:pk>/",
@@ -187,6 +192,12 @@ path("admin-panel/reminders/", views.admin_reminders, name="admin_reminders"),
         views.teamlead_reminders,
         name="teamlead_reminders",
     ),
+path(
+    "teamlead/reminders/<int:pk>/delete/",
+    views.teamlead_reminder_delete,
+    name="teamlead_reminder_delete",
+),
+
     # <---TEAM MEMBERS--->
     path("teammember/logout/", views.teammember_logout, name="teammember_logout"),
         path(

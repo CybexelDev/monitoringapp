@@ -2707,13 +2707,12 @@ body.tl-announcements-page .seen-member-details{min-width:0}
 
                                             <!-- DELETE -->
 
-                                            <form
-                                                method="POST"
-                                                action="{% url 'teamlead_announcements' %}"
-                                                class="delete-announcement-form"
-                                                onsubmit="return confirmDeleteAnnouncement(this);"
-                                            >
-
+                                           <form
+    method="POST"
+    action="{% url 'teamlead_announcement_delete' announcement.id %}"
+    class="delete-announcement-form"
+    onsubmit="return confirmDeleteAnnouncement(this);"
+>
                                                 {% csrf_token %}
 
 
@@ -3521,7 +3520,11 @@ updateAnnouncementDot(Number(data.unread_count || 0));
     busy=true;window.tlAnnouncementBusy=true;invalidate();const oldInert=form.inert;form.inert=true;form.setAttribute('aria-busy','true');
     let success=false,page=null;
     try{
-      const response=await request(url,{method:'POST',body,headers:{'Accept':'text/html, application/json'}});
+    //   const response=await request(url,{method:'POST',body,headers:{'Accept':'text/html, application/json'}});
+    const deleting = action === 'delete_announcement';
+const response = await request(url, deleting
+  ? {method:'DELETE', headers:{'Accept':'application/json','X-CSRFToken':body.get('csrfmiddlewaretoken')||'','X-Requested-With':'XMLHttpRequest'}}
+  : {method:'POST', body, headers:{'Accept':'text/html, application/json'}});
       if(!response.ok)throw new Error(expired?'Session expired or access denied.':'Announcement could not be saved.');
       if((response.headers.get('content-type')||'').includes('application/json')){
         const data=await response.json();if(!data.ok)throw new Error(data.message||'Announcement could not be saved.');success=true;toast(data.message||'Changes saved.','success');

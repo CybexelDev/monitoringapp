@@ -1125,16 +1125,26 @@ def teamlead_repository(request):
     
     return response
 
+# @never_cache
+# @require_POST
+# def teamlead_repository_delete(request, pk):
+#     user = _repository_role_user(request, "team_lead")
+#     if user is None:
+#         return redirect("index")
+#     resource = get_object_or_404(Knowledge, pk=pk, department=user.department)
+#     resource.delete()
+#     messages.success(request, "Resource deleted successfully.")
+#     return redirect("teamlead_repository")
+
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def teamlead_repository_delete(request, pk):
     user = _repository_role_user(request, "team_lead")
     if user is None:
-        return redirect("index")
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
     resource = get_object_or_404(Knowledge, pk=pk, department=user.department)
     resource.delete()
-    messages.success(request, "Resource deleted successfully.")
-    return redirect("teamlead_repository")
+    return JsonResponse({"ok": True, "message": "Resource deleted successfully."})
 
 
 @never_cache
@@ -5250,17 +5260,27 @@ def project_assign_edit(request, pk):
         "team_members": team_members,
     })
 
+# def project_assign_delete(request, pk):
+#     if not request.session.get("user_id") or request.session.get("position") != "team_lead":
+#         return redirect("index")
+#     team_lead = get_object_or_404(User, pk=request.session["user_id"])
+#     project = get_object_or_404(ProjectAssign, id=pk, assigned_by=team_lead)
+#     if request.method != "POST":
+#         from django.http import HttpResponseNotAllowed
+#         return HttpResponseNotAllowed(["POST"])
+#     project.delete()
+#     messages.success(request, "Project deleted successfully.")
+#     return redirect("teamlead_project_assigning")
+
+@never_cache
+@require_http_methods(["DELETE"])
 def project_assign_delete(request, pk):
     if not request.session.get("user_id") or request.session.get("position") != "team_lead":
-        return redirect("index")
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
     team_lead = get_object_or_404(User, pk=request.session["user_id"])
     project = get_object_or_404(ProjectAssign, id=pk, assigned_by=team_lead)
-    if request.method != "POST":
-        from django.http import HttpResponseNotAllowed
-        return HttpResponseNotAllowed(["POST"])
     project.delete()
-    messages.success(request, "Project deleted successfully.")
-    return redirect("teamlead_project_assigning")
+    return JsonResponse({"ok": True, "message": "Project deleted successfully."})
 
 
 def update_project_status(request, pk):
@@ -5355,24 +5375,34 @@ def teamlead_notepad(request):
     return response
 
 
+# @never_cache
+# @require_POST
+# def teamlead_notepad_delete(request, pk):
+#     user_id = request.session.get("user_id")
+#     if not user_id or request.session.get("position") != "team_lead":
+#         return redirect("index")
+#     user = get_object_or_404(User, pk=user_id)
+#     note = get_object_or_404(Notepad, pk=pk, user=user)
+#     note.delete()
+#     messages.success(request, "Note deleted successfully.")
+#     sort = request.POST.get("sort", "updated")
+#     if sort not in {"updated", "created", "title"}:
+#         sort = "updated"
+#     return redirect(reverse("teamlead_notepad") + "?" + urlencode({
+#         "q": request.POST.get("q", "").strip()[:200],
+#         "sort": sort, "page": request.POST.get("page", "1"),
+#     }))
+
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def teamlead_notepad_delete(request, pk):
     user_id = request.session.get("user_id")
     if not user_id or request.session.get("position") != "team_lead":
-        return redirect("index")
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
     user = get_object_or_404(User, pk=user_id)
     note = get_object_or_404(Notepad, pk=pk, user=user)
     note.delete()
-    messages.success(request, "Note deleted successfully.")
-    sort = request.POST.get("sort", "updated")
-    if sort not in {"updated", "created", "title"}:
-        sort = "updated"
-    return redirect(reverse("teamlead_notepad") + "?" + urlencode({
-        "q": request.POST.get("q", "").strip()[:200],
-        "sort": sort, "page": request.POST.get("page", "1"),
-    }))
-
+    return JsonResponse({"ok": True, "message": "Note deleted successfully."})
 
 from urllib.parse import urlencode
 from django.db.models import Q
@@ -5542,6 +5572,29 @@ def teammember_announcements(request):
         ).count(),
     })
 
+@never_cache
+@require_http_methods(["DELETE"])
+def teamlead_announcement_delete(request, pk):
+    if request.session.get("position") != "team_lead" or not request.session.get("user_id"):
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
+    team_lead = User.objects.filter(pk=request.session["user_id"]).first()
+    if team_lead is None:
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
+
+    announcement = Announcement.objects.filter(
+        id=pk, created_by=team_lead, is_active=True
+    ).first()
+    if announcement is None:
+        return JsonResponse({"ok": False, "message": "Announcement not found."}, status=404)
+
+    # Soft delete, same as before.
+    announcement.is_active = False
+    announcement.save(update_fields=["is_active"])
+
+    from .notification_signals import queue_announcement_recipient_notifications
+    queue_announcement_recipient_notifications(announcement.pk, event_type="deleted")
+
+    return JsonResponse({"ok": True, "message": "Announcement deleted successfully."})
 
 @never_cache
 @require_POST
@@ -6130,20 +6183,30 @@ def update_task_teamlead(request, task_id):
 
 
 
+# def delete_task_teamlead(request, task_id):
+#     user_id = request.session.get("user_id")
+#     if not user_id:
+#         return redirect("login_view")
+
+#     user = User.objects.get(id=user_id)
+#     task = get_object_or_404(Task, id=task_id, created_by=user)
+
+#     if request.method == "POST":
+#         task.delete()
+#         messages.success(request, "Task deleted successfully.")
+
+#     return redirect("teamlead_task")
+
+@never_cache
+@require_http_methods(["DELETE"])
 def delete_task_teamlead(request, task_id):
     user_id = request.session.get("user_id")
-    if not user_id:
-        return redirect("login_view")
-
-    user = User.objects.get(id=user_id)
+    if not user_id or request.session.get("position") != "team_lead":
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
+    user = get_object_or_404(User, pk=user_id)
     task = get_object_or_404(Task, id=task_id, created_by=user)
-
-    if request.method == "POST":
-        task.delete()
-        messages.success(request, "Task deleted successfully.")
-
-    return redirect("teamlead_task")
-
+    task.delete()
+    return JsonResponse({"ok": True, "message": "Task deleted successfully."})
 
 @never_cache
 def teamlead_logout(request):
@@ -6399,11 +6462,6 @@ def teamlead_reminders(request):
                 pk=request.POST.get("reminder_id"),
             )
 
-        if action == "delete":
-            reminder.delete()
-            reminder_messages.success(request, "Reminder deleted.")
-            return redirect("teamlead_reminders")
-
         if action in {"complete", "reopen"}:
             reminder.is_completed = action == "complete"
             reminder.save(
@@ -6549,6 +6607,20 @@ def teamlead_reminders(request):
             "reminders": month_reminders,
         },
     )
+
+@never_cache
+@require_http_methods(["DELETE"])
+def teamlead_reminder_delete(request, pk):
+    team_lead = _notification_teamlead(request)
+    if team_lead is None:
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
+
+    reminder = TeamLeadReminder.objects.filter(pk=pk, owner=team_lead).first()
+    if reminder is None:
+        return JsonResponse({"ok": False, "message": "Reminder not found."}, status=404)
+
+    reminder.delete()
+    return JsonResponse({"ok": True, "message": "Reminder deleted."})
 
 
 from django.http import JsonResponse

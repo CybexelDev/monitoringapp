@@ -4443,15 +4443,37 @@ positionTaskToast();
   controls.forEach(n=>n.disabled=true);confirm.disabled=true;form.setAttribute('aria-busy','true');
   const c=new AbortController(),timer=setTimeout(()=>c.abort(),30000);
   try{
-   const r=await fetch(form.getAttribute('action')||pageURL,{method:'POST',body:data,credentials:'same-origin',headers:{'X-CSRFToken':csrf||'','X-Requested-With':'XMLHttpRequest'},signal:c.signal});
-   const page=parse(await r.text());if(!r.ok||!valid(page))throw Error('Unable to save. Check your session and try again.');
-   const msgs=notices(page),error=msgs.find(n=>Number(n.dataset.level)>=40);
-   if(error)throw Error(error.textContent.trim());
-   const success=msgs.find(n=>Number(n.dataset.level)===25);
-   if(!success)throw Error('Save could not be confirmed. Check the task list before retrying.');
-   window.tlTaskBusy=false;
-   const modal=form.closest('.task-modal');if(modal){form.reset();closeTaskModal(modal.id);}
-   if(dialog.open)dialog.close();sync(page);toast(success.textContent.trim());
+//    const r=await fetch(form.getAttribute('action')||pageURL,{method:'POST',body:data,credentials:'same-origin',headers:{'X-CSRFToken':csrf||'','X-Requested-With':'XMLHttpRequest'},signal:c.signal});
+//    const page=parse(await r.text());if(!r.ok||!valid(page))throw Error('Unable to save. Check your session and try again.');
+//    const msgs=notices(page),error=msgs.find(n=>Number(n.dataset.level)>=40);
+//    if(error)throw Error(error.textContent.trim());
+//    const success=msgs.find(n=>Number(n.dataset.level)===25);
+//    if(!success)throw Error('Save could not be confirmed. Check the task list before retrying.');
+//    window.tlTaskBusy=false;
+//    const modal=form.closest('.task-modal');if(modal){form.reset();closeTaskModal(modal.id);}
+//    if(dialog.open)dialog.close();sync(page);toast(success.textContent.trim());
+const deleting=form.classList.contains('task-delete-form');
+let page,successText;
+if(deleting){
+  const r=await fetch(form.getAttribute('action'),{method:'DELETE',credentials:'same-origin',headers:{'X-CSRFToken':csrf||'','X-Requested-With':'XMLHttpRequest'},signal:c.signal});
+  let result=null;try{result=await r.json();}catch(_){}
+  if(!r.ok||!result?.ok)throw Error(result?.message||'Could not delete the task.');
+  const listResponse=await fetch(pageURL,{credentials:'same-origin',cache:'no-store',signal:c.signal});
+  page=parse(await listResponse.text());
+  if(!listResponse.ok||!valid(page))throw Error('Deleted, but the list could not be refreshed. Reload the page.');
+  successText=result.message||'Task deleted successfully.';
+}else{
+  const r=await fetch(form.getAttribute('action')||pageURL,{method:'POST',body:data,credentials:'same-origin',headers:{'X-CSRFToken':csrf||'','X-Requested-With':'XMLHttpRequest'},signal:c.signal});
+  page=parse(await r.text());if(!r.ok||!valid(page))throw Error('Unable to save. Check your session and try again.');
+  const msgs=notices(page),error=msgs.find(n=>Number(n.dataset.level)>=40);
+  if(error)throw Error(error.textContent.trim());
+  const success=msgs.find(n=>Number(n.dataset.level)===25);
+  if(!success)throw Error('Save could not be confirmed. Check the task list before retrying.');
+  successText=success.textContent.trim();
+}
+window.tlTaskBusy=false;
+const modal=form.closest('.task-modal');if(modal){form.reset();closeTaskModal(modal.id);}
+if(dialog.open)dialog.close();sync(page);toast(successText);
   }catch(e){toast(e.name==='AbortError'?'Request timed out. Check the task list before retrying; it may have saved.':e.message,true);
    // Restore the persisted status shown beside the select if saving failed.
    const select=form.querySelector('select[name="status"]'),item=form.closest('.task-item');

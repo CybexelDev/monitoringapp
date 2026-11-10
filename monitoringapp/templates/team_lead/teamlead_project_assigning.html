@@ -4749,13 +4749,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const timer = setTimeout(() => controller.abort(),45000);
     let confirmed = false;
     try {
-      const response = await fetch(url, {method:'POST',body:data, credentials:'same-origin',signal:controller.signal, headers:{'X-CSRFToken':token,'X-Requested-With':'XMLHttpRequest'}});
-      const page = await htmlResponse(response);
-      const notices = messages(page);
-      if (hasErrors(notices)) { displayMessages(notices); return; }
-      // Existing Django views redirect after successful create/edit/delete.
-      confirmed = response.redirected || notices.some(item => Number(item.dataset.level) === 25 || /success/.test(item.dataset.type));
-      if (!confirmed) throw new Error('The server did not confirm saving. Your form has been kept open.');
+    //   const response = await fetch(url, {method:'POST',body:data, credentials:'same-origin',signal:controller.signal, headers:{'X-CSRFToken':token,'X-Requested-With':'XMLHttpRequest'}});
+    //   const page = await htmlResponse(response);
+    //   const notices = messages(page);
+    //   if (hasErrors(notices)) { displayMessages(notices); return; }
+    //   // Existing Django views redirect after successful create/edit/delete.
+    //   confirmed = response.redirected || notices.some(item => Number(item.dataset.level) === 25 || /success/.test(item.dataset.type));
+    //   if (!confirmed) throw new Error('The server did not confirm saving. Your form has been kept open.');
+    let response, page, notices = [];
+    if (deleting) {
+    response = await fetch(url, {method:'DELETE', credentials:'same-origin', signal:controller.signal, headers:{'X-CSRFToken':token,'X-Requested-With':'XMLHttpRequest'}});
+    let result = null;
+    try { result = await response.json(); } catch (_) {}
+    if (!response.ok || !result?.ok) throw new Error(result?.message || 'Could not delete the project.');
+    // Reload the list after deleting.
+    const listResponse = await fetch(pageURL, {credentials:'same-origin', cache:'no-store', signal:controller.signal});
+    page = await htmlResponse(listResponse);
+    confirmed = true;
+    } else {
+    response = await fetch(url, {method:'POST',body:data, credentials:'same-origin',signal:controller.signal, headers:{'X-CSRFToken':token,'X-Requested-With':'XMLHttpRequest'}});
+    page = await htmlResponse(response);
+    notices = messages(page);
+    if (hasErrors(notices)) { displayMessages(notices); return; }
+    confirmed = response.redirected || notices.some(item => Number(item.dataset.level) === 25 || /success/.test(item.dataset.type));
+    if (!confirmed) throw new Error('The server did not confirm saving. Your form has been kept open.');
+    }
       window.tlProjectBusy = false;
       if (modal) closeProjectModal(modal.id);
       if (!deleting && targetForm === form) {

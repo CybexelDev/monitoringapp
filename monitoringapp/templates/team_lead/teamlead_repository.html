@@ -1597,6 +1597,7 @@ body .resource-tab-empty {grid-column:1/-1;text-align:center;padding:32px 16px;c
               {% if not item.is_admin_resource %}
 <form
                 method="POST"
+                data-delete-form
                 action="{% url 'teamlead_repository_delete' item.id %}"
               >
 
@@ -2163,12 +2164,28 @@ document.addEventListener("keydown", function (event) {
   const buttons=[...document.querySelectorAll('#repositoryDeleteModal button')];buttons.forEach(n=>n.disabled=true);
   const c=new AbortController(),timer=setTimeout(()=>c.abort(),60000);
   try{
-   const response=await fetch(target.getAttribute('action')||location.href,{method:'POST',body:payload,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:c.signal});
-   const doc=new DOMParser().parseFromString(await response.text(),'text/html'),messages=[...doc.querySelectorAll('#repositoryLiveMessages [data-level]')];
-   const error=messages.find(n=>+n.dataset.level>=40),success=messages.find(n=>+n.dataset.level===25);
-   if(!response.ok||error)throw Error(error?.textContent.trim()||'Could not save the resource.');
-   if(!doc.getElementById('resourceTabPanel')||!success)throw Error('Save could not be confirmed. Check the resource list before retrying.');
-   window.repositoryBusy=false;if(deleting)closeRepositoryDeleteModal();else target.reset();sync(doc);toast(success.textContent.trim());
+  //  const response=await fetch(target.getAttribute('action')||location.href,{method:'POST',body:payload,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:c.signal});
+  //  const doc=new DOMParser().parseFromString(await response.text(),'text/html'),messages=[...doc.querySelectorAll('#repositoryLiveMessages [data-level]')];
+  //  const error=messages.find(n=>+n.dataset.level>=40),success=messages.find(n=>+n.dataset.level===25);
+  //  if(!response.ok||error)throw Error(error?.textContent.trim()||'Could not save the resource.');
+  //  if(!doc.getElementById('resourceTabPanel')||!success)throw Error('Save could not be confirmed. Check the resource list before retrying.');
+  //  window.repositoryBusy=false;if(deleting)closeRepositoryDeleteModal();else target.reset();sync(doc);toast(success.textContent.trim());
+  if(deleting){
+  const response=await fetch(target.getAttribute('action'),{method:'DELETE',credentials:'same-origin',headers:{'X-CSRFToken':payload.get('csrfmiddlewaretoken'),'X-Requested-With':'XMLHttpRequest'},signal:c.signal});
+  const data=await response.json();
+  if(!response.ok||!data.ok)throw Error(data.message||'Could not delete the resource.');
+  // refresh the list
+  const page=await fetch(location.href,{cache:'no-store',credentials:'same-origin'});
+  const pageDoc=new DOMParser().parseFromString(await page.text(),'text/html');
+  window.repositoryBusy=false;closeRepositoryDeleteModal();sync(pageDoc);toast('Resource deleted successfully.');
+}else{
+  const response=await fetch(target.getAttribute('action')||location.href,{method:'POST',body:payload,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:c.signal});
+  const doc=new DOMParser().parseFromString(await response.text(),'text/html'),messages=[...doc.querySelectorAll('#repositoryLiveMessages [data-level]')];
+  const error=messages.find(n=>+n.dataset.level>=40),success=messages.find(n=>+n.dataset.level===25);
+  if(!response.ok||error)throw Error(error?.textContent.trim()||'Could not save the resource.');
+  if(!doc.getElementById('resourceTabPanel')||!success)throw Error('Save could not be confirmed. Check the resource list before retrying.');
+  window.repositoryBusy=false;target.reset();sync(doc);toast(success.textContent.trim());
+}
   }catch(e){toast(e.name==='AbortError'?'Request timed out. Check the list before retrying; it may have saved.':e.message,'error');}
   finally{clearTimeout(timer);busy=false;window.repositoryBusy=false;states.forEach(([n,disabled])=>n.disabled=disabled);buttons.forEach(n=>n.disabled=false);}
  }

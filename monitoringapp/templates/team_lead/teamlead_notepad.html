@@ -3205,7 +3205,10 @@ document.addEventListener("keydown", function (event) {
   const deleteButtons=[...document.querySelectorAll('#noteDeleteModal button')];deleteButtons.forEach(n=>n.disabled=true);
   const c=new AbortController(),timer=setTimeout(()=>c.abort(),30000);
   try{
-   const r=await fetch(form.getAttribute('action')||location.href,{method:'POST',body:payload,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:c.signal});
+//    const r=await fetch(form.getAttribute('action')||location.href,{method:'POST',body:payload,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:c.signal});
+const r=await fetch(form.getAttribute('action')||location.href,deleting
+  ?{method:'DELETE',credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':payload.get('csrfmiddlewaretoken')},signal:c.signal}
+  :{method:'POST',body:payload,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:c.signal});
    let doc=null,message=deleting?'Note deleted successfully.':form===editor?'Note created successfully.':'Note updated successfully.';
    if(r.headers.get('content-type')?.includes('application/json')){const data=await r.json();if(!r.ok||!data.ok)throw Error(data.message||'Could not save the note.');}
    else {doc=new DOMParser().parseFromString(await r.text(),'text/html');const error=doc.querySelector('#noteLiveError')?.textContent.trim();const messages=[...doc.querySelectorAll('#noteLiveMessages [data-level]')];const failure=messages.find(n=>+n.dataset.level>=40);if(!r.ok||error||failure)throw Error(error||failure?.textContent.trim()||'Could not save the note.');const success=messages.find(n=>+n.dataset.level===25);if(!doc.querySelector('.saved-notes-section')||!success)throw Error('Save could not be confirmed. Check the list before retrying.');message=success.textContent.trim();}
