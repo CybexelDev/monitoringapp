@@ -131,15 +131,13 @@
   }
   async function requestJson(url, options = {}) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), options.method === 'POST' ? 30000 : 15000);
-    try {
+    const timeout = setTimeout(() => controller.abort(), ['POST','DELETE'].includes(options.method) ? 30000 : 15000);    try {
       const response = await fetch(url, {credentials:'same-origin', cache:'no-store', ...options, signal:controller.signal});
       if (response.redirected || !(response.headers.get('content-type') || '').includes('application/json')) {
         throw new Error('Unexpected response. Check your session and ledger before trying again.');
       }
       const data = await response.json();
-      if (options.method === 'POST' && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
-      return {response, data};
+      if (['POST','DELETE'].includes(options.method) && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));      return {response, data};
     } catch (error) {
       if (error.name === 'AbortError') throw new Error('Request timed out. Check the ledger before retrying; the change may have saved.');
       throw error;
@@ -414,9 +412,13 @@
     saving = true; setModalBusy(deleteDialog, true); deleteButton.textContent = 'Deleting…';
     const general = document.getElementById('incomeDeleteError'); general.hidden = true;
     try {
-      const deleteData = new URLSearchParams();
-      deleteData.set('csrfmiddlewaretoken', csrf());
-      const {response, data} = await requestJson(deleteUrl, postOptions(deleteData));
+      // const deleteData = new URLSearchParams();
+      // deleteData.set('csrfmiddlewaretoken', csrf());
+      // const {response, data} = await requestJson(deleteUrl, postOptions(deleteData));
+      const {response, data} = await requestJson(deleteUrl, {
+        method: 'DELETE',
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf()}
+      });
       if (!response.ok || !data.ok) { general.textContent = data.message || 'Delete failed.'; general.hidden = false; return; }
       deleteDialog.close(); notice(data.message || 'Income deleted successfully.'); deleteUrl = '';
       if (!await refreshSnapshot(location.href, 'replace')) notice('Income deleted. List updates will retry automatically.', 'warning');
@@ -511,15 +513,13 @@
   }
   async function requestJson(url, options = {}) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), options.method === 'POST' ? 30000 : 15000);
-    try {
+    const timeout = setTimeout(() => controller.abort(), ['POST','DELETE'].includes(options.method) ? 30000 : 15000);    try {
       const response = await fetch(url, {credentials:'same-origin', cache:'no-store', ...options, signal:controller.signal});
       if (response.redirected || !(response.headers.get('content-type') || '').includes('application/json')) {
         throw new Error('Unexpected response. Check your session and ledger before trying again.');
       }
       const data = await response.json();
-      if (options.method === 'POST' && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
-      return {response, data};
+      if (['POST','DELETE'].includes(options.method) && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));      return {response, data};
     } catch (error) {
       if (error.name === 'AbortError') throw new Error('Request timed out. Check the ledger before retrying; the change may have saved.');
       throw error;
@@ -794,9 +794,13 @@
     saving = true; setModalBusy(deleteDialog, true); deleteButton.textContent = 'Deleting…';
     const general = document.getElementById('expenseDeleteError'); general.hidden = true;
     try {
-      const deleteData = new URLSearchParams();
-      deleteData.set('csrfmiddlewaretoken', csrf());
-      const {response, data} = await requestJson(deleteUrl, postOptions(deleteData));
+      // const deleteData = new URLSearchParams();
+      // deleteData.set('csrfmiddlewaretoken', csrf());
+      // 
+      const {response, data} = await requestJson(deleteUrl, {
+        method: 'DELETE',
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf()}
+      });
       if (!response.ok || !data.ok) { general.textContent = data.message || 'Delete failed.'; general.hidden = false; return; }
       deleteDialog.close(); notice(data.message || 'Expense deleted successfully.'); deleteUrl = '';
       if (!await refreshSnapshot(location.href, 'replace')) notice('Expense deleted. List updates will retry automatically.', 'warning');
@@ -893,15 +897,14 @@
   }
   async function requestJson(url, options = {}) {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), options.method === 'POST' ? 30000 : 15000);
+    const timeout = setTimeout(() => controller.abort(), ['POST','DELETE'].includes(options.method) ? 30000 : 15000);
     try {
       const response = await fetch(url, {credentials:'same-origin', cache:'no-store', ...options, signal:controller.signal});
       if (response.redirected || !(response.headers.get('content-type') || '').includes('application/json')) {
         throw new Error('Unexpected response. Check your session and ledger before trying again.');
       }
       const data = await response.json();
-      if (options.method === 'POST' && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
-      return {response, data};
+      if (['POST','DELETE'].includes(options.method) && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));      return {response, data};
     } catch (error) {
       if (error.name === 'AbortError') throw new Error('Request timed out. Check the ledger before retrying; the change may have saved.');
       throw error;
@@ -1169,9 +1172,13 @@
     saving = true; setModalBusy(deleteDialog, true); deleteButton.textContent = 'Deleting…';
     const general = document.getElementById('saleDeleteError'); general.hidden = true;
     try {
-      const deleteData = new URLSearchParams();
-      deleteData.set('csrfmiddlewaretoken', csrf());
-      const {response, data} = await requestJson(deleteUrl, postOptions(deleteData));
+      // const deleteData = new URLSearchParams();
+      // deleteData.set('csrfmiddlewaretoken', csrf());
+      // const {response, data} = await requestJson(deleteUrl, postOptions(deleteData));
+      const {response, data} = await requestJson(deleteUrl, {
+        method: 'DELETE',
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf()}
+      });
       if (!response.ok || !data.ok) { general.textContent = data.message || 'Delete failed.'; general.hidden = false; return; }
       deleteDialog.close(); notice(data.message || 'Sale deleted successfully.'); deleteUrl = '';
       if (!await refreshSnapshot(location.href, 'replace')) notice('Sale deleted. List updates will retry automatically.', 'warning');

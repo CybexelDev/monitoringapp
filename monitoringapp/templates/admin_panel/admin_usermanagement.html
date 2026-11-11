@@ -2822,9 +2822,9 @@ document.addEventListener('keydown', function(event) {
         form.querySelector('.user-live-error')?.remove();
         let saved = false;
         try {
-            const response = await fetch(form.getAttribute('action') || endpoint, {
-                method:'POST', body:data, credentials:'same-origin', headers:{'X-Requested-With':'XMLHttpRequest'}
-            });
+            const response = await fetch(form.getAttribute('action') || endpoint, deleting
+                ? {method:'DELETE', credentials:'same-origin', headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':data.get('csrfmiddlewaretoken') || ''}}
+                : {method:'POST', body:data, credentials:'same-origin', headers:{'X-Requested-With':'XMLHttpRequest'}});
             let result;
             if ((response.headers.get('Content-Type') || '').includes('application/json')) {
                 result = await response.json();

@@ -3027,7 +3027,11 @@ document.addEventListener("keydown", function (event) {
   const enabled = buttons.filter(button => button && !button.disabled); enabled.forEach(button => { button.disabled = true; });
   let saved = false;
   try {
-   const response = await fetch(form.getAttribute('action'),{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}});
+//    const response = await fetch(form.getAttribute('action'),{method:'POST',body:new FormData(form),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}});
+   const formData = new FormData(form);
+   const response = await fetch(form.getAttribute('action'), deleting
+    ? {method:'DELETE',credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':formData.get('csrfmiddlewaretoken') || ''}}
+    : {method:'POST',body:formData,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}});
    let result;
    if ((response.headers.get('Content-Type') || '').includes('application/json')) {
     result = await response.json(); if (!response.ok || result.ok !== true) throw new Error(result.message || 'Unable to save note.');

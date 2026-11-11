@@ -2889,7 +2889,13 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelRead();mutating=true;
         const target=pendingDelete,button=deleteModal.querySelector('.note-delete-confirm');button.disabled=true;
         try {
-            const result=await request(target.getAttribute('action'),{method:'POST',body:new FormData(target)});
+            // const result=await request(target.getAttribute('action'),{method:'POST',body:new FormData(target)});
+            
+                const token = target.querySelector('[name=csrfmiddlewaretoken]').value;
+                const result = await request(target.getAttribute('action'), {
+            method: 'DELETE',
+            headers: {'X-CSRFToken': token}
+            });
             mutating=false;closeDelete(true);
             if(result.doc)applySection(result.doc,result.response.url,true);
             else await refreshList();
