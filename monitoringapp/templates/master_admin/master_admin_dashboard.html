@@ -158,7 +158,8 @@ body.master-dashboard-page #adminMain>.master-dashboard{box-sizing:border-box;he
 
 {% endblock %}
 
-{% block extra_js %}<script>(() => {
+{% block extra_js %}
+<script>(() => {
 
  const endpoint="{% url 'master_admin_dashboard' %}?format=json",root=document.getElementById('masterDashboard'),status=document.getElementById('masterLiveStatus');
 
@@ -223,4 +224,100 @@ body.master-dashboard-page #adminMain>.master-dashboard{box-sizing:border-box;he
 
  window.lucide?.createIcons();schedule(1000);
 
-})();</script>{% endblock %}
+})();</script>
+<script>
+(function () {
+    "use strict";
+    const PORTAL = "master_admin";
+
+    function notifyCardToRefresh() {
+        window.dispatchEvent(new Event("cybexel-push-changed"));
+    }
+
+    async function initializeMasterPushPermission() {
+        const push = window.CybexelWindowsPush;
+        if (!push || !push.supported() || !("Notification" in window)) return;
+
+        try {
+            // 1. Already allowed: bind this browser to the new login session.
+            if (Notification.permission === "granted") {
+                await push.enable(PORTAL);
+                notifyCardToRefresh();
+                return;
+            }
+
+            // 2. Blocked earlier: cannot be changed from code.
+            if (Notification.permission === "denied") return;
+
+            // 3. "default": show a banner; the click lets the browser show its real prompt.
+            showEnableBanner(push);
+        } catch (error) {
+            console.warn("Master Admin push initialization:", error);
+        }
+    }
+
+    function showEnableBanner(push) {
+        if (document.getElementById("pushPermissionBanner")) return;
+
+        const banner = document.createElement("div");
+        banner.id = "pushPermissionBanner";
+        banner.setAttribute("role", "alert");
+        banner.style.cssText =
+            "position:fixed;top:16px;left:50%;transform:translateX(-50%);" +
+            "z-index:100002;display:flex;align-items:center;gap:14px;" +
+            "max-width:calc(100vw - 32px);padding:14px 18px;" +
+            "border-radius:14px;background:#241c35;color:#fff;" +
+            "border:1px solid rgba(167,139,250,.45);" +
+            "box-shadow:0 12px 40px rgba(0,0,0,.5);font-size:13px;";
+
+        const text = document.createElement("span");
+        text.textContent = "Enable Windows alerts to get report and task notifications.";
+
+        const allow = document.createElement("button");
+        allow.type = "button";
+        allow.textContent = "Enable";
+        allow.style.cssText =
+            "padding:8px 16px;border-radius:10px;border:0;cursor:pointer;" +
+            "background:linear-gradient(135deg,#7c4bd4,#5b32a7);" +
+            "color:#fff;font-weight:700;font-size:12px;";
+
+        const later = document.createElement("button");
+        later.type = "button";
+        later.textContent = "Later";
+        later.style.cssText =
+            "padding:8px 12px;border-radius:10px;cursor:pointer;" +
+            "background:transparent;color:#b8b1c5;font-size:12px;" +
+            "border:1px solid rgba(255,255,255,.15);";
+
+        allow.addEventListener("click", async function () {
+            allow.disabled = true;
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === "granted") {
+                    await push.enable(PORTAL);
+                    notifyCardToRefresh();
+                }
+            } catch (error) {
+                console.warn("Enable notifications failed:", error);
+            } finally {
+                banner.remove();
+            }
+        });
+
+        later.addEventListener("click", function () {
+            banner.remove();
+        });
+
+        banner.append(text, allow, later);
+        document.body.appendChild(banner);
+    }
+
+    if (document.readyState === "complete") {
+        initializeMasterPushPermission();
+    } else {
+        window.addEventListener("load", initializeMasterPushPermission, { once: true });
+    }
+})();
+</script>
+
+{% endblock %}
