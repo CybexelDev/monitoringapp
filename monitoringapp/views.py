@@ -58,29 +58,46 @@ def admin_logout(request):
     request.session.flush()
     return redirect("index")
 
+# @never_cache
+# @require_POST
+# def delete_department(request, pk):
+#     from django.http import HttpResponseForbidden, JsonResponse
+#     from django.db.models.deletion import ProtectedError, RestrictedError
+
+#     if _admin_notepad_owner(request) is None:
+#         return HttpResponseForbidden("Admin access required.")
+#     ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+#     item = get_object_or_404(Department, pk=pk)
+#     try:
+#         item.delete()
+#     except (ProtectedError, RestrictedError):
+#         message = "This department is still in use and cannot be deleted."
+#         if ajax:
+#             return JsonResponse({"ok": False, "message": message}, status=409)
+#         messages.error(request, message)
+#         return redirect("admin_dashboard")
+#     message = "Department deleted successfully."
+#     if ajax:
+#         return JsonResponse({"ok": True, "message": message})
+#     messages.success(request, message)
+#     return redirect("admin_dashboard")
+
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def delete_department(request, pk):
-    from django.http import HttpResponseForbidden, JsonResponse
     from django.db.models.deletion import ProtectedError, RestrictedError
 
     if _admin_notepad_owner(request) is None:
-        return HttpResponseForbidden("Admin access required.")
-    ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        return JsonResponse({"ok": False, "message": "Admin access required."}, status=403)
     item = get_object_or_404(Department, pk=pk)
     try:
         item.delete()
     except (ProtectedError, RestrictedError):
-        message = "This department is still in use and cannot be deleted."
-        if ajax:
-            return JsonResponse({"ok": False, "message": message}, status=409)
-        messages.error(request, message)
-        return redirect("admin_dashboard")
-    message = "Department deleted successfully."
-    if ajax:
-        return JsonResponse({"ok": True, "message": message})
-    messages.success(request, message)
-    return redirect("admin_dashboard")
+        return JsonResponse(
+            {"ok": False, "message": "This department is still in use and cannot be deleted."},
+            status=409,
+        )
+    return JsonResponse({"ok": True, "message": "Department deleted successfully."})
 
 
 @never_cache
@@ -808,18 +825,29 @@ def edit_user(request):
     return redirect("admin_usermanagement")
 
 
+# @never_cache
+# @require_POST
+# def delete_user(request, id):
+#     from django.http import HttpResponseForbidden
+#     managed_users = _admin_managed_users(request)
+#     if managed_users is None:
+#         return HttpResponseForbidden("Admin access required.")
+
+#     user = get_object_or_404(managed_users, id=id)
+#     user.delete()
+#     messages.success(request, "Employee deleted successfully.")
+#     return redirect('admin_usermanagement') 
+
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def delete_user(request, id):
-    from django.http import HttpResponseForbidden
     managed_users = _admin_managed_users(request)
     if managed_users is None:
-        return HttpResponseForbidden("Admin access required.")
+        return JsonResponse({"ok": False, "message": "Admin access required."}, status=403)
 
     user = get_object_or_404(managed_users, id=id)
     user.delete()
-    messages.success(request, "Employee deleted successfully.")
-    return redirect('admin_usermanagement') 
+    return JsonResponse({"ok": True, "message": "Employee deleted successfully."})
 
 
 from datetime import datetime, timedelta
@@ -937,24 +965,33 @@ def admin_notepad(request):
         response.status_code = 400
     return response
 
+# @never_cache
+# @require_POST
+# def admin_notepad_delete(request, pk):
+#     owner = _admin_notepad_owner(request)
+#     if owner is None:
+#         return redirect("login_view")
+#     note = get_object_or_404(AdminNotepad, pk=pk, **owner)
+#     note.delete()
+#     messages.success(request, "Note deleted successfully.")
+#     sort = request.POST.get("sort", "updated")
+#     if sort not in {"updated", "created", "title"}:
+#         sort = "updated"
+#     return redirect(reverse("admin_notepad") + "?" + urlencode({
+#         "q": request.POST.get("q", "").strip()[:200],
+#         "sort": sort, "page": request.POST.get("page", "1"),
+#     }))
+
+
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def admin_notepad_delete(request, pk):
     owner = _admin_notepad_owner(request)
     if owner is None:
-        return redirect("login_view")
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
     note = get_object_or_404(AdminNotepad, pk=pk, **owner)
     note.delete()
-    messages.success(request, "Note deleted successfully.")
-    sort = request.POST.get("sort", "updated")
-    if sort not in {"updated", "created", "title"}:
-        sort = "updated"
-    return redirect(reverse("admin_notepad") + "?" + urlencode({
-        "q": request.POST.get("q", "").strip()[:200],
-        "sort": sort, "page": request.POST.get("page", "1"),
-    }))
-
-
+    return JsonResponse({"ok": True, "message": "Note deleted successfully."})
 
 # Add imports and helpers to monitoringapp/views.py ONCE.
 from pathlib import Path
@@ -7811,7 +7848,8 @@ def accounts_income(request):
     }, status=400 if request.method == "POST" or filter_error else 200)
 
 @never_cache
-@require_POST
+# @require_POST
+@require_http_methods(["DELETE"]) 
 def accounts_income_delete(request, pk):
     actor = _accounts_user(request)
     if actor is None:
@@ -8153,7 +8191,8 @@ def accounts_expenses(request):
 
 
 @never_cache
-@require_POST
+# @require_POST
+@require_http_methods(["DELETE"]) 
 def accounts_expense_delete(request, pk):
     actor = _accounts_user(request)
     if actor is None:
@@ -8475,7 +8514,8 @@ def accounts_sales(request):
 
 
 @never_cache
-@require_POST
+# @require_POST
+@require_http_methods(["DELETE"]) 
 def accounts_sale_delete(request, pk):
     actor = _accounts_user(request)
     if actor is None:
@@ -9509,26 +9549,40 @@ def accounts_notepad(request):
     return response
 
 
+# @never_cache
+# @require_POST
+# def accounts_notepad_delete(request, pk):
+#     if not request.session.get("user_id"):
+#         return redirect("login_view")
+#     user = _accounts_user(request)
+#     if user is None:
+#         return HttpResponseForbidden("Accounts access required.")
+#     note = get_object_or_404(Notepad, pk=pk, user=user)
+#     note_title = note.title
+#     note.delete()
+#     _accounts_notepad_notification(user, note_title, "deleted")
+#     messages.success(request, "Note deleted successfully.")
+#     sort = request.POST.get("sort", "updated")
+#     if sort not in {"updated", "created", "title"}:
+#         sort = "updated"
+#     return redirect(reverse("accounts_notepad") + "?" + urlencode({
+#         "q": request.POST.get("q", "").strip()[:200],
+#         "sort": sort, "page": request.POST.get("page", "1"),
+#     }))
+
+
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def accounts_notepad_delete(request, pk):
-    if not request.session.get("user_id"):
-        return redirect("login_view")
     user = _accounts_user(request)
     if user is None:
-        return HttpResponseForbidden("Accounts access required.")
+        return JsonResponse({"ok": False, "message": "Accounts access required."},
+                            status=403 if request.session.get("user_id") else 401)
     note = get_object_or_404(Notepad, pk=pk, user=user)
     note_title = note.title
     note.delete()
     _accounts_notepad_notification(user, note_title, "deleted")
-    messages.success(request, "Note deleted successfully.")
-    sort = request.POST.get("sort", "updated")
-    if sort not in {"updated", "created", "title"}:
-        sort = "updated"
-    return redirect(reverse("accounts_notepad") + "?" + urlencode({
-        "q": request.POST.get("q", "").strip()[:200],
-        "sort": sort, "page": request.POST.get("page", "1"),
-    }))
+    return JsonResponse({"ok": True, "message": "Note deleted successfully."})
 
 
 def _accounts_notepad_notification(user, note_title, action):
@@ -10072,13 +10126,38 @@ def master_admin_edit_user(request):
     return _master_employee_save(request, employee)
 
 
+# @never_cache
+# @require_POST
+# def master_admin_delete_user(request, pk):
+#     from django.db import IntegrityError, transaction
+#     from django.db.models.deletion import ProtectedError, RestrictedError
+#     from django.http import JsonResponse
+#     from .models import User as Employee
+#     if not _master_admin_allowed(request):
+#         return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+#     employee = Employee.objects.filter(pk=pk).first()
+#     if employee is None:
+#         return JsonResponse({"ok": False, "message": "User not found."}, status=404)
+#     try:
+#         with transaction.atomic():
+#             employee.delete()
+#     except (ProtectedError, RestrictedError):
+#         return JsonResponse({"ok": False, "message": "This user has protected records and cannot be deleted."}, status=409)
+#     except IntegrityError:
+#         return JsonResponse({"ok": False, "message": "Linked records prevent deletion. No records were deleted."}, status=409)
+#     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+#         return JsonResponse({"ok": True, "message": "User deleted successfully.", "id": pk})
+#     messages.success(request, "User deleted successfully.")
+#     return redirect("master_admin_usermanagement")
+
+
 @never_cache
 @require_POST
 def master_admin_delete_user(request, pk):
     from django.db import IntegrityError, transaction
     from django.db.models.deletion import ProtectedError, RestrictedError
     from django.http import JsonResponse
-    from .models import User as Employee
+    from .models import User as Employee, TeamLeadNotification
     if not _master_admin_allowed(request):
         return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
     employee = Employee.objects.filter(pk=pk).first()
@@ -10087,6 +10166,7 @@ def master_admin_delete_user(request, pk):
     try:
         with transaction.atomic():
             employee.delete()
+            TeamLeadNotification.objects.filter(recipient_id=pk).delete()
     except (ProtectedError, RestrictedError):
         return JsonResponse({"ok": False, "message": "This user has protected records and cannot be deleted."}, status=409)
     except IntegrityError:
@@ -10095,7 +10175,6 @@ def master_admin_delete_user(request, pk):
         return JsonResponse({"ok": True, "message": "User deleted successfully.", "id": pk})
     messages.success(request, "User deleted successfully.")
     return redirect("master_admin_usermanagement")
-
 
 @never_cache
 @require_http_methods(["GET", "POST"])
