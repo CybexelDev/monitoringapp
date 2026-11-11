@@ -18,8 +18,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-zgz&^hz5b4*!200p3!v#t*o!558*xq4p5!r0mskmj1%p!!)!^-'
 DEBUG = True
 # ALLOWED_HOSTS = []
-
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', 'cybexeltechnologies.com']
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', 'cybexeltechnologies.com', '.onrender.com']
+#<--- ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost', 'cybexeltechnologies.com'-->]
 # ALLOWED_HOSTS = ['cybexeltechnologies.com', 'www.cybexeltechnologies.com']
 
 # Application definition
@@ -75,9 +75,13 @@ CHANNEL_LAYERS = {
     "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"},
 }
 
+# CSRF_TRUSTED_ORIGINS = [
+#     "https://cybexeltechnologies.com",
+#     "https://cybexeltechnologies.com"
+# ]
 CSRF_TRUSTED_ORIGINS = [
     "https://cybexeltechnologies.com",
-    "https://cybexeltechnologies.com"
+    "https://*.onrender.com",
 ]
 # CSRF_TRUSTED_ORIGINS = [
 #     "http://127.0.0.1:8000",
@@ -86,12 +90,34 @@ CSRF_TRUSTED_ORIGINS = [
 
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+if os.environ.get('DB_NAME'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME'),
+            'USER': os.environ.get('DB_USER'),
+            'PASSWORD': os.environ.get('DB_PASSWORD'),
+            'HOST': os.environ.get('DB_HOST'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+
+
 
 # from dotenv import load_dotenv
 
