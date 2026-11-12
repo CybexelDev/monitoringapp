@@ -2706,9 +2706,14 @@
 
                                         <!-- DELETE -->
 
-                                        <form method="POST" action="{% url 'admin_announcements' %}"
+                                        <!-- <form method="POST" action="{% url 'admin_announcement_delete' announcement.id %}"
                                             class="delete-announcement-form"
-                                            onsubmit="return confirmDeleteAnnouncement(this);">
+                                            onsubmit="return confirmDeleteAnnouncement(this);"> -->
+                                            <form method="POST"
+    action="{% url 'admin_announcements' %}"
+    data-delete-url-template="{% url 'admin_announcement_delete' 0 %}"
+    class="delete-announcement-form"
+    onsubmit="return confirmDeleteAnnouncement(this);">
 
                                             {% csrf_token %}
 
@@ -3411,10 +3416,36 @@
             let saved = false;
             const saveAbort = new AbortController();
             const saveTimeout = setTimeout(() => saveAbort.abort(), 30000);
-            try {
-                const response = await fetch(form.getAttribute('action') || pageUrl, {
-                    method: 'POST', body: data, credentials: 'same-origin', signal: saveAbort.signal,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            try {   
+               const isDelete = action === 'delete_announcement';
+
+                let requestUrl = form.getAttribute('action') || pageUrl;
+
+                if (isDelete) {
+                    const deleteUrlTemplate = form.dataset.deleteUrlTemplate;
+                    const announcementId = data.get('announcement_id');
+
+                    if (!deleteUrlTemplate || !announcementId) {
+                        throw new Error('Delete URL or announcement ID is missing.');
+                    }
+
+                requestUrl = deleteUrlTemplate.replace(
+                    /\/0\/delete\/?$/,
+                    `/${encodeURIComponent(announcementId)}/delete/`
+                );
+                }
+
+                const csrfToken = data.get('csrfmiddlewaretoken') || '';
+
+                const response = await fetch(requestUrl, {
+                    method: isDelete ? 'DELETE' : 'POST',
+                    body: isDelete ? undefined : data,
+                    credentials: 'same-origin',
+                    signal: saveAbort.signal,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    }
                 });
                 let result;
                 if ((response.headers.get('Content-Type') || '').includes('application/json')) {
@@ -3465,6 +3496,13 @@
             event.preventDefault();
             if (action === 'delete_announcement') return; // Existing confirmation opens first.
             window.saveAdminAnnouncement(form, event.submitter);
+            const deleteUrlTemplate = form.dataset.deleteUrlTemplate;
+const announcementId = data.get('announcement_id');
+
+requestUrl = deleteUrlTemplate.replace(
+    /0\/?$/,
+    encodeURIComponent(announcementId) + '/'
+);
         });
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) { clearTimeout(timer); controller?.abort(); }

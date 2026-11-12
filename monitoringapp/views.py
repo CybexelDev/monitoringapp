@@ -2023,7 +2023,7 @@ def admin_reminders(request):
 
     if request.method == "POST":
         action = request.POST.get("action", "")
-        if action not in {"create", "update", "delete", "complete", "reopen"}:
+        if action not in {"create", "update", "complete", "reopen"}:
             return failure("Invalid reminder action.")
         with transaction.atomic():
             reminder = None
@@ -2035,12 +2035,6 @@ def admin_reminders(request):
                 reminder = reminders.select_for_update().filter(pk=reminder_id).first()
                 if reminder is None:
                     return failure("Reminder not found.", 404)
-            if action == "delete":
-                deleted_id = reminder.pk
-                if reminder.notification_id:
-                    AdminNotification.objects.filter(pk=reminder.notification_id, **owner).update(is_archived=True)
-                reminder.delete()
-                return success("Reminder deleted.", deleted_id=deleted_id)
             if action in {"complete", "reopen"}:
                 reminder.is_completed = action == "complete"
                 reminder.save(update_fields=["is_completed", "updated_at"])
@@ -2096,6 +2090,40 @@ def admin_reminders(request):
                              "month_label": context["month_label"], "calendar_weeks": context["calendar_weeks"], "today": context["today"]})
     return render(request, "admin_panel/admin_reminders.html", context)
 
+@never_cache
+@require_http_methods(["DELETE"])
+def admin_reminder_delete(request, pk):
+    owner = _admin_notepad_owner(request)
+
+    if owner is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Please sign in again."
+        }, status=403)
+
+    with transaction.atomic():
+        reminder = AdminReminder.objects.select_for_update().filter(
+            pk=pk, **owner
+        ).first()
+
+        if reminder is None:
+            return JsonResponse({
+                "ok": False,
+                "message": "Reminder not found."
+            }, status=404)
+
+        if reminder.notification_id:
+            AdminNotification.objects.filter(
+                pk=reminder.notification_id,
+                **owner
+            ).update(is_archived=True)
+
+        reminder.delete()
+
+    return JsonResponse({
+        "ok": True,
+        "message": "Reminder deleted."
+    })
 
 
 @never_cache
@@ -12707,28 +12735,19 @@ def admin_announcements(request):
 
     if request.method == "POST":
         action = request.POST.get("action", "")
-        if action in {"edit_announcement", "delete_announcement"}:
+        if action == "edit_announcement":
             try:
                 pk = int(request.POST.get("announcement_id", ""))
-            except (ValueError, TypeError):
+            except (ValueError, TypeError): 
                 messages.error(request, "Invalid announcement ID.")
                 return redirect("admin_announcements")
             announcement = get_object_or_404(
                 Announcement.objects.filter(own_filter, is_admin_announcement=True,
                     is_master_admin_announcement=False, is_active=True), pk=pk
             )
-            if action == "delete_announcement":
-                announcement.is_active = False
-                announcement.save(update_fields=["is_active", "updated_at"])
-                messages.success(request, "Announcement deleted successfully.")
-            else:
-                message = request.POST.get("message", "").strip()
-                if not message:
-                    messages.error(request, "Announcement message cannot be empty.")
-                    return redirect("admin_announcements")
-                announcement.message = message
-                announcement.save(update_fields=["message", "updated_at"])
-                messages.success(request, "Announcement updated successfully.")
+            announcement.message = message
+            announcement.save(update_fields=["message", "updated_at"])
+            messages.success(request, "Announcement updated successfully.")
             return redirect("admin_announcements")
         if action != "create_announcement":
             messages.error(request, "Invalid announcement action.")
@@ -12872,6 +12891,44 @@ def admin_announcements(request):
         return JsonResponse({"ok": True, "html": response.content.decode(response.charset)})
     return response
 
+
+@never_cache
+@require_http_methods(["DELETE"])
+def admin_announcement_delete(request, pk):
+    owner = _admin_notepad_owner(request)
+
+    if owner is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Please sign in again."
+        }, status=403)
+
+    if "management_owner" in owner:
+        own_filter = Q(created_by=owner["management_owner"])
+    else:
+        own_filter = Q(admin_created_by=owner["auth_owner"])
+
+    announcement = Announcement.objects.filter(
+        own_filter,
+        pk=pk,
+        is_admin_announcement=True,
+        is_master_admin_announcement=False,
+        is_active=True
+    ).first()
+
+    if announcement is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Announcement not found."
+        }, status=404)
+
+    announcement.is_active = False
+    announcement.save(update_fields=["is_active", "updated_at"])
+
+    return JsonResponse({
+        "ok": True,
+        "message": "Announcement deleted successfully."
+    })
 
 
 

@@ -38,6 +38,11 @@ path(
     name="admin_announcements",
 ),
 path(
+    "admin-panel/announcements/<int:pk>/delete/",
+    views.admin_announcement_delete,
+    name="admin_announcement_delete",
+),
+path(
     "teamlead/announcements/<int:pk>/admin-seen/",
     views.teamlead_admin_announcement_seen,
     name="teamlead_admin_announcement_seen",
@@ -71,7 +76,11 @@ path("admin-panel/notifications/", views.admin_notifications, name="admin_notifi
 path("admin-panel/notifications/read-all/", views.admin_notifications_read_all, name="admin_notifications_read_all"),
 path("admin-panel/notifications/<int:notification_id>/open/", views.admin_notification_open, name="admin_notification_open"),
 path("admin-panel/reminders/", views.admin_reminders, name="admin_reminders"),
-
+path(
+    "admin-panel/reminders/<int:pk>/delete/",
+    views.admin_reminder_delete,
+    name="admin_reminder_delete"
+),
 
     path("delete/<int:id>/", views.delete_user, name="delete_user"),
     path("edit-user/", views.edit_user, name="edit_user"),
