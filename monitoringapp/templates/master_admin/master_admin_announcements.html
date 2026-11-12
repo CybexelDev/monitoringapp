@@ -362,6 +362,40 @@ body.master-announcements-page #adminMain>.ma{box-sizing:border-box;padding:16px
   }finally{clearTimeout(timeout);if(pending===controller)pending=null;}
  }
  async function post(data){pending?.abort();++latest;const response=await fetch(root.dataset.listUrl,{method:'POST',body:data,credentials:'same-origin',headers:{'X-CSRFToken':csrf,'X-Requested-With':'XMLHttpRequest'},signal:AbortSignal.timeout(15000)});let result;try{result=await response.json();}catch{throw new Error('Unable to save. Check your connection.');}if(!response.ok||!result.ok)throw new Error(result.message||'Unable to save.');return result;}
+ async function removeAnnouncement(id) {
+    pending?.abort();
+    ++latest;
+
+    const response = await fetch(root.dataset.listUrl, {
+        method: 'DELETE',
+        body: JSON.stringify({
+            announcement_id: id
+        }),
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrf,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        signal: AbortSignal.timeout(15000)
+    });
+
+    let result;
+
+    try {
+        result = await response.json();
+    } catch {
+        throw new Error('Unable to delete. Check your connection and login.');
+    }
+
+    if (!response.ok || !result.ok) {
+        throw new Error(
+            result.message || 'Unable to delete announcement.'
+        );
+    }
+
+    return result;
+}
  function audience(){document.getElementById('maRecipientPicker').hidden=editor.querySelector('[name=audience]:checked').value!=='selected';}
  editor.addEventListener('change',e=>{if(e.target.name==='audience')audience();});
  document.getElementById('maRecipientSearch').addEventListener('input',e=>{const q=e.target.value.toLowerCase();document.querySelectorAll('.recipient-option').forEach(row=>{row.hidden=!row.textContent.toLowerCase().includes(q);});});
@@ -451,8 +485,43 @@ if (action === 'mark-seen') {
 
  if(action==='edit')setup(item);if(action==='view'){viewId=item.id;updateView(item);show(view);}if(action==='seen'){seenId=item.id;updateSeen(item);show(seen);}if(action==='delete'){deleting=item.id;document.getElementById('maDeleteText').textContent=item.title;document.getElementById('maDeleteError').textContent='';show(del);}});
  editor.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;if(!document.getElementById('maAudience').disabled&&editor.querySelector('[name=audience]:checked')?.value==='selected'&&!editor.querySelector('.recipient-option input:checked')){errors.textContent='Choose at least one recipient.';toast(errors.textContent,'warning');return;}busy=true;++latest;save.disabled=true;errors.textContent='';let result;try{result=await post(new FormData(editor));edit.close();toast(result.message);}catch(err){errors.textContent=err.message;toast(err.message,'error');}finally{busy=false;save.disabled=false;}if(result)try{await refresh();}catch(err){toast('Saved. '+err.message,'warning');}});
- confirm.addEventListener('click',async()=>{if(busy||!deleting)return;busy=true;++latest;confirm.disabled=true;let result;try{const data=new FormData();data.set('action','delete');data.set('announcement_id',deleting);result=await post(data);del.close();toast(result.message);}catch(err){document.getElementById('maDeleteError').textContent=err.message;toast(err.message,'error');}finally{busy=false;confirm.disabled=false;}if(result)try{await refresh();}catch(err){toast('Deleted. '+err.message,'warning');}});
- document.getElementById('maReset').addEventListener('click',async()=>{
+//  confirm.addEventListener('click',async()=>{if(busy||!deleting)return;busy=true;++latest;confirm.disabled=true;let result;try{const data=new FormData();data.set('action','delete');data.set('announcement_id',deleting);result=await post(data);del.close();toast(result.message);}catch(err){document.getElementById('maDeleteError').textContent=err.message;toast(err.message,'error');}finally{busy=false;confirm.disabled=false;}if(result)try{await refresh();}catch(err){toast('Deleted. '+err.message,'warning');}});
+
+confirm.addEventListener('click', async () => {
+    if (busy || !deleting) return;
+
+    busy = true;
+    ++latest;
+    confirm.disabled = true;
+
+    let result;
+
+    try {
+        result = await removeAnnouncement(deleting);
+
+        del.close();
+        toast(result.message);
+
+    } catch (err) {
+        document.getElementById('maDeleteError').textContent = err.message;
+        toast(err.message, 'error');
+
+    } finally {
+        busy = false;
+        confirm.disabled = false;
+    }
+
+    if (result) {
+        try {
+            await refresh();
+        } catch (err) {
+            toast('Deleted. ' + err.message, 'warning');
+        }
+    }
+});
+
+
+document.getElementById('maReset').addEventListener('click',async()=>{
   if(busy||edit.open||view.open||seen.open||del.open)return;
   const button=document.getElementById('maReset'),search=filters.elements.namedItem('q'),previous=search.value;
   const url=new URL(root.dataset.listUrl,location.origin),source=filters.elements.namedItem('source').value||'master';

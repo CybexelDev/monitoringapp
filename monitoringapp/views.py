@@ -713,7 +713,7 @@ def admin_usermanagement(request):
 
 
 
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 
 
 
@@ -10262,33 +10262,9 @@ def master_admin_edit_user(request):
     return _master_employee_save(request, employee)
 
 
-# @never_cache
-# @require_POST
-# def master_admin_delete_user(request, pk):
-#     from django.db import IntegrityError, transaction
-#     from django.db.models.deletion import ProtectedError, RestrictedError
-#     from django.http import JsonResponse
-#     from .models import User as Employee
-#     if not _master_admin_allowed(request):
-#         return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
-#     employee = Employee.objects.filter(pk=pk).first()
-#     if employee is None:
-#         return JsonResponse({"ok": False, "message": "User not found."}, status=404)
-#     try:
-#         with transaction.atomic():
-#             employee.delete()
-#     except (ProtectedError, RestrictedError):
-#         return JsonResponse({"ok": False, "message": "This user has protected records and cannot be deleted."}, status=409)
-#     except IntegrityError:
-#         return JsonResponse({"ok": False, "message": "Linked records prevent deletion. No records were deleted."}, status=409)
-#     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-#         return JsonResponse({"ok": True, "message": "User deleted successfully.", "id": pk})
-#     messages.success(request, "User deleted successfully.")
-#     return redirect("master_admin_usermanagement")
-
 
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def master_admin_delete_user(request, pk):
     from django.db import IntegrityError, transaction
     from django.db.models.deletion import ProtectedError, RestrictedError
@@ -11886,7 +11862,7 @@ def master_admin_task_update(request, pk):
 
 
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def master_admin_task_delete(request, pk):
     import logging
     import uuid
@@ -12229,20 +12205,69 @@ def _master_announcement_denied(request):
         return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
     return redirect("master_admin_login") if not request.user.is_authenticated else HttpResponseForbidden("Master Admin access required.")
 
+import json
+
 @never_cache
-@require_http_methods(["GET", "POST"])
+@require_http_methods(["GET", "POST", "DELETE"])
 def master_admin_announcements(request):
     if not _master_admin_allowed(request):
         return _master_announcement_denied(request)
     employees = _master_announcement_employees()
     admins = _master_announcement_admins().exclude(pk=request.user.pk)
+        # DELETE: Deactivate an announcement
+    if request.method == "DELETE":
+        try:
+            payload = json.loads(request.body.decode("utf-8") or "{}")
+            if not isinstance(payload, dict):
+                raise ValueError
+
+            pk = int(payload.get("announcement_id", ""))
+
+        except (json.JSONDecodeError, UnicodeDecodeError,
+                TypeError, ValueError, AttributeError):
+            return JsonResponse({
+                "ok": False,
+                "message": "Invalid announcement ID."
+            }, status=400)
+
+        with transaction.atomic():
+            announcement = Announcement.objects.select_for_update().filter(
+                pk=pk,
+                is_active=True
+            ).first()
+
+            if announcement is None:
+                return JsonResponse({
+                    "ok": False,
+                    "message": "Announcement no longer exists."
+                }, status=404)
+
+            announcement.is_active = False
+            announcement.save(update_fields=["is_active", "updated_at"])
+
+            prefix = f"master-announcement:{pk}:"
+
+            for model in [
+                TeamLeadNotification,
+                AccountsNotification,
+                AdminNotification
+            ]:
+                model.objects.filter(
+                    event_key__startswith=prefix
+                ).update(is_archived=True)
+
+        return JsonResponse({
+            "ok": True,
+            "message": "Announcement deleted successfully."
+        })
     if request.method == "POST":
         action = request.POST.get("action", "")
-        if action not in {"create", "update", "delete"}:
+        if action not in {"create", "update"}:
             return JsonResponse({"ok": False, "message": "Invalid action."}, status=400)
         title = request.POST.get("title", "").strip()
         message = request.POST.get("message", "").strip()
-        if action != "delete" and (not title or len(title) > 200 or not message):
+        # if action != "delete" and (not title or len(title) > 200 or not message):
+        if not title or len(title) > 200 or not message:
             return JsonResponse({"ok": False, "message": "Enter a title (maximum 200 characters) and message."}, status=400)
         if action == "create":
             
@@ -12343,14 +12368,6 @@ def master_admin_announcements(request):
             announcement = Announcement.objects.select_for_update().filter(pk=pk, is_active=True).first()
             if announcement is None:
                 return JsonResponse({"ok": False, "message": "Announcement no longer exists."}, status=404)
-            # Superusers may moderate every announcement; original author stays unchanged.
-            if action == "delete":
-                announcement.is_active = False
-                announcement.save(update_fields=["is_active", "updated_at"])
-                prefix = f"master-announcement:{pk}:"
-                for model in [TeamLeadNotification, AccountsNotification, AdminNotification]:
-                    model.objects.filter(event_key__startswith=prefix).update(is_archived=True)
-                return JsonResponse({"ok": True, "message": "Announcement deleted successfully."})
             announcement.title, announcement.message = title, message
             announcement.save(update_fields=["title", "message", "updated_at"])
             _master_announcement_notify(announcement, edited=True)
@@ -13697,7 +13714,7 @@ def _master_operation_notice(view, kind, route, label):
 
     @wraps(view)
     def wrapped(request, *args, **kwargs):
-        if request.method != "POST" or not _master_admin_allowed(request):
+        if request.method not in {"POST", "DELETE"} or not _master_admin_allowed(request):
             return view(request, *args, **kwargs)
         old_messages = {id(message) for message in _master_notice_messages(request)}
         previous_status = None

@@ -2926,8 +2926,21 @@ document.addEventListener('keydown', function(event) {
         const saveController = new AbortController();
         const saveTimeout = setTimeout(() => saveController.abort(), 30000);
         try {
+
+            const headers = {
+                'X-Requested-With': 'XMLHttpRequest'
+            };
+
+            if (deleting) {
+                headers['X-CSRFToken'] = data.get('csrfmiddlewaretoken') || '';
+            }
+
             const response = await fetch(form.getAttribute('action') || endpoint, {
-                method:'POST', body:data, credentials:'same-origin', signal:saveController.signal, headers:{'X-Requested-With':'XMLHttpRequest'}
+                method: deleting ? 'DELETE' : 'POST',
+                body: deleting ? null : data,
+                credentials: 'same-origin',
+                signal: saveController.signal,
+                headers: headers
             });
             let result;
             if ((response.headers.get('Content-Type') || '').includes('application/json')) {
