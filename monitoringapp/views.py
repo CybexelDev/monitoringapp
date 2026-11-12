@@ -1099,15 +1099,24 @@ def admin_repository(request):
         "form_link": request.POST.get("link", "") if error else "",
     }, status=400 if error else 200)
 
+# @never_cache
+# @require_POST
+# def admin_repository_delete(request, pk):
+#     if _admin_notepad_owner(request) is None:
+#         return redirect("login_view")
+#     resource = get_object_or_404(AdminKnowledge, pk=pk)
+#     resource.delete()
+#     messages.success(request, "Resource deleted successfully.")
+#     return redirect("admin_repository")
+
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def admin_repository_delete(request, pk):
     if _admin_notepad_owner(request) is None:
-        return redirect("login_view")
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
     resource = get_object_or_404(AdminKnowledge, pk=pk)
     resource.delete()
-    messages.success(request, "Resource deleted successfully.")
-    return redirect("admin_repository")
+    return JsonResponse({"ok": True, "message": "Resource deleted successfully."})
 
 
 

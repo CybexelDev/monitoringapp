@@ -2402,7 +2402,10 @@ document.addEventListener("keydown", function (event) {
   if (!deleting) form.querySelector('.repository-live-error')?.remove();
   let saved = false;
   try {
-   const response = await fetch(target.getAttribute('action') || pageUrl,{method:'POST',body:new FormData(target),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}});
+   const formData = new FormData(target);
+   const response = await fetch(target.getAttribute('action') || pageUrl, deleting
+    ? {method:'DELETE',credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest','X-CSRFToken':formData.get('csrfmiddlewaretoken') || ''}}
+    : {method:'POST',body:formData,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'}});
    let result;
    if ((response.headers.get('Content-Type') || '').includes('application/json')) {
     result = await response.json(); if (!response.ok || result.ok !== true) throw new Error(result.message || 'Unable to save resource.');
