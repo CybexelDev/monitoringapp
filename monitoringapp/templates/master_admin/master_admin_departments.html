@@ -308,8 +308,48 @@ for(const form of [$('orgForm'),$('orgDeleteForm')])form.addEventListener('submi
  const controls=Array.from(dialog.querySelectorAll('button,input'));const enabled=controls.filter(control=>!control.disabled);enabled.forEach(control=>control.disabled=true);
  let saved=false;
  try{
-  const response=await fetch(endpoint,{method:'POST',body:data,credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:AbortSignal.timeout(20000)});
-  if(!(response.headers.get('Content-Type')||'').includes('application/json'))throw Error('The server did not confirm this change. Check your login.');
+let response;
+
+if (form === $('orgDeleteForm')) {
+    const csrfToken = data.get('csrfmiddlewaretoken');
+    const departmentId = $('orgDeleteId').value;
+
+    if (!csrfToken) {
+        throw new Error('CSRF token missing. Reload the page and try again.');
+    }
+
+    if (!departmentId) {
+        throw new Error('Choose a valid department.');
+    }
+
+    const target = new URL(endpoint, window.location.origin);
+    target.searchParams.set('department_id', departmentId);
+
+    response = await fetch(target, {
+        method: 'DELETE',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        signal: AbortSignal.timeout(20000)
+    });
+
+} else {
+    response = await fetch(endpoint, {
+        method: 'POST',
+        body: data,
+        credentials: 'same-origin',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        signal: AbortSignal.timeout(20000)
+    });
+}
+
+    if(!(response.headers.get('Content-Type')||'').includes('application/json'))throw Error('The server did not confirm this change. Check your login.');
   const result=await response.json();if(!response.ok||!result.ok)throw Error(result.message||'Unable to save changes.');
   saved=true;dialog.close();toast(result.message);await feed();
  }catch(error){if(saved){$('orgRefreshError').textContent='Saved. List updates will retry automatically.';}else{errorNode.textContent=error.name==='TimeoutError'?'Request timed out. Check the list before retrying.':error.message;toast(errorNode.textContent,'error');}}

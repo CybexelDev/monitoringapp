@@ -408,6 +408,7 @@ path("master-admin/google-meet/<int:pk>/delete/", views.master_admin_google_meet
 path("master-admin/notifications/", views.master_admin_notifications, name="master_admin_notifications"),
 path("master-admin/notifications/<int:pk>/action/", views.master_admin_notification_action, name="master_admin_notification_action"),
 path("master-admin/reminders/", views.master_admin_reminders, name="master_admin_reminders"),
+path("master-admin/reminders/<int:pk>/delete/", views.master_admin_reminder_delete, name="master_admin_reminder_delete"),
 path("master-admin/notepad/", views.master_admin_notepad, name="master_admin_notepad"),
 path("master-admin/notepad/<int:pk>/delete/", views.master_admin_notepad_delete, name="master_admin_notepad_delete"),
 path("master-admin/profile/", views.master_admin_profile, name="master_admin_profile"),

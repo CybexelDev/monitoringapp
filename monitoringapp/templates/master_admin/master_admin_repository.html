@@ -2170,8 +2170,20 @@ document.addEventListener("keydown", function (event) {
   if (!deleting) form.querySelector('.repository-live-error')?.remove();
   let saved = false;
   try {
-   const response = await fetch(target.getAttribute('action') || pageUrl,{method:'POST',body:new FormData(target),credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},signal:AbortSignal.timeout(30000)});
-   let result;
+const method = deleting ? 'DELETE' : 'POST';
+const csrfToken = target.querySelector('[name="csrfmiddlewaretoken"]')?.value || '';
+
+const response = await fetch(target.getAttribute('action') || pageUrl,{
+ method,
+ body: deleting ? null : new FormData(target),
+ credentials:'same-origin',
+ headers:{
+  'X-Requested-With':'XMLHttpRequest',
+  'X-CSRFToken':csrfToken
+ },
+ signal:AbortSignal.timeout(30000)
+});
+    let result;
    if ((response.headers.get('Content-Type') || '').includes('application/json')) {
     result = await response.json(); if (!response.ok || result.ok !== true) throw new Error(result.message || 'Unable to save resource.');
    } else {

@@ -5532,7 +5532,8 @@ document.addEventListener('DOMContentLoaded',()=>{
  document.addEventListener('click',event=>{if(event.target.closest('.edit-meeting-btn'))syncMode();});
  syncMode();
 });
-</script><script>
+</script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('createMeetingForm');
   if (!form) return;
@@ -5632,7 +5633,25 @@ document.addEventListener('DOMContentLoaded', () => {
  document.addEventListener('click',event=>{const button=event.target.closest('.master-meeting-delete');if(!button||busy||window.masterMeetingMutation)return;trigger=button;form.setAttribute('action',button.dataset.deleteUrl);document.getElementById('masterMeetingDeletePurpose').textContent=button.dataset.purpose;error.textContent='';scrollOwners=Array.from(document.querySelectorAll('#adminMain,#adminMain>.dashboard-box')).map(el=>({el,value:el.style.getPropertyValue('overflow'),priority:el.style.getPropertyPriority('overflow')}));scrollOwners.forEach(({el})=>el.style.setProperty('overflow','hidden','important'));dialog.showModal();});
  dialog.addEventListener('close',()=>{const host=document.getElementById('toastContainer')||document.getElementById('toast-container');if(host&&dialog.contains(host))document.body.appendChild(host);dialog.querySelectorAll('.meeting-toast-fallback').forEach(node=>document.body.appendChild(node));if(trigger?.isConnected)trigger.focus({preventScroll:true});scrollOwners.forEach(({el,value,priority})=>{if(value)el.style.setProperty('overflow',value,priority);else el.style.removeProperty('overflow');});scrollOwners=[];});
  dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});document.getElementById('meetDeleteClose').addEventListener('click',()=>{if(!busy)dialog.close();});document.getElementById('masterMeetingDeleteCancel').addEventListener('click',()=>{if(!busy)dialog.close();});
- form.addEventListener('submit',async event=>{event.preventDefault();if(busy||window.masterMeetingMutation)return;busy=true;window.masterMeetingMutation=true;confirm.disabled=true;error.textContent='';let result;try{const response=await fetch(form.getAttribute('action'),{method:'POST',body:new FormData(form),headers:{'X-Requested-With':'XMLHttpRequest'},credentials:'same-origin',signal:AbortSignal.timeout(15000)});if(!(response.headers.get('content-type')||'').includes('application/json'))throw Error('Unable to confirm removal. Check your login and try again.');result=await response.json();if(!response.ok||!result.ok)throw Error(result.message||'Unable to remove meeting.');dialog.close();window.masterMeetingNotify(result.message||'Meeting removed.','success');}catch(err){result=null;error.textContent=err.message;window.masterMeetingNotify(err.message,'error');}finally{busy=false;window.masterMeetingMutation=false;confirm.disabled=false;}if(result)await window.refreshMasterMeetings?.(true);});
+ form.addEventListener('submit',async event=>{event.preventDefault();if(busy||window.masterMeetingMutation)return;busy=true;window.masterMeetingMutation=true;confirm.disabled=true;error.textContent='';let result;try{
+const csrfToken = new FormData(form).get('csrfmiddlewaretoken');
+
+if (!csrfToken) {
+    throw new Error('CSRF token missing. Reload the page and try again.');
+}
+
+const response = await fetch(form.getAttribute('action'), {
+    method: 'DELETE',
+    credentials: 'same-origin',
+    cache: 'no-store',
+    headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+    },
+    signal: AbortSignal.timeout(15000)
+});
+    if(!(response.headers.get('content-type')||'').includes('application/json'))throw Error('Unable to confirm removal. Check your login and try again.');result=await response.json();if(!response.ok||!result.ok)throw Error(result.message||'Unable to remove meeting.');dialog.close();window.masterMeetingNotify(result.message||'Meeting removed.','success');}catch(err){result=null;error.textContent=err.message;window.masterMeetingNotify(err.message,'error');}finally{busy=false;window.masterMeetingMutation=false;confirm.disabled=false;}if(result)await window.refreshMasterMeetings?.(true);});
 })();
 </script>
 

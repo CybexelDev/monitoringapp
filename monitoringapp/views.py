@@ -10289,7 +10289,7 @@ def master_admin_delete_user(request, pk):
     return redirect("master_admin_usermanagement")
 
 @never_cache
-@require_http_methods(["GET", "POST"])
+@require_http_methods(["GET", "POST", "DELETE"])
 def master_admin_departments(request):
     from django.contrib import messages
     from django.db import IntegrityError, transaction
@@ -10300,7 +10300,7 @@ def master_admin_departments(request):
 
     ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     if not _master_admin_allowed(request):
-        if request.method == "POST" or ajax or request.GET.get("format") == "json":
+        if request.method in {"POST", "DELETE"} or ajax or request.GET.get("format") == "json":
             return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
         if not request.user.is_authenticated:
             return redirect("master_admin_login")
@@ -10311,6 +10311,52 @@ def master_admin_departments(request):
             return JsonResponse({"ok": ok, "message": message}, status=200 if ok else 400)
         (messages.success if ok else messages.error)(request, message)
         return redirect("master_admin_departments")
+    if request.method == "DELETE":
+            try:
+                department_id = int(request.GET.get("department_id", ""))
+            except (ValueError, TypeError):
+                return finish("Choose a valid department.", False)
+            try:
+                with transaction.atomic():
+                    department = Department.objects.select_for_update().filter(
+                        pk=department_id
+                    ).first()
+
+                    if department is None:
+                        return finish("Department not found.", False)
+
+                    if User.objects.filter(department=department).exists():
+                        return finish(
+                            "This department is assigned to employees. Reassign them before deleting it.",
+                            False
+                        )
+
+                for relation in Department._meta.related_objects:
+                    if relation.related_model is Designation:
+                        continue
+
+                    if relation.related_model._default_manager.filter(
+                        **{relation.field.name: department}
+                    ).exists():
+                        return finish(
+                            "This department is used by other records and cannot be deleted.",
+                            False
+                        )
+
+                department.delete()
+
+                return finish("Department deleted successfully.")
+            except (ProtectedError, RestrictedError):
+                    return finish(
+                "This department has protected records and cannot be deleted.",
+                False
+            )
+
+            except IntegrityError:
+                return finish(
+                    "This department or designation already exists.",
+                    False
+                )
 
     if request.method == "POST":
         names = [value.strip() for value in request.POST.getlist("designation_names") if value.strip()]
@@ -10320,23 +10366,6 @@ def master_admin_departments(request):
             return finish("Designation names must be 100 characters or fewer.", False)
         try:
             with transaction.atomic():
-                if "delete_department" in request.POST:
-                    try:
-                        department_id = int(request.POST.get("department_id", ""))
-                    except (ValueError, TypeError):
-                        return finish("Choose a valid department.", False)
-                    department = Department.objects.select_for_update().filter(pk=department_id).first()
-                    if department is None:
-                        return finish("Department not found.", False)
-                    if User.objects.filter(department=department).exists():
-                        return finish("This department is assigned to employees. Reassign them before deleting it.", False)
-                    for relation in Department._meta.related_objects:
-                        if relation.related_model is Designation:
-                            continue
-                        if relation.related_model._default_manager.filter(**{relation.field.name: department}).exists():
-                            return finish("This department is used by other records and cannot be deleted.", False)
-                    department.delete()
-                    return finish("Department deleted successfully.")
                 if "edit_department" in request.POST:
                     try:
                         department_id = int(request.POST.get("department_id", ""))
@@ -12137,7 +12166,7 @@ def master_admin_project_update(request, pk):
 
 
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def master_admin_project_delete(request, pk):
     if not _master_admin_allowed(request):
         return _master_project_denied(request)
@@ -13170,7 +13199,7 @@ def master_admin_repository_update(request, source, pk):
 
 
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def master_admin_repository_delete(request, source, pk):
     if not _master_admin_allowed(request):
         return _master_repository_denied(request)
@@ -13366,7 +13395,7 @@ def master_admin_google_meet(request):
 
 
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def master_admin_google_meet_delete(request, pk):
     if not _master_admin_allowed(request):
         return _master_meet_denied(request)
@@ -13909,12 +13938,6 @@ def master_admin_reminders(request):
                 reminder = reminders.select_for_update().filter(pk=reminder_id).first()
                 if reminder is None:
                     return failure("Reminder not found.", 404)
-            if action == "delete":
-                deleted_id = reminder.pk
-                if reminder.notification_id:
-                    AdminNotification.objects.filter(pk=reminder.notification_id, **owner).update(is_archived=True)
-                reminder.delete()
-                return success("Reminder deleted.", deleted_id=deleted_id)
             if action in {"complete", "reopen"}:
                 reminder.is_completed = action == "complete"
                 reminder.save(update_fields=["is_completed", "updated_at"])
@@ -13971,6 +13994,27 @@ def master_admin_reminders(request):
     return render(request, "master_admin/master_admin_reminders.html", context)
 
 
+@never_cache
+@require_http_methods(["DELETE"])
+def master_admin_reminder_delete(request, pk):
+    from .models import AdminReminder, AdminNotification
+    if not _master_admin_allowed(request):
+        return JsonResponse({"ok": False, "message": "Admin access required."}, status=403)
+    owner = {"auth_owner": request.user}
+    with transaction.atomic():
+        reminder = AdminReminder.objects.select_for_update().filter(pk=pk, **owner).first()
+        if reminder is None:
+            return JsonResponse({"ok": False, "message": "Reminder not found."}, status=404)
+        if reminder.notification_id:
+            AdminNotification.objects.filter(pk=reminder.notification_id, **owner).update(is_archived=True)
+        reminder.delete()
+    return JsonResponse({
+        "ok": True,
+        "message": "Reminder deleted.",
+        "id": pk,
+        "item": None,
+        "unread_count": AdminNotification.objects.filter(**owner, is_read=False, is_archived=False).count(),
+    })
 
 # Append these NEW functions to monitoringapp/views.py. Keep Admin/Team Lead views.
 @never_cache
@@ -14038,7 +14082,7 @@ def master_admin_notepad(request):
 
 
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def master_admin_notepad_delete(request, pk):
     from django.http import JsonResponse
     from django.urls import reverse
