@@ -1462,15 +1462,39 @@ body.accounts-workspace .reminder-card-actions {flex-wrap:wrap}
         <h2 id="deleteHeading">Delete reminder?</h2>
         <p id="deleteDescription"></p>
         <p>This removes the reminder from your calendar.</p>
-        <form method="post" action="{% url 'accounts_reminders' %}">{% csrf_token %}<input type="hidden" name="action"
+        <!-- <form method="post" action="{% url 'accounts_reminders' %}">{% csrf_token %}<input type="hidden" name="action"
                 value="delete"><input type="hidden" name="reminder_id" id="deleteId">
             <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Cancel</button><button
                     type="submit" class="reminder-btn danger">Delete reminder</button></div>
-        </form>
+        </form> -->
+
+
+<form method="dialog" id="reminderDeleteForm"
+    data-delete-url-template="{% url 'accounts_reminder_delete' 0 %}"
+      action="{% url 'accounts_reminders' %}">
+    {% csrf_token %}
+
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="reminder_id" id="deleteId">
+
+    <div class="dialog-footer">
+        <button type="button" class="reminder-btn" data-close>
+            Cancel
+        </button>
+
+        <button type="submit" class="reminder-btn danger">
+            Delete reminder
+        </button>
+    </div>
+</form>
+
+    
+    
     </dialog>
     {{ calendar_items|json_script:"reminderData" }}
 {% endblock %}
-{% block extra_js %}<script>
+{% block extra_js %}
+<script>
         document.addEventListener('DOMContentLoaded', () => {
             'use strict';
             const items = JSON.parse(document.getElementById('reminderData').textContent);
@@ -1731,16 +1755,77 @@ body.accounts-workspace .reminder-card-actions {flex-wrap:wrap}
                 toast(event.target.validationMessage || 'Check the reminder fields.', 'warning');
                 setTimeout(() => { validationToastPending = false; }, 0);
             }, true);
-            deleteDialog.querySelector('form').addEventListener('submit',async event=>{
-                event.preventDefault(); if(mutating)return; cancelMonthRequest(); mutating=true;
-                const deleteForm=event.currentTarget, button=deleteForm.querySelector('[type="submit"]'); button.disabled=true;
-                try { const result = await jsonRequest(deleteForm.getAttribute('action'), {
-    method: 'POST',
-    body: new FormData(deleteForm)
-}); const index=items.findIndex(i=>Number(i.id)===Number(result.id)); if(index>=0)items.splice(index,1); deleteDialog.close(); notifyCount(result); render(); toast(result.message,'success'); }
-                catch(error){toast(error.message,'error');}
-                finally{mutating=false;button.disabled=false;}
-            });
+
+//             deleteDialog.querySelector('form').addEventListener('submit',async event=>{
+//                 event.preventDefault(); if(mutating)return; cancelMonthRequest(); mutating=true;
+//                 const deleteForm=event.currentTarget, button=deleteForm.querySelector('[type="submit"]'); button.disabled=true;
+//                 try { const result = await jsonRequest(deleteForm.getAttribute('action'), {
+//     method: 'POST',
+//     body: new FormData(deleteForm)
+// }); const index=items.findIndex(i=>Number(i.id)===Number(result.id)); if(index>=0)items.splice(index,1); deleteDialog.close(); notifyCount(result); render(); toast(result.message,'success'); }
+//                 catch(error){toast(error.message,'error');}
+//                 finally{mutating=false;button.disabled=false;}
+//             });
+
+
+const deleteForm = document.getElementById('reminderDeleteForm');
+
+deleteForm.addEventListener('submit', async event => {
+    event.preventDefault();
+
+    if (mutating) return;
+
+    const reminderId = document.getElementById('deleteId').value;
+    const csrfToken = deleteForm.elements.csrfmiddlewaretoken.value;
+    const urlTemplate = deleteForm.dataset.deleteUrlTemplate;
+
+    if (!reminderId || !urlTemplate) {
+        toast('Unable to delete reminder. Please try again.', 'error');
+        return;
+    }
+
+    const deleteUrl = urlTemplate.replace(
+        /\/0\/delete\/?$/,
+        `/${encodeURIComponent(reminderId)}/delete/`
+    );
+
+    cancelMonthRequest();
+    mutating = true;
+
+    const button = deleteForm.querySelector('[type="submit"]');
+    button.disabled = true;
+
+    try {
+        const result = await jsonRequest(deleteUrl, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        });
+
+        const index = items.findIndex(
+            item => Number(item.id) === Number(result.id)
+        );
+
+        if (index >= 0) {
+            items.splice(index, 1);
+        }
+
+        deleteDialog.close();
+
+        notifyCount(result);
+        render();
+
+        toast(result.message, 'success');
+
+    } catch (error) {
+        toast(error.message, 'error');
+
+    } finally {
+        mutating = false;
+        button.disabled = false;
+    }
+});
             const timer=setInterval(()=>{if(!document.hidden&&!editDialog.open&&!deleteDialog.open)loadMonth(month,false,true);},15000);
             document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!editDialog.open&&!deleteDialog.open)loadMonth(month,false,true);});
             window.addEventListener('pagehide',()=>{cancelMonthRequest();});

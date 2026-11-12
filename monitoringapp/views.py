@@ -8228,18 +8228,41 @@ def accounts_expenses(request):
 
 
 @never_cache
-# @require_POST
-@require_http_methods(["DELETE"]) 
+@require_http_methods(["DELETE"])
 def accounts_expense_delete(request, pk):
+    if not request.session.get("user_id"):
+        return JsonResponse({
+            "ok": False,
+            "message": "Please log in again."
+        }, status=401)
+
     actor = _accounts_user(request)
+
     if actor is None:
-        return JsonResponse({"ok": False, "message": "Please log in with an Accounts account."},
-            status=403 if request.session.get("user_id") else 401)
+        return JsonResponse({
+            "ok": False,
+            "message": "You do not have access to Accounts."
+        }, status=403)
+
     with transaction.atomic():
-        entry = AccountsExpense.objects.select_for_update().filter(pk=pk).first()
+        entry = (
+            AccountsExpense.objects
+            .select_for_update()
+            .filter(pk=pk)
+            .first()
+        )
+
         if entry is None:
-            return JsonResponse({"ok": False, "message": "This expense no longer exists."}, status=404)
-        _expense_audit(entry, actor, "deleted", _expense_snapshot(entry))
+            return JsonResponse({
+                "ok": False,
+                "message": "This expense no longer exists."
+            }, status=404)
+
+        _expense_audit(
+            entry, actor, "deleted",
+            _expense_snapshot(entry)
+        )
+
         _create_accounts_notification(
             kind="expense",
             title="Expense deleted",
@@ -8251,9 +8274,15 @@ def accounts_expense_delete(request, pk):
             ),
             actor=actor,
         )
-        entry.delete()
-    return JsonResponse({"ok": True, "message": "Expense deleted successfully.", "id": pk})
 
+        deleted_id = entry.pk
+        entry.delete()
+
+    return JsonResponse({
+        "ok": True,
+        "message": "Expense deleted successfully.",
+        "id": deleted_id
+    }, status=200)
 
 @never_cache
 @require_http_methods(["GET"])
@@ -9315,7 +9344,7 @@ def accounts_reminders(request):
         action = request.POST.get("action", "")
 
         if action not in {
-            "create", "update", "delete", "complete", "reopen"
+            "create", "update", "complete", "reopen"
         }:
             return failure("Invalid reminder action.")
 
@@ -9499,6 +9528,76 @@ def accounts_reminders(request):
         "accounts/accounts_reminders.html",
         context,
     )
+
+
+
+@never_cache
+@require_http_methods(["DELETE"])
+def accounts_reminder_delete(request, pk):
+    from django.db import transaction
+    from django.http import JsonResponse
+
+    from .models import AccountsNotification, AccountsReminder
+
+    current_user = _accounts_user(request)
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    logger.warning(
+        "ACCOUNTS DELETE AUTH: user_id=%s, session_position=%s, "
+        "authenticated=%s, resolved_user=%s",
+        request.session.get("user_id"),
+        request.session.get("position"),
+        request.user.is_authenticated,
+        current_user.pk if current_user else None,
+    )
+
+    if current_user is None:
+        return JsonResponse({
+            "ok": False,
+            "message": "Accounts access required.",
+        }, status=403)
+
+    with transaction.atomic():
+        reminder = (
+            AccountsReminder.objects
+            .select_for_update()
+            .filter(
+                pk=pk,
+                owner=current_user,
+            )
+            .first()
+        )
+
+        if reminder is None:
+            return JsonResponse({
+                "ok": False,
+                "message": "Reminder not found.",
+            }, status=404)
+
+        deleted_id = reminder.pk
+
+        if reminder.notification_id:
+            AccountsNotification.objects.filter(
+                pk=reminder.notification_id,
+                recipient=current_user,
+            ).update(is_archived=True)
+
+        reminder.delete()
+
+    unread_count = AccountsNotification.objects.filter(
+        recipient=current_user,
+        is_archived=False,
+        is_read=False,
+    ).count()
+
+    return JsonResponse({
+        "ok": True,
+        "message": "Reminder deleted.",
+        "id": deleted_id,
+        "unread_count": unread_count,
+    })
 
 from urllib.parse import urlencode
 from django.contrib import messages

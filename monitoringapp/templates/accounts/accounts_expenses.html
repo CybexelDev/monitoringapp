@@ -438,24 +438,83 @@
     });
     first?.focus();
   }
-  async function requestJson(url, options = {}) {
-    const controller = new AbortController();
-    // const timeout = setTimeout(() => controller.abort(), options.method === 'POST' ? 30000 : 15000);
-    const timeout = setTimeout(() => controller.abort(), ['POST','DELETE'].includes(options.method) ? 30000 : 15000);
-    try {
-      if (['POST','DELETE'].includes(options.method) && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
-      const response = await fetch(url, {credentials:'same-origin', cache:'no-store', ...options, signal:controller.signal});
-      if (response.redirected || !(response.headers.get('content-type') || '').includes('application/json')) {
-        throw new Error('Unexpected response. Check your session and ledger before trying again.');
-      }
-      const data = await response.json();
-      if (options.method === 'POST' && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
-      return {response, data};
-    } catch (error) {
-      if (error.name === 'AbortError') throw new Error('Request timed out. Check the ledger before retrying; the change may have saved.');
-      throw error;
-    } finally { clearTimeout(timeout); }
+
+  // async function requestJson(url, options = {}) {
+  //   const controller = new AbortController();
+  //   // const timeout = setTimeout(() => controller.abort(), options.method === 'POST' ? 30000 : 15000);
+  //   const timeout = setTimeout(() => controller.abort(), ['POST','DELETE'].includes(options.method) ? 30000 : 15000);
+  //   try {
+  //     if (['POST','DELETE'].includes(options.method) && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
+  //     const response = await fetch(url, {credentials:'same-origin', cache:'no-store', ...options, signal:controller.signal});
+  //     if (response.redirected || !(response.headers.get('content-type') || '').includes('application/json')) {
+  //       throw new Error('Unexpected response. Check your session and ledger before trying again.');
+  //     }
+  //     const data = await response.json();
+  //     if (options.method === 'POST' && response.ok && data.ok) document.dispatchEvent(new CustomEvent('accounts:notifications-refresh'));
+  //     return {response, data};
+  //   } catch (error) {
+  //     if (error.name === 'AbortError') throw new Error('Request timed out. Check the ledger before retrying; the change may have saved.');
+  //     throw error;
+  //   } finally { clearTimeout(timeout); }
+  // }
+  
+  
+
+
+async function requestJson(url, options = {}) {
+  const controller = new AbortController();
+
+  const timeout = setTimeout(
+    () => controller.abort(),
+    ['POST', 'DELETE'].includes(options.method) ? 30000 : 15000
+  );
+
+  try {
+    const response = await fetch(url, {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      ...options,
+      signal: controller.signal
+    });
+
+    if (
+      response.redirected ||
+      !(response.headers.get('content-type') || '').includes('application/json')
+    ) {
+      throw new Error(
+        'Unexpected response. Check your session and ledger before trying again.'
+      );
+    }
+
+    const data = await response.json();
+
+    if (
+      ['POST', 'DELETE'].includes(options.method) &&
+      response.ok &&
+      data.ok
+    ) {
+      document.dispatchEvent(
+        new CustomEvent('accounts:notifications-refresh')
+      );
+    }
+
+    return { response, data };
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error(
+        'Request timed out. Check the ledger before retrying; the change may have saved.'
+      );
+    }
+
+    throw error;
+
+  } finally {
+    clearTimeout(timeout);
   }
+}
+
+  
   const postOptions = body => ({
     method: 'POST', headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf()}, body
   });

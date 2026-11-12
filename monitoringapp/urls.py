@@ -318,6 +318,11 @@ path(
 ),
 path("accounts/expenses/<int:pk>/receipt/", views.accounts_expense_receipt, name="accounts_expense_receipt"),
 path("accounts/expenses/<int:pk>/history/", views.accounts_expense_history, name="accounts_expense_history"),
+path(
+    "accounts/expenses/<int:pk>/delete/",
+    views.accounts_expense_delete,
+    name="accounts_expense_delete"
+),
 path("accounts/income/<int:pk>/receipt/", views.accounts_income_receipt, name="accounts_income_receipt"),
 path("accounts/income/<int:pk>/history/", views.accounts_income_history, name="accounts_income_history"),
 path("accounts/sales/<int:pk>/invoice/", views.accounts_sale_invoice, name="accounts_sale_invoice"),
@@ -342,6 +347,13 @@ path(
     views.accounts_reminders,
     name="accounts_reminders",
 ),
+
+path(
+    "accounts/reminders/<int:pk>/delete/",
+    views.accounts_reminder_delete,
+    name="accounts_reminder_delete",
+),
+
 path("accounts/notepad/", views.accounts_notepad, name="accounts_notepad"),
 path(
     "accounts/notepad/delete/<int:pk>/",
