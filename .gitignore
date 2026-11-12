@@ -8,3 +8,5 @@ media/
 .env
 venv/
 /chat_push_keys/
+chat_push_keys/
+data.json

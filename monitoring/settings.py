@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+import base64
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -184,6 +185,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 from pathlib import Path
 
 CHAT_PUSH_KEY_DIR = Path(BASE_DIR) / "chat_push_keys"
+
+# On Render the keys come from Environment Variables and are written to files at startup
+_pem_b64 = os.environ.get("CHAT_PUSH_PRIVATE_PEM_B64")
+_pub = os.environ.get("CHAT_PUSH_PUBLIC_KEY")
+if _pem_b64 and _pub:
+    CHAT_PUSH_KEY_DIR.mkdir(exist_ok=True)
+    (CHAT_PUSH_KEY_DIR / "private.pem").write_bytes(base64.b64decode(_pem_b64))
+    (CHAT_PUSH_KEY_DIR / "public.txt").write_text(_pub.strip(), encoding="utf-8")
 
 CHAT_PUSH_VAPID_PRIVATE_KEY = str(
     CHAT_PUSH_KEY_DIR / "private.pem"
