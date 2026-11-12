@@ -10870,7 +10870,7 @@ def master_admin_accounts_income_edit(request, pk):
 
 
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def master_admin_accounts_income_delete(request, pk):
     actor = _master_accounts_actor(request)
     if actor is None:
@@ -11200,7 +11200,7 @@ def master_admin_accounts_expense_edit(request, pk):
 
 
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def master_admin_accounts_expense_delete(request, pk):
     actor = _master_accounts_actor(request)
     if actor is None:
@@ -11505,7 +11505,7 @@ def master_admin_accounts_sale_edit(request, pk):
 
 
 @never_cache
-@require_POST
+@require_http_methods(["DELETE"])
 def master_admin_accounts_sale_delete(request, pk):
     actor = _master_accounts_actor(request)
     if actor is None:
