@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.utils.timezone import now
 from django.conf import settings
 from datetime import datetime
-
+from .storages import raw_media_storage
 
 
 class Department(models.Model):
@@ -358,7 +358,7 @@ class ProjectAssign(models.Model):
     deadline = models.DateField(null=True, blank=True)
     additional_notes = models.TextField(blank=True, null=True)
 
-    upload_file = models.FileField(upload_to="uploads/files/", blank=True, null=True)
+    upload_file = models.FileField(upload_to="uploads/files/", blank=True, null=True, storage=raw_media_storage)
     upload_image = models.ImageField(upload_to="uploads/images/", blank=True, null=True)
 
     color_preference = models.CharField(max_length=100, blank=True, null=True)
@@ -402,7 +402,7 @@ class Knowledge(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)   # ✅ use your custom User
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    file = models.FileField(upload_to="knowledge_files/", blank=True, null=True, max_length=500)
+    file = models.FileField(upload_to="knowledge_files/", blank=True, null=True, max_length=500, storage=raw_media_storage)
     link = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -441,7 +441,7 @@ class Task(models.Model):
 
 class ProjectFile(models.Model):
     project = models.ForeignKey(ProjectAssign, on_delete=models.CASCADE, related_name="files")
-    file = models.FileField(upload_to="project_files/")
+    file = models.FileField(upload_to="project_files/", storage=raw_media_storage)
 
 class ProjectImage(models.Model):
     project = models.ForeignKey(ProjectAssign, on_delete=models.CASCADE, related_name="images")
@@ -1353,7 +1353,7 @@ class AdminKnowledge(models.Model):
     )
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, default="")
-    file = models.FileField(upload_to="admin_knowledge_files/", blank=True, max_length=500)
+    file = models.FileField(upload_to="admin_knowledge_files/", blank=True, max_length=500 ,storage=raw_media_storage)
     link = models.URLField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -1386,11 +1386,11 @@ def admin_knowledge_storage():
 
 # INSIDE existing AdminKnowledge, replace ONLY the file field with:
 # (Use this indentation inside the class.)
-    file = models.FileField(
+file = models.FileField(
         upload_to="admin_knowledge_files/",
         storage=admin_knowledge_storage,
         blank=True,
-        max_length=500,
+        max_length=500
     )
 
 from django.conf import settings
