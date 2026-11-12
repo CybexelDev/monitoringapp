@@ -1462,12 +1462,6 @@ body.accounts-workspace .reminder-card-actions {flex-wrap:wrap}
         <h2 id="deleteHeading">Delete reminder?</h2>
         <p id="deleteDescription"></p>
         <p>This removes the reminder from your calendar.</p>
-        <!-- <form method="post" action="{% url 'accounts_reminders' %}">{% csrf_token %}<input type="hidden" name="action"
-                value="delete"><input type="hidden" name="reminder_id" id="deleteId">
-            <div class="dialog-footer"><button type="button" class="reminder-btn" data-close>Cancel</button><button
-                    type="submit" class="reminder-btn danger">Delete reminder</button></div>
-        </form> -->
-
 
 <form method="dialog" id="reminderDeleteForm"
     data-delete-url-template="{% url 'accounts_reminder_delete' 0 %}"
@@ -1755,17 +1749,6 @@ body.accounts-workspace .reminder-card-actions {flex-wrap:wrap}
                 toast(event.target.validationMessage || 'Check the reminder fields.', 'warning');
                 setTimeout(() => { validationToastPending = false; }, 0);
             }, true);
-
-//             deleteDialog.querySelector('form').addEventListener('submit',async event=>{
-//                 event.preventDefault(); if(mutating)return; cancelMonthRequest(); mutating=true;
-//                 const deleteForm=event.currentTarget, button=deleteForm.querySelector('[type="submit"]'); button.disabled=true;
-//                 try { const result = await jsonRequest(deleteForm.getAttribute('action'), {
-//     method: 'POST',
-//     body: new FormData(deleteForm)
-// }); const index=items.findIndex(i=>Number(i.id)===Number(result.id)); if(index>=0)items.splice(index,1); deleteDialog.close(); notifyCount(result); render(); toast(result.message,'success'); }
-//                 catch(error){toast(error.message,'error');}
-//                 finally{mutating=false;button.disabled=false;}
-//             });
 
 
 const deleteForm = document.getElementById('reminderDeleteForm');
