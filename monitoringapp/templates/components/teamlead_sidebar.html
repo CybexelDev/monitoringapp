@@ -767,6 +767,19 @@ html { background: #08070b; color-scheme: dark; }
     z-index: 10;
     pointer-events: none;
 }
+.sidebar-profile-text .sidebar-user-name {
+    margin: 7px 0 0;
+    max-width: 210px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 
 </style>
 
@@ -837,6 +850,12 @@ html { background: #08070b; color-scheme: dark; }
         <div class="sidebar-profile-text">
 
             <h3>TEAM LEAD</h3>
+                {% with profile_user=logged_in_user|default:user %}
+        <p class="sidebar-user-name">
+            {{ profile_user.name|default:profile_user.username|default:"Team Lead" }}
+        </p>
+    {% endwith %}
+
 
             <span>CYBEXEL WORKSPACE</span>
 
