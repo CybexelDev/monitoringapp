@@ -130,6 +130,43 @@
                 0 15px 40px rgba(0, 0, 0, 0.40),
                 0 0 0 1px rgba(255,255,255,0.08);
         }
+        .profile-initials {
+    position: relative;
+    z-index: 2;
+
+    width: 150px;
+    height: 150px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+    border-radius: 50%;
+
+    border: 4px solid rgba(139, 92, 246, 0.85);
+
+    background: linear-gradient(
+        135deg,
+        #3b2a5b,
+        #21192f
+    );
+
+    color: #f1eaff;
+
+    font-size: 58px;
+    font-weight: 800;
+
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.40),
+        0 0 0 1px rgba(255,255,255,0.08);
+
+    user-select: none;
+}
+
+.profile-image-wrapper [hidden] {
+    display: none !important;
+}
 
 /* ---------------------------------------------------------
    PROFILE STATUS — GREEN DOT
@@ -633,11 +670,12 @@
                 padding: 15px;
             }
 
-            .profile-image-wrapper,
-            .profile-image-wrapper img {
-                width: 130px;
-                height: 130px;
-            }
+.profile-image-wrapper,
+.profile-image-wrapper img,
+.profile-image-wrapper .profile-initials {
+    width: 130px;
+    height: 130px;
+}
 
             .profile-image-wrapper {
                 margin: 0 auto;
@@ -782,23 +820,24 @@
                         id="profile-container"
                     >
 
-                        {% if user.profile_image %}
+<img
+    id="profile-display"
+    {% if user.profile_image %}
+        src="{{ user.profile_image.url }}"
+    {% else %}
+        hidden
+    {% endif %}
+    alt="Profile Image"
+>
 
-                            <img
-                                id="profile-display"
-                                src="{{ user.profile_image.url }}"
-                                alt="Profile Image"
-                            >
-
-                        {% else %}
-
-                            <img
-                                id="profile-display"
-                                src="{% static 'images/default-user.png' %}"
-                                alt="Profile Image"
-                            >
-
-                        {% endif %}
+<div
+    id="profile-initials"
+    class="profile-initials"
+    {% if user.profile_image %}hidden{% endif %}
+    aria-hidden="true"
+>
+    {{ user.name|default:user.username|first|upper }}
+</div>
 
 
                         <input
@@ -1189,14 +1228,55 @@
 
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
- const form=document.querySelector('.profile-form'),input=document.getElementById('profile-input'),photo=document.getElementById('profile-display'),container=document.getElementById('profile-container');
- const url=form.getAttribute('action');let busy=false,dirty=false,pending=null,stopped=false,seq=0;
+const form = document.querySelector('.profile-form');
+const input = document.getElementById('profile-input');
+const photo = document.getElementById('profile-display');
+const initials = document.getElementById('profile-initials');
+const container = document.getElementById('profile-container');
+
+if (!form || !input || !photo || !initials || !container) return;
+
+const url = form.getAttribute('action');
+ let busy=false,dirty=false,pending=null,stopped=false,seq=0;
  const toast=(message,error=false)=>{if(typeof window.showToast==='function'){window.showToast(message,error?'error':'success');return;}const n=document.createElement('div');n.textContent=message;n.className='profile-live-toast';n.setAttribute('role','status');document.body.append(n);setTimeout(()=>n.remove(),5500);};
  document.querySelectorAll('.menu-toggle').forEach(b=>b.addEventListener('click',()=>document.getElementById('sidebar')?.classList.toggle('open')));
  window.lucide?.createIcons();
- function setPhoto(src){photo.src=src;document.querySelectorAll('#sidebar img').forEach(n=>{if(n.alt?.toLowerCase().includes('profile'))n.src=src;});}
+function showInitial() {
+    photo.removeAttribute('src');
+    photo.hidden = true;
+    initials.hidden = false;
+}
+
+function setPhoto(src) {
+    if (!src) {
+        showInitial();
+        return;
+    }
+
+    photo.src = src;
+    photo.hidden = false;
+    initials.hidden = true;
+
+    document.querySelectorAll('#sidebar img').forEach(n => {
+        if (n.alt?.toLowerCase().includes('profile')) {
+            n.src = src;
+        }
+    });
+}
  function apply(page,fields=false){if(!page.querySelector('.profile-form'))throw Error('Session expired or unexpected response. Please sign in again.');for(const selector of ['.profile-info-grid']){const old=document.querySelector(selector),fresh=page.querySelector(selector);if(old&&fresh)old.innerHTML=fresh.innerHTML;}
- const freshPhoto=page.getElementById('profile-display');if(freshPhoto)setPhoto(freshPhoto.getAttribute('src'));
+const freshInitials = page.getElementById('profile-initials');
+
+if (freshInitials) {
+    initials.textContent = freshInitials.textContent.trim();
+}
+
+const freshPhoto = page.getElementById('profile-display');
+
+if (freshPhoto && !freshPhoto.hidden && freshPhoto.getAttribute('src')) {
+    setPhoto(freshPhoto.getAttribute('src'));
+} else {
+    showInitial();
+}
  if(fields)form.querySelectorAll('input:not([type="file"])').forEach(n=>{const fresh=[...page.querySelectorAll('.profile-form input')].find(f=>f.name===n.name);if(fresh)n.value=fresh.value;});window.lucide?.createIcons();}
  async function refresh(){if(stopped||busy||dirty||pending||document.hidden||form.contains(document.activeElement))return;const c=new AbortController(),id=++seq;pending=c;const t=setTimeout(()=>c.abort(),12000);try{const r=await fetch(url,{credentials:'same-origin',cache:'no-store',signal:c.signal});if(r.status===401||r.status===403){stopped=true;return;}if(!r.ok)return;const p=new DOMParser().parseFromString(await r.text(),'text/html');if(!p.querySelector('.profile-form')){stopped=true;return;}if(id===seq&&!busy&&!dirty)apply(p,true);}catch(e){}finally{clearTimeout(t);if(pending===c)pending=null;}}
  form.addEventListener('input',()=>dirty=true);

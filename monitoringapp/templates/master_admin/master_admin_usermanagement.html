@@ -1644,6 +1644,24 @@ body.admin-usermanagement-page .action-buttons .delete-button svg{width:19px;hei
 body.admin-usermanagement-page .action-buttons .edit-button:focus-visible,
 body.admin-usermanagement-page .action-buttons .delete-button:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
 
+body.admin-usermanagement-page .profile-preview img {
+    border-radius: 12px;
+}
+
+body.admin-usermanagement-page .profile-preview-fallback {
+    width: 58px;
+    height: 58px;
+    flex: 0 0 58px;
+    border-radius: 12px;
+    font-size: 20px;
+}
+
+body.admin-usermanagement-page .profile-preview-hint {
+    color: rgba(255,255,255,.45);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
 </style>
 {% endblock %}
 {% block content %}
@@ -1866,10 +1884,30 @@ body.admin-usermanagement-page .action-buttons .delete-button:focus-visible{outl
         <form method="POST" enctype="multipart/form-data" class="user-form">
             {% csrf_token %}
 
-            <div class="form-group full">
+            <!-- <div class="form-group full">
                 <label for="profile_image" class="form-label">Profile Picture</label>
                 <input type="file" id="profile_image" name="profile_image" accept="image/*" class="glass-file">
+            </div> -->
+            <div class="form-group full">
+    <label for="profile_image" class="form-label">Profile Picture</label>
+
+    <div class="profile-preview employee-avatar-preview">
+        <img id="add_profile_image_preview" hidden alt="Profile Preview">
+
+        <div id="add_profile_fallback"
+             class="employee-avatar-fallback profile-preview-fallback">?</div>
+
+        <div>
+            <div class="profile-preview-text">Profile Preview</div>
+            <div class="profile-preview-hint">
+                Name initial will appear if no image is uploaded.
             </div>
+        </div>
+    </div>
+
+    <input type="file" id="profile_image" name="profile_image"
+           accept="image/*" class="glass-file">
+</div>
 
             <div class="form-group">
                 <label for="name" class="form-label">Full Name</label>
@@ -2120,13 +2158,26 @@ body.admin-usermanagement-page .action-buttons .delete-button:focus-visible{outl
 
             <div class="edit-form-group full">
                 <label class="edit-label">Profile Image</label>
-                <div class="profile-preview">
+                <!-- <div class="profile-preview">
                     <img id="edit_profile_image" hidden alt="Profile Preview">
                     <div>
                         <div class="profile-preview-text">Current profile image</div>
                         <input type="file" id="edit_profile_upload" name="edit_profile_upload" class="glass-file" accept="image/*">
                     </div>
-                </div>
+                </div> -->
+            <div class="profile-preview">
+    <img id="edit_profile_image" hidden alt="Profile Preview">
+
+    <div id="edit_profile_fallback"
+         class="employee-avatar-fallback profile-preview-fallback">?</div>
+
+    <div>
+        <div class="profile-preview-text">Current profile image</div>
+        <input type="file" id="edit_profile_upload"
+               name="edit_profile_upload"
+               class="glass-file" accept="image/*">
+    </div>
+</div>
             </div>
 
             <div class="modal-actions">
@@ -2260,6 +2311,43 @@ function setSelectValueOrText(selectId, value) {
 }
 
 /* ADD EMPLOYEE MODAL */
+function employeeNameInitial(name) {
+    const cleanName = String(name || "").trim();
+    return cleanName ? cleanName.charAt(0).toUpperCase() : "?";
+}
+
+function updateAddEmployeeAvatar() {
+    const nameInput = document.getElementById("name");
+    const fileInput = document.getElementById("profile_image");
+    const preview = document.getElementById("add_profile_image_preview");
+    const fallback = document.getElementById("add_profile_fallback");
+
+    if (!nameInput || !fileInput || !preview || !fallback) return;
+
+    const file = fileInput.files[0];
+
+    if (!file) {
+        preview.hidden = true;
+        preview.removeAttribute("src");
+
+        fallback.textContent = employeeNameInitial(nameInput.value);
+        fallback.hidden = false;
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+        if (fileInput.files[0] !== file) return;
+
+        preview.src = reader.result;
+        preview.hidden = false;
+        fallback.hidden = true;
+    };
+
+    reader.readAsDataURL(file);
+}
+updateAddEmployeeAvatar();
 function openAddEmployeeModal() {
     const modal = document.getElementById("addEmployeeModal");
     if (!modal) return;
@@ -2272,6 +2360,16 @@ function openAddEmployeeModal() {
     if (window.lucide) {
         lucide.createIcons();
     }
+    document.getElementById("name")?.addEventListener("input", () => {
+    if (!document.getElementById("profile_image")?.files.length) {
+        updateAddEmployeeAvatar();
+    }
+});
+
+document.getElementById("profile_image")?.addEventListener(
+    "change",
+    updateAddEmployeeAvatar
+);
 }
 
 function setUserModalVisibility(modal, visible) {
@@ -2336,16 +2434,40 @@ function openEditModal(button) {
     document.getElementById("edit_password").value = "";
     document.getElementById("edit_status").value = button.dataset.status || "active";
 
-    const preview = document.getElementById("edit_profile_image");
-    const imgSrc = button.dataset.profile || "";
-    preview.hidden = !imgSrc;
-    document.getElementById('edit_profile_upload').value = '';
+    // const preview = document.getElementById("edit_profile_image");
+    // const imgSrc = button.dataset.profile || "";
+    // preview.hidden = !imgSrc;
+    // document.getElementById('edit_profile_upload').value = '';
 
-    if (imgSrc) {
-        preview.src = imgSrc;
-    } else {
-        preview.removeAttribute("src");
-    }
+    // if (imgSrc) {
+    //     preview.src = imgSrc;
+    // } else {
+    //     preview.removeAttribute("src");
+    // }
+
+    const preview = document.getElementById("edit_profile_image");
+const fallback = document.getElementById("edit_profile_fallback");
+const uploadInput = document.getElementById("edit_profile_upload");
+const editModal = document.getElementById("editModal");
+
+const imgSrc = button.dataset.profile || "";
+
+editModal.dataset.originalProfile = imgSrc;
+uploadInput.value = "";
+
+if (imgSrc) {
+    preview.src = imgSrc;
+    preview.hidden = false;
+    fallback.hidden = true;
+} else {
+    preview.removeAttribute("src");
+    preview.hidden = true;
+
+    fallback.textContent = employeeNameInitial(
+        document.getElementById("edit_name").value
+    );
+    fallback.hidden = false;
+}
 
     setUserModalVisibility(document.getElementById("editModal"), true);
     document.body.style.overflow = "hidden";

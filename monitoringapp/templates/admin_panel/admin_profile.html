@@ -103,6 +103,45 @@ body.admin-profile-page .profile-image-wrapper img {
                 0 0 0 1px rgba(255,255,255,0.08);
         }
 
+body.admin-profile-page .profile-initials {
+    position: relative;
+    z-index: 2;
+
+    width: 150px;
+    height: 150px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+    border-radius: 50%;
+
+    border: 4px solid rgba(139, 92, 246, 0.85);
+
+    background: linear-gradient(
+        135deg,
+        #3b2a5b,
+        #21192f
+    );
+
+    color: #f1eaff;
+
+    font-size: 58px;
+    font-weight: 800;
+    letter-spacing: 1px;
+
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.40),
+        0 0 0 1px rgba(255,255,255,0.08);
+
+    user-select: none;
+}
+
+body.admin-profile-page .profile-image-wrapper [hidden] {
+    display: none !important;
+}
+
 body.admin-profile-page .profile-status {
     position: absolute;
 
@@ -556,10 +595,11 @@ body.admin-profile-page .profile-edit-card {
             }
 
 body.admin-profile-page .profile-image-wrapper,
-body.admin-profile-page .profile-image-wrapper img {
-                width: 130px;
-                height: 130px;
-            }
+body.admin-profile-page .profile-image-wrapper img,
+body.admin-profile-page .profile-image-wrapper .profile-initials {
+    width: 130px;
+    height: 130px;
+}
 
 body.admin-profile-page .profile-image-wrapper {
                 margin: 0 auto;
@@ -746,7 +786,7 @@ body.admin-profile-page .profile-form .profile-inline-status {
                         id="profile-container"
                     >
 
-                        {% if user.profile_image %}
+                        <!-- {% if user.profile_image %}
 
                             <img
                                 id="profile-display"
@@ -762,7 +802,25 @@ body.admin-profile-page .profile-form .profile-inline-status {
                                 alt="Profile Image"
                             >
 
-                        {% endif %}
+                        {% endif %} -->
+                        <img
+    id="profile-display"
+    {% if user.profile_image %}
+        src="{{ user.profile_image.url }}"
+    {% else %}
+        hidden
+    {% endif %}
+    alt="Profile Image"
+>
+
+<div
+    id="profile-initials"
+    class="profile-initials"
+    {% if user.profile_image %}hidden{% endif %}
+    aria-hidden="true"
+>
+    {{ user.name|default:user.username|first|upper }}
+</div>
 
 
                         <input
@@ -1142,12 +1200,17 @@ body.admin-profile-page .profile-form .profile-inline-status {
 document.addEventListener('DOMContentLoaded', () => {
   const form=document.querySelector('.profile-form');
   const container=document.getElementById('profile-container');
-  const display=document.getElementById('profile-display');
-  const input=document.getElementById('profile-input');
-  if(!form||!container||!display||!input)return;
+//   const display=document.getElementById('profile-display');
+//   const input=document.getElementById('profile-input');
+//   if(!form||!container||!display||!input)return;
+const display=document.getElementById('profile-display');
+const initials=document.getElementById('profile-initials');
+const input=document.getElementById('profile-input');
+
+if(!form||!container||!display||!initials||!input)return;
   const endpoint='{% url "admin_profile" %}';
   let saving=false,uploading=false,controller=null,revision=0,baseline='',summarySignature=null;
-  let committedImage=display.getAttribute('src');
+let committedImage=display.getAttribute('src') || '';
   const feedback=document.createElement('p');
   feedback.className='profile-inline-status';
   feedback.setAttribute('role','status');
@@ -1198,12 +1261,48 @@ document.addEventListener('DOMContentLoaded', () => {
       img.src=url;
     });
   }
-  function setPhoto(url){if(!url)return;committedImage=url;if(display.getAttribute('src')!==url)display.src=url;sidebarPhoto(url);}
+function showInitial(){
+    committedImage = '';
+
+    display.removeAttribute('src');
+    display.hidden = true;
+
+    initials.hidden = false;
+}
+
+function setPhoto(url){
+    if(!url)return;
+
+    committedImage = url;
+
+    display.src = url;
+    display.hidden = false;
+
+    initials.hidden = true;
+
+    sidebarPhoto(url);
+}
   function applyDocument(doc,updateFields=false){
     const incoming=doc.querySelector('.profile-info-grid');const current=document.querySelector('.profile-info-grid');
     if(!incoming||!current||!doc.querySelector('.profile-form'))throw new Error('Please sign in again to load your profile.');
     if(summarySignature!==incoming.innerHTML){current.innerHTML=incoming.innerHTML;summarySignature=incoming.innerHTML;}
-    const image=doc.getElementById('profile-display');if(image&&!uploading)setPhoto(image.getAttribute('src'));
+const incomingInitials = doc.getElementById('profile-initials');
+
+if(incomingInitials){
+    initials.textContent = incomingInitials.textContent.trim();
+}
+
+const image = doc.getElementById('profile-display');
+
+if(image && !uploading){
+    const imageUrl = image.getAttribute('src');
+
+    if(!image.hidden && imageUrl){
+        setPhoto(imageUrl);
+    }else{
+        showInitial();
+    }
+}
     if(updateFields){const newForm=doc.querySelector('.profile-form');fields.forEach(name=>{const value=newForm.elements.namedItem(name)?.value;if(value!==undefined&&form.elements.namedItem(name))form.elements.namedItem(name).value=value;});baseline=snapshot();}
   }
   async function refresh(force=false){
@@ -1245,7 +1344,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const file=input.files[0];if(!file||saving||uploading)return;
     if(file.type&&!file.type.startsWith('image/')){notify('Choose an image file.','error');input.value='';return;}
     uploading=true;controller?.abort();++revision;input.disabled=true;container.setAttribute('aria-busy','true');
-    const preview=URL.createObjectURL(file);display.src=preview;
+const preview = URL.createObjectURL(file);
+
+display.src = preview;
+display.hidden = false;
+
+initials.hidden = true;
     const request=new AbortController();const timeout=setTimeout(()=>request.abort(),20000);
     try{
       const data=new FormData();data.append('profile_image',file);data.append('action','edit_profile');data.append('csrfmiddlewaretoken',form.elements.namedItem('csrfmiddlewaretoken').value);
@@ -1253,8 +1357,24 @@ document.addEventListener('DOMContentLoaded', () => {
       if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('Please sign in again or check the image upload view.');
       const result=await response.json();if(!response.ok||!(result.success||result.ok)||!result.image_url)throw new Error(result.error||result.message||'Unable to upload profile image.');
       setPhoto(result.image_url);notify(result.message||'Profile photo updated successfully.');
-    }catch(error){display.src=committedImage;notify(error.name==='AbortError'?'Upload timed out. Check your profile before retrying.':error.message,'error');}
-    finally{clearTimeout(timeout);URL.revokeObjectURL(preview);uploading=false;input.disabled=false;input.value='';container.removeAttribute('aria-busy');}
+}catch(error){
+
+    if(committedImage){
+        display.src = committedImage;
+        display.hidden = false;
+        initials.hidden = true;
+    }else{
+        showInitial();
+    }
+
+    notify(
+        error.name === 'AbortError'
+            ? 'Upload timed out. Check your profile before retrying.'
+            : error.message,
+        'error'
+    );
+}
+      finally{clearTimeout(timeout);URL.revokeObjectURL(preview);uploading=false;input.disabled=false;input.value='';container.removeAttribute('aria-busy');}
   });
   const timer=setInterval(()=>refresh(),10000);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});window.addEventListener('online',()=>refresh());window.addEventListener('pageshow',()=>refresh());
