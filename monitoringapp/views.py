@@ -6369,7 +6369,7 @@ def update_inactive_users():
 
     if not cache.add("monitoring:inactive-presence-sweep:v1", True, timeout=30):
         return
-    cutoff_time = timezone.now() - timedelta(minutes=10)
+    cutoff_time = timezone.now() - timedelta(minutes=20)
     try:
         User.objects.filter(
             status="active", last_activity__lt=cutoff_time
@@ -6407,7 +6407,7 @@ def get_user_status(request, user_id):
     if user is None:
         return JsonResponse({"success": False, "message": "User not found"}, status=404)
 
-    cutoff = timezone.now() - timedelta(minutes=10)
+    cutoff = timezone.now() - timedelta(minutes=20)
     last_activity = user["last_activity"]
     active = (
         str(user["status"] or "").strip().lower() == "active"
@@ -10055,7 +10055,7 @@ def master_admin_dashboard(request):
         leads=Count("pk", filter=Q(portal_role__in=["team lead", "team_lead", "team leader", "teamlead"])),
         members=Count("pk", filter=Q(portal_role__in=["team member", "team_member", "team members", "teammember"])),
         accounts=Count("pk", filter=Q(portal_role__in=["accounts", "accounts team", "accounts_team"])),
-        active=Count("pk", filter=Q(status="active", last_activity__gte=now-timedelta(minutes=10))),
+        active=Count("pk", filter=Q(status="active", last_activity__gte=now-timedelta(minutes=20))),
     )
     counts["inactive"] = counts["users"] - counts["active"]
     counts["master_admins"] = get_user_model().objects.filter(is_superuser=True, is_active=True).count()
