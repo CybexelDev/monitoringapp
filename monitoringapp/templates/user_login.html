@@ -384,6 +384,61 @@
         .input-wrap {
             position: relative;
         }
+        /* Password visibility toggle */
+.field input#password {
+    padding-right: 46px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 24px;
+    height: 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    border: none;
+    background: transparent;
+
+    color: #817b8c;
+    cursor: pointer;
+
+    transition: color .2s ease;
+}
+
+.password-toggle:hover {
+    color: #a78bfa;
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid rgba(139,92,246,.45);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+.password-toggle svg {
+    width: 17px;
+    height: 17px;
+    stroke-width: 1.7;
+}
+
+.password-toggle .lucide-eye-off {
+    display: none;
+}
+
+.password-toggle.is-visible .lucide-eye {
+    display: none;
+}
+
+.password-toggle.is-visible .lucide-eye-off {
+    display: block;
+}
 
 
         .input-icon {
@@ -974,6 +1029,17 @@
                         <span class="input-icon">
                             <i data-lucide="lock-keyhole"></i>
                         </span>
+                        <button
+    type="button"
+    class="password-toggle"
+    id="togglePassword"
+    aria-label="Show password"
+    aria-pressed="false"
+    aria-controls="password"
+>
+    <i data-lucide="eye"></i>
+    <i data-lucide="eye-off"></i>
+</button>
 
                     </div>
 
@@ -1026,6 +1092,32 @@
 
         if (typeof lucide !== "undefined") {
             lucide.createIcons();
+            const passwordInput = document.getElementById("password");
+const passwordToggle = document.getElementById("togglePassword");
+
+if (passwordInput && passwordToggle) {
+
+    passwordToggle.addEventListener("click", function () {
+
+        const isVisible = passwordInput.type === "password";
+
+        passwordInput.type = isVisible ? "text" : "password";
+
+        passwordToggle.classList.toggle("is-visible", isVisible);
+
+        passwordToggle.setAttribute(
+            "aria-label",
+            isVisible ? "Hide password" : "Show password"
+        );
+
+        passwordToggle.setAttribute(
+            "aria-pressed",
+            String(isVisible)
+        );
+
+    });
+
+}
         }
 
     });
