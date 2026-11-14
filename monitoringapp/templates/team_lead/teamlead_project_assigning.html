@@ -2905,33 +2905,29 @@
                     <div class="project-grid">
 
                         <!-- Department -->
-                        <div class="project-field">
+<div class="project-field">
 
-                            <label for="department">
-                                Department
-                            </label>
+    <label for="department">
+        Department
+    </label>
 
-                            <select
-                                id="department"
-                                name="department"
-                                required
-                                class="project-select"
-                            >
-<option value="" disabled selected>Select Department</option>
+    <select
+        id="department"
+        name="department"
+        required
+        class="project-select"
+    >
+        <option value="" disabled selected>Select Department</option>
 
+        {% for dept in departments %}
+        <option value="{{ dept.id }}">
+            {{ dept.name }}
+        </option>
+        {% endfor %}
 
-                                {% for dept in departments %}
+    </select>
 
-                                <option value="{{ dept.id }}">
-                                    {{ dept.name }}
-                                </option>
-
-                                {% endfor %}
-
-                            </select>
-
-                        </div>
-
+</div>
 
                         <!-- Assign To -->
                         <div class="project-field">
@@ -3689,32 +3685,29 @@
                             <div class="project-grid">
 
                                 <!-- Department -->
-                                <div class="project-field">
+<div class="project-field">
 
-                                    <label>
-                                        Department
-                                    </label>
+    <label>
+        Department
+    </label>
 
-                                    <select
-                                        name="department"
-                                        class="project-select"
-                                    >
+    <select
+        name="department"
+        class="project-select"
+    >
 
-                                        {% for dept in departments %}
+        {% for dept in departments %}
+        <option
+            value="{{ dept.id }}"
+            {% if project.department.id == dept.id %}selected{% endif %}
+        >
+            {{ dept.name }}
+        </option>
+        {% endfor %}
 
-                                        <option
-                                            value="{{ dept.id }}"
-                                            {% if project.department.id == dept.id %}selected{% endif %}
-                                        >
-                                            {{ dept.name }}
-                                        </option>
+    </select>
 
-                                        {% endfor %}
-
-                                    </select>
-
-                                </div>
-
+</div>
 
                                 <!-- Assign To -->
                                 <div class="project-field">

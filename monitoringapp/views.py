@@ -5210,29 +5210,38 @@ def teamlead_reports(request):
         },
     )
 
+
 @never_cache
 def teamlead_project_assigning(request):
-    # 🔒 Prevent KeyError: check session before accessing user
     if not request.session.get("user_id") or request.session.get("position") != "team_lead":
         return redirect("index")
 
     team_lead = get_object_or_404(User, id=request.session["user_id"])
-    departments = Department.objects.all()
 
+    # Show only Team Members from the logged-in Team Lead's department.
     team_members = User.objects.filter(
         department_id=team_lead.department_id,
-        job_Position__icontains="team member"
+        job_Position__iexact="Team Member"
     ).exclude(id=team_lead.id)
 
     if not team_lead.department_id:
         team_members = User.objects.none()
 
     if request.method == "POST":
-        assignee = get_object_or_404(team_members, pk=request.POST.get("assign_to"))
-        department = get_object_or_404(Department, pk=request.POST.get("department"))
-        # First create the project without files/images
+        if not team_lead.department_id:
+            messages.error(
+                request,
+                "Your account is not assigned to a department. Please contact Admin."
+            )
+            return redirect("teamlead_project_assigning")
+
+        assignee = get_object_or_404(
+            team_members,
+            pk=request.POST.get("assign_to")
+        )
+
         project = ProjectAssign.objects.create(
-            department=department,
+            department=team_lead.department,
             assign_to=assignee,
             assigned_by=team_lead,
             work_name=request.POST.get("work_name"),
@@ -5246,26 +5255,27 @@ def teamlead_project_assigning(request):
             priority=request.POST.get("priority"),
         )
 
-        # Handle multiple uploaded files
         for file in request.FILES.getlist("upload_file[]"):
             ProjectFile.objects.create(project=project, file=file)
 
-        # Handle multiple uploaded images
         for image in request.FILES.getlist("upload_image[]"):
             ProjectImage.objects.create(project=project, image=image)
 
         messages.success(request, "Project assigned successfully.")
-
         return redirect("teamlead_project_assigning")
 
-    projects = ProjectAssign.objects.filter(assigned_by=team_lead).order_by("-assigned_date", "-pk")
+    projects = ProjectAssign.objects.filter(
+        assigned_by=team_lead
+    ).order_by("-assigned_date", "-pk")
 
     return render(request, "team_lead/teamlead_project_assigning.html", {
-        "departments": departments,
         "team_lead": team_lead,
         "team_members": team_members,
         "projects": projects,
     })
+
+
+
 
 def project_assign_edit(request, pk):
     if not request.session.get("user_id") or request.session.get("position") != "team_lead":
@@ -5301,17 +5311,30 @@ def project_assign_edit(request, pk):
 
         return redirect("teamlead_project_assigning")
 
-    departments = Department.objects.all()
     team_members = User.objects.filter(
-        department_id=team_lead.department_id, job_Position__iexact="Team Member"
-    ).exclude(id=project.assigned_by.id)
+        department_id=team_lead.department_id,
+        job_Position__iexact="Team Member"
+    ).exclude(id=team_lead.id)
 
     if not team_lead.department_id:
         team_members = User.objects.none()
+    
 
     if request.method == "POST":
-        project.department = get_object_or_404(Department, pk=request.POST.get("department"))
-        project.assign_to = get_object_or_404(team_members, pk=request.POST.get("assign_to"))
+        # project.department = get_object_or_404(Department, pk=request.POST.get("department"))
+        # project.assign_to = get_object_or_404(team_members, pk=request.POST.get("assign_to"))
+        if not team_lead.department_id:
+            messages.error(
+                request,
+                "Your account is not assigned to a department. Please contact Admin."
+            )
+            return redirect("teamlead_project_assigning")
+
+        project.department = team_lead.department
+        project.assign_to = get_object_or_404(
+            team_members,
+            pk=request.POST.get("assign_to")
+        )
         project.work_name = request.POST.get("work_name")
         project.work_type = request.POST.get("work_type")
         project.category = request.POST.get("category")
@@ -5342,21 +5365,8 @@ def project_assign_edit(request, pk):
         "project": project,
         "team_lead": team_lead,
         "projects": ProjectAssign.objects.filter(assigned_by=team_lead).order_by("-assigned_date", "-pk"),
-        "departments": departments,
         "team_members": team_members,
     })
-
-# def project_assign_delete(request, pk):
-#     if not request.session.get("user_id") or request.session.get("position") != "team_lead":
-#         return redirect("index")
-#     team_lead = get_object_or_404(User, pk=request.session["user_id"])
-#     project = get_object_or_404(ProjectAssign, id=pk, assigned_by=team_lead)
-#     if request.method != "POST":
-#         from django.http import HttpResponseNotAllowed
-#         return HttpResponseNotAllowed(["POST"])
-#     project.delete()
-#     messages.success(request, "Project deleted successfully.")
-#     return redirect("teamlead_project_assigning")
 
 @never_cache
 @require_http_methods(["DELETE"])
@@ -5388,6 +5398,8 @@ def update_project_status(request, pk):
             messages.error(request, "Invalid status selected.")
 
     return redirect("teammember_project")
+
+
 from urllib.parse import urlencode
 from django.db.models import Q
 from django.core.paginator import Paginator
