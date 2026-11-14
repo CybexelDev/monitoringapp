@@ -138,7 +138,7 @@ def admin_reports(request):
         report_tab = "leads"
     role = "Team Lead" if report_tab == "leads" else "Team Member"
     show_all = request.GET.get("all") == "1"
-    export = request.GET.get("export") == "1"
+    export = request.GET.get("export", "").strip().lower()
     filter_date = None
     raw_date = request.GET.get("date", "").strip()
     if raw_date and raw_date != "None":
@@ -175,42 +175,139 @@ def admin_reports(request):
         evening_reports = evening_reports.filter(created_at__gte=start, created_at__lt=end)
 
     # Export filtered reports to Excel
-    if export:
+
+    # Export Daily / Monthly reports to Excel
+    if export in {"daily", "monthly"}:
+        import calendar
+        from datetime import datetime as report_datetime
+        from datetime import time as report_time
+        from datetime import timedelta as report_delta
+        from django.conf import settings as report_settings
+
+        if export == "daily":
+            raw_export_date = request.GET.get("date", "").strip()
+            export_date = (
+                parse_date(raw_export_date)
+                if raw_export_date
+                else timezone.localdate()
+            )
+
+            if not export_date:
+                return HttpResponse("Invalid export date.", status=400)
+
+            start = report_datetime.combine(export_date, report_time.min)
+            end = start + report_delta(days=1)
+            filename = f"{report_tab}_reports_daily_{export_date:%Y-%m-%d}.xlsx"
+
+        else:
+            month_str = request.GET.get("month", "").strip()
+
+            try:
+                month_start = report_datetime.strptime(
+                    month_str, "%Y-%m"
+                ).date()
+            except ValueError:
+                return HttpResponse("Invalid export month.", status=400)
+
+            month_end = month_start.replace(
+                day=calendar.monthrange(
+                    month_start.year, month_start.month
+                )[1]
+            )
+
+            start = report_datetime.combine(month_start, report_time.min)
+            end = report_datetime.combine(
+                month_end + report_delta(days=1),
+                report_time.min
+            )
+
+            filename = f"{report_tab}_reports_monthly_{month_str}.xlsx"
+
+        if report_settings.USE_TZ:
+            tz = timezone.get_current_timezone()
+            start = timezone.make_aware(start, tz)
+            end = timezone.make_aware(end, tz)
+
+        # Start from the selected role, not the page's current date filter.
+        export_morning = MorningReport.objects.filter(
+            user__job_Position__iexact=role,
+            created_at__gte=start,
+            created_at__lt=end,
+        ).select_related("user").order_by("created_at", "id")
+
+        export_evening = EveningReport.objects.filter(
+            user__job_Position__iexact=role,
+            created_at__gte=start,
+            created_at__lt=end,
+        ).select_related("user").order_by("created_at", "id")
+
         wb = Workbook()
         ws = wb.active
         ws.title = "Team Reports"
 
-        headers = ["Report Type", "Date", "Time", "Name", "Department", "Report", "Status"]
-        ws.append(headers)
+        ws.append([
+            "Report Type",
+            "Date",
+            "Time",
+            "Name",
+            "Department",
+            "Report",
+            "Status",
+        ])
 
         def add_report_to_sheet(report_list, report_type):
             for report in report_list:
                 local_dt = timezone.localtime(report.created_at)
+
                 ws.append([
                     report_type,
                     local_dt.strftime("%Y-%m-%d"),
                     local_dt.strftime("%I:%M %p"),
                     getattr(report.user, "name", report.user.username),
-                    report.department,
-                    report.report_text,
-                    getattr(report, "status", ""),
+                    str(report.department or ""),
+                    str(report.report_text or ""),
+                    str(getattr(report, "status", "") or ""),
                 ])
 
-        add_report_to_sheet(morning_reports, "Morning")
-        add_report_to_sheet(evening_reports, "Evening")
+        add_report_to_sheet(export_morning, "Morning")
+        add_report_to_sheet(export_evening, "Evening")
+
+        # Prevent Excel formula injection.
+        for row in ws.iter_rows():
+            for cell in row:
+                if isinstance(cell.value, str) and cell.value.startswith(
+                    ("=", "+", "-", "@")
+                ):
+                    cell.value = "'" + cell.value
+
+        for cell in ws[1]:
+            cell.alignment = Alignment(
+                horizontal="center",
+                vertical="center"
+            )
 
         for row in ws.iter_rows(min_row=2, min_col=6, max_col=6):
             for cell in row:
-                cell.alignment = Alignment(wrap_text=True, vertical="top")
+                cell.alignment = Alignment(
+                    wrap_text=True,
+                    vertical="top"
+                )
 
         column_widths = [15, 15, 12, 20, 20, 50, 15]
+
         for i, width in enumerate(column_widths, start=1):
             ws.column_dimensions[get_column_letter(i)].width = width
 
         response = HttpResponse(
-            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            content_type=(
+                "application/vnd.openxmlformats-officedocument."
+                "spreadsheetml.sheet"
+            )
         )
-        response['Content-Disposition'] = 'attachment; filename="team_reports.xlsx"'
+        response["Content-Disposition"] = (
+            f'attachment; filename="{filename}"'
+        )
+
         wb.save(response)
         return response
 
@@ -220,6 +317,7 @@ def admin_reports(request):
         'evening_reports': evening_reports,
         'show_all': show_all,
         'filter_date': filter_date,
+        'report_date': day or timezone.localdate(),
     }
     return render(request, 'admin_panel/admin_reports.html', context)
 
@@ -1854,7 +1952,7 @@ def _process_admin_reminders(owner=None):
         with transaction.atomic():
             reminder = (
                 AdminReminder.objects
-                .select_for_update()
+                .select_for_update(of=("self",))
                 .select_related("management_owner", "auth_owner")
                 .filter(
                     pk=reminder_id,
@@ -5127,21 +5225,78 @@ def teamlead_reports(request):
                     ).order_by("name")
                 )
 
-    if "export" in request.GET:
+    if request.GET.get("export") in ("daily", "monthly"):
+        export_period = request.GET.get("export")
+
+        if export_period == "monthly":
+            month_value = (
+                request.GET.get("month")
+                or report_date.strftime("%Y-%m")
+            )
+
+            try:
+                selected_month = datetime.strptime(
+                    month_value, "%Y-%m"
+                ).date()
+            except ValueError:
+                messages.error(request, "Invalid month format.")
+                return redirect("teamlead_reports")
+
+            from calendar import monthrange
+
+            export_start_date = selected_month.replace(day=1)
+            export_end_date = selected_month.replace(
+                day=monthrange(
+                    selected_month.year,
+                    selected_month.month
+                )[1]
+            )
+            export_label = selected_month.strftime("%Y-%m")
+
+        else:
+            export_start_date = report_date
+            export_end_date = report_date
+            export_label = report_date.strftime("%Y-%m-%d")
+
+        # Apply the selected date/month independently of Show All.
+        export_filters = dict(report_filters)
+        export_filters["created_at__date__range"] = (
+            export_start_date,
+            export_end_date,
+        )
+
+        export_morning_reports = (
+            MorningReport.objects.filter(**export_filters)
+            .select_related("user")
+            .order_by("-created_at")
+        )
+
+        export_evening_reports = (
+            EveningReport.objects.filter(**export_filters)
+            .select_related("user")
+            .order_by("-created_at")
+        )
+
         wb = Workbook()
         ws = wb.active
-        ws.title = "My Reports" if report_tab == "my" else "Team Members Reports"
+        ws.title = (
+            "My Reports"
+            if report_tab == "my"
+            else "Team Members Reports"
+        )
+
         ws.append([
             "Date", "Time", "Report Type", "Name",
             "Department", "Report", "Status",
         ])
 
         for reports, report_type in (
-            (morning_reports, "Morning"),
-            (evening_reports, "Evening"),
+            (export_morning_reports, "Morning"),
+            (export_evening_reports, "Evening"),
         ):
             for report in reports:
                 report_time = localtime(report.created_at)
+
                 ws.append([
                     report_time.strftime("%Y-%m-%d"),
                     report_time.strftime("%I:%M %p"),
@@ -5152,32 +5307,71 @@ def teamlead_reports(request):
                     str(report.status or ""),
                 ])
 
-        if report_day_leave:
+        # Include the relevant holiday rows in the selected period.
+        if report_tab == "my":
+            export_holiday_users = [team_lead]
+        elif team_lead.department_id:
+            export_holiday_users = list(
+                User.objects.filter(
+                    department_id=team_lead.department_id,
+                    job_Position__iexact="Team Member",
+                ).exclude(
+                    pk=team_lead.pk
+                ).order_by("name")
+            )
+        else:
+            export_holiday_users = []
+
+        export_leaves = TeamReportLeave.objects.filter(
+            team_lead=team_lead,
+            date__range=(
+                export_start_date,
+                export_end_date,
+            ),
+        ).order_by("date")
+
+        for leave in export_leaves:
             for report_type, is_holiday in (
-                ("Morning", report_day_leave.morning_leave),
-                ("Evening", report_day_leave.evening_leave),
+                ("Morning", leave.morning_leave),
+                ("Evening", leave.evening_leave),
             ):
                 if is_holiday:
-                    for person in holiday_users:
+                    for person in export_holiday_users:
                         ws.append([
-                            report_date.strftime("%Y-%m-%d"),
+                            leave.date.strftime("%Y-%m-%d"),
                             "",
                             report_type,
                             str(person.name),
-                                str(person.department.name) if person.department else "",
-                            report_day_leave.reason or "Holiday",
+                            (
+                                str(person.department.name)
+                                if person.department else ""
+                            ),
+                            leave.reason or "Holiday",
                             "Holiday",
                         ])
 
         for cell in ws[1]:
-            cell.alignment = Alignment(horizontal="center", vertical="center")
-        for row in ws.iter_rows(min_row=2, min_col=6, max_col=6):  
-            for cell in row:
-                cell.alignment = Alignment(wrap_text=True, vertical="top")
-        for column, width in enumerate(
-            [15, 12, 14, 22, 22, 50, 16], start=1
+            cell.alignment = Alignment(
+                horizontal="center",
+                vertical="center",
+            )
+
+        for row in ws.iter_rows(
+            min_row=2, min_col=6, max_col=6
         ):
-            ws.column_dimensions[get_column_letter(column)].width = width
+            for cell in row:
+                cell.alignment = Alignment(
+                    wrap_text=True,
+                    vertical="top",
+                )
+
+        for column, width in enumerate(
+            [15, 12, 14, 22, 22, 50, 16],
+            start=1,
+        ):
+            ws.column_dimensions[
+                get_column_letter(column)
+            ].width = width
 
         response = HttpResponse(
             content_type=(
@@ -5185,15 +5379,22 @@ def teamlead_reports(request):
                 "spreadsheetml.sheet"
             )
         )
-        filename = (
-            "my_reports.xlsx" if report_tab == "my"
-            else "team_members_reports.xlsx"
+
+        base_filename = (
+            "my_reports"
+            if report_tab == "my"
+            else "team_members_reports"
         )
+
+        filename = f"{base_filename}_{export_label}.xlsx"
+
         response["Content-Disposition"] = (
             f'attachment; filename="{filename}"'
         )
+
         wb.save(response)
         return response
+
 
     return render(
         request,
@@ -5837,64 +6038,142 @@ def teammember_reports(request):
         ):
             holiday_users = [user]
 
-    if "export" in request.GET:
+
+    export_type = request.GET.get("export")
+
+    if export_type in ("daily", "monthly"):
+        import calendar
+
+        export_morning = MorningReport.objects.filter(
+            user=user
+        ).select_related("user").order_by("created_at")
+
+        export_evening = EveningReport.objects.filter(
+            user=user
+        ).select_related("user").order_by("created_at")
+
+        if export_type == "daily":
+            export_date_str = request.GET.get("date")
+
+            try:
+                export_date = (
+                    datetime.strptime(export_date_str, "%Y-%m-%d").date()
+                    if export_date_str
+                    else report_date
+                )
+            except ValueError:
+                return HttpResponse("Invalid export date.", status=400)
+
+            export_morning = export_morning.filter(
+                created_at__date=export_date
+            )
+            export_evening = export_evening.filter(
+                created_at__date=export_date
+            )
+
+            export_leave = TeamReportLeave.objects.filter(
+                team_lead=team_lead,
+                date=export_date
+            ).first() if team_lead else None
+
+            filename = f"my_reports_{export_date:%Y-%m-%d}.xlsx"
+
+        else:
+            month_str = request.GET.get("month", "")
+
+            try:
+                month_start = datetime.strptime(
+                    month_str, "%Y-%m"
+                ).date()
+
+                month_end = month_start.replace(
+                    day=calendar.monthrange(
+                        month_start.year, month_start.month
+                    )[1]
+                )
+            except ValueError:
+                return HttpResponse("Invalid export month.", status=400)
+
+            export_morning = export_morning.filter(
+                created_at__date__range=(month_start, month_end)
+            )
+            export_evening = export_evening.filter(
+                created_at__date__range=(month_start, month_end)
+            )
+
+            export_leave = None
+
+            filename = f"my_reports_{month_str}.xlsx"
+
         wb = Workbook()
         ws = wb.active
-        ws.title = "My Reports" if report_tab == "my" else "Team Members Reports"
+        ws.title = "My Reports"
+
         ws.append([
             "Date", "Time", "Report Type", "Name",
-            "Team", "Department", "Report", "Status",
+             "Department", "Report", "Status",
         ])
 
         for reports, report_type in (
-            (morning_reports, "Morning"),
-            (evening_reports, "Evening"),
+            (export_morning, "Morning"),
+            (export_evening, "Evening"),
         ):
             for report in reports:
                 report_time = localtime(report.created_at)
+
                 ws.append([
                     report_time.strftime("%Y-%m-%d"),
                     report_time.strftime("%I:%M %p"),
                     report_type,
                     str(report.user.name),
-                    str(report.team or ""),
                     str(report.department or ""),
                     str(report.report_text or ""),
                     str(report.status or ""),
                 ])
 
-        if report_day_leave:
+        if export_type == "daily" and export_leave:
             for report_type, is_holiday in (
-                ("Morning", report_day_leave.morning_leave),
-                ("Evening", report_day_leave.evening_leave),
+                ("Morning", export_leave.morning_leave),
+                ("Evening", export_leave.evening_leave),
             ):
                 if is_holiday:
-                    for person in holiday_users:
-                        ws.append([
-                            report_date.strftime("%Y-%m-%d"),
-                            "",
-                            report_type,
-                            str(person.name),
-                            str(person.team.name) if person.team else "",
-                            str(person.department.name) if person.department else "",
-                            report_day_leave.reason or "Holiday",
-                            "Holiday",
-                        ])
+                    ws.append([
+                        export_date.strftime("%Y-%m-%d"),
+                        "",
+                        report_type,
+                        str(user.name),
+                        str(user.team.name) if user.team else "",
+                        str(user.department.name) if user.department else "",
+                        export_leave.reason or "Holiday",
+                        "Holiday",
+                    ])
 
         for row in ws.iter_rows():
             for cell in row:
-                if isinstance(cell.value, str) and cell.value.startswith(("=", "+", "-", "@")):
+                if isinstance(cell.value, str) and cell.value.startswith(
+                    ("=", "+", "-", "@")
+                ):
                     cell.value = "'" + cell.value
 
         for cell in ws[1]:
-            cell.alignment = Alignment(horizontal="center", vertical="center")
+            cell.alignment = Alignment(
+                horizontal="center",
+                vertical="center"
+            )
+
         for row in ws.iter_rows(min_row=2, min_col=7, max_col=7):
             for cell in row:
-                cell.alignment = Alignment(wrap_text=True, vertical="top")
+                cell.alignment = Alignment(
+                    wrap_text=True,
+                    vertical="top"
+                )
+
         for column, width in enumerate(
-            [15, 12, 14, 22, 20, 22, 50, 16], start=1
+            [15, 12, 14, 22, 22, 50, 16], start=1
         ):
-            ws.column_dimensions[get_column_letter(column)].width = width
+            ws.column_dimensions[
+                get_column_letter(column)
+            ].width = width
 
         response = HttpResponse(
             content_type=(
@@ -5902,15 +6181,14 @@ def teammember_reports(request):
                 "spreadsheetml.sheet"
             )
         )
-        filename = (
-            "my_reports.xlsx" if report_tab == "my"
-            else "team_members_reports.xlsx"
-        )
+
         response["Content-Disposition"] = (
             f'attachment; filename="{filename}"'
         )
+
         wb.save(response)
         return response
+
 
     return render(
         request,
@@ -10505,54 +10783,147 @@ def master_admin_reports(request):
         else:
             messages.error(request, "Choose a valid report date.")
 
-    morning = MorningReport.objects.filter(user__job_Position__iexact=role).select_related("user").order_by("-created_at", "-id")
-    evening = EveningReport.objects.filter(user__job_Position__iexact=role).select_related("user").order_by("-created_at", "-id")
+
+    morning = MorningReport.objects.filter(
+        user__job_Position__iexact=role
+    ).select_related("user").order_by("-created_at", "-id")
+
+    evening = EveningReport.objects.filter(
+        user__job_Position__iexact=role
+    ).select_related("user").order_by("-created_at", "-id")
+
+    # Employee search
     if query:
         match = Q(user__name__icontains=query)
-        morning, evening = morning.filter(match), evening.filter(match)
-    day = parse_date(filter_date) if filter_date else (None if show_all else timezone.localdate())
-    if day is not None:
+        morning = morning.filter(match)
+        evening = evening.filter(match)
+
+    # Export mode
+    export_mode = request.GET.get("export", "").strip()
+    raw_month = request.GET.get("month", "").strip()
+
+    # Date range
+    if export_mode == "daily":
+        day = parse_date(filter_date) if filter_date else timezone.localdate()
+
         start = datetime.combine(day, time.min)
         end = datetime.combine(day + timedelta(days=1), time.min)
+
+    elif export_mode == "monthly":
+        try:
+            month_start = datetime.strptime(raw_month, "%Y-%m").date()
+        except ValueError:
+            return HttpResponse("Choose a valid report month.", status=400)
+
+        next_month = (
+            month_start.replace(year=month_start.year + 1, month=1)
+            if month_start.month == 12
+            else month_start.replace(month=month_start.month + 1)
+        )
+
+        start = datetime.combine(month_start, time.min)
+        end = datetime.combine(next_month, time.min)
+
+    else:
+        day = parse_date(filter_date) if filter_date else (
+            None if show_all else timezone.localdate()
+        )
+
+        if day is not None:
+            start = datetime.combine(day, time.min)
+            end = datetime.combine(day + timedelta(days=1), time.min)
+        else:
+            start = end = None
+
+    # Apply timezone-aware date range
+    if start is not None:
         if settings.USE_TZ:
             tz = timezone.get_current_timezone()
-            start, end = timezone.make_aware(start, tz), timezone.make_aware(end, tz)
+            start = timezone.make_aware(start, tz)
+            end = timezone.make_aware(end, tz)
+
         morning = morning.filter(created_at__gte=start, created_at__lt=end)
         evening = evening.filter(created_at__gte=start, created_at__lt=end)
 
-    if request.GET.get("export") == "1":
+    # Excel export only
+    if export_mode in {"daily", "monthly", "1"}:
         from openpyxl import Workbook
         from openpyxl.styles import Alignment, Font, PatternFill
         from openpyxl.utils import get_column_letter
         from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+
         wb = Workbook()
         ws = wb.active
         ws.title = "Team Reports"
-        ws.append(["Report Type", "Date", "Time", "Name", "Department", "Report", "Status"])       
-        for rows, label in ((morning, "Morning"), (evening, "Evening")):
+
+        ws.append([
+            "Report Type", "Date", "Time", "Name",
+            "Department", "Report", "Status"
+        ])
+
+        for rows, label in (
+            (morning, "Morning"),
+            (evening, "Evening")
+        ):
             for report in rows.iterator(chunk_size=500):
                 stamp = report.created_at
+
                 if timezone.is_aware(stamp):
                     stamp = timezone.localtime(stamp)
-                values = [label, stamp.strftime("%Y-%m-%d"), stamp.strftime("%I:%M %p"),
-                        report.user.name or report.user.username,
-                        report.department, report.report_text, report.status]
-                ws.append([ILLEGAL_CHARACTERS_RE.sub("", str(value or "")) for value in values])
-                # Treat all employee-entered content as text, including strings starting with '='.
+
+                values = [
+                    label,
+                    stamp.strftime("%Y-%m-%d"),
+                    stamp.strftime("%I:%M %p"),
+                    report.user.name or report.user.username,
+                    report.department,
+                    report.report_text,
+                    report.status
+                ]
+
+                ws.append([
+                    ILLEGAL_CHARACTERS_RE.sub("", str(value or ""))
+                    for value in values
+                ])
+
                 for cell in ws[ws.max_row]:
                     cell.data_type = "s"
-                    cell.alignment = Alignment(wrap_text=True, vertical="top")
+                    cell.alignment = Alignment(
+                        wrap_text=True,
+                        vertical="top"
+                    )
+
         for cell in ws[1]:
             cell.font = Font(bold=True, color="FFFFFF")
             cell.fill = PatternFill("solid", fgColor="7351A4")
-        for index, width in enumerate([15, 15, 12, 24, 24, 65, 18], 1):
-            ws.column_dimensions[get_column_letter(index)].width = width
+
+        for index, width in enumerate(
+            [15, 15, 12, 24, 24, 65, 18], 1
+        ):
+            ws.column_dimensions[
+                get_column_letter(index)
+            ].width = width
+
         ws.freeze_panes = "A2"
         ws.auto_filter.ref = ws.dimensions
-        response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-        response["Content-Disposition"] = f'attachment; filename="master_admin_{report_tab}_reports.xlsx"'
+
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        filename_prefix = (
+            "daily" if export_mode == "daily"
+            else "monthly" if export_mode == "monthly"
+            else "all"
+        )
+
+        response["Content-Disposition"] = (
+            f'attachment; filename="master_admin_{report_tab}_{filename_prefix}_reports.xlsx"'
+        )
+
         wb.save(response)
         return response
+
 
     # Return the complete filtered lists; the template scrolls within each table.
     return render(request, "master_admin/master_admin_reports.html", {
@@ -10564,6 +10935,8 @@ def master_admin_reports(request):
         "evening_reports": evening,
         "morning_count": morning.count(),
         "evening_count": evening.count(),
+        "today_date": timezone.localdate().isoformat(),
+        "current_month": timezone.localdate().strftime("%Y-%m"),
     })
 
 
