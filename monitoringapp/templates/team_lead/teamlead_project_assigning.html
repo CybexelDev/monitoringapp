@@ -2905,27 +2905,19 @@
                     <div class="project-grid">
 
                         <!-- Department -->
+<!-- Department - Read Only -->
 <div class="project-field">
 
-    <label for="department">
+    <label>
         Department
     </label>
 
-    <select
-        id="department"
-        name="department"
-        required
-        class="project-select"
+    <div
+        class="project-input"
+        style="display: flex; align-items: center;"
     >
-        <option value="" disabled selected>Select Department</option>
-
-        {% for dept in departments %}
-        <option value="{{ dept.id }}">
-            {{ dept.name }}
-        </option>
-        {% endfor %}
-
-    </select>
+        {{ team_lead.department.name|default:"Not assigned" }}
+    </div>
 
 </div>
 
@@ -3685,27 +3677,19 @@
                             <div class="project-grid">
 
                                 <!-- Department -->
+<!-- Department - Read Only -->
 <div class="project-field">
 
     <label>
         Department
     </label>
 
-    <select
-        name="department"
-        class="project-select"
+    <div
+        class="project-input"
+        style="display: flex; align-items: center;"
     >
-
-        {% for dept in departments %}
-        <option
-            value="{{ dept.id }}"
-            {% if project.department.id == dept.id %}selected{% endif %}
-        >
-            {{ dept.name }}
-        </option>
-        {% endfor %}
-
-    </select>
+        {{ team_lead.department.name|default:"Not assigned" }}
+    </div>
 
 </div>
 
