@@ -12578,14 +12578,28 @@ from django.views.decorators.http import require_http_methods, require_POST
 from .models import Announcement, AnnouncementRecipient, AnnouncementAuthRecipient, User, AccountsNotification, AdminNotification, TeamLeadNotification
 
 
+# def _master_announcement_employees():
+#     return User.objects.select_related("team", "department").order_by("name", "pk")
+
+# def _master_announcement_admins():
+#     return User.objects.filter(
+#         job_Position__iexact="Admin"
+#     ).order_by("username", "pk")
+
+
 def _master_announcement_employees():
-    return User.objects.select_related("team", "department").order_by("name", "pk")
+    return User.objects.exclude(
+        job_Position__iexact="Admin"
+    ).select_related(
+        "team", "department"
+    ).order_by("name", "pk")
+
 
 def _master_announcement_admins():
     return User.objects.filter(
-        job_Position__iexact="Admin"
-    ).order_by("username", "pk")
-
+        job_Position__iexact="Admin",
+        status__iexact="active",
+    ).order_by("name", "pk")
 
 def _master_announcement_notify(announcement, *, edited=False):
     title = ("Announcement updated: " if edited else "New announcement: ") + announcement.title
@@ -12627,7 +12641,8 @@ def master_admin_announcements(request):
     if not _master_admin_allowed(request):
         return _master_announcement_denied(request)
     employees = _master_announcement_employees()
-    admins = _master_announcement_admins().exclude(pk=request.user.pk)
+    admins = _master_announcement_admins()
+       
         # DELETE: Deactivate an announcement
     if request.method == "DELETE":
         try:
@@ -12683,29 +12698,32 @@ def master_admin_announcements(request):
         # if action != "delete" and (not title or len(title) > 200 or not message):
         if not title or len(title) > 200 or not message:
             return JsonResponse({"ok": False, "message": "Enter a title (maximum 200 characters) and message."}, status=400)
+        
         if action == "create":
-            
+
             audience = request.POST.get("audience", "all")
 
             if audience == "all":
-                # All employee roles + active Admin/Master Admin accounts.
+                # All employee roles + active Admin employees.
                 pass
 
             elif audience == "team_lead":
-                employees = employees.filter(job_Position__iexact="Team Lead")
-                admins = admins.none()
-
-            elif audience == "admin":
                 employees = employees.filter(
-                    job_Position__iexact="Admin"
+                    job_Position__iexact="Team Lead"
                 )
                 admins = admins.none()
 
+            elif audience == "admin":
+                employees = employees.none()
+
             elif audience == "selected":
-                # Specific Recipients: allow selection from the full recipient lists.
                 try:
-                    employee_ids = set(map(int, request.POST.getlist("employee_ids")))
-                    auth_ids = set(map(int, request.POST.getlist("auth_ids")))
+                    employee_ids = set(
+                        map(int, request.POST.getlist("employee_ids"))
+                    )
+                    auth_ids = set(
+                        map(int, request.POST.getlist("auth_ids"))
+                    )
                 except (TypeError, ValueError):
                     return JsonResponse(
                         {"ok": False, "message": "Select valid recipients."},
@@ -12720,7 +12738,10 @@ def master_admin_announcements(request):
                     or admins.count() != len(auth_ids)
                 ):
                     return JsonResponse(
-                        {"ok": False, "message": "A selected recipient is no longer available."},
+                        {
+                            "ok": False,
+                            "message": "A selected recipient is no longer available."
+                        },
                         status=400,
                     )
 
@@ -12730,10 +12751,22 @@ def master_admin_announcements(request):
                     status=400,
                 )
 
-            employees, admins = list(employees), list(admins)
+            employees = list(employees)
+            admins = list(admins)
 
-            if not employees and not admins:
-                return JsonResponse({"ok": False, "message": "Choose at least one recipient."}, status=400)
+            all_recipients = {
+                user.pk: user
+                for user in employees + admins
+            }
+
+            recipients = list(all_recipients.values())
+
+            if not recipients:
+                return JsonResponse(
+                    {"ok": False, "message": "Choose at least one recipient."},
+                    status=400,
+                )
+
             with transaction.atomic():
                 announcement = Announcement.objects.create(
                     title=title,
@@ -12743,30 +12776,13 @@ def master_admin_announcements(request):
                     is_master_admin_announcement=True
                 )
 
-                # Save employee recipients only once
-                if employees:
-                    AnnouncementRecipient.objects.bulk_create([
-                        AnnouncementRecipient(
-                            announcement=announcement,
-                            recipient=user
-                        )
-                        for user in employees
-                    ])
-
-                # Save auth recipients only when available
-                if admins:
-                    AnnouncementAuthRecipient.objects.bulk_create([
-                        AnnouncementAuthRecipient(
-                            announcement=announcement,
-                            recipient=user
-                        )
-                        for user in admins
-                    ])
-                    # Save Master Admin's own receipt for NEW / SEEN status
-                    AnnouncementAuthRecipient.objects.get_or_create(
+                AnnouncementRecipient.objects.bulk_create([
+                    AnnouncementRecipient(
                         announcement=announcement,
-                        recipient=request.user,
+                        recipient=user
                     )
+                    for user in recipients
+                ])
 
                 _master_announcement_notify(announcement)
 
@@ -12774,6 +12790,8 @@ def master_admin_announcements(request):
                 "ok": True,
                 "message": "Announcement sent successfully."
             }, status=201)
+
+
         try:
             pk = int(request.POST.get("announcement_id", ""))
         except (ValueError, TypeError):
@@ -13014,14 +13032,6 @@ def master_admin_announcement_unread_count(request):
         "unread_count": unread_count,
     })
 
-# @never_cache
-# @require_POST
-# def portal_announcement_seen(request, pk):
-#     receipt = _portal_announcement_receipt(request, pk)
-#     if receipt is None:
-#         return JsonResponse({"ok": False, "message": "This announcement is not addressed to you."}, status=403)
-#     type(receipt).objects.filter(pk=receipt.pk, read_at__isnull=True).update(read_at=timezone.now())
-#     return JsonResponse({"ok": True})
 
 @never_cache
 @require_POST
