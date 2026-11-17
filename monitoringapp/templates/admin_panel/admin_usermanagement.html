@@ -1832,7 +1832,10 @@ data-worklocation="{% if user.work_location and user.work_location != 'None' %}{
                 <label for="employee_id" class="form-label">Employee ID</label>
                 <div class="input-wrapper">
                     <span class="input-icon"><i data-lucide="badge"></i></span>
-                    <input type="text" id="employee_id" name="employee_id" class="glass-input" placeholder="Employee ID" required>
+<input type="text" id="employee_id" name="employee_id"
+       class="glass-input"
+       placeholder="Generated automatically"
+       readonly>
                 </div>
             </div>
 
@@ -1981,7 +1984,7 @@ data-worklocation="{% if user.work_location and user.work_location != 'None' %}{
 
             <div class="edit-form-group">
                 <label class="edit-label" for="edit_emp_id">Employee ID</label>
-                <input type="text" id="edit_emp_id" name="edit_emp_id" class="edit-input">
+                <input type="text" id="edit_emp_id" name="edit_emp_id" class="edit-input" readonly>
             </div>
 
             <div class="edit-form-group">

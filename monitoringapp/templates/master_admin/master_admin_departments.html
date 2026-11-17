@@ -186,13 +186,38 @@ body.master-departments-page:has(.org-dialog[open]) #masterOrg{overflow:hidden!i
  <button type="button" class="org-btn org-reset" id="orgReset" disabled><i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Reset</span></button></div></div>
  <span class="org-count" id="orgCount" role="status" aria-live="polite"></span></div>
  <p class="org-refresh-error" id="orgRefreshError" role="status"></p>
- <div class="org-scroll" tabindex="0" role="region" aria-label="Department list; scroll for more columns"><table class="org-table"><thead><tr><th scope="col">Department</th><th scope="col">Designations</th><th scope="col">Employees</th><th scope="col">Actions</th></tr></thead><tbody id="orgRows"><tr><td colspan="4" class="org-empty">Loading departments…</td></tr></tbody></table></div></div>
+ <div class="org-scroll" tabindex="0" role="region" aria-label="Department list; scroll for more columns"><table class="org-table">
+<thead>
+    <tr>
+        <th scope="col">Department</th>
+        <th scope="col">Employee ID Code</th>
+        <th scope="col">Designations</th>
+        <th scope="col">Employees</th>
+        <th scope="col">Actions</th>
+    </tr>
+</thead>
+<tbody id="orgRows">
+    <tr>
+        <td colspan="5" class="org-empty">Loading departments…</td>
+    </tr>
+</tbody>
+</table></div></div>
 </section>
 {{ department_items|json_script:'orgInitialData' }}
-<dialog class="org-dialog" id="orgEditor" aria-labelledby="orgEditorTitle">
+<dialog class="org-dialog" id="orgEditor" aria-labelledby="orgEditorTitle"><th scope="col">Employee ID Code</th>
  <form id="orgForm" method="post" action="{% url 'master_admin_departments' %}">{% csrf_token %}<input type="hidden" name="department_id" id="orgDepartmentId"><input type="hidden" name="add_department" id="orgAction" value="1">
  <div class="org-dialog-head"><h2 id="orgEditorTitle">Add Department</h2><button type="button" class="org-btn" data-close="orgEditor" aria-label="Close editor"><i data-lucide="x" aria-hidden="true"></i></button></div>
  <div class="org-field"><label for="orgName">Department name</label><input type="text" name="department_name" id="orgName" required maxlength="100" autocomplete="off"></div>
+ <div class="org-field">
+    <label for="orgEmployeeCode">Employee ID Code</label>
+    <input type="text"
+           name="employee_id_code"
+           id="orgEmployeeCode"
+           maxlength="10"
+           placeholder="Enter employee ID code"
+           autocomplete="off"
+           required>
+</div>
  <div class="org-field"><label>Designations</label><div id="orgDesignationRows"></div><button type="button" class="org-btn" id="orgAddDesignation"><i data-lucide="plus" aria-hidden="true"></i>Add designation</button></div>
  <p class="org-muted">Assigned designations cannot be removed. Renaming updates the matching employee records.</p><p class="org-error" id="orgFormError" role="alert"></p>
  <div class="org-foot"><button type="button" class="org-btn" data-close="orgEditor">Cancel</button><button type="submit" class="org-btn" id="orgSave">Save changes</button></div>
@@ -229,10 +254,80 @@ function render(){
  const query=$('orgSearch').value.trim().toLocaleLowerCase();
  const visible=items.filter(item=>[item.name,...item.designations.map(value=>value.name)].some(value=>value.toLocaleLowerCase().includes(query)));
  const fragment=document.createDocumentFragment();
+
+function render(){
+ const scroll=document.querySelector('.org-scroll'), left=scroll.scrollLeft, top=scroll.scrollTop;
+ const active=document.activeElement, focused=active?.closest?.('#orgRows [data-action]');
+ const query=$('orgSearch').value.trim().toLocaleLowerCase();
+ const visible=items.filter(item=>[item.name,...item.designations.map(value=>value.name)].some(value=>value.toLocaleLowerCase().includes(query)));
+ const fragment=document.createDocumentFragment();
+
  for(const item of visible){
   const tr=document.createElement('tr');
-  for(let i=0;i<4;i++)tr.append(document.createElement('td'));
+
+  for(let i=0;i<5;i++)tr.append(document.createElement('td'));
+
   tr.children[0].textContent=item.name;
+  tr.children[1].textContent=item.employee_id_code || '-';
+
+  const tags=document.createElement('div');
+  tags.className='org-tags';
+
+  for(const value of item.designations){
+   const tag=document.createElement('span');
+   tag.className='org-tag';
+   tag.textContent=value.name;
+   tags.append(tag);
+  }
+
+  if(!item.designations.length)tags.textContent='No designations';
+
+  tr.children[2].append(tags);
+  tr.children[3].textContent=item.employees;
+
+  const actions=document.createElement('div');
+  actions.className='org-row-actions';
+
+  for(const [action,icon,label] of [['edit','pencil','Edit'],['delete','trash-2','Delete']]){
+   const button=document.createElement('button');
+   button.type='button';
+   button.className='org-btn'+(action==='delete'?' org-btn-danger':'');
+   button.dataset.action=action;
+   button.dataset.id=item.id;
+   button.title=label+' '+item.name;
+   button.setAttribute('aria-label',label+' '+item.name);
+
+   const glyph=document.createElement('i');
+   glyph.dataset.lucide=icon;
+   glyph.setAttribute('aria-hidden','true');
+   button.append(glyph);
+   actions.append(button);
+  }
+
+  tr.children[4].append(actions);
+  fragment.append(tr);
+ }
+
+ if(!visible.length){
+  const tr=document.createElement('tr'),td=document.createElement('td');
+  td.colSpan=5;
+  td.className='org-empty';
+  td.textContent=query?'No matching departments.':'No departments yet. Add your first department.';
+  tr.append(td);
+  fragment.append(tr);
+ }
+
+ $('orgRows').replaceChildren(fragment);
+ scroll.scrollLeft=left;
+ scroll.scrollTop=top;
+
+ if(focused)Array.from($('orgRows').querySelectorAll('[data-action]')).find(button=>button.dataset.id===focused.dataset.id&&button.dataset.action===focused.dataset.action)?.focus({preventScroll:true});
+
+ $('orgReset').disabled=!$('orgSearch').value;
+ $('orgCount').textContent=visible.length+' of '+items.length+' departments';
+ icons();
+}
+
   const tags=document.createElement('div');tags.className='org-tags';
   for(const value of item.designations){const tag=document.createElement('span');tag.className='org-tag';tag.textContent=value.name;tags.append(tag);}
   if(!item.designations.length)tags.textContent='No designations';
@@ -244,7 +339,7 @@ function render(){
   }
   tr.children[3].append(actions);fragment.append(tr);
  }
- if(!visible.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=4;td.className='org-empty';td.textContent=query?'No matching departments.':'No departments yet. Add your first department.';tr.append(td);fragment.append(tr);}
+ if(!visible.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.className='org-empty';td.textContent=query?'No matching departments.':'No departments yet. Add your first department.';tr.append(td);fragment.append(tr);}
  $('orgRows').replaceChildren(fragment);scroll.scrollLeft=left;scroll.scrollTop=top;
  if(focused)Array.from($('orgRows').querySelectorAll('[data-action]')).find(button=>button.dataset.id===focused.dataset.id&&button.dataset.action===focused.dataset.action)?.focus({preventScroll:true});
  $('orgReset').disabled=!$('orgSearch').value;
@@ -267,7 +362,8 @@ for(const dialog of [editor,deletion]){
  dialog.addEventListener('close',()=>{if(toastContainer&&toastParent)toastParent.append(toastContainer);document.body.style.overflow='';if(lastFocus?.isConnected)lastFocus.focus();else $('orgAdd').focus();});
 }
 function edit(item){
- $('orgForm').reset();$('orgFormError').textContent='';$('orgDepartmentId').value=item?.id||'';$('orgName').value=item?.name||'';$('orgAction').name=item?'edit_department':'add_department';$('orgEditorTitle').textContent=item?'Edit Department':'Add Department';$('orgSave').textContent=item?'Save changes':'Create department';$('orgDesignationRows').replaceChildren();
+ $('orgForm').reset();$('orgFormError').textContent='';$('orgDepartmentId').value=item?.id||'';$('orgName').value=item?.name||'';$('orgEmployeeCode').value = item?.employee_id_code || '';
+$('orgEmployeeCode').readOnly = !!item;$('orgAction').name=item?'edit_department':'add_department';$('orgEditorTitle').textContent=item?'Edit Department':'Add Department';$('orgSave').textContent=item?'Save changes':'Create department';$('orgDesignationRows').replaceChildren();
  for(const value of item?.designations||[])addDesignation(value.id,value.name);
  if(!$('orgDesignationRows').children.length)addDesignation();open(editor);$('orgName').focus();
 }

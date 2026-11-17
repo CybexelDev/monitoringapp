@@ -508,11 +508,25 @@ def admin_dashboard(request):
                     department = Department.objects.select_for_update().filter(pk=department_id).first()
                     if department is None:
                         return finish("Department not found.", False)
+                    
                     department_name = request.POST.get("department_name", "").strip()
+                    employee_id_code = request.POST.get("employee_id_code", "").strip().upper()
+
                     if not department_name or len(department_name) > 100:
                         return finish("Enter a department name with up to 100 characters.", False)
+
+                    if not employee_id_code or len(employee_id_code) > 10:
+                        return finish("Enter an Employee ID Code with up to 10 characters.", False)
+
+                    if not employee_id_code.isalnum():
+                        return finish("Employee ID Code must contain only letters and numbers.", False)
+
                     if Department.objects.exclude(pk=department.pk).filter(name__iexact=department_name).exists():
                         return finish("This department name already exists.", False)
+
+                    if Department.objects.exclude(pk=department.pk).filter(employee_id_code__iexact=employee_id_code).exists():
+                        return finish("This Employee ID Code is already assigned to another department.", False)
+
                     raw_names = request.POST.getlist("designation_names")
                     raw_ids = request.POST.getlist("designation_ids")
                     if len(raw_names) != len(raw_ids) or not raw_names:
@@ -550,20 +564,43 @@ def admin_dashboard(request):
                             Designation.objects.create(department=department, name=name)
                     for employee_ids, name in employee_changes:
                         User.objects.filter(pk__in=employee_ids).update(designation=name)
-                    department.name = department_name; department.save(update_fields=["name"])
+                    department.name = department_name
+                    department.employee_id_code = employee_id_code
+                    department.save(update_fields=["name", "employee_id_code"])
                     return finish("Department updated successfully.")
+                
                 if "add_department" in request.POST:
-                    name = request.POST.get("department_name", "").strip()
-                    if not name or len(name) > 100:
-                        return finish("Enter a department name with up to 100 characters.", False)
-                    if not names:
-                        return finish("Add at least one designation.", False)
-                    if Department.objects.filter(name__iexact=name).exists():
-                        return finish("This department already exists. Add designations to its existing row.", False)
-                    department = Department.objects.create(name=name)
-                    for designation in names:
-                        Designation.objects.create(department=department, name=designation)
-                    return finish("Department and designations added successfully.")
+                        name = request.POST.get("department_name", "").strip()
+                        employee_id_code = request.POST.get("employee_id_code", "").strip().upper()
+
+                        if not name or len(name) > 100:
+                            return finish("Enter a department name with up to 100 characters.", False)
+
+                        if not employee_id_code or len(employee_id_code) > 10:
+                            return finish("Enter an Employee ID Code with up to 10 characters.", False)
+
+                        if not employee_id_code.isalnum():
+                            return finish("Employee ID Code must contain only letters and numbers.", False)
+
+                        if not names:
+                            return finish("Add at least one designation.", False)
+
+                        if Department.objects.filter(name__iexact=name).exists():
+                            return finish("This department already exists. Add designations to its existing row.", False)
+
+                        if Department.objects.filter(employee_id_code__iexact=employee_id_code).exists():
+                            return finish("This Employee ID Code is already assigned to another department.", False)
+
+                        department = Department.objects.create(
+                            name=name,
+                            employee_id_code=employee_id_code
+                        )
+
+                        for designation in names:
+                            Designation.objects.create(department=department, name=designation)
+
+                        return finish("Department and designations added successfully.")
+
                 if "add_designation" in request.POST:
                     try:
                         department_id = int(request.POST.get("department_id", ""))
@@ -614,12 +651,24 @@ def admin_dashboard(request):
     departments = list(Department.objects.prefetch_related("designations").order_by("name"))
     return render(request, "admin_panel/admin_dashboard.html", {
         "departments": departments,
-        "department_editor_items": {str(dept.pk): {"name": dept.name, "designations": [{"id": item.pk, "name": item.name} for item in dept.designations.all()]} for dept in departments},
+        "department_editor_items": {
+    str(dept.pk): {
+        "name": dept.name,
+        "employee_id_code": dept.employee_id_code or "",
+        "designations": [
+            {"id": item.pk, "name": item.name}
+            for item in dept.designations.all()
+        ]
+    }
+    for dept in departments
+},
         "filter_department": str(department_id) if department_id else "",
         "employee_page": employee_page,
         "employee_counts": employee_counts,
     })
 
+
+from django.db import IntegrityError, transaction   
 
 @never_cache
 @require_http_methods(["GET", "POST"])
@@ -672,7 +721,6 @@ def admin_usermanagement(request):
                 return redirect("admin_usermanagement")
         user_id = request.POST.get("id")  # for edit (None for new user)
         name = request.POST.get("name")
-        employee_id = request.POST.get("employee_id")
         email = request.POST.get("email")
         phone = request.POST.get("phone")
         department_id = request.POST.get("department")
@@ -705,9 +753,7 @@ def admin_usermanagement(request):
             user = get_object_or_404(managed_users, id=user_id)
 
             # Uniqueness checks
-            if check_unique("employee_id", employee_id):
-                messages.error(request, "⚠️ Employee ID already exists for another user.")
-                return redirect("admin_usermanagement")
+
             if check_unique("username", username):
                 messages.error(request, "⚠️ Username already exists for another user.")
                 return redirect("admin_usermanagement")
@@ -717,7 +763,6 @@ def admin_usermanagement(request):
 
             # Update details
             user.name = name
-            user.employee_id = employee_id
             user.email = email
             user.phone = phone
             user.department = department
@@ -745,40 +790,66 @@ def admin_usermanagement(request):
                 messages.error(request, f"⚠️ Cannot update user. Unique field conflict ({str(e)})")
                 return redirect("admin_usermanagement")
 
+
         # ========== CREATE NEW USER ==========
         else:
-            if check_unique("employee_id", employee_id):
-                messages.error(request, "⚠️ Employee ID already exists. Please choose another one.")
+
+            if not department:
+                messages.error(request, "Please select a department.")
                 return redirect("admin_usermanagement")
+
+            # Check username and email before creating
             if check_unique("username", username):
-                messages.error(request, "⚠️ Username already exists. Please choose another one.")
+                messages.error(
+                    request,
+                    "⚠️ Username already exists. Please choose another one."
+                )
                 return redirect("admin_usermanagement")
+
             if check_unique("email", email):
-                messages.error(request, "⚠️ Email already exists. Please choose another one.")
+                messages.error(
+                    request,
+                    "⚠️ Email already exists. Please choose another one."
+                )
                 return redirect("admin_usermanagement")
 
             try:
-                User.objects.create(
-                    name=name,
-                    employee_id=employee_id,
-                    email=email,
-                    phone=phone,
-                    department=department,
-                    job_Position=job_Position,
-                    designation=designation,
-                    work_location=work_location,
-                    username=username,
-                    password=make_password(password) if password else "",
-                    status=status,
-                    profile_image=image,
-                    joining_date=datetime.strptime(joining_date, "%Y-%m-%d").date() if joining_date else None,
-                )
+                with transaction.atomic():
+
+                    generated_employee_id = _generate_department_employee_id(
+                        department.pk
+                    )
+
+                    User.objects.create(
+                        name=name,
+                        employee_id=generated_employee_id,
+                        email=email,
+                        phone=phone,
+                        department=department,
+                        job_Position=job_Position,
+                        designation=designation,
+                        work_location=work_location,
+                        username=username,
+                        password=make_password(password) if password else "",
+                        status=status,
+                        profile_image=image,
+                        joining_date=datetime.strptime(
+                            joining_date, "%Y-%m-%d"
+                        ).date() if joining_date else None,
+                    )
+
                 messages.success(request, "✅ User created successfully!")
-            except IntegrityError as e:
-                messages.error(request, f"⚠️ Cannot create user. Unique field conflict ({str(e)})")
+
+            except ValueError as error:
+                messages.error(request, str(error))
                 return redirect("admin_usermanagement")
 
-        return redirect("admin_usermanagement")
+            except IntegrityError:
+                messages.error(
+                    request,
+                    "⚠️ Employee ID, username or email is already in use."
+                )
+                return redirect("admin_usermanagement")
 
     # =======================================================
     # ===============   GET REQUEST (FILTERS)   =============
@@ -852,7 +923,8 @@ def edit_user(request):
         user = get_object_or_404(managed_users, id=user_id)
 
         # Get form values
-        employee_id = request.POST.get("edit_emp_id")
+        # Preserve the existing Employee ID during edit
+        employee_id = user.employee_id
         username = request.POST.get("edit_username")
         email = request.POST.get("edit_email")
         name = request.POST.get("edit_name")
@@ -870,8 +942,6 @@ def edit_user(request):
             return finish("Choose a designation belonging to the selected department.")
 
         # ========== Check uniqueness before saving ==========
-        if User.objects.filter(employee_id=employee_id).exclude(id=user.id).exists():
-            return finish("⚠️ Employee ID already exists for another user.")
 
         if User.objects.filter(username=username).exclude(id=user.id).exists():
             return finish("⚠️ Username already exists for another user.")
@@ -923,18 +993,6 @@ def edit_user(request):
     return redirect("admin_usermanagement")
 
 
-# @never_cache
-# @require_POST
-# def delete_user(request, id):
-#     from django.http import HttpResponseForbidden
-#     managed_users = _admin_managed_users(request)
-#     if managed_users is None:
-#         return HttpResponseForbidden("Admin access required.")
-
-#     user = get_object_or_404(managed_users, id=id)
-#     user.delete()
-#     messages.success(request, "Employee deleted successfully.")
-#     return redirect('admin_usermanagement') 
 
 @never_cache
 @require_http_methods(["DELETE"])
@@ -10379,6 +10437,110 @@ def master_admin_dashboard(request):
 
 
 
+# def _generate_department_employee_id(department_id):
+#     import re
+#     from django.db import transaction
+#     from django.utils import timezone
+#     from .models import User as Employee, Department
+
+#     # Must run inside transaction.atomic()
+#     if not transaction.get_connection().in_atomic_block:
+#         raise RuntimeError("Employee ID generation requires an active transaction.")
+
+#     try:
+#         # PostgreSQL: lock this department until employee creation completes.
+#         department = Department.objects.select_for_update().get(pk=department_id)
+#     except (Department.DoesNotExist, ValueError, TypeError):
+#         raise ValueError("Please select a valid department.")
+    
+#     department_code = (department.employee_id_code or "").strip().upper()
+
+#     if not department_code:
+#         raise ValueError(
+#         f"Employee ID code is not configured for department: {department.name}"
+#     )
+
+#     if not department_code:
+#         raise ValueError(
+#             f"Employee ID mapping is not configured for department: {department.name}"
+#         )
+
+#     # Match IDs belonging to this department code, irrespective of year.
+#     pattern = re.compile(
+#         rf"^C\d{{2}}{re.escape(department_code)}(\d{{3}})$",
+#         re.IGNORECASE
+#     )
+
+#     max_sequence = 0
+
+#     # Check all existing IDs so previous years' sequences are preserved.
+#     for existing_id in Employee.objects.values_list("employee_id", flat=True).iterator():
+#         match = pattern.fullmatch((existing_id or "").strip())
+
+#         if match:
+#             max_sequence = max(max_sequence, int(match.group(1)))
+
+#     if max_sequence >= 999:
+#         raise ValueError(
+#             f"Employee ID sequence limit reached for {department.name}."
+#         )
+
+#     year_code = timezone.localdate().year % 100
+#     next_sequence = max_sequence + 1
+
+#     return f"C{year_code:02d}{department_code}{next_sequence:03d}"
+
+
+
+def _generate_department_employee_id(department_id):
+    import re
+    from django.db import transaction
+    from django.utils import timezone
+    from .models import User as Employee, Department
+
+    # Must run inside transaction.atomic()
+    if not transaction.get_connection().in_atomic_block:
+        raise RuntimeError("Employee ID generation requires an active transaction.")
+
+    try:
+        # PostgreSQL: lock this department until employee creation completes.
+        department = Department.objects.select_for_update().get(pk=department_id)
+    except (Department.DoesNotExist, ValueError, TypeError):
+        raise ValueError("Please select a valid department.")
+
+    department_code = (department.employee_id_code or "").strip().upper()
+
+    if not department_code:
+        raise ValueError(
+            f"Employee ID code is not configured for department: {department.name}"
+        )
+
+    # Match IDs belonging to this department code, irrespective of year.
+    pattern = re.compile(
+        rf"^C\d{{2}}{re.escape(department_code)}(\d{{3}})$",
+        re.IGNORECASE
+    )
+
+    max_sequence = 0
+
+    # Check all existing IDs so previous years' sequences are preserved.
+    for existing_id in Employee.objects.values_list("employee_id", flat=True).iterator():
+        match = pattern.fullmatch((existing_id or "").strip())
+
+        if match:
+            max_sequence = max(max_sequence, int(match.group(1)))
+
+    if max_sequence >= 999:
+        raise ValueError(
+            f"Employee ID sequence limit reached for {department.name}."
+        )
+
+    year_code = timezone.localdate().year % 100
+    next_sequence = max_sequence + 1
+
+    return f"C{year_code:02d}{department_code}{next_sequence:03d}"
+
+
 
 def _master_employee_form(data=None, files=None, instance=None):
     from django import forms
@@ -10439,6 +10601,74 @@ def _master_employee_form(data=None, files=None, instance=None):
 
 
 
+# def _master_employee_save(request, instance=None):
+#     from django.db import IntegrityError, transaction
+#     from django.http import JsonResponse
+
+#     editing = instance is not None
+#     keys = {
+#         "employee_id": "edit_emp_id", "name": "edit_name", "email": "edit_email",
+#         "phone": "edit_phone", "department": "edit_department",
+#         "job_Position": "edit_job_position", "designation": "edit_designation",
+#         "work_location": "edit_work_location", "username": "edit_username",
+#         "status": "edit_status",
+#     }
+#     data = {key: request.POST.get(source if editing else key, "") for key, source in keys.items()}
+#     if editing:
+#         data["employee_id"] = instance.employee_id
+#     if editing:
+#         data["work_location"] = _retain_work_location(instance.work_location or "", data["work_location"])
+#     data["password_input"] = request.POST.get("edit_password" if editing else "password", "")
+#     data["joining_date_input"] = request.POST.get("edit_joining_date" if editing else "joining_date", "")
+#     image = request.FILES.get("edit_profile_upload" if editing else "profile_image")
+#     files = {"profile_image": image} if image else None
+
+#     try:
+#         with transaction.atomic():
+
+#             if not editing:
+#                 if not data.get("department"):
+#                     return result(False, "Please select a department.")
+
+#                 # Generate ID before form validation.
+#                 data["employee_id"] = _generate_department_employee_id(
+#                     data["department"]
+#                 )
+
+#             form = _master_employee_form(data, files, instance)
+
+#             if not form.is_valid():
+#                 details = " ".join(
+#                     f"{form.fields[field].label or field.replace('_', ' ').title()}: {error}"
+#                     for field, errors in form.errors.items()
+#                     for error in errors
+#                     if field in form.fields
+#                 )
+#                 return result(
+#                     False,
+#                     details or "Please correct the form fields.",
+#                     errors=form.errors.get_json_data()
+#                 )
+
+#             employee = form.save()
+
+#     except ValueError as error:
+#         return result(False, str(error))
+
+#     except IntegrityError:
+#         return result(
+#             False,
+#             "Employee ID, username or email is already in use."
+#         )
+
+#     return result(
+#         True,
+#         "User updated successfully." if editing else "User created successfully.",
+#         employee=employee
+#     )
+
+
+
 def _master_employee_save(request, instance=None):
     from django.db import IntegrityError, transaction
     from django.http import JsonResponse
@@ -10451,33 +10681,91 @@ def _master_employee_save(request, instance=None):
         "work_location": "edit_work_location", "username": "edit_username",
         "status": "edit_status",
     }
-    data = {key: request.POST.get(source if editing else key, "") for key, source in keys.items()}
+
+    data = {
+        key: request.POST.get(source if editing else key, "")
+        for key, source in keys.items()
+    }
+
     if editing:
-        data["work_location"] = _retain_work_location(instance.work_location or "", data["work_location"])
-    data["password_input"] = request.POST.get("edit_password" if editing else "password", "")
-    data["joining_date_input"] = request.POST.get("edit_joining_date" if editing else "joining_date", "")
-    image = request.FILES.get("edit_profile_upload" if editing else "profile_image")
+        data["employee_id"] = instance.employee_id
+        data["work_location"] = _retain_work_location(
+            instance.work_location or "", data["work_location"]
+        )
+
+    data["password_input"] = request.POST.get(
+        "edit_password" if editing else "password", ""
+    )
+    data["joining_date_input"] = request.POST.get(
+        "edit_joining_date" if editing else "joining_date", ""
+    )
+
+    image = request.FILES.get(
+        "edit_profile_upload" if editing else "profile_image"
+    )
     files = {"profile_image": image} if image else None
-    form = _master_employee_form(data, files, instance)
+
     ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     def result(ok, message, status=400, errors=None, employee=None):
         if ajax:
-            return JsonResponse({"ok": ok, "message": message, "errors": errors or {},
-                                 "id": employee.pk if employee else None}, status=(200 if editing else 201) if ok else status)
+            return JsonResponse(
+                {
+                    "ok": ok,
+                    "message": message,
+                    "errors": errors or {},
+                    "id": employee.pk if employee else None,
+                },
+                status=(200 if editing else 201) if ok else status
+            )
+
         (messages.success if ok else messages.error)(request, message)
         return redirect("master_admin_usermanagement")
 
-    if not form.is_valid():
-        details = " ".join(f"{form.fields[field].label or field.replace('_', ' ').title()}: {error}"
-                           for field, errors in form.errors.items() for error in errors if field in form.fields)
-        return result(False, details or "Please correct the form fields.", errors=form.errors.get_json_data())
     try:
         with transaction.atomic():
+
+            if not editing:
+                if not data.get("department"):
+                    return result(False, "Please select a department.")
+
+                # Generate Employee ID only for new employees.
+                data["employee_id"] = _generate_department_employee_id(
+                    data["department"]
+                )
+
+            form = _master_employee_form(data, files, instance)
+
+            if not form.is_valid():
+                details = " ".join(
+                    f"{form.fields[field].label or field.replace('_', ' ').title()}: {error}"
+                    for field, errors in form.errors.items()
+                    for error in errors
+                    if field in form.fields
+                )
+
+                return result(
+                    False,
+                    details or "Please correct the form fields.",
+                    errors=form.errors.get_json_data()
+                )
+
             employee = form.save()
+
+    except ValueError as error:
+        return result(False, str(error))
+
     except IntegrityError:
-        return result(False, "Employee ID, username or email is already in use.")
-    return result(True, "User updated successfully." if editing else "User created successfully.", employee=employee)
+        return result(
+            False,
+            "Employee ID, username or email is already in use."
+        )
+
+    return result(
+        True,
+        "User updated successfully." if editing else "User created successfully.",
+        employee=employee
+    )
 
 
 
@@ -10706,7 +10994,22 @@ def master_admin_departments(request):
                             Designation.objects.create(department=department, name=name)
                     for employee_ids, name in employee_changes:
                         User.objects.filter(pk__in=employee_ids).update(designation=name)
-                    department.name = department_name; department.save(update_fields=["name"])
+                        employee_id_code = request.POST.get("employee_id_code", "").strip().upper()
+
+                        if not employee_id_code:
+                            return finish("Enter an Employee ID Code.", False)
+
+                        if len(employee_id_code) > 10:
+                            return finish("Employee ID Code must be 10 characters or fewer.", False)
+
+                        if Department.objects.exclude(pk=department.pk).filter(
+                            employee_id_code__iexact=employee_id_code
+                        ).exists():
+                            return finish("This Employee ID Code already exists.", False)
+
+                        department.name = department_name
+                        department.employee_id_code = employee_id_code
+                        department.save(update_fields=["name", "employee_id_code"])
                     return finish("Department updated successfully.")
                 if "add_department" in request.POST:
                     name = request.POST.get("department_name", "").strip()
@@ -10716,9 +11019,27 @@ def master_admin_departments(request):
                         return finish("Add at least one designation.", False)
                     if Department.objects.filter(name__iexact=name).exists():
                         return finish("This department already exists. Add designations to its existing row.", False)
-                    department = Department.objects.create(name=name)
+                    employee_id_code = request.POST.get("employee_id_code", "").strip().upper()
+
+                    if not employee_id_code:
+                        return finish("Enter an Employee ID Code.", False)
+
+                    if len(employee_id_code) > 10:
+                        return finish("Employee ID Code must be 10 characters or fewer.", False)
+
+                    if Department.objects.filter(
+                        employee_id_code__iexact=employee_id_code
+                    ).exists():
+                        return finish("This Employee ID Code already exists.", False)
+
+                    department = Department.objects.create(
+                        name=name,
+                        employee_id_code=employee_id_code
+                    )
+
                     for designation in names:
                         Designation.objects.create(department=department, name=designation)
+
                     return finish("Department and designations added successfully.")
                 if "add_designation" in request.POST:
                     try:
@@ -10740,9 +11061,16 @@ def master_admin_departments(request):
 
     from django.db.models import Count
     counts = dict(User.objects.exclude(department_id=None).values_list("department_id").annotate(total=Count("pk")))
-    items = [{"id": item.pk, "name": item.name, "employees": counts.get(item.pk, 0),
-              "designations": [{"id": value.pk, "name": value.name} for value in item.designations.all()]}
-             for item in Department.objects.prefetch_related("designations").order_by("name", "id")]
+    items = [{
+        "id": item.pk,
+        "name": item.name,
+        "employee_id_code": item.employee_id_code,
+        "employees": counts.get(item.pk, 0),
+        "designations": [
+            {"id": value.pk, "name": value.name}
+            for value in item.designations.all()
+        ]
+    } for item in Department.objects.prefetch_related("designations").order_by("name", "id")]
     if request.GET.get("format") == "json":
         return JsonResponse({"ok": True, "items": items})
     return render(request, "master_admin/master_admin_departments.html", {"department_items": items})

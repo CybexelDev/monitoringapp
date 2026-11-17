@@ -1884,10 +1884,6 @@ body.admin-usermanagement-page .profile-preview-hint {
         <form method="POST" enctype="multipart/form-data" class="user-form">
             {% csrf_token %}
 
-            <!-- <div class="form-group full">
-                <label for="profile_image" class="form-label">Profile Picture</label>
-                <input type="file" id="profile_image" name="profile_image" accept="image/*" class="glass-file">
-            </div> -->
             <div class="form-group full">
     <label for="profile_image" class="form-label">Profile Picture</label>
 
@@ -1916,14 +1912,17 @@ body.admin-usermanagement-page .profile-preview-hint {
                     <input type="text" id="name" name="name" class="glass-input" placeholder="Enter full name" required>
                 </div>
             </div>
-
-            <div class="form-group">
-                <label for="employee_id" class="form-label">Employee ID</label>
-                <div class="input-wrapper">
-                    <span class="input-icon"><i data-lucide="badge"></i></span>
-                    <input type="text" id="employee_id" name="employee_id" class="glass-input" placeholder="Employee ID" required>
-                </div>
-            </div>
+            
+<div class="form-group">
+    <label for="employee_id" class="form-label">Employee ID</label>
+    <div class="input-wrapper">
+        <span class="input-icon"><i data-lucide="badge"></i></span>
+        <input type="text" id="employee_id" name="employee_id"
+               class="glass-input"
+               placeholder="Generated automatically"
+               readonly>
+    </div>
+</div>
 
             <div class="form-group">
                 <label for="email" class="form-label">Email</label>
@@ -2069,9 +2068,15 @@ body.admin-usermanagement-page .profile-preview-hint {
             <input type="hidden" id="edit_id" name="id">
 
             <div class="edit-form-group">
-                <label class="edit-label" for="edit_emp_id">Employee ID</label>
-                <input type="text" id="edit_emp_id" name="edit_emp_id" class="edit-input">
-            </div>
+    <label class="edit-label" for="edit_emp_id">Employee ID</label>
+    <input
+        type="text"
+        id="edit_emp_id"
+        name="edit_emp_id"
+        class="edit-input"
+        readonly
+    >
+</div>
 
             <div class="edit-form-group">
                 <label class="edit-label" for="edit_name">Full Name</label>

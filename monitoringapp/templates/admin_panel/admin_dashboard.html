@@ -1113,12 +1113,27 @@ body.admin-dashboard-page #departmentDeleteDialog button:disabled {
   </div>
   <form method="POST" class="add-form org-create-form" id="newDepartmentForm">
     {% csrf_token %}
-    <div class="department-create-field">
-      <label for="createDepartmentName" class="department-field-label"><i data-lucide="layers-3" aria-hidden="true"></i>Department Name</label>
-      <div class="input-wrapper">
-        <input type="text" id="createDepartmentName" name="department_name" maxlength="100" placeholder="Enter department name" required>
-      </div>
-    </div>
+
+<div class="department-create-field">
+  <label for="createDepartmentName" class="department-field-label">
+    <i data-lucide="layers-3" aria-hidden="true"></i>
+    Department Name
+  </label>
+  <div class="input-wrapper">
+    <input type="text" id="createDepartmentName" name="department_name" maxlength="100" placeholder="Enter department name" required>
+  </div>
+</div>
+
+<div class="department-create-field">
+  <label for="createDepartmentCode" class="department-field-label">
+    <i data-lucide="hash" aria-hidden="true"></i>
+    Employee ID Code
+  </label>
+  <div class="input-wrapper">
+    <input type="text" id="createDepartmentCode" name="employee_id_code" maxlength="10" placeholder="e.g. I" required>
+  </div>
+</div>
+
     <div class="designation-fields">
       <label><i data-lucide="briefcase-business" aria-hidden="true"></i>Designations</label>
       <div class="designation-rows">
@@ -1150,9 +1165,24 @@ body.admin-dashboard-page #departmentDeleteDialog button:disabled {
       <button type="button" class="department-edit-close" data-close-editor aria-label="Close popup">&times;</button>
     </header>
     <div class="department-edit-body">
-      <label for="editorDepartmentName"><i data-lucide="layers-3" aria-hidden="true"></i>Department Name</label>
-      <input id="editorDepartmentName" name="department_name" maxlength="100" required>
-      <label><i data-lucide="briefcase-business" aria-hidden="true"></i>Designations</label>
+ 
+<label for="editorDepartmentName">
+  <i data-lucide="layers-3" aria-hidden="true"></i>
+  Department Name
+</label>
+<input id="editorDepartmentName" name="department_name" maxlength="100" required>
+
+<label for="editorDepartmentCode">
+  <i data-lucide="hash" aria-hidden="true"></i>
+  Employee ID Code
+</label>
+<input id="editorDepartmentCode" name="employee_id_code" maxlength="10" required readonly>
+
+<label>
+  <i data-lucide="briefcase-business" aria-hidden="true"></i>
+  Designations
+</label>
+
       <div id="departmentEditorRows"></div>
       <button type="button" id="addEditorDesignation"><i data-lucide="plus" aria-hidden="true"></i>Add Designation</button>
       <p class="department-editor-error" id="departmentEditorError" role="alert" aria-live="polite"></p>
@@ -1413,7 +1443,9 @@ body.admin-dashboard-page #departmentDeleteDialog button:disabled {
         editor.reset(); error.textContent = ''; rows.replaceChildren();
         document.getElementById('editorDepartmentId').value = edit.dataset.editDepartment;
         document.getElementById('editorDepartmentName').value = item.name;
-        item.designations.forEach(value => addRow(value.id, value.name)); if (!item.designations.length) addRow();
+        document.getElementById('editorDepartmentCode').value = item.employee_id_code || '';
+        item.designations.forEach(value => addRow(value.id, value.name));
+        if (!item.designations.length) addRow();
         overflow = document.body.style.overflow; dialog.showModal(); document.body.style.overflow = 'hidden';
       } catch (_) { notify('Unable to open the department editor.', 'error'); }
     }

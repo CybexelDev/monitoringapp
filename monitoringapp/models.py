@@ -9,6 +9,8 @@ from .storages import raw_media_storage
 
 class Department(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    employee_id_code = models.CharField(max_length=10, unique=True, null=True, blank=True)
+
 
     def __str__(self):
         return self.name
@@ -163,24 +165,6 @@ class EveningReport(models.Model):
     def __str__(self):
         return f"Evening Report - {self.user.username} ({self.created_at.date()}) | {self.status}"
     
-
-
-
-# class ReportTimeSetting(models.Model):
-#     MORNING = 'morning'
-#     EVENING = 'evening'
-#     REPORT_TYPES = [
-#         (MORNING, 'Morning'),
-#         (EVENING, 'Evening'),
-#     ]
-
-#     report_type = models.CharField(max_length=20, choices=REPORT_TYPES, unique=True)
-#     start_time = models.TimeField()
-#     end_time = models.TimeField()
-
-#     def __str__(self):
-#         return f"{self.get_report_type_display()} Report ({self.start_time} - {self.end_time})"
-
 
 
 class ReportTimeSetting(models.Model):
