@@ -228,3 +228,19 @@ CHAT_PUSH_ENABLED = bool(
     CHAT_PUSH_VAPID_PUBLIC_KEY
     and (CHAT_PUSH_KEY_DIR / "private.pem").exists()
 )
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "simple": {"format": "%(levelname)s %(name)s: %(message)s"},
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "simple"},
+    },
+    "loggers": {
+        "monitoringapp": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "chat": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+}
