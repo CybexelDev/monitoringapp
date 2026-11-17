@@ -1352,6 +1352,914 @@ body.admin-reports-page .report-view-data[hidden]{display:none!important}
 #masterReportView .report-view-header-icon{box-sizing:border-box}
 #masterReportView .report-view-content{box-sizing:border-box}
 #masterReportView footer .report-view-done{background:#21162e;border:1px solid #49345e;color:#decaf5}
+/* Master Admin Reports - Monthly Excel controls */
+body.admin-reports-page .monthly-export-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 0;
+}
+
+body.admin-reports-page .monthly-export-month {
+    min-width: 145px;
+    min-height: 40px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    color-scheme: dark;
+    cursor: pointer;
+}
+
+body.admin-reports-page .monthly-export-month::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(1);
+}
+
+@media (max-width: 480px) {
+    body.admin-reports-page .monthly-export-form {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.admin-reports-page .monthly-export-form .glass-button {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
+/* =========================================
+   MASTER ADMIN REPORTS - FINAL ALIGNMENT
+========================================= */
+
+/* Main toolbar alignment */
+body.admin-reports-page .report-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+body.admin-reports-page .report-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-width: 0;
+}
+
+body.admin-reports-page .monthly-export-form {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: nowrap;
+    margin: 0;
+}
+
+/* Monthly picker - proper input box */
+body.admin-reports-page input.monthly-export-month {
+    appearance: auto;
+    -webkit-appearance: auto;
+    display: block;
+    width: 175px;
+    min-width: 175px;
+    height: 42px;
+    min-height: 42px;
+    box-sizing: border-box;
+    padding: 0 12px;
+    border: 1px solid rgba(167, 139, 250, 0.28);
+    border-radius: 11px;
+    background: rgba(7, 7, 14, 0.85);
+    color: #eee7ff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+body.admin-reports-page input.monthly-export-month:hover {
+    border-color: rgba(167, 139, 250, 0.55);
+    background: rgba(10, 8, 19, 0.95);
+    transform: none;
+}
+
+body.admin-reports-page input.monthly-export-month:focus {
+    outline: none;
+    border-color: #9b7bea;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+
+body.admin-reports-page input.monthly-export-month::-webkit-calendar-picker-indicator {
+    opacity: .85;
+    cursor: pointer;
+    filter: invert(1);
+}
+
+/* Search and date filter alignment */
+body.admin-reports-page .filter-area {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1 1 430px;
+    min-width: 0;
+    gap: 10px;
+}
+
+body.admin-reports-page .report-search-input {
+    flex: 1 1 190px;
+    width: 220px;
+    min-width: 150px;
+    max-width: 260px;
+    height: 42px;
+    min-height: 42px;
+    box-sizing: border-box;
+    padding: 0 13px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 11px;
+    background: rgba(7,7,14,.75);
+    color: #fff;
+    font-size: 12px;
+}
+
+body.admin-reports-page .report-date-picker {
+    width: 185px;
+    min-width: 185px;
+    flex: 0 1 185px;
+}
+
+body.admin-reports-page .report-date-picker .custom-date-input {
+    min-height: 42px;
+    height: 42px;
+    border-radius: 11px;
+}
+
+/* Calendar popup alignment and appearance */
+body.admin-reports-page .report-date-picker .custom-calendar {
+    width: 300px;
+    padding: 14px;
+    border-radius: 17px;
+    border: 1px solid rgba(167,139,250,.24);
+    background:
+        radial-gradient(circle at top right, rgba(96,165,250,.12), transparent 35%),
+        linear-gradient(145deg, #191326, #0d0b15);
+    box-shadow: 0 24px 65px rgba(0,0,0,.55);
+}
+
+body.admin-reports-page .report-date-picker .calendar-header {
+    grid-template-columns: 36px 1fr 36px;
+    gap: 8px;
+    margin-bottom: 13px;
+}
+
+body.admin-reports-page .report-date-picker .calendar-month-title {
+    color: #e8ddff;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+body.admin-reports-page .report-date-picker .calendar-weekdays,
+body.admin-reports-page .report-date-picker .calendar-days {
+    gap: 5px;
+}
+
+body.admin-reports-page .report-date-picker .calendar-day {
+    min-height: 32px;
+    border-radius: 9px;
+    font-size: 12px;
+}
+
+body.admin-reports-page .report-date-picker .calendar-day.is-selected {
+    background: linear-gradient(135deg, #8054d8, #5541ad);
+    box-shadow: 0 5px 14px rgba(124,58,237,.25);
+}
+
+/* Role tabs and report section spacing */
+body.admin-reports-page .report-role-tabs {
+    margin-bottom: 18px;
+}
+
+body.admin-reports-page .report-section {
+    margin-bottom: 26px;
+}
+
+body.admin-reports-page .section-heading {
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+body.admin-reports-page .report-card {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Responsive alignment */
+@media (max-width: 1100px) {
+    body.admin-reports-page .report-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.admin-reports-page .report-actions,
+    body.admin-reports-page .filter-area {
+        width: 100%;
+        flex: 1 1 100%;
+        justify-content: flex-start;
+    }
+
+    body.admin-reports-page .report-search-input {
+        max-width: none;
+    }
+}
+
+@media (max-width: 768px) {
+    body.admin-reports-page .report-actions {
+        flex-wrap: wrap;
+    }
+
+    body.admin-reports-page .monthly-export-form {
+        flex: 1 1 100%;
+    }
+
+    body.admin-reports-page .filter-area {
+        flex-wrap: wrap;
+    }
+
+    body.admin-reports-page .report-search-input {
+        flex: 1 1 100%;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    body.admin-reports-page .report-date-picker {
+        flex: 1 1 180px;
+        width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    body.admin-reports-page .report-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.admin-reports-page .monthly-export-form {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.admin-reports-page .monthly-export-form .monthly-export-month,
+    body.admin-reports-page .monthly-export-form .glass-button {
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    body.admin-reports-page .filter-area {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.admin-reports-page .report-date-picker {
+        width: 100%;
+        flex: 1 1 100%;
+    }
+
+    body.admin-reports-page .filter-area > .glass-button {
+        width: 100%;
+    }
+}
+/* Monthly Excel Month Input */
+.monthly-export-month {
+    width: 220px;
+    min-width: 220px;
+    height: 52px;
+    padding: 0 15px;
+
+    background: #0b0b12 !important;
+    border: 1px solid #292631 !important;
+    border-radius: 14px !important;
+
+    color: #a1a1aa !important;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+
+    outline: none;
+    box-shadow: none !important;
+    cursor: text;
+    color-scheme: dark;
+
+    appearance: none;
+    -webkit-appearance: none;
+    box-sizing: border-box;
+}
+
+.monthly-export-month:focus {
+    border-color: #6550a8 !important;
+    box-shadow: 0 0 0 2px rgba(101, 80, 168, 0.15) !important;
+}
+
+.monthly-export-month::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.8;
+    filter: invert(85%);
+}
+
+/* =========================================
+   MASTER ADMIN REPORT TOOLBAR ALIGNMENT
+========================================= */
+
+.report-toolbar {
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: center !important;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 24px !important;
+    box-sizing: border-box;
+}
+
+/* Left-side action buttons */
+.report-toolbar .report-actions {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 10px;
+    min-width: 0;
+}
+
+/* Monthly Excel form */
+.report-toolbar .monthly-export-form {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 10px;
+    margin: 0 !important;
+}
+
+/* Right-side search and filter controls */
+.report-toolbar .filter-area {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px;
+    min-width: 0;
+    margin: 0 !important;
+}
+
+/* Search input */
+.report-toolbar .report-search-input {
+    width: 250px !important;
+    min-width: 180px;
+    height: 52px !important;
+    flex: 1 1 250px;
+    box-sizing: border-box;
+}
+
+/* Date picker */
+.report-toolbar .report-date-picker {
+    width: 200px !important;
+    min-width: 180px;
+    height: 52px !important;
+    flex-shrink: 0;
+}
+
+.report-toolbar .custom-date-input {
+    width: 100% !important;
+    height: 52px !important;
+    box-sizing: border-box;
+}
+
+/* Month input */
+.report-toolbar .monthly-export-month {
+    width: 190px !important;
+    min-width: 190px;
+    height: 52px !important;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+/* Keep all toolbar buttons equal in height */
+.report-toolbar .glass-button {
+    height: 52px !important;
+    min-height: 52px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap;
+    box-sizing: border-box;
+    margin: 0 !important;
+}
+
+/* Filter and Reset must stay on the same line */
+.report-toolbar .filter-area > button,
+.report-toolbar .filter-area > a {
+    flex-shrink: 0;
+}
+
+/* =========================================
+   RESPONSIVE ALIGNMENT
+========================================= */
+
+@media (max-width: 1250px) {
+    .report-toolbar {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .report-toolbar .report-actions {
+        flex-wrap: wrap !important;
+    }
+
+    .report-toolbar .filter-area {
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .report-toolbar {
+        padding: 16px !important;
+    }
+
+    .report-toolbar .report-actions,
+    .report-toolbar .filter-area {
+        width: 100%;
+        flex-wrap: wrap !important;
+    }
+
+    .report-toolbar .report-search-input {
+        width: 100% !important;
+        flex-basis: 100%;
+    }
+
+    .report-toolbar .report-date-picker {
+        width: 100% !important;
+    }
+
+    .report-toolbar .monthly-export-form {
+        flex-wrap: wrap !important;
+    }
+}
+
+
+/* =========================================
+   MONTHLY EXCEL - CUSTOM MONTH PICKER
+   Same theme as Report Date Picker
+========================================= */
+
+body.admin-reports-page .monthly-month-picker {
+    position: relative;
+    width: 190px;
+    min-width: 190px;
+    flex: 0 0 190px;
+}
+
+body.admin-reports-page .monthly-month-trigger {
+    width: 100%;
+    height: 42px;
+    box-sizing: border-box;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 0 13px;
+
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 12px;
+
+    background: rgba(5,5,11,.78);
+    color: #f2effa;
+
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: border-color .2s ease,
+                box-shadow .2s ease,
+                background .2s ease;
+}
+
+body.admin-reports-page .monthly-month-trigger:hover,
+body.admin-reports-page .monthly-month-trigger:focus-visible {
+    outline: none;
+    border-color: rgba(139,92,246,.70);
+    background: rgba(11,9,19,.95);
+    box-shadow: 0 0 0 3px rgba(139,92,246,.10);
+}
+
+body.admin-reports-page .monthly-month-trigger svg {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    color: #c4b5fd;
+}
+
+/* Calendar popup */
+
+body.admin-reports-page .monthly-month-calendar {
+    position: absolute;
+    z-index: 10000;
+
+    top: calc(100% + 9px);
+    left: 0;
+
+    width: 300px;
+    padding: 14px;
+
+    box-sizing: border-box;
+
+    border: 1px solid rgba(167,139,250,.24);
+    border-radius: 17px;
+
+    background:
+        radial-gradient(
+            circle at 90% 0%,
+            rgba(96,165,250,.13),
+            transparent 35%
+        ),
+        radial-gradient(
+            circle at 0% 0%,
+            rgba(139,92,246,.20),
+            transparent 38%
+        ),
+        linear-gradient(145deg,#191326,#0d0b15);
+
+    box-shadow:
+        0 28px 65px rgba(0,0,0,.58),
+        inset 0 1px 0 rgba(255,255,255,.06);
+
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+}
+
+body.admin-reports-page .monthly-month-calendar[hidden] {
+    display: none !important;
+}
+
+body.admin-reports-page .monthly-month-calendar:not([hidden]) {
+    display: block;
+    animation: monthlyCalendarIn .16s ease-out;
+}
+
+@keyframes monthlyCalendarIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px) scale(.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Year navigation */
+
+body.admin-reports-page .monthly-calendar-header {
+    display: grid;
+    grid-template-columns: 36px 1fr 36px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+body.admin-reports-page .monthly-calendar-header span {
+    color: #e8ddff;
+    font-size: 14px;
+    font-weight: 800;
+    text-align: center;
+}
+
+body.admin-reports-page .monthly-calendar-header button {
+    width: 34px;
+    height: 34px;
+
+    display: grid;
+    place-items: center;
+
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 9px;
+
+    background: rgba(255,255,255,.045);
+    color: #ddd6fe;
+
+    cursor: pointer;
+}
+
+body.admin-reports-page .monthly-calendar-header button:hover {
+    background: rgba(139,92,246,.18);
+    border-color: rgba(139,92,246,.45);
+}
+
+body.admin-reports-page .monthly-calendar-header svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Month grid */
+
+body.admin-reports-page .monthly-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 9px;
+}
+
+body.admin-reports-page .monthly-calendar-grid button {
+    min-height: 42px;
+
+    border: 1px solid transparent;
+    border-radius: 9px;
+
+    background: rgba(255,255,255,.025);
+    color: rgba(255,255,255,.82);
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: .15s ease;
+}
+
+body.admin-reports-page .monthly-calendar-grid button:hover {
+    background: rgba(139,92,246,.18);
+    border-color: rgba(139,92,246,.36);
+    color: #fff;
+}
+
+body.admin-reports-page .monthly-calendar-grid button.is-selected {
+    background: linear-gradient(135deg,#8054d8,#5541ad);
+    border-color: rgba(196,181,253,.80);
+    color: #fff;
+    font-weight: 800;
+    box-shadow: 0 5px 14px rgba(124,58,237,.25);
+}
+
+/* Footer */
+
+body.admin-reports-page .monthly-calendar-footer {
+    display: flex;
+    justify-content: flex-end;
+
+    margin-top: 12px;
+    padding-top: 10px;
+
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+
+body.admin-reports-page .monthly-calendar-footer button {
+    padding: 6px 9px;
+
+    border: 0;
+    border-radius: 7px;
+
+    background: transparent;
+    color: #c4b5fd;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    cursor: pointer;
+}
+
+body.admin-reports-page .monthly-calendar-footer button:hover {
+    background: rgba(139,92,246,.14);
+    color: #fff;
+}
+
+/* Mobile */
+
+@media(max-width: 768px) {
+    body.admin-reports-page .monthly-month-picker {
+        flex: 1 1 180px;
+        min-width: 0;
+    }
+}
+
+@media(max-width: 480px) {
+    body.admin-reports-page .monthly-month-picker {
+        width: 100%;
+        flex: 1 1 100%;
+    }
+
+    body.admin-reports-page .monthly-month-calendar {
+        width: min(300px, calc(100vw - 56px));
+        max-width: calc(100vw - 56px);
+    }
+}
+/* Final toolbar spacing refinement */
+body.admin-reports-page .report-toolbar {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px !important;
+}
+
+body.admin-reports-page .report-actions {
+    flex: 0 1 auto;
+    min-width: 0;
+    gap: 9px;
+}
+
+body.admin-reports-page .monthly-export-form {
+    flex-wrap: nowrap;
+    gap: 9px;
+}
+
+body.admin-reports-page .filter-area {
+    flex: 1 1 400px;
+    min-width: 0;
+    justify-content: flex-end;
+    gap: 9px;
+}
+
+@media(max-width: 1250px) {
+    body.admin-reports-page .report-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.admin-reports-page .report-actions,
+    body.admin-reports-page .filter-area {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
+@media(max-width: 480px) {
+    body.admin-reports-page .monthly-export-form {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.admin-reports-page .monthly-month-picker,
+    body.admin-reports-page .monthly-export-form .glass-button {
+        width: 100%;
+    }
+}
+
+
+/* =========================================
+   MASTER ADMIN REPORTS - FINAL TOOLBAR FIX
+========================================= */
+
+/* Toolbar */
+body.admin-reports-page .report-toolbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    padding: 18px !important;
+    box-sizing: border-box;
+}
+
+/* Left action row */
+body.admin-reports-page .report-actions {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 9px !important;
+    min-width: 0;
+}
+
+/* Daily Excel and other buttons */
+body.admin-reports-page .report-actions > .glass-button {
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 15px !important;
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+/* Monthly Excel form */
+body.admin-reports-page .monthly-export-form {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 9px !important;
+    margin: 0 !important;
+}
+
+/* Monthly month picker */
+body.admin-reports-page .monthly-month-picker {
+    position: relative;
+    width: 175px !important;
+    min-width: 175px !important;
+    flex: 0 0 175px !important;
+    margin: 0;
+}
+
+/* Month selection button */
+body.admin-reports-page .monthly-month-trigger {
+    width: 100% !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 13px !important;
+    box-sizing: border-box;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    border-radius: 11px !important;
+    font-size: 12px !important;
+}
+
+/* Monthly Excel submit button */
+body.admin-reports-page .monthly-export-form > .glass-button {
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 15px !important;
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+/* Completely remove employee search */
+body.admin-reports-page .report-search-input {
+    display: none !important;
+}
+
+/* Filter row */
+body.admin-reports-page .filter-area {
+    display: flex !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    gap: 9px !important;
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-end !important;
+}
+
+/* Date picker */
+body.admin-reports-page .report-date-picker {
+    height: 42px !important;
+    width: 185px !important;
+    min-width: 185px !important;
+    flex: 0 0 185px !important;
+}
+
+body.admin-reports-page .report-date-picker .custom-date-input {
+    height: 42px !important;
+    min-height: 42px !important;
+    box-sizing: border-box;
+}
+
+/* Filter and Reset */
+body.admin-reports-page .filter-area > .glass-button {
+    height: 42px !important;
+    min-height: 42px !important;
+    box-sizing: border-box;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+    body.admin-reports-page .report-toolbar {
+        align-items: flex-start !important;
+    }
+
+    body.admin-reports-page .filter-area {
+        justify-content: flex-start !important;
+        flex: 1 1 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    body.admin-reports-page .report-actions {
+        width: 100%;
+        flex-wrap: wrap !important;
+    }
+
+    body.admin-reports-page .monthly-export-form {
+        flex-wrap: wrap !important;
+    }
+
+    body.admin-reports-page .filter-area {
+        width: 100%;
+        justify-content: flex-start !important;
+    }
+
+    body.admin-reports-page .report-date-picker {
+        flex: 1 1 160px !important;
+        min-width: 0 !important;
+    }
+}
+
+
 </style>
 {% endblock %}
 {% block content %}
@@ -1448,13 +2356,84 @@ body.admin-reports-page .report-view-data[hidden]{display:none!important}
 
                     {% endif %}
 
-                    <a
-    href="{% url 'master_admin_reports' %}?tab={{ report_tab }}{% if show_all %}&amp;all=1{% endif %}{% if filter_date %}&amp;date={{ filter_date }}{% endif %}{% if query %}&amp;q={{ query|urlencode }}{% endif %}&amp;export=1"
+<!-- Daily Excel Export -->
+<a
+    href="{% url 'master_admin_reports' %}?tab={{ report_tab }}&amp;date={% if filter_date %}{{ filter_date }}{% else %}{{ today_date }}{% endif %}{% if query %}&amp;q={{ query|urlencode }}{% endif %}&amp;export=daily"
     class="glass-button export"
 >
     <i data-lucide="file-spreadsheet"></i>
-    Export to Excel
+    Daily Excel
 </a>
+
+<!-- Monthly Excel Export -->
+<form
+    method="GET"
+    action="{% url 'master_admin_reports' %}"
+    class="monthly-export-form"
+>
+    <input type="hidden" name="tab" value="{{ report_tab }}">
+    <input type="hidden" name="export" value="monthly">
+<input
+    type="hidden"
+    name="month"
+    id="monthlyExportMonth"
+    value="{{ current_month }}"
+>
+
+<div class="monthly-month-picker" id="monthlyMonthPicker">
+
+    <button
+        type="button"
+        class="monthly-month-trigger"
+        id="monthlyMonthToggle"
+        aria-haspopup="dialog"
+        aria-expanded="false"
+    >
+        <span id="monthlyMonthDisplay">{{ current_month }}</span>
+        <i data-lucide="calendar-days"></i>
+    </button>
+
+    <div
+        class="monthly-month-calendar"
+        id="monthlyMonthCalendar"
+        role="dialog"
+        aria-label="Select report month"
+        hidden
+    >
+        <div class="monthly-calendar-header">
+
+            <button type="button" id="monthlyPrevYear" aria-label="Previous year">
+                <i data-lucide="chevron-left"></i>
+            </button>
+
+            <span id="monthlyCalendarYear"></span>
+
+            <button type="button" id="monthlyNextYear" aria-label="Next year">
+                <i data-lucide="chevron-right"></i>
+            </button>
+
+        </div>
+
+        <div class="monthly-calendar-grid" id="monthlyCalendarMonths"></div>
+
+        <div class="monthly-calendar-footer">
+            <button type="button" id="monthlyCalendarCancel">Close</button>
+        </div>
+
+    </div>
+
+</div>
+    {% if query %}
+        <input type="hidden" name="q" value="{{ query }}">
+    {% endif %}
+
+
+
+    <button type="submit" class="glass-button export">
+        <i data-lucide="file-spreadsheet"></i>
+        Monthly Excel
+    </button>
+</form>
 
                 </div>
 
@@ -1831,10 +2810,10 @@ body.admin-reports-page .report-view-data[hidden]{display:none!important}
    Same behavior/UI as Project Assigning
 ========================================================= */
 document.addEventListener("DOMContentLoaded", function () {
-    const monthFormatter = new Intl.DateTimeFormat("en-US", {
-        month: "long",
-        year: "numeric"
-    });
+const monthFormatter = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    year: "numeric"
+});
 
     const pad = n => String(n).padStart(2, "0");
 
@@ -2255,6 +3234,28 @@ document.addEventListener('DOMContentLoaded', () => {
   if (url.searchParams.has('export')) {event.preventDefault();downloadReport(link,url);return;}
   event.preventDefault(); navigate(url);
  });
+ // Monthly Excel export handler
+root.addEventListener('submit', event => {
+    const form = event.target.closest('.monthly-export-form');
+
+    if (!form || !root.contains(form)) return;
+
+    event.preventDefault();
+
+    if (!form.reportValidity()) return;
+
+    const url = new URL(form.action, window.location.origin);
+
+    for (const [key, value] of new FormData(form)) {
+        if (String(value).trim()) {
+            url.searchParams.set(key, value);
+        }
+    }
+
+    const exportLink = document.createElement('a');
+
+    downloadReport(exportLink, url);
+});
  filter.addEventListener('submit',event => {
   event.preventDefault();
   const url = new URL(currentUrl.pathname,currentUrl.origin);
@@ -2311,5 +3312,140 @@ document.addEventListener('DOMContentLoaded',()=>{
  dialog.addEventListener('click',event=>{if(event.target===dialog)close();});
  dialog.addEventListener('close',()=>{document.body.style.overflow=previousOverflow;if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});});
 });
+
+
+/* =========================================
+   MONTHLY EXCEL - MONTH PICKER
+========================================= */
+(() => {
+    'use strict';
+
+    const picker = document.getElementById('monthlyMonthPicker');
+    const toggle = document.getElementById('monthlyMonthToggle');
+    const calendar = document.getElementById('monthlyMonthCalendar');
+
+    const input = document.getElementById('monthlyExportMonth');
+    const display = document.getElementById('monthlyMonthDisplay');
+
+    const yearLabel = document.getElementById('monthlyCalendarYear');
+    const monthsContainer = document.getElementById('monthlyCalendarMonths');
+
+    const prevYear = document.getElementById('monthlyPrevYear');
+    const nextYear = document.getElementById('monthlyNextYear');
+    const closeButton = document.getElementById('monthlyCalendarCancel');
+
+    if (
+        !picker || !toggle || !calendar || !input ||
+        !display || !yearLabel || !monthsContainer
+    ) {
+        return;
+    }
+
+    const months = [
+        'Jan', 'Feb', 'Mar', 'Apr',
+        'May', 'Jun', 'Jul', 'Aug',
+        'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+
+    const now = new Date();
+
+    let selectedValue = /^\d{4}-\d{2}$/.test(input.value)
+        ? input.value
+        : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    let visibleYear = Number(selectedValue.slice(0, 4));
+
+    function updateDisplay() {
+        const [year, month] = selectedValue.split('-').map(Number);
+
+        display.textContent = `${months[month - 1]} ${year}`;
+        input.value = selectedValue;
+    }
+
+    function renderMonths() {
+        yearLabel.textContent = visibleYear;
+        monthsContainer.replaceChildren();
+
+        months.forEach((month, index) => {
+            const button = document.createElement('button');
+
+            button.type = 'button';
+            button.textContent = month;
+
+            const value =
+                `${visibleYear}-${String(index + 1).padStart(2, '0')}`;
+
+            if (value === selectedValue) {
+                button.classList.add('is-selected');
+                button.setAttribute('aria-pressed', 'true');
+            } else {
+                button.setAttribute('aria-pressed', 'false');
+            }
+
+            button.addEventListener('click', () => {
+                selectedValue = value;
+                updateDisplay();
+                renderMonths();
+                closeCalendar();
+            });
+
+            monthsContainer.appendChild(button);
+        });
+    }
+
+    function openCalendar() {
+        const [year] = selectedValue.split('-').map(Number);
+
+        visibleYear = year;
+        renderMonths();
+
+        calendar.hidden = false;
+        toggle.setAttribute('aria-expanded', 'true');
+        picker.classList.add('open');
+    }
+
+    function closeCalendar() {
+        calendar.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+        picker.classList.remove('open');
+    }
+
+    toggle.addEventListener('click', () => {
+        if (calendar.hidden) {
+            openCalendar();
+        } else {
+            closeCalendar();
+        }
+    });
+
+    prevYear.addEventListener('click', () => {
+        visibleYear--;
+        renderMonths();
+    });
+
+    nextYear.addEventListener('click', () => {
+        visibleYear++;
+        renderMonths();
+    });
+
+    closeButton.addEventListener('click', closeCalendar);
+
+    document.addEventListener('click', event => {
+        if (!picker.contains(event.target)) {
+            closeCalendar();
+        }
+    });
+
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && !calendar.hidden) {
+            closeCalendar();
+            toggle.focus();
+        }
+    });
+
+    updateDisplay();
+    renderMonths();
+})();
+
 </script>
 {% endblock %}

@@ -1,7 +1,8 @@
 {% extends "team_member/base3.html" %}
 {% load static tz %}
 {% block title %}Team Member Reports - Cybexel{% endblock %}
-{% block extra_css %}<style>
+{% block extra_css %}
+<style>
 .dashboard-header {
             position: relative;
 
@@ -1107,7 +1108,305 @@
  #memberReportsPage .report-date-picker .custom-calendar {left:0;right:auto;transform:none;width:min(300px,100%);animation:none;}
  .report-view-panel {max-width:100%;min-width:0;}
 }
-</style>{% endblock %}
+
+/* =========================================================
+   MONTHLY EXCEL EXPORT
+========================================================= */
+
+.monthly-export-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.report-month-input {
+    height: 42px;
+    min-width: 155px;
+    box-sizing: border-box;
+    padding: 0 13px;
+    border-radius: 12px;
+    outline: none;
+    color: #f7f3ff;
+    color-scheme: dark;
+    background: rgba(5, 5, 11, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    font: inherit;
+    font-size: 11px;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.report-month-input:focus {
+    border-color: rgba(139, 92, 246, .70);
+    background: rgba(11, 9, 19, .95);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, .10);
+}
+
+.monthly-export-form .glass-button {
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .monthly-export-form {
+        width: 100%;
+    }
+
+    .report-month-input {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .monthly-export-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .report-month-input,
+    .monthly-export-form .glass-button {
+        width: 100%;
+    }
+}
+/* =========================================================
+   TEAM MEMBER — CUSTOM MONTH / YEAR PICKER
+   Matches the existing Report Date Picker design
+========================================================= */
+
+#memberReportsPage .report-month-picker {
+    position: relative;
+    width: 230px;
+    min-width: 230px;
+    flex: 0 0 230px;
+}
+
+#memberReportsPage .custom-month-input {
+    width: 100%;
+    height: 42px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 13px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 12px;
+    background: rgba(5,5,11,.78);
+    color: #f7f3ff;
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .2s ease, box-shadow .2s ease,
+                background .2s ease;
+}
+
+#memberReportsPage .custom-month-input:hover,
+#memberReportsPage .custom-month-input:focus {
+    outline: none;
+    border-color: rgba(139,92,246,.70);
+    background: rgba(11,9,19,.95);
+    box-shadow: 0 0 0 3px rgba(139,92,246,.10);
+}
+
+#memberReportsPage .custom-month-input span {
+    color: #f2effa;
+    white-space: nowrap;
+}
+
+#memberReportsPage .custom-month-input span.is-placeholder {
+    color: rgba(255,255,255,.36);
+}
+
+#memberReportsPage .custom-month-input svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+    color: #c4b5fd;
+    pointer-events: none;
+}
+
+#memberReportsPage .month-calendar {
+    position: absolute;
+    z-index: 10000;
+    top: calc(100% + 9px);
+    left: 0;
+    width: 290px;
+    padding: 13px;
+    box-sizing: border-box;
+    border: 1px solid rgba(255,255,255,.13);
+    border-radius: 17px;
+    background:
+        radial-gradient(circle at 90% 0%, rgba(96,165,250,.13), transparent 32%),
+        radial-gradient(circle at 0% 0%, rgba(139,92,246,.20), transparent 38%),
+        rgba(12,11,20,.97);
+    box-shadow: 0 28px 65px rgba(0,0,0,.58),
+                inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    display: none;
+}
+
+#memberReportsPage .report-month-picker.open .month-calendar {
+    display: block;
+    animation: teamMonthCalendarIn .16s ease-out;
+}
+
+@keyframes teamMonthCalendarIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px) scale(.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+#memberReportsPage .month-calendar-header {
+    display: grid;
+    grid-template-columns: 34px 1fr 34px;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 12px;
+}
+
+#memberReportsPage .month-calendar-year {
+    color: #fff;
+    font-size: 14px;
+    font-weight: 800;
+    text-align: center;
+}
+
+#memberReportsPage .month-calendar-nav {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 9px;
+    background: rgba(255,255,255,.045);
+    color: #ddd6fe;
+    cursor: pointer;
+}
+
+#memberReportsPage .month-calendar-nav:hover {
+    background: rgba(139,92,246,.18);
+    border-color: rgba(139,92,246,.45);
+}
+
+#memberReportsPage .month-calendar-nav svg {
+    width: 16px;
+    height: 16px;
+}
+
+#memberReportsPage .month-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 7px;
+}
+
+#memberReportsPage .month-option {
+    min-width: 0;
+    height: 40px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(255,255,255,.86);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .15s ease;
+}
+
+#memberReportsPage .month-option:hover {
+    background: rgba(139,92,246,.18);
+    border-color: rgba(139,92,246,.36);
+}
+
+#memberReportsPage .month-option.is-current {
+    border-color: rgba(96,165,250,.55);
+    color: #bfdbfe;
+}
+
+#memberReportsPage .month-option.is-selected {
+    background: linear-gradient(135deg,#7c3aed,#4f46e5);
+    border-color: rgba(196,181,253,.80);
+    color: #fff;
+    font-weight: 800;
+    box-shadow: 0 7px 18px rgba(124,58,237,.28);
+}
+
+#memberReportsPage .month-calendar-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,.08);
+}
+
+#memberReportsPage .month-calendar-footer-btn {
+    border: 0;
+    background: transparent;
+    color: #c4b5fd;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    padding: 5px 7px;
+    border-radius: 7px;
+}
+
+#memberReportsPage .month-calendar-footer-btn:hover {
+    color: #fff;
+    background: rgba(139,92,246,.14);
+}
+
+@media(max-width:768px) {
+    #memberReportsPage .report-month-picker {
+        flex: 1 1 220px;
+        min-width: 0;
+        width: 230px;
+        max-width: 100%;
+    }
+}
+
+@media(max-width:480px) {
+    #memberReportsPage .report-month-picker {
+        width: 100%;
+        max-width: 100%;
+        flex-basis: 100%;
+    }
+
+    #memberReportsPage .month-calendar {
+        width: min(290px, calc(100vw - 56px));
+    }
+}
+
+@media(max-width:430px) {
+    #memberReportsPage .month-calendar {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    #memberReportsPage .report-month-picker.open .month-calendar {
+        animation: teamMonthCalendarInMobile .16s ease-out;
+    }
+}
+
+@keyframes teamMonthCalendarInMobile {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-5px) scale(.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+}
+
+</style>
+{% endblock %}
 {% block content %}
 <div id="memberReportsPage">
 <p id="reportFeedback" role="status" aria-live="polite" hidden></p>
@@ -1150,11 +1449,73 @@
                     </a>
                     {% endif %}
 
-                    <a href="{% url 'teammember_reports' %}?view=my{% if show_all %}&amp;all=1{% elif filter_date %}&amp;date={{ filter_date|date:'Y-m-d' }}{% endif %}&amp;export=1"
-                       class="glass-button export">
-                        <i data-lucide="file-spreadsheet"></i>
-                        Export to Excel
-                    </a>
+                    <a href="{% url 'teammember_reports' %}?view=my&amp;export=daily&amp;date={{ report_date|date:'Y-m-d' }}"
+   class="glass-button export">
+    <i data-lucide="file-spreadsheet"></i>
+    Daily Excel
+</a>
+
+<form method="GET"
+      action="{% url 'teammember_reports' %}"
+      class="monthly-export-form">
+
+    <div class="report-month-picker" data-month-picker>
+        <input
+            type="hidden"
+            name="month"
+            class="report-month-value"
+            value="{{ report_date|date:'Y-m' }}"
+        >
+
+        <button
+            type="button"
+            class="custom-month-input"
+            data-month-toggle
+            aria-haspopup="dialog"
+            aria-expanded="false"
+        >
+            <span data-month-display>Select month</span>
+            <i data-lucide="calendar-days"></i>
+        </button>
+
+        <div class="month-calendar" data-month-calendar
+             role="dialog" aria-label="Choose report month">
+
+            <div class="month-calendar-header">
+                <button type="button" class="month-calendar-nav"
+                        data-prev-year aria-label="Previous year">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+
+                <span class="month-calendar-year" data-month-year></span>
+
+                <button type="button" class="month-calendar-nav"
+                        data-next-year aria-label="Next year">
+                    <i data-lucide="chevron-right"></i>
+                </button>
+            </div>
+
+            <div class="month-grid" data-month-grid></div>
+
+            <div class="month-calendar-footer">
+                <button type="button" class="month-calendar-footer-btn"
+                        data-clear-month>Clear</button>
+
+                <button type="button" class="month-calendar-footer-btn"
+                        data-current-month>This month</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" name="export" value="monthly">
+
+    <button type="submit" class="glass-button export">
+        <i data-lucide="file-spreadsheet"></i>
+        Monthly Excel
+    </button>
+
+</form>
+
 
                 </div>
 
@@ -1497,6 +1858,183 @@
 
 {% endblock %}
 {% block extra_js %}<script>
+function initMonthlyPicker() {
+    const pad = n => String(n).padStart(2, "0");
+
+const monthNames = [
+    "January", "February", "March", "April",
+    "May", "June", "July", "August",
+    "September", "October", "November", "December"
+];
+const shortMonthNames = [
+    "Jan", "Feb", "Mar", "Apr",
+    "May", "Jun", "Jul", "Aug",
+    "Sep", "Oct", "Nov", "Dec"
+];
+
+    document.querySelectorAll(
+        "#memberReportsPage .report-month-picker[data-month-picker]"
+    ).forEach(picker => {
+        if (picker.dataset.monthReady) return;
+        picker.dataset.monthReady = "true";
+
+        const hidden = picker.querySelector(".report-month-value");
+        const toggle = picker.querySelector("[data-month-toggle]");
+        const display = picker.querySelector("[data-month-display]");
+        const yearLabel = picker.querySelector("[data-month-year]");
+        const grid = picker.querySelector("[data-month-grid]");
+        const prev = picker.querySelector("[data-prev-year]");
+        const next = picker.querySelector("[data-next-year]");
+        const clear = picker.querySelector("[data-clear-month]");
+        const current = picker.querySelector("[data-current-month]");
+
+        if (!hidden || !toggle || !display || !yearLabel || !grid) {
+            return;
+        }
+
+        const now = new Date();
+        let selected = /^\d{4}-\d{2}$/.test(hidden.value)
+            ? hidden.value
+            : "";
+
+        let viewYear = selected
+            ? Number(selected.slice(0, 4))
+            : now.getFullYear();
+
+        function updateDisplay() {
+            if (selected) {
+                const [year, month] = selected.split("-").map(Number);
+                display.textContent = `${monthNames[month - 1]} ${year}`;
+                display.classList.remove("is-placeholder");
+            } else {
+                display.textContent = "Select month";
+                display.classList.add("is-placeholder");
+            }
+        }
+
+        function renderMonths() {
+            yearLabel.textContent = viewYear;
+            grid.innerHTML = "";
+
+            monthNames.forEach((name, index) => {
+                const monthValue = `${viewYear}-${pad(index + 1)}`;
+                const button = document.createElement("button");
+
+                button.type = "button";
+                button.className = "month-option";
+                button.textContent = shortMonthNames[index];
+                if (
+                    viewYear === now.getFullYear() &&
+                    index === now.getMonth()
+                ) {
+                    button.classList.add("is-current");
+                }
+
+                if (monthValue === selected) {
+                    button.classList.add("is-selected");
+                }
+
+                button.setAttribute(
+                    "aria-label",
+                    `${name} ${viewYear}`
+                );
+
+                button.addEventListener("click", event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    selected = monthValue;
+                    hidden.value = selected;
+
+                    updateDisplay();
+                    renderMonths();
+                    closePicker();
+                });
+
+                grid.appendChild(button);
+            });
+        }
+
+        function openPicker(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            document.querySelectorAll(
+                "#memberReportsPage .report-month-picker.open"
+            ).forEach(other => {
+                if (other !== picker) {
+                    other.classList.remove("open");
+                    other.querySelector("[data-month-toggle]")
+                        ?.setAttribute("aria-expanded", "false");
+                }
+            });
+
+            document.querySelectorAll(
+                "#memberReportsPage .report-date-picker.open"
+            ).forEach(other => {
+                other.classList.remove("open");
+                other.querySelector("[data-date-toggle]")
+                    ?.setAttribute("aria-expanded", "false");
+            });
+
+            picker.classList.add("open");
+            toggle.setAttribute("aria-expanded", "true");
+            renderMonths();
+        }
+
+        function closePicker() {
+            picker.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+        }
+
+        toggle.addEventListener("click", openPicker);
+
+        prev?.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+            viewYear--;
+            renderMonths();
+        });
+
+        next?.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+            viewYear++;
+            renderMonths();
+        });
+
+        clear?.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            selected = "";
+            hidden.value = "";
+            viewYear = now.getFullYear();
+
+            updateDisplay();
+            renderMonths();
+            closePicker();
+        });
+
+        current?.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            selected = `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
+            hidden.value = selected;
+            viewYear = now.getFullYear();
+
+            updateDisplay();
+            renderMonths();
+            closePicker();
+        });
+
+        updateDisplay();
+        renderMonths();
+    });
+}    
 function initReportsCalendar(){
     const monthFormatter = new Intl.DateTimeFormat("en-US", {
         month: "long",
@@ -1808,7 +2346,13 @@ function initReportsCalendar(){
   current.innerHTML=incoming.innerHTML;baseline=fingerprint(incoming);
   current.querySelectorAll('.table-wrapper').forEach((el,i)=>{if(!manual && scrolls[i]){el.scrollTop=scrolls[i][0];el.scrollLeft=scrolls[i][1];}});
   for(const id of ['morningReportDetails','eveningReportDetails'])document.getElementById(id).innerHTML=doc.getElementById(id).innerHTML;
-  if(manual){page.querySelector('.report-toolbar').innerHTML=doc.querySelector('#memberReportsPage .report-toolbar').innerHTML;initReportsCalendar();}
+if(manual){
+    page.querySelector('.report-toolbar').innerHTML =
+        doc.querySelector('#memberReportsPage .report-toolbar').innerHTML;
+
+    initReportsCalendar();
+    initMonthlyPicker();
+}
   if(window.lucide)window.lucide.createIcons();
   if(section)current.querySelector('[data-report-section="'+section+'"]')?.focus({preventScroll:true});
   else if(tableIndex>=0)current.querySelectorAll('.table-wrapper')[tableIndex]?.focus({preventScroll:true});
@@ -1862,12 +2406,76 @@ function initReportsCalendar(){
   if(link?.classList.contains('export') && event.button===0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey){event.preventDefault();downloadReport(link);return;}
   if(link && !link.classList.contains('export') && event.button===0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey){event.preventDefault();load(link.href,'navigate');}
  });
- page.addEventListener('submit',event=>{const form=event.target;if(!form.matches('.filter-area'))return;event.preventDefault();const url=new URL(form.getAttribute('action') || location.href,location.href);url.search=new URLSearchParams(new FormData(form)).toString();load(url.href,'navigate');});
+page.addEventListener('submit', event => {
+    const form = event.target;
+
+    if (form.matches('.monthly-export-form')) {
+        event.preventDefault();
+        const monthInput = form.querySelector('.report-month-value');
+
+    if (!monthInput || !/^\d{4}-(0[1-9]|1[0-2])$/.test(monthInput.value)) {
+        notice('Please select a month before exporting.');
+        return;
+    }
+
+        const url = new URL(
+            form.getAttribute('action') || location.href,
+            location.href
+        );
+
+        url.search = new URLSearchParams(
+            new FormData(form)
+        ).toString();
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = url.href;
+
+        downloadReport(downloadLink);
+        return;
+    }
+
+    if (!form.matches('.filter-area')) return;
+
+    event.preventDefault();
+
+    const url = new URL(
+        form.getAttribute('action') || location.href,
+        location.href
+    );
+
+    url.search = new URLSearchParams(
+        new FormData(form)
+    ).toString();
+
+    load(url.href, 'navigate');
+});
  closeButton.addEventListener('click',()=>closeReports());
  modal.addEventListener('click',event=>{if(event.target===modal)closeReports();});
- document.addEventListener('click',event=>{page.querySelectorAll('.report-date-picker.open').forEach(picker=>{if(!picker.contains(event.target)){picker.classList.remove('open');picker.querySelector('[data-date-toggle]').setAttribute('aria-expanded','false');}});});
+
+ document.addEventListener('click', event => {
+    page.querySelectorAll(
+        '.report-date-picker.open, .report-month-picker.open'
+    ).forEach(picker => {
+        if (!picker.contains(event.target)) {
+            picker.classList.remove('open');
+
+            picker.querySelector(
+                '[data-date-toggle], [data-month-toggle]'
+            )?.setAttribute('aria-expanded', 'false');
+        }
+    });
+});
+
+
  document.addEventListener('keydown',event=>{
   if(event.key==='Escape'){if(!modal.hidden)closeReports();page.querySelectorAll('.report-date-picker.open').forEach(picker=>{picker.classList.remove('open');const toggle=picker.querySelector('[data-date-toggle]');toggle.setAttribute('aria-expanded','false');toggle.focus();});}
+  page.querySelectorAll('.report-month-picker.open').forEach(picker => {
+    picker.classList.remove('open');
+
+    const toggle = picker.querySelector('[data-month-toggle]');
+    toggle?.setAttribute('aria-expanded', 'false');
+    toggle?.focus({ preventScroll: true });
+});
   if(event.key==='Tab' && !modal.hidden){const focusable=[...modal.querySelectorAll('button,a[href],input,textarea,select,[tabindex="0"]')].filter(el=>!el.disabled && el.getClientRects().length);const first=focusable[0],last=focusable[focusable.length-1];if(event.shiftKey && document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey && document.activeElement===last){event.preventDefault();first.focus();}}
  });
  window.addEventListener('popstate',()=>{if(!modal.hidden)closeReports(false);load(location.href,'restore');});
@@ -1876,7 +2484,12 @@ function initReportsCalendar(){
  window.addEventListener('pagehide',()=>{stopped=true;clearInterval(pollTimer);pollTimer=null;revision++;busy=false;controller?.abort();exportController?.abort();});
  window.addEventListener('pageshow',()=>{stopped=false;page.removeAttribute('aria-busy');startPolling();load(location.href);});
  window.addEventListener('online',()=>load(location.href));
- initReportsCalendar();if(window.lucide)window.lucide.createIcons();startPolling();
+initReportsCalendar();
+initMonthlyPicker();
+
+if (window.lucide) window.lucide.createIcons();
+ startPolling();
 })();
+
 
 </script>{% endblock %}

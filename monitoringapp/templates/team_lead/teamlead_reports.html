@@ -1776,6 +1776,364 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
 }
 
 .teamlead-report-view-dialog { font-family: inherit; }
+
+/* Monthly Excel — Match existing Report Date Picker */
+.monthly-export-form {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.monthly-export-form .report-month-input {
+    width: 230px;
+    min-width: 230px;
+    min-height: 42px;
+    box-sizing: border-box;
+    padding: 0 13px;
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 12px;
+
+    background: rgba(5, 5, 11, 0.78);
+    color: #f7f3ff;
+
+    font-family: inherit;
+    font-size: 11px;
+    outline: none;
+    color-scheme: dark;
+    cursor: pointer;
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        background .2s ease;
+}
+
+.monthly-export-form .report-month-input:hover,
+.monthly-export-form .report-month-input:focus {
+    outline: none;
+    border-color: rgba(139, 92, 246, .70);
+    background: rgba(11, 9, 19, .95);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, .10);
+}
+
+.monthly-export-form .report-month-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: .8;
+}
+
+@media (max-width: 768px) {
+    .monthly-export-form {
+        flex: 1 1 230px;
+        min-width: 0;
+    }
+
+    .monthly-export-form .report-month-input {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .monthly-export-form {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .monthly-export-form .report-month-input {
+        width: 100%;
+    }
+}
+
+/* =========================================================
+   CYBEXEL — THEMED MONTH PICKER
+   Dark Glass + Purple / Blue Theme
+========================================================= */
+
+/* Month input */
+.monthly-export-form .report-month-input {
+    color-scheme: dark;
+    background: rgba(12, 11, 20, 0.97);
+    color: #f7f3ff;
+    border: 1px solid rgba(167, 139, 250, 0.30);
+    border-radius: 12px;
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    transition: all .25s ease;
+}
+
+/* Hover and Focus */
+.monthly-export-form .report-month-input:hover,
+.monthly-export-form .report-month-input:focus {
+    border-color: rgba(167, 139, 250, 0.75);
+    background: rgba(18, 14, 29, 0.98);
+    box-shadow:
+        0 0 0 3px rgba(139, 92, 246, 0.12),
+        0 8px 25px rgba(0, 0, 0, 0.30);
+    outline: none;
+}
+
+/* Calendar Icon */
+.monthly-export-form .report-month-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.9;
+    filter: invert(85%) sepia(20%) saturate(800%)
+            hue-rotate(215deg);
+}
+
+/* Native picker color preference */
+.monthly-export-form .report-month-input {
+    color-scheme: dark;
+}
+
+/* =====================================================
+   TEAM LEAD REPORTS — MONTH / YEAR PICKER ALIGNMENT
+   Match Monthly Picker with Daily Date Picker
+===================================================== */
+
+body.tl-reports-page .report-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+body.tl-reports-page .report-actions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+body.tl-reports-page .monthly-export-form {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: nowrap;
+    min-width: 0;
+}
+
+body.tl-reports-page .monthly-export-form .report-month-input {
+    width: 230px;
+    min-width: 230px;
+    height: 42px;
+    min-height: 42px;
+    box-sizing: border-box;
+
+    display: block;
+    padding: 0 13px;
+
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 12px;
+
+    background: rgba(5,5,11,.60);
+    color: #f7f3ff;
+
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+
+    color-scheme: dark;
+    outline: none;
+    cursor: pointer;
+
+    transition:
+        border-color .2s ease,
+        background .2s ease,
+        box-shadow .2s ease;
+}
+
+body.tl-reports-page .monthly-export-form .report-month-input:hover,
+body.tl-reports-page .monthly-export-form .report-month-input:focus {
+    border-color: rgba(139,92,246,.70);
+    background: rgba(11,9,19,.95);
+    box-shadow: 0 0 0 3px rgba(139,92,246,.10);
+}
+
+body.tl-reports-page .monthly-export-form .report-month-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: .9;
+    filter: invert(85%) sepia(20%) saturate(800%)
+            hue-rotate(215deg);
+}
+
+/* Daily Date Picker — Same Dimensions */
+
+body.tl-reports-page .report-date-picker {
+    width: 230px;
+    min-width: 230px;
+    flex: 0 0 230px;
+}
+
+body.tl-reports-page .report-date-picker .custom-date-input {
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+    box-sizing: border-box;
+}
+
+/* Mobile Alignment */
+
+@media (max-width: 768px) {
+    body.tl-reports-page .report-toolbar {
+        align-items: stretch;
+    }
+
+    body.tl-reports-page .report-actions {
+        width: 100%;
+        align-items: center;
+    }
+
+    body.tl-reports-page .monthly-export-form {
+        flex: 1 1 230px;
+        min-width: 0;
+    }
+
+    body.tl-reports-page .monthly-export-form .report-month-input {
+        width: 100%;
+        min-width: 0;
+        flex: 1;
+    }
+
+    body.tl-reports-page .report-date-picker {
+        width: 100%;
+        min-width: 0;
+        flex: 1 1 230px;
+    }
+}
+
+@media (max-width: 480px) {
+    body.tl-reports-page .monthly-export-form {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.tl-reports-page .monthly-export-form .report-month-input {
+        width: 100%;
+    }
+
+    body.tl-reports-page .report-date-picker {
+        width: 100%;
+        flex-basis: 100%;
+    }
+}
+
+/* Monthly Picker — Same Design as Report Date Picker */
+.monthly-export-form .report-month-input {
+    width: 230px;
+    min-width: 230px;
+    height: 42px;
+    min-height: 42px;
+    box-sizing: border-box;
+    padding: 0 13px;
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 12px;
+
+    background: rgba(5, 5, 11, 0.78);
+    color: #f7f3ff;
+
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+
+    color-scheme: dark;
+    outline: none;
+    cursor: pointer;
+
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        background .2s ease;
+}
+
+/* Same Hover and Focus */
+.monthly-export-form .report-month-input:hover,
+.monthly-export-form .report-month-input:focus {
+    outline: none;
+    border-color: rgba(139, 92, 246, .70);
+    background: rgba(11, 9, 19, .95);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, .10);
+}
+
+/* Calendar Icon */
+.monthly-export-form .report-month-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: .9;
+}
+/* MONTH PICKER — Reuse Team Lead Date Picker Theme */
+
+.report-month-picker {
+    position: relative;
+}
+
+.report-month-picker .custom-date-input {
+    width: 230px;
+    height: 42px;
+    min-height: 42px;
+}
+
+.report-month-picker .custom-calendar {
+    width: 300px;
+}
+
+.report-month-picker .calendar-months {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    padding: 4px 0;
+}
+
+.report-month-picker .calendar-month {
+    min-height: 38px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(255,255,255,.86);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .15s ease;
+}
+
+.report-month-picker .calendar-month:hover {
+    background: rgba(139,92,246,.18);
+    border-color: rgba(139,92,246,.36);
+}
+
+.report-month-picker .calendar-month.is-selected {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    border-color: rgba(196,181,253,.80);
+    color: #fff;
+    font-weight: 800;
+    box-shadow: 0 7px 18px rgba(124,58,237,.28);
+}
+
+.report-month-picker .calendar-month.is-current {
+    border-color: rgba(96,165,250,.55);
+    color: #bfdbfe;
+}
+
+.report-month-picker .calendar-month.is-selected.is-current {
+    color: #fff;
+}
+
+.report-month-picker .calendar-month-title {
+    display: block;
+    cursor: default;
+}
+
+@media(max-width:480px) {
+    .report-month-picker .custom-calendar {
+        width: min(300px, calc(100vw - 28px));
+    }
+}
+
 </style>
 </head>
 
@@ -1839,11 +2197,79 @@ body.tl-reports-page .custom-calendar{max-width:calc(100vw - 44px);box-sizing:bo
                     </a>
                     {% endif %}
 
-                    <a href="{% url 'teamlead_reports' %}?tab={{ report_tab }}{% if show_all %}&amp;all=1{% elif filter_date %}&amp;date={{ filter_date|date:'Y-m-d' }}{% endif %}&amp;export=1"
-                       class="glass-button export">
-                        <i data-lucide="file-spreadsheet"></i>
-                        Export to Excel
-                    </a>
+
+<a href="{% url 'teamlead_reports' %}?tab={{ report_tab }}&amp;export=daily&amp;date={{ report_date|date:'Y-m-d' }}"
+   class="glass-button export">
+    <i data-lucide="file-spreadsheet"></i>
+    Daily Excel
+</a>
+
+<form method="get" action="{% url 'teamlead_reports' %}"
+      class="monthly-export-form">
+
+    <input type="hidden" name="tab" value="{{ report_tab }}">
+    <input type="hidden" name="export" value="monthly">
+
+    <div class="custom-date-picker report-date-picker report-month-picker"
+         data-month-picker>
+
+        <input
+            type="hidden"
+            name="month"
+            value="{{ report_date|date:'Y-m' }}"
+            data-month-value
+        >
+
+        <button
+            type="button"
+            class="custom-date-input"
+            data-month-toggle
+            aria-haspopup="dialog"
+            aria-expanded="false"
+        >
+            <span data-month-display></span>
+            <i data-lucide="calendar-days"></i>
+        </button>
+
+        <div class="custom-calendar" data-month-calendar
+             role="dialog" aria-label="Choose report month">
+
+            <div class="calendar-header">
+                <button type="button" class="calendar-nav"
+                        data-month-prev aria-label="Previous year">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+
+                <span class="calendar-month-title"
+                      data-month-year></span>
+
+                <button type="button" class="calendar-nav"
+                        data-month-next aria-label="Next year">
+                    <i data-lucide="chevron-right"></i>
+                </button>
+            </div>
+
+            <div class="calendar-months" data-month-grid></div>
+
+            <div class="calendar-footer">
+                <button type="button" class="calendar-footer-btn"
+                        data-month-clear>
+                    Clear
+                </button>
+
+                <button type="button" class="calendar-footer-btn"
+                        data-month-today>
+                    This month
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="glass-button export">
+        <i data-lucide="file-spreadsheet"></i>
+        Monthly Excel
+    </button>
+</form>
 
                 </div>
 
@@ -2740,6 +3166,215 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(() => load(),15000); load();
 });
 
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    "use strict";
+
+    document.querySelectorAll("[data-month-picker]").forEach(function (picker) {
+        if (picker.dataset.initialized === "true") return;
+        picker.dataset.initialized = "true";
+
+        const input = picker.querySelector("[data-month-value]");
+        const toggle = picker.querySelector("[data-month-toggle]");
+        const display = picker.querySelector("[data-month-display]");
+        const calendar = picker.querySelector("[data-month-calendar]");
+        const yearLabel = picker.querySelector("[data-month-year]");
+        const grid = picker.querySelector("[data-month-grid]");
+
+        const prev = picker.querySelector("[data-month-prev]");
+        const next = picker.querySelector("[data-month-next]");
+        const clear = picker.querySelector("[data-month-clear]");
+        const today = picker.querySelector("[data-month-today]");
+        const form = picker.closest("form");
+
+        if (!input || !toggle || !display || !calendar || !grid) return;
+
+        const months = [
+            "Jan", "Feb", "Mar", "Apr",
+            "May", "Jun", "Jul", "Aug",
+            "Sep", "Oct", "Nov", "Dec"
+        ];
+
+        const fullMonths = [
+            "January", "February", "March", "April",
+            "May", "June", "July", "August",
+            "September", "October", "November", "December"
+        ];
+
+        const now = new Date();
+        let selected = parseValue(input.value);
+        let viewYear = selected ? selected.year : now.getFullYear();
+
+        function parseValue(value) {
+            const match = /^(\d{4})-(\d{2})$/.exec(value || "");
+            if (!match) return null;
+
+            const year = Number(match[1]);
+            const month = Number(match[2]);
+
+            if (month < 1 || month > 12) return null;
+
+            return { year, month: month - 1 };
+        }
+
+        function updateDisplay() {
+            if (selected) {
+                display.textContent =
+                    fullMonths[selected.month] + " " + selected.year;
+                display.classList.remove("is-placeholder");
+            } else {
+                display.textContent = "Select month";
+                display.classList.add("is-placeholder");
+            }
+        }
+
+        function renderMonths() {
+            yearLabel.textContent = viewYear;
+            grid.innerHTML = "";
+
+            months.forEach(function (month, index) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.className = "calendar-month";
+                button.textContent = month;
+
+                if (
+                    selected &&
+                    selected.year === viewYear &&
+                    selected.month === index
+                ) {
+                    button.classList.add("is-selected");
+                }
+
+                if (
+                    now.getFullYear() === viewYear &&
+                    now.getMonth() === index
+                ) {
+                    button.classList.add("is-current");
+                }
+
+                button.addEventListener("click", function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    selected = {
+                        year: viewYear,
+                        month: index
+                    };
+
+                    input.value =
+                        selected.year + "-" +
+                        String(selected.month + 1).padStart(2, "0");
+
+                    updateDisplay();
+                    renderMonths();
+                    closePicker();
+                });
+
+                grid.appendChild(button);
+            });
+        }
+
+        function openPicker(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            document.querySelectorAll("[data-month-picker].open")
+                .forEach(function (other) {
+                    if (other !== picker) {
+                        other.classList.remove("open");
+                        other.querySelector("[data-month-toggle]")
+                            ?.setAttribute("aria-expanded", "false");
+                    }
+                });
+
+            picker.classList.add("open");
+            toggle.setAttribute("aria-expanded", "true");
+            renderMonths();
+        }
+
+        function closePicker() {
+            picker.classList.remove("open");
+            toggle.setAttribute("aria-expanded", "false");
+        }
+
+        toggle.addEventListener("click", openPicker);
+
+        prev.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            viewYear--;
+            renderMonths();
+        });
+
+        next.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            viewYear++;
+            renderMonths();
+        });
+
+        clear.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            selected = null;
+            input.value = "";
+            viewYear = now.getFullYear();
+
+            updateDisplay();
+            renderMonths();
+            closePicker();
+        });
+
+        today.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            selected = {
+                year: now.getFullYear(),
+                month: now.getMonth()
+            };
+
+            viewYear = selected.year;
+
+            input.value =
+                selected.year + "-" +
+                String(selected.month + 1).padStart(2, "0");
+
+            updateDisplay();
+            renderMonths();
+            closePicker();
+        });
+
+        if (form) {
+            form.addEventListener("submit", function (event) {
+                if (!input.value) {
+                    event.preventDefault();
+                    openPicker();
+                }
+            });
+        }
+
+        document.addEventListener("click", function (event) {
+            if (!picker.contains(event.target)) {
+                closePicker();
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") closePicker();
+        });
+
+        updateDisplay();
+        renderMonths();
+    });
+
+    if (window.lucide) lucide.createIcons();
+});
 </script>
 </body>
 </html>
