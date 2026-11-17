@@ -20,11 +20,3 @@ cloudinary_test.py
 list_file_fields.py
 upload_media_to_cloudinary.py
 
-*.sqlite3
-data.json
-check_db.py
-find_data.py
-load_fixture.py
-cloudinary_test.py
-list_file_fields.py
-upload_media_to_cloudinary.py
