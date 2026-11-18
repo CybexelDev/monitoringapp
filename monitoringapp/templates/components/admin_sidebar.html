@@ -1,8 +1,5 @@
 {% load static %}
-{% firstof logged_in_user current_user as sidebar_user %}
-{% if not sidebar_user and request.resolver_match.url_name == 'admin_profile' %}
-    {% firstof user as sidebar_user %}
-{% endif %}
+
 {% url 'get_logged_in_user_api' as sidebar_profile_api %}
 {% with active_route=request.resolver_match.url_name %}
 <button id="adminMenuButton" class="menu-toggle mobile-menu-button" type="button" aria-label="Open sidebar" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu" aria-hidden="true"></i></button>
@@ -76,11 +73,9 @@
             <span>Notifications</span>
         </a>
         <a id="adminSidebarProfileLink" data-profile-url="{{ sidebar_profile_api }}" href="{% url 'admin_profile' %}" class="sidebar-item {% if active_route == 'admin_profile' %}active{% endif %}" {% if active_route == 'admin_profile' %}aria-current="page"{% endif %}>
-            <span class="sidebar-icon">
-                {% if sidebar_user.profile_image %}
-                <img src="{{ sidebar_user.profile_image.url }}" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0;">
-                {% else %}<i data-lucide="circle-user-round" aria-hidden="true"></i>{% endif %}
-            </span>
+<span class="sidebar-icon">
+    <img id="adminSidebarProfileImg" src="{% if request.user.profile_image %}{{ request.user.profile_image.url }}{% endif %}" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0;background:rgba(255,255,255,.12);">
+</span>
             <span>Profile</span>
         </a>
     </nav>
@@ -198,39 +193,22 @@ body.admin-workspace #sidebar .sidebar-item > span:last-child { min-width: 0; ov
 (function () {
     function initSidebarPhoto() {
         const link = document.getElementById('adminSidebarProfileLink');
-        const icon = link?.querySelector('.sidebar-icon');
+        const img = document.getElementById('adminSidebarProfileImg');
         const endpointValue = link?.dataset.profileUrl;
-        if (!icon || !endpointValue) return;
+        if (!img || !endpointValue) return;
         const endpoint = new URL(endpointValue, location.origin);
         if (endpoint.origin !== location.origin) return;
 
         let pending = null;
         let stopped = false;
-        let lastUrl = icon.querySelector('img')?.src || '';
 
         function updatePhoto(rawUrl) {
             if (!rawUrl || typeof rawUrl !== 'string') return;
             let url;
             try { url = new URL(rawUrl, location.origin); } catch (_) { return; }
-            if (!['http:', 'https:'].includes(url.protocol) || url.origin !== location.origin) return;
-            if (url.href === lastUrl) return;
-            const nextImage = new Image();
-            nextImage.alt = '';
-            nextImage.width = 28;
-            nextImage.height = 28;
-            nextImage.style.cssText = 'width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0';
-            nextImage.onload = () => {
-                // Clear the loader callback before showing it: otherwise reusing
-                // the image node can reset the src when a newer photo loads.
-                nextImage.onload = null;
-                if (stopped || !icon.isConnected) return;
-                // Keep the existing image visible until the replacement has loaded.
-                const current = icon.querySelector('img');
-                if (current) current.src = url.href;
-                else icon.replaceChildren(nextImage);
-                lastUrl = url.href;
-            };
-            nextImage.src = url.href;
+            if (!['http:', 'https:'].includes(url.protocol)) return;
+            if (img.getAttribute('src') === url.href) return;
+            img.src = url.href;
         }
 
         async function refreshPhoto() {
@@ -253,7 +231,6 @@ body.admin-workspace #sidebar .sidebar-item > span:last-child { min-width: 0; ov
             }
         }
 
-        // Profile image, Chat count and notification count refresh independently.
         const timer = setInterval(refreshPhoto, 30000);
         window.refreshAdminSidebarPhoto = refreshPhoto;
         refreshPhoto();
