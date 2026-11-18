@@ -1596,6 +1596,24 @@ body.admin-usermanagement-page #filterForm .reset-filter-btn span {display:inlin
  body.admin-usermanagement-page #filterForm .filter-input,body.admin-usermanagement-page #filterForm .dashboard-dropdown summary {font-size:16px;}
 }
 
+body.admin-usermanagement-page .edit-modal .profile-preview .profile-preview-fallback {
+    width: 64px;
+    height: 64px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    border: 1px solid rgba(255,255,255,.10);
+    background: linear-gradient(135deg, rgba(118,91,215,.35), rgba(49,93,168,.28));
+    color: #fff;
+    font-size: 22px;
+    font-weight: 800;
+}
+body.admin-usermanagement-page .edit-modal .profile-preview .profile-preview-fallback[hidden],
+body.admin-usermanagement-page .edit-modal .profile-preview img[hidden] {
+    display: none;
+}
 </style>
 {% endblock %}
 {% block content %}
@@ -2072,13 +2090,21 @@ data-worklocation="{% if user.work_location and user.work_location != 'None' %}{
 
             <div class="edit-form-group full">
                 <label class="edit-label">Profile Image</label>
-                <div class="profile-preview">
+                <!-- <div class="profile-preview">
                     <img id="edit_profile_image" src="" alt="Profile Preview">
                     <div>
                         <div class="profile-preview-text">Current profile image</div>
                         <input type="file" id="edit_profile_upload" name="edit_profile_upload" class="glass-file" accept="image/*">
                     </div>
-                </div>
+                </div> -->
+                <div class="profile-preview">
+    <img id="edit_profile_image" src="" alt="Profile Preview" hidden>
+    <div id="edit_profile_fallback" class="profile-preview-fallback" hidden></div>
+    <div>
+        <div class="profile-preview-text">Current profile image</div>
+        <input type="file" id="edit_profile_upload" name="edit_profile_upload" class="glass-file" accept="image/*">
+    </div>
+</div>
             </div>
 
             <div class="modal-actions">
@@ -2284,14 +2310,21 @@ function openEditModal(button) {
     document.getElementById("edit_password").value = "";
     document.getElementById("edit_status").value = button.dataset.status || "active";
 
-    const preview = document.getElementById("edit_profile_image");
-    const imgSrc = button.dataset.profile || "";
+const preview = document.getElementById("edit_profile_image");
+const fallback = document.getElementById("edit_profile_fallback");
+const imgSrc = button.dataset.profile || "";
+const initial = (button.dataset.name || "").trim().charAt(0).toUpperCase() || "?";
 
-    if (imgSrc) {
-        preview.src = imgSrc;
-    } else {
-        preview.removeAttribute("src");
-    }
+if (imgSrc) {
+    preview.src = imgSrc;
+    preview.hidden = false;
+    fallback.hidden = true;
+} else {
+    preview.removeAttribute("src");
+    preview.hidden = true;
+    fallback.textContent = initial;
+    fallback.hidden = false;
+}
 
     setUserModalVisibility(document.getElementById("editModal"), true);
     document.body.style.overflow = "hidden";
@@ -2300,6 +2333,15 @@ function openEditModal(button) {
         lucide.createIcons();
     }
 }
+document.getElementById("edit_profile_upload")?.addEventListener("change", function () {
+    const file = this.files && this.files[0];
+    const preview = document.getElementById("edit_profile_image");
+    const fallback = document.getElementById("edit_profile_fallback");
+    if (!file) return;
+    preview.src = URL.createObjectURL(file);
+    preview.hidden = false;
+    fallback.hidden = true;
+});
 
 function closeEditModal() {
     const modal = document.getElementById("editModal");
