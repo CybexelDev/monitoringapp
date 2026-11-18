@@ -75,6 +75,15 @@
         <a id="adminSidebarProfileLink" data-profile-url="{{ sidebar_profile_api }}" href="{% url 'admin_profile' %}" class="sidebar-item {% if active_route == 'admin_profile' %}active{% endif %}" {% if active_route == 'admin_profile' %}aria-current="page"{% endif %}>
 <span class="sidebar-icon">
     <img id="adminSidebarProfileImg" src="{% if request.user.profile_image %}{{ request.user.profile_image.url }}{% endif %}" alt="" width="28" height="28" style="width:28px;height:28px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0;background:rgba(255,255,255,.12);">
+    <script>
+    (function () {
+        try {
+            var img = document.getElementById('adminSidebarProfileImg');
+            var saved = localStorage.getItem('adminSidebarPhotoUrl');
+            if (img && saved && !img.getAttribute('src')) img.src = saved;
+        } catch (_) {}
+    })();
+    </script>
 </span>
             <span>Profile</span>
         </a>
