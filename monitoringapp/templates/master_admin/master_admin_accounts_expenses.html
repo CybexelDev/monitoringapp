@@ -76,10 +76,6 @@
 .master-finance-page .finance-select-option.is-active{box-shadow:inset 0 0 0 1px #9970d14d}
 .master-finance-page .finance-select-option:hover{background-color:#7952ae26}
 .master-finance-page .finance-select-option[aria-disabled=true]{opacity:.4;cursor:default}
-.master-finance-page .finance-toast-stack{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));width:min(370px,calc(100vw - 36px));z-index:100020;display:grid;gap:10px;pointer-events:none}
-.master-finance-page .finance-toast{display:flex;align-items:center;gap:12px;background:#21172f;border:1px solid #7950ae;border-radius:12px;padding:13px 16px;color:#eee5fc;font-size:13px;line-height:1.5;box-shadow:0 12px 35px #0006;pointer-events:auto}
-.master-finance-page .finance-toast span{flex:1;min-width:0;overflow-wrap:anywhere}
-.master-finance-page .finance-toast button{background:transparent;border:0;color:#d7c4f0;font-size:22px;min-width:30px;min-height:32px;cursor:pointer}
 .master-finance-page :is(button,a,input,textarea):focus-visible{outline:2px solid #b99aee;outline-offset:3px}
 @media(max-width:768px){.master-finance-page .accounts-panel{padding:18px}.master-finance-page :is(.income-filter-actions,.expense-filter-actions,.sale-filter-actions){width:100%}.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog){padding:22px 18px;width:calc(100vw - 24px);max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px)}.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog)>:is(header,.accounts-panel-heading){padding:22px 18px;margin:-22px -18px 22px}.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) h2{font-size:21px}.master-finance-page :is(.income-dialog,.expense-dialog,.sale-dialog) :is(input:not([type=hidden]),textarea){font-size:16px}}
 @media(max-width:560px){.master-finance-page :is(.income-form-grid,.expense-form-grid,.sale-form-grid,.income-view-details,.expense-view-details,.sale-view-details){grid-template-columns:1fr}.master-finance-page :is(.income-filter-actions,.expense-filter-actions,.sale-filter-actions)>*{flex:1 1 120px;text-align:center;justify-content:center}.master-finance-page :is(.income-dialog-footer,.expense-dialog-footer,.sale-dialog-footer)>button{flex:1}.master-finance-page :is(.income-heading-actions,.expense-heading-actions,.sale-heading-actions){width:100%;justify-content:space-between}}
@@ -317,9 +313,6 @@
   box.className='finance-toast';box.setAttribute('role',type==='error'?'alert':'status');text.textContent=String(message);dismiss.type='button';dismiss.textContent='×';dismiss.setAttribute('aria-label','Dismiss notification');
   let timer;const remove=()=>{clearTimeout(timer);box.remove();if(!stack.children.length)stack.remove();};const start=()=>{clearTimeout(timer);timer=setTimeout(remove,7000);};dismiss.addEventListener('click',remove);box.addEventListener('mouseenter',()=>clearTimeout(timer));box.addEventListener('mouseleave',start);box.addEventListener('focusin',()=>clearTimeout(timer));box.addEventListener('focusout',start);box.append(text,dismiss);if(stack.children.length>=3)stack.firstChild.remove();stack.append(box);start();
  }
- const sharedToast=typeof window.showToast==='function'?window.showToast:null;
- window.masterFinanceToast=(message,type='success')=>{if(!document.querySelector('dialog[open]')&&sharedToast){try{sharedToast(message,type);return;}catch(_){}}localToast(message,type);};
- window.showToast=window.masterFinanceToast;
  let current=null,active=-1,counter=0,typed='',typeTimer;
  const entries=new Set();
  function sync(entry){const text=entry.select.selectedOptions[0]?.textContent.trim()||'Select';if(entry.text.textContent!==text)entry.text.textContent=text;if(entry.button.disabled!==entry.select.disabled)entry.button.disabled=entry.select.disabled;entry.button.setAttribute('aria-required',String(entry.select.required));}
@@ -349,7 +342,7 @@
  let queued=false;const queue=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;init();});};
  new MutationObserver(queue).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open']});
  document.addEventListener('pointerdown',event=>{if(current&&!current.button.contains(event.target)&&!current.menu.contains(event.target))close();});document.addEventListener('scroll',event=>{if(current&&!current.menu.contains(event.target))close();},true);window.addEventListener('resize',close);document.addEventListener('reset',()=>setTimeout(init,0));
- document.addEventListener('close',event=>{const dialog=event.target;dialog.querySelectorAll?.(':scope > .finance-toast-stack').forEach(stack=>document.body.append(stack));if(current&&dialog.contains(current.select))close();},true);
+ document.addEventListener('close',event=>{const dialog=event.target;if(current&&dialog.contains(current.select))close();},true);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 
