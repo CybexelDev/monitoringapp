@@ -160,6 +160,79 @@ body.master-departments-page:has(.org-dialog[open]) #masterOrg{overflow:hidden!i
 .master-departments-page .org-toast button{border:0;background:transparent;color:#d7c4f0;font-size:22px;min-width:30px;min-height:32px;cursor:pointer}
 @media(max-width:600px){.master-departments-page .org-dialog{padding:0;max-height:calc(100dvh - 24px)}.master-departments-page .org-dialog-head{padding:22px 18px;min-height:90px}.master-departments-page .org-dialog h2{font-size:20px}.master-departments-page .org-dialog form>.org-field,.master-departments-page .org-dialog form>.org-muted,.master-departments-page .org-dialog form>.org-error{margin-left:18px;margin-right:18px}.master-departments-page .org-dialog .org-foot{margin:22px 18px}.master-departments-page .org-dialog .org-field input{font-size:16px}.master-departments-page .org-search{flex-basis:100%}.master-departments-page .org-reset,.master-departments-page #orgApplyFilter{flex:1}.master-departments-page .org-count{width:100%}}
 
+/* ===== Departments table: column alignment fix ===== */
+.master-departments-page .org-table{
+  table-layout:fixed;
+  width:100%;
+  min-width:860px;
+}
+
+/* Reset the old 4-column rules that no longer match the 5 columns */
+.master-departments-page .org-table th,
+.master-departments-page .org-table td{
+  text-align:left;
+  width:auto;
+  min-width:0;
+  max-width:none;
+  vertical-align:middle;
+}
+
+/* 1. Department */
+.master-departments-page .org-table th:nth-child(1),
+.master-departments-page .org-table td:nth-child(1){
+  width:22%;
+  overflow-wrap:anywhere;
+}
+
+/* 2. Employee ID Code - small column */
+.master-departments-page .org-table th:nth-child(2),
+.master-departments-page .org-table td:nth-child(2){
+  width:130px;
+  white-space:nowrap;
+}
+
+/* 3. Designations - gets all the remaining space */
+.master-departments-page .org-table th:nth-child(3),
+.master-departments-page .org-table td:nth-child(3){
+  width:auto;
+  text-align:left;
+}
+
+/* 4. Employees */
+.master-departments-page .org-table th:nth-child(4),
+.master-departments-page .org-table td:nth-child(4){
+  width:110px;
+  text-align:center;
+}
+
+/* 5. Actions */
+.master-departments-page .org-table th:nth-child(5),
+.master-departments-page .org-table td:nth-child(5){
+  width:120px;
+  text-align:right;
+}
+
+/* Designation tags: sit side by side and wrap only when needed */
+.master-departments-page .org-tags{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-start;
+  gap:6px;
+}
+.master-departments-page .org-tag{
+  display:inline-flex;
+  align-items:center;
+  width:auto;
+  white-space:nowrap;
+  padding:5px 10px;
+  text-align:left;
+}
+
+/* Mobile: keep the table scrollable instead of squeezing columns */
+@media(max-width:768px){
+  .master-departments-page .org-table{min-width:760px}
+}
 </style>
 {% endblock %}
 {% block content %}
@@ -186,7 +259,8 @@ body.master-departments-page:has(.org-dialog[open]) #masterOrg{overflow:hidden!i
  <button type="button" class="org-btn org-reset" id="orgReset" disabled><i data-lucide="rotate-ccw" aria-hidden="true"></i><span>Reset</span></button></div></div>
  <span class="org-count" id="orgCount" role="status" aria-live="polite"></span></div>
  <p class="org-refresh-error" id="orgRefreshError" role="status"></p>
- <div class="org-scroll" tabindex="0" role="region" aria-label="Department list; scroll for more columns"><table class="org-table">
+ <div class="org-scroll" tabindex="0" role="region" aria-label="Department list; scroll for more columns">
+<table class="org-table">
 <thead>
     <tr>
         <th scope="col">Department</th>
@@ -201,10 +275,12 @@ body.master-departments-page:has(.org-dialog[open]) #masterOrg{overflow:hidden!i
         <td colspan="5" class="org-empty">Loading departments…</td>
     </tr>
 </tbody>
-</table></div></div>
+</table>
+</div></div>
 </section>
 {{ department_items|json_script:'orgInitialData' }}
-<dialog class="org-dialog" id="orgEditor" aria-labelledby="orgEditorTitle"><th scope="col">Employee ID Code</th>
+<!-- <dialog class="org-dialog" id="orgEditor" aria-labelledby="orgEditorTitle"><th scope="col">Employee ID Code</th> -->
+    <dialog class="org-dialog" id="orgEditor" aria-labelledby="orgEditorTitle">
  <form id="orgForm" method="post" action="{% url 'master_admin_departments' %}">{% csrf_token %}<input type="hidden" name="department_id" id="orgDepartmentId"><input type="hidden" name="add_department" id="orgAction" value="1">
  <div class="org-dialog-head"><h2 id="orgEditorTitle">Add Department</h2><button type="button" class="org-btn" data-close="orgEditor" aria-label="Close editor"><i data-lucide="x" aria-hidden="true"></i></button></div>
  <div class="org-field"><label for="orgName">Department name</label><input type="text" name="department_name" id="orgName" required maxlength="100" autocomplete="off"></div>
@@ -248,28 +324,34 @@ function toast(message,type='success'){
  const start=()=>{clearTimeout(timeout);timeout=setTimeout(remove,7000);};dismiss.addEventListener('click',remove);node.addEventListener('mouseenter',()=>clearTimeout(timeout));node.addEventListener('mouseleave',start);node.addEventListener('focusin',()=>clearTimeout(timeout));node.addEventListener('focusout',start);
  node.append(text,dismiss);if(stack.children.length>=3)stack.firstElementChild.remove();stack.append(node);start();
 }
-function render(){
- const scroll=document.querySelector('.org-scroll'), left=scroll.scrollLeft, top=scroll.scrollTop;
- const active=document.activeElement, focused=active?.closest?.('#orgRows [data-action]');
- const query=$('orgSearch').value.trim().toLocaleLowerCase();
- const visible=items.filter(item=>[item.name,...item.designations.map(value=>value.name)].some(value=>value.toLocaleLowerCase().includes(query)));
- const fragment=document.createDocumentFragment();
+
 
 function render(){
  const scroll=document.querySelector('.org-scroll'), left=scroll.scrollLeft, top=scroll.scrollTop;
  const active=document.activeElement, focused=active?.closest?.('#orgRows [data-action]');
  const query=$('orgSearch').value.trim().toLocaleLowerCase();
- const visible=items.filter(item=>[item.name,...item.designations.map(value=>value.name)].some(value=>value.toLocaleLowerCase().includes(query)));
+
+ const visible=items.filter(item=>
+  [item.name,...item.designations.map(value=>value.name)]
+  .some(value=>value.toLocaleLowerCase().includes(query))
+ );
+
  const fragment=document.createDocumentFragment();
 
  for(const item of visible){
   const tr=document.createElement('tr');
 
-  for(let i=0;i<5;i++)tr.append(document.createElement('td'));
+  for(let i=0;i<5;i++){
+   tr.append(document.createElement('td'));
+  }
 
+  // Department
   tr.children[0].textContent=item.name;
+
+  // Employee ID Code
   tr.children[1].textContent=item.employee_id_code || '-';
 
+  // Designations
   const tags=document.createElement('div');
   tags.className='org-tags';
 
@@ -280,15 +362,23 @@ function render(){
    tags.append(tag);
   }
 
-  if(!item.designations.length)tags.textContent='No designations';
+  if(!item.designations.length){
+   tags.textContent='No designations';
+  }
 
   tr.children[2].append(tags);
+
+  // Employees
   tr.children[3].textContent=item.employees;
 
+  // Actions
   const actions=document.createElement('div');
   actions.className='org-row-actions';
 
-  for(const [action,icon,label] of [['edit','pencil','Edit'],['delete','trash-2','Delete']]){
+  for(const [action,icon,label] of [
+   ['edit','pencil','Edit'],
+   ['delete','trash-2','Delete']
+  ]){
    const button=document.createElement('button');
    button.type='button';
    button.className='org-btn'+(action==='delete'?' org-btn-danger':'');
@@ -300,6 +390,7 @@ function render(){
    const glyph=document.createElement('i');
    glyph.dataset.lucide=icon;
    glyph.setAttribute('aria-hidden','true');
+
    button.append(glyph);
    actions.append(button);
   }
@@ -309,42 +400,38 @@ function render(){
  }
 
  if(!visible.length){
-  const tr=document.createElement('tr'),td=document.createElement('td');
+  const tr=document.createElement('tr');
+  const td=document.createElement('td');
+
   td.colSpan=5;
   td.className='org-empty';
-  td.textContent=query?'No matching departments.':'No departments yet. Add your first department.';
+  td.textContent=query
+   ?'No matching departments.'
+   :'No departments yet. Add your first department.';
+
   tr.append(td);
   fragment.append(tr);
  }
 
  $('orgRows').replaceChildren(fragment);
+
  scroll.scrollLeft=left;
  scroll.scrollTop=top;
 
- if(focused)Array.from($('orgRows').querySelectorAll('[data-action]')).find(button=>button.dataset.id===focused.dataset.id&&button.dataset.action===focused.dataset.action)?.focus({preventScroll:true});
+ if(focused){
+  Array.from($('orgRows').querySelectorAll('[data-action]'))
+   .find(button=>
+    button.dataset.id===focused.dataset.id &&
+    button.dataset.action===focused.dataset.action
+   )?.focus({preventScroll:true});
+ }
 
  $('orgReset').disabled=!$('orgSearch').value;
  $('orgCount').textContent=visible.length+' of '+items.length+' departments';
+
  icons();
 }
 
-  const tags=document.createElement('div');tags.className='org-tags';
-  for(const value of item.designations){const tag=document.createElement('span');tag.className='org-tag';tag.textContent=value.name;tags.append(tag);}
-  if(!item.designations.length)tags.textContent='No designations';
-  tr.children[1].append(tags);tr.children[2].textContent=item.employees;
-  const actions=document.createElement('div');actions.className='org-row-actions';
-  for(const [action,icon,label] of [['edit','pencil','Edit'],['delete','trash-2','Delete']]){
-   const button=document.createElement('button');button.type='button';button.className='org-btn'+(action==='delete'?' org-btn-danger':'');button.dataset.action=action;button.dataset.id=item.id;button.title=label+' '+item.name;button.setAttribute('aria-label',label+' '+item.name);
-   const glyph=document.createElement('i');glyph.dataset.lucide=icon;glyph.setAttribute('aria-hidden','true');button.append(glyph);actions.append(button);
-  }
-  tr.children[3].append(actions);fragment.append(tr);
- }
- if(!visible.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=5;td.className='org-empty';td.textContent=query?'No matching departments.':'No departments yet. Add your first department.';tr.append(td);fragment.append(tr);}
- $('orgRows').replaceChildren(fragment);scroll.scrollLeft=left;scroll.scrollTop=top;
- if(focused)Array.from($('orgRows').querySelectorAll('[data-action]')).find(button=>button.dataset.id===focused.dataset.id&&button.dataset.action===focused.dataset.action)?.focus({preventScroll:true});
- $('orgReset').disabled=!$('orgSearch').value;
- $('orgCount').textContent=visible.length+' of '+items.length+' departments';icons();
-}
 function addDesignation(id='',name=''){
  const row=document.createElement('div');row.className='org-designation-row';
  const key=document.createElement('input');key.type='hidden';key.name='designation_ids';key.value=id;

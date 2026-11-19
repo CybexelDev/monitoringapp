@@ -11010,7 +11010,17 @@ def master_admin_departments(request):
                         department.name = department_name
                         department.employee_id_code = employee_id_code
                         department.save(update_fields=["name", "employee_id_code"])
+
+                    for employee_ids, name in employee_changes:
+                        User.objects.filter(pk__in=employee_ids).update(designation=name)
+
+                    # Update Department Name only.
+                    # Employee ID Code must remain unchanged during Edit.
+                    department.name = department_name
+                    department.save(update_fields=["name"])
+
                     return finish("Department updated successfully.")
+
                 if "add_department" in request.POST:
                     name = request.POST.get("department_name", "").strip()
                     if not name or len(name) > 100:

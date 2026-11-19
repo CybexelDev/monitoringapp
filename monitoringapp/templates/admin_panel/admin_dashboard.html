@@ -846,6 +846,32 @@ body.admin-dashboard-page #departmentDeleteDialog button:disabled {
     body.admin-dashboard-page #departmentDeleteDialog .department-delete-actions button { flex: 1 1 120px; }
 }
 
+/* Designation tags: same look as Master Admin */
+body.admin-dashboard-page .org-department-panel .org-tags{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px;
+}
+body.admin-dashboard-page .org-department-panel .org-tag{
+  display:inline-flex;
+  align-items:center;
+  max-width:100%;
+  padding:8px 13px;
+  border-radius:9px;
+  background:#1a1923;
+  border:1px solid #2e2c3b;
+  color:#d6d2e0;
+  font-size:12px;
+  font-weight:500;
+  line-height:1.3;
+  white-space:nowrap;
+}
+body.admin-dashboard-page .org-department-panel .org-no-roles{
+  color:#887c96;
+  font-size:12px;
+}
+
 </style>
 {% endblock %}
 
@@ -942,7 +968,8 @@ body.admin-dashboard-page #departmentDeleteDialog button:disabled {
             <section class="employee-panel" aria-label="Filtered employees">
                 <h3>Employee overview</h3>
                 <div id="dashboardEmployeeResults" aria-live="polite">
-                    <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Department</th><th>Role</th><th>Status</th></tr></thead><tbody>{% for employee in employee_page %}<tr><td>{{ employee.name|default:employee.username }}</td><td>{{ employee.department.name|default:'—' }}</td><td>{{ employee.job_Position }}</td><td><span class="employee-status {{ employee.status|lower }}">{{ employee.status|title }}</span></td></tr>{% empty %}<tr><td colspan="5">No employees match these filters.</td></tr>{% endfor %}</tbody></table></div>
+                    <div class="table-wrapper"><table>
+                        <thead><tr><th>Name</th><th>Department</th><th>Role</th><th>Status</th></tr></thead><tbody>{% for employee in employee_page %}<tr><td>{{ employee.name|default:employee.username }}</td><td>{{ employee.department.name|default:'—' }}</td><td>{{ employee.job_Position }}</td><td><span class="employee-status {{ employee.status|lower }}">{{ employee.status|title }}</span></td></tr>{% empty %}<tr><td colspan="5">No employees match these filters.</td></tr>{% endfor %}</tbody></table></div>
                     <div class="employee-pages"><button type="button" data-employee-page="{% if employee_page.has_previous %}{{ employee_page.previous_page_number }}{% else %}1{% endif %}" {% if not employee_page.has_previous %}disabled{% endif %}>Previous</button><span>Page {{ employee_page.number }} of {{ employee_page.paginator.num_pages }}</span><button type="button" data-employee-page="{% if employee_page.has_next %}{{ employee_page.next_page_number }}{% else %}{{ employee_page.number }}{% endif %}" {% if not employee_page.has_next %}disabled{% endif %}>Next</button></div>
                 </div>
             </section>
@@ -1004,20 +1031,14 @@ body.admin-dashboard-page #departmentDeleteDialog button:disabled {
 
                             <thead>
 
-                                <tr>
-
-                                    <th>#</th>
-
-                                    <th>
-                                        Department Name
-                                    </th>
-
-                                    <th>Designations</th>
-                                    <th>
-                                        Action
-                                    </th>
-
-                                </tr>
+         
+         <tr>
+    <th>#</th>
+    <th>Department Name</th>
+    <th>Employee ID Code</th>
+    <th>Designations</th>
+    <th>Action</th>
+</tr>
 
                             </thead>
 
@@ -1039,8 +1060,17 @@ body.admin-dashboard-page #departmentDeleteDialog button:disabled {
 
                                         <div class="org-name"><strong>{{ dept.name }}</strong><small>Department</small></div>
                                     </td>
-                                    <td class="org-role-cell"><button type="button" class="org-role-count" data-edit-department="{{ dept.pk }}" aria-label="Manage designations for {{ dept.name }}">{{ dept.designations.all|length }} role{{ dept.designations.all|length|pluralize }}<i data-lucide="chevron-right" aria-hidden="true"></i></button></td>
+<td class="org-code-cell">{{ dept.employee_id_code|default:'—' }}</td>
 
+<td class="org-role-cell">
+    <div class="org-tags">
+        {% for designation in dept.designations.all %}
+            <span class="org-tag">{{ designation.name }}</span>
+        {% empty %}
+            <span class="org-no-roles">No designations</span>
+        {% endfor %}
+    </div>
+</td>
                                     <td class="department-actions">
                                       <div class="department-action-group">
                                         <button type="button" class="department-edit org-icon-button" title="Edit department" data-edit-department="{{ dept.pk }}" aria-label="Edit {{ dept.name }}"><i data-lucide="pencil" aria-hidden="true"></i></button>
