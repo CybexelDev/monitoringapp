@@ -42,6 +42,8 @@ django_asgi_app = get_asgi_application()
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from chat.routing import websocket_urlpatterns
+from monitoringapp.reminder_worker import start_reminder_worker
+start_reminder_worker()
 
 
 application = ProtocolTypeRouter({
