@@ -1806,10 +1806,6 @@ body:has(#masterNotepadContent) .finance-select-option[aria-selected=true]:after
 body:has(#masterNotepadContent) .finance-select-option.is-active{box-shadow:inset 0 0 0 1px #9970d14d}
 body:has(#masterNotepadContent) .finance-select-option:hover{background-color:#9760d733}
 body:has(#masterNotepadContent) .finance-select-option[aria-disabled=true]{opacity:.4;cursor:default}
-body:has(#masterNotepadContent) .finance-toast-stack{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));width:min(370px,calc(100vw - 36px));z-index:100020;display:grid;gap:10px;pointer-events:none}
-body:has(#masterNotepadContent) .finance-toast{display:flex;align-items:center;gap:12px;background:#21172f;border:1px solid #7950ae;border-radius:12px;padding:13px 16px;color:#eee5fc;font-size:13px;line-height:1.5;box-shadow:0 12px 35px #0006;pointer-events:auto}
-body:has(#masterNotepadContent) .finance-toast span{flex:1;min-width:0;overflow-wrap:anywhere}
-body:has(#masterNotepadContent) .finance-toast button{background:transparent;border:0;color:#d7c4f0;font-size:22px;min-width:30px;min-height:32px;cursor:pointer}
 body:has(#masterNotepadContent) .finance-select-toggle:after{border-color:#c4a5fa}
 body:has(#masterNotepadContent) .finance-select-option.is-active{background-color:#9760d726;box-shadow:inset 0 0 0 1px #b18aff66}
 body:has(#masterNotepadContent) .finance-select-option[aria-disabled=true]{background:transparent;box-shadow:none}
@@ -2297,9 +2293,6 @@ body:has(#masterNotepadContent) .finance-select-option[aria-disabled=true]{backg
   box.className='finance-toast';box.setAttribute('role',type==='error'?'alert':'status');text.textContent=String(message);dismiss.type='button';dismiss.textContent='×';dismiss.setAttribute('aria-label','Dismiss notification');
   let timer;const remove=()=>{clearTimeout(timer);box.remove();if(!stack.children.length)stack.remove();};const start=()=>{clearTimeout(timer);timer=setTimeout(remove,7000);};dismiss.addEventListener('click',remove);box.addEventListener('mouseenter',()=>clearTimeout(timer));box.addEventListener('mouseleave',start);box.addEventListener('focusin',()=>clearTimeout(timer));box.addEventListener('focusout',start);box.append(text,dismiss);if(stack.children.length>=3)stack.firstChild.remove();stack.append(box);start();
  }
- const sharedToast=typeof window.showToast==='function'?window.showToast:null;
- window.masterFinanceToast=(message,type='success')=>{if(!document.querySelector('dialog[open]')&&sharedToast){try{sharedToast(message,type);return;}catch(_){}}localToast(message,type);};
- window.showToast=window.masterFinanceToast;
  let current=null,active=-1,counter=0,typed='',typeTimer;
  const entries=new Set();
  function sync(entry){const text=entry.select.selectedOptions[0]?.textContent.trim()||'Select';if(entry.text.textContent!==text)entry.text.textContent=text;if(entry.button.disabled!==entry.select.disabled)entry.button.disabled=entry.select.disabled;entry.button.setAttribute('aria-required',String(entry.select.required));}
@@ -2329,7 +2322,7 @@ body:has(#masterNotepadContent) .finance-select-option[aria-disabled=true]{backg
  let queued=false;const queue=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;init();});};
  new MutationObserver(queue).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open']});
  document.addEventListener('pointerdown',event=>{if(current&&!current.button.contains(event.target)&&!current.menu.contains(event.target))close();});document.addEventListener('scroll',event=>{if(current&&!current.menu.contains(event.target))close();},true);window.addEventListener('resize',close);document.addEventListener('reset',()=>setTimeout(init,0));
- document.addEventListener('close',event=>{const dialog=event.target;dialog.querySelectorAll?.(':scope > .finance-toast-stack').forEach(stack=>document.body.append(stack));if(current&&dialog.contains(current.select))close();},true);
+ document.addEventListener('close',event=>{const dialog=event.target;if(current&&dialog.contains(current.select))close();},true);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 
@@ -2340,10 +2333,7 @@ window.masterNoteMutation=false;
 window.masterNoteToast=function(message,type='success'){
  const active=document.querySelector('dialog[open]'),host=document.getElementById('toastContainer')||document.getElementById('toast-container');
  if(host)(active||document.body).appendChild(host);
- if(typeof window.showToast==='function'&&(!active||host||window.masterNotepadEnhancements)){try{window.showToast(message,type);return;}catch(_){}}
- const node=document.createElement('div');node.textContent=message;node.setAttribute('role',type==='error'?'alert':'status');
- node.style.cssText='position:fixed;right:16px;bottom:20px;z-index:100000;max-width:calc(100vw - 32px);padding:14px 18px;border:1px solid #8161a5;border-radius:12px;background:#241b30;color:#fff;font:13px/1.6 system-ui';
- (active||document.body).appendChild(node);setTimeout(()=>node.remove(),6000);
+ if(typeof window.showToast==='function'){try{window.showToast(message,type);}catch(_){}}
 };
 let noteRefreshController=null,noteRefreshSequence=0,notePagePaused=false,noteSessionExpired=false,noteListSignature='';
 const notePopupOpen=()=>!!document.querySelector('dialog[open],.note-delete-overlay.open');
