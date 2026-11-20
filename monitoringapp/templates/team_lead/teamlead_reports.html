@@ -2591,346 +2591,144 @@ body.tl-reports-page .report-date-picker .custom-date-input {
 <script src="{% static 'js/admin.js' %}"></script>
 <script src="{% static 'js/activity.js' %}"></script>
 
+
+
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+window.initTeamReportMonthPickers = function (root = document) {
 
-    const sidebar = document.getElementById("sidebar");
-    const menuButtons = document.querySelectorAll(".menu-toggle");
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const fullMonths = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-    menuButtons.forEach(function (button) {
-        button.addEventListener("click", function () {
-            sidebar.classList.toggle("open");
+    function closeAll() {
+        document.querySelectorAll("[data-month-picker].open").forEach(function (p) {
+            p.classList.remove("open");
+            p.querySelector("[data-month-toggle]")?.setAttribute("aria-expanded", "false");
         });
-    });
-
-    if (window.lucide) {
-        lucide.createIcons();
     }
 
-});
-</script>
-
-
-<script>
-/* =========================================================
-   TEAM REPORTS CUSTOM DATE PICKER
-   Same behavior/UI as Project Assigning
-========================================================= */
-window.initTeamReportDatePickers = function (root = document) {
-    const monthFormatter = new Intl.DateTimeFormat("en-US", {
-        month: "long",
-        year: "numeric"
-    });
-
-    const pad = n => String(n).padStart(2, "0");
-
-    function toISO(date) {
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-    }
-
-    function fromISO(value) {
-        if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-            return null;
-        }
-
-        const [year, month, day] = value.split("-").map(Number);
-        const date = new Date(year, month - 1, day);
-
-        if (
-            date.getFullYear() !== year ||
-            date.getMonth() !== month - 1 ||
-            date.getDate() !== day
-        ) {
-            return null;
-        }
-
-        return date;
-    }
-
-    function sameDate(a, b) {
-        return !!(
-            a &&
-            b &&
-            a.getFullYear() === b.getFullYear() &&
-            a.getMonth() === b.getMonth() &&
-            a.getDate() === b.getDate()
-        );
-    }
-
-    root.querySelectorAll(".report-date-picker[data-date-picker]").forEach(function (picker) {
-        if (picker.dataset.initialized) return;
+    root.querySelectorAll("[data-month-picker]").forEach(function (picker) {
+        if (picker.dataset.initialized === "true") return;
         picker.dataset.initialized = "true";
-        const hiddenInput = picker.querySelector('input[type="hidden"]');
-        const toggle = picker.querySelector("[data-date-toggle]");
-        const display = picker.querySelector("[data-date-display]");
-        const daysWrap = picker.querySelector("[data-calendar-days]");
-        const monthTitle = picker.querySelector("[data-month-title]");
-        const prevBtn = picker.querySelector("[data-prev-month]");
-        const nextBtn = picker.querySelector("[data-next-month]");
-        const clearBtn = picker.querySelector("[data-clear-date]");
-        const todayBtn = picker.querySelector("[data-today-date]");
 
-        if (!hiddenInput || !toggle || !display || !daysWrap || !monthTitle) {
-            return;
+        const input = picker.querySelector("[data-month-value]");
+        const toggle = picker.querySelector("[data-month-toggle]");
+        const display = picker.querySelector("[data-month-display]");
+        const yearLabel = picker.querySelector("[data-month-year]");
+        const grid = picker.querySelector("[data-month-grid]");
+        const prev = picker.querySelector("[data-month-prev]");
+        const next = picker.querySelector("[data-month-next]");
+        const clear = picker.querySelector("[data-month-clear]");
+        const today = picker.querySelector("[data-month-today]");
+        const form = picker.closest("form");
+
+        if (!input || !toggle || !display || !grid) return;
+
+        const now = new Date();
+        let selected = parseValue(input.value);
+        let viewYear = selected ? selected.year : now.getFullYear();
+
+        function parseValue(value) {
+            const m = /^(\d{4})-(\d{2})$/.exec(value || "");
+            if (!m) return null;
+            const month = Number(m[2]);
+            if (month < 1 || month > 12) return null;
+            return { year: Number(m[1]), month: month - 1 };
         }
 
-        let selectedDate = fromISO(hiddenInput.value);
-        let viewDate = selectedDate
-            ? new Date(selectedDate)
-            : new Date();
-
-        viewDate = new Date(
-            viewDate.getFullYear(),
-            viewDate.getMonth(),
-            1
-        );
+        function setValue(year, month) {
+            selected = { year, month };
+            viewYear = year;
+            input.value = year + "-" + String(month + 1).padStart(2, "0");
+        }
 
         function updateDisplay() {
-            if (selectedDate) {
-                display.textContent =
-                    `${pad(selectedDate.getDate())}-${pad(selectedDate.getMonth() + 1)}-${selectedDate.getFullYear()}`;
+            if (selected) {
+                display.textContent = fullMonths[selected.month] + " " + selected.year;
                 display.classList.remove("is-placeholder");
             } else {
-                display.textContent = "dd-mm-yyyy";
+                display.textContent = "Select month";
                 display.classList.add("is-placeholder");
             }
         }
 
-        function renderCalendar() {
-            monthTitle.textContent = monthFormatter.format(viewDate);
-            daysWrap.innerHTML = "";
-
-            const year = viewDate.getFullYear();
-            const month = viewDate.getMonth();
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const daysInPrevMonth = new Date(year, month, 0).getDate();
-
-            for (let i = firstDay - 1; i >= 0; i--) {
-                addDay(
-                    new Date(year, month - 1, daysInPrevMonth - i),
-                    true
-                );
-            }
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                addDay(
-                    new Date(year, month, day),
-                    false
-                );
-            }
-
-            const totalCells = firstDay + daysInMonth;
-            const remaining = (7 - (totalCells % 7)) % 7;
-
-            for (let day = 1; day <= remaining; day++) {
-                addDay(
-                    new Date(year, month + 1, day),
-                    true
-                );
-            }
+        function renderMonths() {
+            yearLabel.textContent = viewYear;
+            grid.innerHTML = "";
+            months.forEach(function (name, index) {
+                const b = document.createElement("button");
+                b.type = "button";
+                b.className = "calendar-month";
+                b.textContent = name;
+                if (selected && selected.year === viewYear && selected.month === index) b.classList.add("is-selected");
+                if (now.getFullYear() === viewYear && now.getMonth() === index) b.classList.add("is-current");
+                b.addEventListener("click", function (e) {
+                    e.preventDefault(); e.stopPropagation();
+                    setValue(viewYear, index);
+                    updateDisplay(); renderMonths(); closePicker();
+                });
+                grid.appendChild(b);
+            });
         }
 
-        function addDay(date, muted) {
-            const button = document.createElement("button");
-
-            button.type = "button";
-            button.className = "calendar-day";
-            button.textContent = date.getDate();
-
-            if (muted) {
-                button.classList.add("is-muted");
-            }
-
-            if (sameDate(date, new Date())) {
-                button.classList.add("is-today");
-            }
-
-            if (sameDate(date, selectedDate)) {
-                button.classList.add("is-selected");
-            }
-
-            button.addEventListener("click", function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-
-                selectedDate = new Date(
-                    date.getFullYear(),
-                    date.getMonth(),
-                    date.getDate()
-                );
-
-                hiddenInput.value = toISO(selectedDate);
-
-                viewDate = new Date(
-                    selectedDate.getFullYear(),
-                    selectedDate.getMonth(),
-                    1
-                );
-
-                updateDisplay();
-                renderCalendar();
-                closeCalendar();
-            });
-
-            daysWrap.appendChild(button);
-        }
-
-        function openCalendar(event) {
-            if (event) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-
-            document.querySelectorAll(".report-date-picker.open").forEach(function (other) {
-                if (other !== picker) {
-                    other.classList.remove("open");
-
-                    const otherToggle = other.querySelector("[data-date-toggle]");
-
-                    if (otherToggle) {
-                        otherToggle.setAttribute("aria-expanded", "false");
-                    }
-                }
-            });
-
+        function openPicker(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            closeAll();
             picker.classList.add("open");
             toggle.setAttribute("aria-expanded", "true");
-            renderCalendar();
+            renderMonths();
         }
 
-        function closeCalendar() {
+        function closePicker() {
             picker.classList.remove("open");
             toggle.setAttribute("aria-expanded", "false");
         }
 
-        /*
-         * The whole date field is the trigger.
-         * The calendar icon is inside this same button, so clicking either
-         * the date text or the icon opens the exact same calendar.
-         */
-        toggle.addEventListener("click", openCalendar);
-
-        toggle.addEventListener("keydown", function (event) {
-            if (event.key === "Enter" || event.key === " ") {
-                openCalendar(event);
-            }
-
-            if (event.key === "Escape") {
-                closeCalendar();
-            }
+        toggle.addEventListener("click", openPicker);
+        prev.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); viewYear--; renderMonths(); });
+        next.addEventListener("click", function (e) { e.preventDefault(); e.stopPropagation(); viewYear++; renderMonths(); });
+        clear.addEventListener("click", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            selected = null; input.value = ""; viewYear = now.getFullYear();
+            updateDisplay(); renderMonths(); closePicker();
+        });
+        today.addEventListener("click", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            setValue(now.getFullYear(), now.getMonth());
+            updateDisplay(); renderMonths(); closePicker();
         });
 
-        if (prevBtn) {
-            prevBtn.addEventListener("click", function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-
-                viewDate = new Date(
-                    viewDate.getFullYear(),
-                    viewDate.getMonth() - 1,
-                    1
-                );
-
-                renderCalendar();
-            });
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener("click", function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-
-                viewDate = new Date(
-                    viewDate.getFullYear(),
-                    viewDate.getMonth() + 1,
-                    1
-                );
-
-                renderCalendar();
-            });
-        }
-
-        if (clearBtn) {
-            clearBtn.addEventListener("click", function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-
-                selectedDate = null;
-                hiddenInput.value = "";
-
-                const today = new Date();
-
-                viewDate = new Date(
-                    today.getFullYear(),
-                    today.getMonth(),
-                    1
-                );
-
-                updateDisplay();
-                renderCalendar();
-                closeCalendar();
-            });
-        }
-
-        if (todayBtn) {
-            todayBtn.addEventListener("click", function (event) {
-                event.preventDefault();
-                event.stopPropagation();
-
-                const today = new Date();
-
-                selectedDate = new Date(
-                    today.getFullYear(),
-                    today.getMonth(),
-                    today.getDate()
-                );
-
-                hiddenInput.value = toISO(selectedDate);
-
-                viewDate = new Date(
-                    today.getFullYear(),
-                    today.getMonth(),
-                    1
-                );
-
-                updateDisplay();
-                renderCalendar();
-                closeCalendar();
+        if (form) {
+            form.addEventListener("submit", function (e) {
+                if (!input.value) { e.preventDefault(); openPicker(); }
             });
         }
 
         updateDisplay();
-        renderCalendar();
+        renderMonths();
     });
 
-    /*
-     * Close only when clicking outside the date-picker.
-     * Calendar buttons stop propagation, so they remain clickable.
-     */
-    if (!window.tlReportCalendarOutsideBound) {
-    window.tlReportCalendarOutsideBound = true;
-    document.addEventListener("click", function (event) {
-        document.querySelectorAll(".report-date-picker.open").forEach(function (picker) {
-            if (!picker.contains(event.target)) {
-                picker.classList.remove("open");
-
-                const toggle = picker.querySelector("[data-date-toggle]");
-
-                if (toggle) {
-                    toggle.setAttribute("aria-expanded", "false");
+    // Global listeners: bound only once, no matter how many times content is replaced
+    if (!window.tlMonthPickerGlobalBound) {
+        window.tlMonthPickerGlobalBound = true;
+        document.addEventListener("click", function (e) {
+            document.querySelectorAll("[data-month-picker].open").forEach(function (p) {
+                if (!p.contains(e.target)) {
+                    p.classList.remove("open");
+                    p.querySelector("[data-month-toggle]")?.setAttribute("aria-expanded", "false");
                 }
-            }
+            });
         });
-    });
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") closeAll();
+        });
+    }
 
-    }
-    if (window.lucide) {
-        lucide.createIcons();
-    }
+    window.lucide?.createIcons();
 };
-document.addEventListener("DOMContentLoaded", () => window.initTeamReportDatePickers());
+
+document.addEventListener("DOMContentLoaded", function () {
+    window.initTeamReportMonthPickers();
+});
 </script>
 
 
@@ -3059,6 +2857,7 @@ function readReport(row) {
 <div id="tlReportMessages" hidden>{% for notice in messages %}{% if notice.level %}<span data-level="{{ notice.level }}" data-type="{{ notice.tags|default:'info' }}">{{ notice }}</span>{% endif %}{% endfor %}</div>
 <div id="tlReportFeedback" hidden role="status"></div>
 {% include "components/toast_notification.html" %}
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   'use strict';
@@ -3105,6 +2904,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const box = document.querySelector('.dashboard-box'), top = box?.scrollTop || 0;
         content.innerHTML = next.innerHTML;
         window.initTeamReportDatePickers?.(content);
+        window.initTeamReportMonthPickers?.(content);
         currentUrl = response.url ? new URL(response.url) : wanted; currentUrl.searchParams.delete('export');
         if (push) history.pushState(history.state,'',currentUrl);
         if (box) box.scrollTop = top;
@@ -3168,213 +2968,142 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    "use strict";
+window.initTeamReportDatePickers = function (root = document) {
+    const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" });
+    const pad = n => String(n).padStart(2, "0");
+    const toISO = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
-    document.querySelectorAll("[data-month-picker]").forEach(function (picker) {
-        if (picker.dataset.initialized === "true") return;
+    function fromISO(value) {
+        if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+        const [y, m, d] = value.split("-").map(Number);
+        const date = new Date(y, m - 1, d);
+        return (date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d) ? date : null;
+    }
+    const sameDate = (a, b) => !!(a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate());
+
+    root.querySelectorAll(".report-date-picker[data-date-picker]").forEach(function (picker) {
+        if (picker.dataset.initialized) return;
         picker.dataset.initialized = "true";
 
-        const input = picker.querySelector("[data-month-value]");
-        const toggle = picker.querySelector("[data-month-toggle]");
-        const display = picker.querySelector("[data-month-display]");
-        const calendar = picker.querySelector("[data-month-calendar]");
-        const yearLabel = picker.querySelector("[data-month-year]");
-        const grid = picker.querySelector("[data-month-grid]");
+        const hidden = picker.querySelector('input[type="hidden"]');
+        const toggle = picker.querySelector("[data-date-toggle]");
+        const display = picker.querySelector("[data-date-display]");
+        const daysWrap = picker.querySelector("[data-calendar-days]");
+        const title = picker.querySelector("[data-month-title]");
+        const prevBtn = picker.querySelector("[data-prev-month]");
+        const nextBtn = picker.querySelector("[data-next-month]");
+        const clearBtn = picker.querySelector("[data-clear-date]");
+        const todayBtn = picker.querySelector("[data-today-date]");
+        if (!hidden || !toggle || !display || !daysWrap || !title) return;
 
-        const prev = picker.querySelector("[data-month-prev]");
-        const next = picker.querySelector("[data-month-next]");
-        const clear = picker.querySelector("[data-month-clear]");
-        const today = picker.querySelector("[data-month-today]");
-        const form = picker.closest("form");
-
-        if (!input || !toggle || !display || !calendar || !grid) return;
-
-        const months = [
-            "Jan", "Feb", "Mar", "Apr",
-            "May", "Jun", "Jul", "Aug",
-            "Sep", "Oct", "Nov", "Dec"
-        ];
-
-        const fullMonths = [
-            "January", "February", "March", "April",
-            "May", "June", "July", "August",
-            "September", "October", "November", "December"
-        ];
-
-        const now = new Date();
-        let selected = parseValue(input.value);
-        let viewYear = selected ? selected.year : now.getFullYear();
-
-        function parseValue(value) {
-            const match = /^(\d{4})-(\d{2})$/.exec(value || "");
-            if (!match) return null;
-
-            const year = Number(match[1]);
-            const month = Number(match[2]);
-
-            if (month < 1 || month > 12) return null;
-
-            return { year, month: month - 1 };
-        }
+        let selected = fromISO(hidden.value);
+        let view = selected ? new Date(selected) : new Date();
+        view = new Date(view.getFullYear(), view.getMonth(), 1);
 
         function updateDisplay() {
             if (selected) {
-                display.textContent =
-                    fullMonths[selected.month] + " " + selected.year;
+                display.textContent = `${pad(selected.getDate())}-${pad(selected.getMonth() + 1)}-${selected.getFullYear()}`;
                 display.classList.remove("is-placeholder");
             } else {
-                display.textContent = "Select month";
+                display.textContent = "dd-mm-yyyy";
                 display.classList.add("is-placeholder");
             }
         }
 
-        function renderMonths() {
-            yearLabel.textContent = viewYear;
-            grid.innerHTML = "";
-
-            months.forEach(function (month, index) {
-                const button = document.createElement("button");
-                button.type = "button";
-                button.className = "calendar-month";
-                button.textContent = month;
-
-                if (
-                    selected &&
-                    selected.year === viewYear &&
-                    selected.month === index
-                ) {
-                    button.classList.add("is-selected");
-                }
-
-                if (
-                    now.getFullYear() === viewYear &&
-                    now.getMonth() === index
-                ) {
-                    button.classList.add("is-current");
-                }
-
-                button.addEventListener("click", function (event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-
-                    selected = {
-                        year: viewYear,
-                        month: index
-                    };
-
-                    input.value =
-                        selected.year + "-" +
-                        String(selected.month + 1).padStart(2, "0");
-
-                    updateDisplay();
-                    renderMonths();
-                    closePicker();
-                });
-
-                grid.appendChild(button);
+        function addDay(date, muted) {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "calendar-day";
+            b.textContent = date.getDate();
+            if (muted) b.classList.add("is-muted");
+            if (sameDate(date, new Date())) b.classList.add("is-today");
+            if (sameDate(date, selected)) b.classList.add("is-selected");
+            b.addEventListener("click", function (e) {
+                e.preventDefault(); e.stopPropagation();
+                selected = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                hidden.value = toISO(selected);
+                view = new Date(selected.getFullYear(), selected.getMonth(), 1);
+                updateDisplay(); render(); close();
             });
+            daysWrap.appendChild(b);
         }
 
-        function openPicker(event) {
-            if (event) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
+        function render() {
+            title.textContent = monthFormatter.format(view);
+            daysWrap.innerHTML = "";
+            const y = view.getFullYear(), m = view.getMonth();
+            const first = new Date(y, m, 1).getDay();
+            const total = new Date(y, m + 1, 0).getDate();
+            const prevTotal = new Date(y, m, 0).getDate();
+            for (let i = first - 1; i >= 0; i--) addDay(new Date(y, m - 1, prevTotal - i), true);
+            for (let d = 1; d <= total; d++) addDay(new Date(y, m, d), false);
+            const remaining = (7 - ((first + total) % 7)) % 7;
+            for (let d = 1; d <= remaining; d++) addDay(new Date(y, m + 1, d), true);
+        }
 
-            document.querySelectorAll("[data-month-picker].open")
-                .forEach(function (other) {
-                    if (other !== picker) {
-                        other.classList.remove("open");
-                        other.querySelector("[data-month-toggle]")
-                            ?.setAttribute("aria-expanded", "false");
-                    }
-                });
-
+        function open(e) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            document.querySelectorAll(".report-date-picker.open").forEach(function (o) {
+                if (o !== picker) {
+                    o.classList.remove("open");
+                    o.querySelector("[data-date-toggle]")?.setAttribute("aria-expanded", "false");
+                }
+            });
             picker.classList.add("open");
             toggle.setAttribute("aria-expanded", "true");
-            renderMonths();
+            render();
         }
 
-        function closePicker() {
+        function close() {
             picker.classList.remove("open");
             toggle.setAttribute("aria-expanded", "false");
         }
 
-        toggle.addEventListener("click", openPicker);
-
-        prev.addEventListener("click", function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            viewYear--;
-            renderMonths();
+        toggle.addEventListener("click", open);
+        toggle.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") close();
         });
-
-        next.addEventListener("click", function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            viewYear++;
-            renderMonths();
+        prevBtn?.addEventListener("click", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            view = new Date(view.getFullYear(), view.getMonth() - 1, 1); render();
         });
-
-        clear.addEventListener("click", function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-
-            selected = null;
-            input.value = "";
-            viewYear = now.getFullYear();
-
-            updateDisplay();
-            renderMonths();
-            closePicker();
+        nextBtn?.addEventListener("click", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            view = new Date(view.getFullYear(), view.getMonth() + 1, 1); render();
         });
-
-        today.addEventListener("click", function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-
-            selected = {
-                year: now.getFullYear(),
-                month: now.getMonth()
-            };
-
-            viewYear = selected.year;
-
-            input.value =
-                selected.year + "-" +
-                String(selected.month + 1).padStart(2, "0");
-
-            updateDisplay();
-            renderMonths();
-            closePicker();
+        clearBtn?.addEventListener("click", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            selected = null; hidden.value = "";
+            const t = new Date(); view = new Date(t.getFullYear(), t.getMonth(), 1);
+            updateDisplay(); render(); close();
         });
-
-        if (form) {
-            form.addEventListener("submit", function (event) {
-                if (!input.value) {
-                    event.preventDefault();
-                    openPicker();
-                }
-            });
-        }
-
-        document.addEventListener("click", function (event) {
-            if (!picker.contains(event.target)) {
-                closePicker();
-            }
-        });
-
-        document.addEventListener("keydown", function (event) {
-            if (event.key === "Escape") closePicker();
+        todayBtn?.addEventListener("click", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            const t = new Date();
+            selected = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+            hidden.value = toISO(selected);
+            view = new Date(t.getFullYear(), t.getMonth(), 1);
+            updateDisplay(); render(); close();
         });
 
         updateDisplay();
-        renderMonths();
+        render();
     });
 
-    if (window.lucide) lucide.createIcons();
-});
+    if (!window.tlReportCalendarOutsideBound) {
+        window.tlReportCalendarOutsideBound = true;
+        document.addEventListener("click", function (e) {
+            document.querySelectorAll(".report-date-picker.open").forEach(function (p) {
+                if (!p.contains(e.target)) {
+                    p.classList.remove("open");
+                    p.querySelector("[data-date-toggle]")?.setAttribute("aria-expanded", "false");
+                }
+            });
+        });
+    }
+    window.lucide?.createIcons();
+};
+document.addEventListener("DOMContentLoaded", () => window.initTeamReportDatePickers());
 </script>
 </body>
 </html>

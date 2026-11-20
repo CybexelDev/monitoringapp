@@ -3166,6 +3166,7 @@ document.addEventListener('DOMContentLoaded', () => {
    const actions = root.querySelector('.report-actions'), nextActions = doc.querySelector('.report-actions');
    if (tabs && nextTabs) tabs.replaceChildren(...Array.from(nextTabs.childNodes));
    if (actions && nextActions) actions.replaceChildren(...Array.from(nextActions.childNodes));
+      window.syncMonthlyPicker?.();
    const freshForm = doc.querySelector('.filter-area');
    if (freshForm) {
     for (const name of ['tab','all']) {
@@ -3317,134 +3318,99 @@ document.addEventListener('DOMContentLoaded',()=>{
 /* =========================================
    MONTHLY EXCEL - MONTH PICKER
 ========================================= */
+/* =========================================
+   MONTHLY EXCEL - MONTH PICKER (delegated)
+========================================= */
 (() => {
-    'use strict';
-
-    const picker = document.getElementById('monthlyMonthPicker');
-    const toggle = document.getElementById('monthlyMonthToggle');
-    const calendar = document.getElementById('monthlyMonthCalendar');
-
-    const input = document.getElementById('monthlyExportMonth');
-    const display = document.getElementById('monthlyMonthDisplay');
-
-    const yearLabel = document.getElementById('monthlyCalendarYear');
-    const monthsContainer = document.getElementById('monthlyCalendarMonths');
-
-    const prevYear = document.getElementById('monthlyPrevYear');
-    const nextYear = document.getElementById('monthlyNextYear');
-    const closeButton = document.getElementById('monthlyCalendarCancel');
-
-    if (
-        !picker || !toggle || !calendar || !input ||
-        !display || !yearLabel || !monthsContainer
-    ) {
-        return;
-    }
-
-    const months = [
-        'Jan', 'Feb', 'Mar', 'Apr',
-        'May', 'Jun', 'Jul', 'Aug',
-        'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fullMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const $ = id => document.getElementById(id);
 
-    let selectedValue = /^\d{4}-\d{2}$/.test(input.value)
-        ? input.value
-        : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    let selectedValue = null;
+    let visibleYear = now.getFullYear();
 
-    let visibleYear = Number(selectedValue.slice(0, 4));
-
-    function updateDisplay() {
-        const [year, month] = selectedValue.split('-').map(Number);
-
-        display.textContent = `${months[month - 1]} ${year}`;
-        input.value = selectedValue;
+    function initialValue() {
+        const v = $('monthlyExportMonth')?.value || '';
+        return /^\d{4}-\d{2}$/.test(v) ? v : `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
     }
 
     function renderMonths() {
-        yearLabel.textContent = visibleYear;
-        monthsContainer.replaceChildren();
-
-        months.forEach((month, index) => {
-            const button = document.createElement('button');
-
-            button.type = 'button';
-            button.textContent = month;
-
-            const value =
-                `${visibleYear}-${String(index + 1).padStart(2, '0')}`;
-
-            if (value === selectedValue) {
-                button.classList.add('is-selected');
-                button.setAttribute('aria-pressed', 'true');
-            } else {
-                button.setAttribute('aria-pressed', 'false');
-            }
-
-            button.addEventListener('click', () => {
-                selectedValue = value;
-                updateDisplay();
-                renderMonths();
-                closeCalendar();
-            });
-
-            monthsContainer.appendChild(button);
+        const label = $('monthlyCalendarYear');
+        const grid = $('monthlyCalendarMonths');
+        if (!label || !grid) return;
+        label.textContent = visibleYear;
+        grid.replaceChildren();
+        months.forEach((name, i) => {
+            const value = `${visibleYear}-${pad(i + 1)}`;
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = name;
+            b.dataset.value = value;
+            if (value === selectedValue) b.classList.add('is-selected');
+            grid.appendChild(b);
         });
     }
 
-    function openCalendar() {
-        const [year] = selectedValue.split('-').map(Number);
-
-        visibleYear = year;
-        renderMonths();
-
-        calendar.hidden = false;
-        toggle.setAttribute('aria-expanded', 'true');
-        picker.classList.add('open');
+    // Re-applies the saved selection to whatever DOM currently exists
+    function sync() {
+        const input = $('monthlyExportMonth');
+        const display = $('monthlyMonthDisplay');
+        if (!input || !display) return;
+        if (!selectedValue) selectedValue = initialValue();
+        input.value = selectedValue;
+        const [y, m] = selectedValue.split('-').map(Number);
+        display.textContent = `${fullMonths[m - 1]} ${y}`;
     }
+    window.syncMonthlyPicker = sync;
 
-    function closeCalendar() {
-        calendar.hidden = true;
-        toggle.setAttribute('aria-expanded', 'false');
-        picker.classList.remove('open');
-    }
-
-    toggle.addEventListener('click', () => {
-        if (calendar.hidden) {
-            openCalendar();
-        } else {
-            closeCalendar();
+    function setOpen(open) {
+        const calendar = $('monthlyMonthCalendar');
+        const toggle = $('monthlyMonthToggle');
+        const picker = $('monthlyMonthPicker');
+        if (!calendar || !toggle || !picker) return;
+        if (open) {
+            visibleYear = Number((selectedValue || initialValue()).slice(0, 4));
+            renderMonths();
         }
-    });
-
-    prevYear.addEventListener('click', () => {
-        visibleYear--;
-        renderMonths();
-    });
-
-    nextYear.addEventListener('click', () => {
-        visibleYear++;
-        renderMonths();
-    });
-
-    closeButton.addEventListener('click', closeCalendar);
+        calendar.hidden = !open;
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        picker.classList.toggle('open', open);
+    }
 
     document.addEventListener('click', event => {
-        if (!picker.contains(event.target)) {
-            closeCalendar();
+        const picker = $('monthlyMonthPicker');
+        if (!picker) return;
+        const t = event.target;
+
+        if (t.closest('#monthlyMonthToggle')) {
+            setOpen($('monthlyMonthCalendar').hidden);
+            return;
         }
+        if (t.closest('#monthlyPrevYear')) { visibleYear--; renderMonths(); return; }
+        if (t.closest('#monthlyNextYear')) { visibleYear++; renderMonths(); return; }
+        if (t.closest('#monthlyCalendarCancel')) { setOpen(false); return; }
+
+        const monthButton = t.closest('#monthlyCalendarMonths button');
+        if (monthButton && monthButton.dataset.value) {
+            selectedValue = monthButton.dataset.value;
+            sync();
+            setOpen(false);
+            return;
+        }
+        if (!picker.contains(t)) setOpen(false);
     });
 
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && !calendar.hidden) {
-            closeCalendar();
-            toggle.focus();
+        const calendar = $('monthlyMonthCalendar');
+        if (event.key === 'Escape' && calendar && !calendar.hidden) {
+            setOpen(false);
+            $('monthlyMonthToggle')?.focus();
         }
     });
 
-    updateDisplay();
-    renderMonths();
+    sync();
 })();
 
 </script>
