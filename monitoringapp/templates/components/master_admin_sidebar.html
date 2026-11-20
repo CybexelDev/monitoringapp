@@ -60,7 +60,7 @@ body.admin-workspace #sidebar .sidebar-profile-text{min-width:0}
     <span>Announcements</span>
 </a>
 
-    <a href="{% url 'master_admin_reports' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_reports' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_reports' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="file-chart-column" aria-hidden="true"></i></span><span>Reports</span></a>
+    <a href="{% url 'master_admin_reports' %}" class="sidebar-item {% if request.resolver_match.url_name == 'master_admin_reports' %}active{% endif %}" {% if request.resolver_match.url_name == 'master_admin_reports' %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span><span>Reports</span></a>
     <a href="{% url 'master_admin_projects' %}" class="sidebar-item {% if master_projects_active %}active{% endif %}" {% if master_projects_active %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="folder-kanban" aria-hidden="true"></i></span><span>Projects</span></a>
     <a href="{% url 'master_admin_notepad' %}" class="sidebar-item {% if master_notepad_active %}active{% endif %}" {% if master_notepad_active %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="notebook-pen" aria-hidden="true"></i></span><span>Notepad</span></a>
     <a href="{% url 'master_admin_repository' %}" class="sidebar-item {% if master_repository_active %}active{% endif %}" {% if master_repository_active %}aria-current="page"{% endif %}><span class="sidebar-icon"><i data-lucide="book-open" aria-hidden="true"></i></span><span>Knowledge Repository</span></a>
