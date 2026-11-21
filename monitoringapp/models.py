@@ -1536,3 +1536,64 @@ class ChatPushSubscription(models.Model):
 
     def __str__(self):
         return f"Chat push: user {self.user_id} ({self.portal})"
+
+
+
+
+class Client(models.Model):
+    BRANCH_CHOICES = [
+        ("coimbatore", "Coimbatore"),
+        ("kochi", "Kochi"),
+    ]
+
+    STATUS_CHOICES = [
+        ("active", "Active"),
+        ("inactive", "Inactive"),
+    ]
+
+    team_lead = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="managed_clients",
+    )
+
+    client_name = models.CharField(max_length=150)
+    company_name = models.CharField(max_length=200)
+    contact_person = models.CharField(max_length=150)
+
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=20)
+
+    address = models.TextField()
+
+    branch = models.CharField(
+        max_length=20,
+        choices=BRANCH_CHOICES,
+    )
+
+    project_details = models.TextField(blank=True)
+
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default="active",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        indexes = [
+            models.Index(
+                fields=["team_lead", "branch"],
+                name="client_lead_branch_idx",
+            ),
+            models.Index(
+                fields=["team_lead", "status"],
+                name="client_lead_status_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return self.client_name

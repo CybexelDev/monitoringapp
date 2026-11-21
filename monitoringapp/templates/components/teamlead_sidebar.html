@@ -923,6 +923,19 @@ html { background: #08070b; color-scheme: dark; }
             <span>Reports</span>
 
         </a>
+        <!-- Client Details -->
+
+<a
+    href="{% url 'teamlead_client_details' %}"
+    class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_client_details' %}active{% endif %}">
+
+    <span class="sidebar-icon">
+        <i data-lucide="building-2"></i>
+    </span>
+
+    <span>Client Details</span>
+
+</a>
 
         <!-- Project Assigning -->
 

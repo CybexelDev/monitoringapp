@@ -1,0 +1,2986 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Lead Client - Cybexel</title>
+
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* =========================================================
+           TEAM LEAD CLIENT DETAILS
+           Same glass UI language as Team Lead Project Assigning
+        ========================================================= */
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden !important;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 15% 10%, rgba(92, 47, 145, 0.16), transparent 28%),
+                radial-gradient(circle at 85% 15%, rgba(40, 88, 160, 0.12), transparent 30%),
+                #08080d;
+            color: #ffffff;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        /* ---------- Sidebar (same as Project Assigning) ---------- */
+
+        .glass-sidebar {
+            position: fixed;
+            top: 18px;
+            left: 16px;
+            bottom: 18px;
+            width: 242px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            padding: 18px 14px;
+            border-radius: 27px;
+            background: linear-gradient(145deg, rgba(38, 24, 49, 0.96), rgba(14, 14, 21, 0.96));
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+        }
+
+        .glass-sidebar::before {
+            content: "";
+            position: absolute;
+            width: 190px;
+            height: 190px;
+            top: -85px;
+            left: -65px;
+            background: rgba(139, 92, 246, 0.20);
+            filter: blur(70px);
+            pointer-events: none;
+        }
+
+        .sidebar-profile {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2px 5px 20px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .sidebar-logo {
+            width: 86px;
+            height: 86px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            border-radius: 23px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+
+        .sidebar-logo img { width: 68px; height: 68px; object-fit: contain; }
+
+        .sidebar-profile-text { text-align: center; }
+
+        .sidebar-profile-text h3 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .sidebar-profile-text span {
+            display: block;
+            margin-top: 3px;
+            color: #898592;
+            font-size: 7px;
+            letter-spacing: 1.7px;
+            font-weight: 600;
+        }
+
+        .sidebar-nav {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .sidebar-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 44px;
+            padding: 0 14px;
+            border-radius: 13px;
+            color: #aaa6b2;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid transparent;
+            transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .sidebar-item:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.055);
+            border-color: rgba(255, 255, 255, 0.06);
+            transform: translateX(3px);
+        }
+
+        .sidebar-item.active {
+            color: #ffffff;
+            background: linear-gradient(135deg, rgba(111, 76, 190, 0.82), rgba(63, 79, 153, 0.72));
+            border: 1px solid rgba(154, 122, 255, 0.38);
+            box-shadow: 0 10px 28px rgba(99, 102, 241, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            transform: translateX(2px);
+        }
+
+        .sidebar-item.active::before {
+            content: "";
+            position: absolute;
+            left: -14px;
+            top: 9px;
+            width: 3px;
+            height: 26px;
+            border-radius: 0 5px 5px 0;
+            background: #b99cff;
+            box-shadow: 0 0 12px rgba(185, 156, 255, 0.8);
+        }
+
+        .sidebar-icon {
+            width: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #8d8995;
+        }
+
+        .sidebar-icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
+        .sidebar-item.active .sidebar-icon { color: #ffffff; }
+        .sidebar-external { margin-left: auto; color: #77727f; }
+        .sidebar-external svg { width: 14px; height: 14px; }
+
+        .sidebar-bottom {
+            position: relative;
+            z-index: 2;
+            margin-top: auto;
+            padding-top: 14px;
+        }
+
+        .sidebar-logout {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 43px;
+            padding: 0 14px;
+            border-radius: 13px;
+            color: #ff9ba4;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(255, 70, 85, 0.055);
+            border: 1px solid rgba(255, 70, 85, 0.13);
+            transition: all 0.25s ease;
+        }
+
+        .sidebar-logout:hover {
+            color: #ffffff;
+            background: rgba(255, 70, 85, 0.13);
+            transform: translateY(-2px);
+        }
+
+        .mobile-menu-button {
+            display: none;
+            position: fixed;
+            top: 18px;
+            left: 18px;
+            z-index: 200;
+            width: 42px;
+            height: 42px;
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 13px;
+            color: #ffffff;
+            background: rgba(25, 20, 32, 0.88);
+            backdrop-filter: blur(15px);
+            cursor: pointer;
+        }
+
+        /* ---------- Main area + big glass box ---------- */
+
+        .main-area {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 275px;
+            padding: 18px 20px;
+            overflow: hidden;
+        }
+
+        .main-area, .dashboard-box, .dashboard-content, .client-card { min-width: 0; }
+
+        .dashboard-box {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 16px;
+            border-radius: 28px;
+            background: linear-gradient(145deg, rgba(17, 16, 24, 0.94), rgba(8, 9, 14, 0.96));
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(151, 112, 235, 0.65) transparent;
+        }
+
+        .dashboard-box::-webkit-scrollbar { width: 7px; }
+        .dashboard-box::-webkit-scrollbar-track { background: transparent; }
+        .dashboard-box::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #8b5cf6, #4f46e5);
+            border-radius: 20px;
+        }
+
+        /* ---------- Hero ---------- */
+
+        .dashboard-header {
+            position: relative;
+            min-height: 168px;
+            display: flex;
+            align-items: center;
+            padding: 30px 32px;
+            border-radius: 25px;
+            overflow: hidden;
+            background: linear-gradient(110deg, rgba(44, 32, 55, 0.62), rgba(18, 23, 31, 0.72), rgba(30, 31, 59, 0.62));
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .dashboard-header::before {
+            content: "";
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            right: -100px;
+            top: -130px;
+            background: rgba(99, 102, 241, 0.13);
+            filter: blur(80px);
+            pointer-events: none;
+        }
+
+        .dashboard-header-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 25px;
+        }
+
+        .dashboard-eyebrow {
+            margin-bottom: 15px;
+            color: #a78bfa;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 3px;
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: clamp(34px, 4vw, 52px);
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: -2px;
+            background: linear-gradient(90deg, #ffffff 0%, #c4b5fd 45%, #67c8ff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard-header p {
+            margin: 18px 0 0;
+            max-width: 720px;
+            color: #96939e;
+            font-size: 14px;
+        }
+
+        .client-hero-actions {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 14px;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px 18px;
+            border-radius: 30px;
+            color: #9ee7ba;
+            font-size: 12px;
+            background: rgba(52, 211, 153, 0.055);
+            border: 1px solid rgba(52, 211, 153, 0.17);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 12px rgba(74, 222, 128, 0.75);
+        }
+
+        .dashboard-content { padding: 28px 0 35px; }
+
+        /* ---------- Primary button ---------- */
+
+        .client-add-btn,
+        .client-modal-submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
+            padding: 0 18px;
+            border: 1px solid rgba(167, 139, 250, 0.28);
+            border-radius: 12px;
+            color: #fff;
+            background: linear-gradient(135deg, #7138db, #5b36b6);
+            box-shadow: 0 12px 25px rgba(91, 54, 182, 0.22);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: transform 0.18s ease, filter 0.18s ease;
+        }
+
+        .client-add-btn:hover,
+        .client-modal-submit:hover {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+        }
+
+        .client-add-btn svg { width: 17px; height: 17px; }
+        .client-modal-submit:disabled { opacity: .6; cursor: wait; }
+
+        /* ---------- Cards ---------- */
+
+        .client-card {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 22px;
+            background:
+                radial-gradient(circle at 92% 0%, rgba(113, 72, 190, 0.13), transparent 34%),
+                linear-gradient(145deg, rgba(24, 22, 35, 0.92), rgba(11, 11, 17, 0.96));
+            box-shadow: 0 20px 55px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.025);
+        }
+
+        .client-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(120deg, rgba(124, 58, 237, 0.05), transparent 35%, rgba(59, 130, 246, 0.035));
+        }
+
+        .client-card > * { position: relative; z-index: 1; }
+
+        /* ---------- Summary ---------- */
+
+        .client-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .client-summary-card { padding: 22px; }
+
+        .client-summary-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .client-summary-label {
+            color: rgba(226, 232, 240, 0.62);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        .client-summary-icon {
+            width: 44px;
+            height: 44px;
+            flex: 0 0 44px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            color: #fff;
+            background: linear-gradient(135deg, #6d35d9, #8b5cf6);
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            box-shadow: 0 10px 28px rgba(109, 53, 217, 0.22);
+        }
+
+        .client-summary-card:nth-child(2) .client-summary-icon {
+            background: linear-gradient(135deg, #059669, #34d399);
+            box-shadow: 0 10px 28px rgba(5, 150, 105, 0.22);
+        }
+
+        .client-summary-card:nth-child(3) .client-summary-icon {
+            background: linear-gradient(135deg, #e11d48, #fb7185);
+            box-shadow: 0 10px 28px rgba(225, 29, 72, 0.2);
+        }
+
+        .client-summary-icon svg { width: 20px; height: 20px; }
+
+        .client-summary-number {
+            margin-top: 18px;
+            font-size: 32px;
+            line-height: 1;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: #fff;
+        }
+
+        .client-summary-description {
+            margin-top: 10px;
+            color: rgba(226, 232, 240, 0.46);
+            font-size: 11px;
+        }
+
+        /* ---------- List header ---------- */
+
+        .client-list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 24px 26px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .client-list-header > div { min-width: 0; }
+
+        .section-eyebrow {
+            display: block;
+            margin-bottom: 7px;
+            color: #a78bfa;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 2.5px;
+        }
+
+        .client-list-heading {
+            margin: 0;
+            color: #fff;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .client-list-caption {
+            margin: 6px 0 0;
+            color: rgba(226, 232, 240, 0.56);
+            font-size: 13px;
+        }
+
+        .client-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 42px;
+            padding: 0 15px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            background: rgba(255, 255, 255, 0.045);
+        }
+
+        /* ---------- Filters ---------- */
+
+        .client-filters {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.7fr) repeat(2, minmax(160px, .8fr));
+            gap: 14px;
+            padding: 18px 26px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .client-search-wrap { position: relative; }
+
+        .client-search-wrap svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #c4b5fd;
+            pointer-events: none;
+        }
+
+        .client-search,
+        .client-form-field input,
+        .client-form-field textarea,
+        .client-edit-field input,
+        .client-edit-field textarea {
+            width: 100%;
+            border: 1px solid rgba(167, 139, 250, .20);
+            border-radius: 12px;
+            outline: none;
+            background: #0c0b13;
+            color: #f2effa;
+            font-family: inherit;
+            font-size: 13px;
+            transition: border-color .18s ease, box-shadow .18s ease;
+        }
+
+        .client-search,
+        .client-form-field input,
+        .client-edit-field input {
+            height: 44px;
+            min-height: 44px;
+            padding: 0 14px;
+        }
+
+        .client-search { padding-left: 40px; }
+
+        .client-form-field textarea,
+        .client-edit-field textarea {
+            min-height: 92px;
+            padding: 12px 14px;
+            line-height: 1.55;
+            resize: vertical;
+        }
+
+        .client-search::placeholder,
+        .client-form-field input::placeholder,
+        .client-form-field textarea::placeholder { color: #8f899e; }
+
+        .client-search:hover,
+        .client-form-field input:hover,
+        .client-form-field textarea:hover,
+        .client-edit-field input:hover,
+        .client-edit-field textarea:hover { border-color: rgba(167, 139, 250, .48); }
+
+        .client-search:focus,
+        .client-form-field input:focus,
+        .client-form-field textarea:focus,
+        .client-edit-field input:focus,
+        .client-edit-field textarea:focus {
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, .12);
+        }
+
+        /* ---------- Themed select ---------- */
+
+        .cx-select { position: relative; width: 100%; min-width: 0; }
+
+        .cx-select-native {
+            position: absolute !important;
+            width: 1px !important;
+            height: 1px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            opacity: 0 !important;
+            pointer-events: none;
+            clip-path: inset(50%);
+        }
+
+        .cx-select-button {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            height: 44px;
+            min-height: 44px;
+            padding: 0 14px;
+            border: 1px solid rgba(167, 139, 250, .20);
+            border-radius: 12px;
+            background: #0c0b13;
+            color: #f2effa;
+            font: inherit;
+            font-size: 13px;
+            text-align: left;
+            cursor: pointer;
+            transition: border-color .18s, box-shadow .18s;
+        }
+
+        .cx-select-button > span:first-child {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cx-select-button:hover { border-color: rgba(167, 139, 250, .48); }
+
+        .cx-select-button:focus-visible,
+        .cx-select-button[aria-expanded="true"] {
+            outline: none;
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, .12);
+        }
+
+        .cx-select-button[aria-invalid="true"] { border-color: #fb7185; }
+        .cx-select-button.is-placeholder { color: #8f899e; }
+
+        .cx-select-arrow {
+            display: block;
+            width: 8px;
+            height: 8px;
+            flex: 0 0 8px;
+            margin: -4px 3px 0 0;
+            border-right: 1.8px solid #c4b5fd;
+            border-bottom: 1.8px solid #c4b5fd;
+            transform: rotate(45deg);
+        }
+
+        .cx-select-button[aria-expanded="true"] .cx-select-arrow {
+            transform: rotate(225deg);
+            margin-top: 4px;
+        }
+
+        .cx-select-options {
+            position: fixed;
+            z-index: 100010;
+            box-sizing: border-box;
+            padding: 8px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            border: 1px solid rgba(255, 255, 255, .13);
+            border-radius: 14px;
+            background:
+                radial-gradient(circle at 90% 0%, rgba(96, 165, 250, .13), transparent 32%),
+                radial-gradient(circle at 0% 0%, rgba(139, 92, 246, .20), transparent 38%),
+                rgba(12, 11, 20, .98);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .06);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(139, 92, 246, .5) transparent;
+        }
+
+        .cx-select-options[hidden] { display: none !important; }
+
+        .cx-select-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 40px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #eeebf5;
+            font-size: 14px;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+
+        .cx-select-option:hover,
+        .cx-select-option.is-focused { background: rgba(139, 92, 246, .12); color: #fff; }
+
+        .cx-select-option[aria-selected="true"] {
+            background: rgba(139, 92, 246, .18);
+            color: #ede9fe;
+            font-weight: 500;
+        }
+
+        .cx-select-option[aria-disabled="true"] { opacity: .4; cursor: not-allowed; }
+
+        /* ---------- Table ---------- */
+
+        .client-table-wrap {
+            width: 100%;
+            max-height: min(65dvh, 650px);
+            overflow: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(139, 92, 246, 0.45) transparent;
+        }
+
+        .client-table-wrap::-webkit-scrollbar { height: 5px; width: 6px; }
+        .client-table-wrap::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.45); border-radius: 20px; }
+
+        .client-table {
+            width: 100%;
+            min-width: 980px;
+            border-collapse: separate;
+            border-spacing: 0;
+            text-align: left;
+        }
+
+        .client-table th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            padding: 14px 16px;
+            text-align: left;
+            white-space: nowrap;
+            color: rgba(196, 181, 253, 0.62);
+            background: #211a32;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .client-table td {
+            padding: 15px 16px;
+            vertical-align: middle;
+            overflow-wrap: anywhere;
+            color: rgba(241, 245, 249, 0.78);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+            font-size: 12px;
+        }
+
+        .client-table th:last-child,
+        .client-table td:last-child { text-align: center; }
+
+        .client-table tbody tr {
+            background: rgba(255, 255, 255, 0.008);
+            transition: background 0.18s ease;
+        }
+
+        .client-table tbody tr:hover { background: rgba(124, 58, 237, 0.055); }
+        .client-table tbody tr:last-child td { border-bottom: 0; }
+
+        .client-name { color: #fff; font-weight: 750; font-size: 12px; }
+        .client-company { margin-top: 5px; color: rgba(226, 232, 240, 0.46); font-size: 10px; }
+
+        .client-branch {
+            display: inline-flex;
+            align-items: center;
+            min-height: 25px;
+            padding: 0 10px;
+            border-radius: 999px;
+            color: #c4b5fd;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            background: rgba(139, 92, 246, 0.08);
+            font-size: 10px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .client-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            min-height: 25px;
+            padding: 0 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            background: rgba(255, 255, 255, 0.04);
+            font-size: 10px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .client-status::before {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .client-status.active {
+            color: #86efac;
+            border-color: rgba(34, 197, 94, 0.23);
+            background: rgba(34, 197, 94, 0.08);
+        }
+
+        .client-status.inactive {
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.23);
+            background: rgba(239, 68, 68, 0.08);
+        }
+
+        /* Action buttons (icon only) */
+
+        .client-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: nowrap;
+            gap: 8px;
+        }
+
+        .client-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            min-width: 32px;
+            height: 32px;
+            flex: 0 0 32px;
+            padding: 0;
+            border-radius: 9px;
+            cursor: pointer;
+            color: #c4b5fd;
+            border: 1px solid rgba(139, 92, 246, .30);
+            background: rgba(124, 58, 237, .10);
+            transition: all .18s ease;
+        }
+
+        .client-action-btn svg { width: 14px; height: 14px; stroke-width: 2; }
+        .client-action-btn:hover { transform: translateY(-1px); background: rgba(124, 58, 237, .20); }
+
+        .client-action-btn[data-action="edit"] {
+            color: #93c5fd;
+            border-color: rgba(59, 130, 246, .30);
+            background: rgba(37, 99, 235, .10);
+        }
+
+        .client-action-btn[data-action="edit"]:hover { background: rgba(37, 99, 235, .20); }
+
+        .client-action-btn.delete {
+            color: #fb7185;
+            border-color: rgba(244, 63, 94, .28);
+            background: rgba(225, 29, 72, .08);
+        }
+
+        .client-action-btn.delete:hover { background: rgba(225, 29, 72, .18); }
+        .client-action-btn:focus-visible { outline: 2px solid #a78bfa; outline-offset: 2px; }
+        .client-action-btn:disabled { opacity: .5; cursor: wait; }
+
+        .client-empty {
+            padding: 55px 20px !important;
+            text-align: center !important;
+            color: rgba(226, 232, 240, 0.46) !important;
+            font-size: 12px;
+        }
+
+        .client-empty svg {
+            width: 34px;
+            height: 34px;
+            color: #8b5cf6;
+            margin: 0 auto 12px;
+        }
+
+        .client-empty strong {
+            display: block;
+            color: #e9e0f7;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        /* ---------- Modals ---------- */
+
+        .client-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+            background: rgba(12, 8, 24, .72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .client-modal.show { display: flex; }
+
+        .client-modal-box {
+            position: relative;
+            width: min(900px, 100%);
+            max-width: calc(100vw - 24px);
+            max-height: min(90dvh, 780px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, .13);
+            border-radius: 20px;
+            background:
+                radial-gradient(circle at 90% 0%, rgba(96, 165, 250, .13), transparent 32%),
+                radial-gradient(circle at 0% 0%, rgba(139, 92, 246, .20), transparent 38%),
+                rgba(12, 11, 20, .98);
+            box-shadow: 0 30px 90px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .06);
+        }
+
+        .client-modal-box > form {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .client-modal-header {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .client-modal-title {
+            margin: 0;
+            color: #fff;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .client-modal-close {
+            width: 35px;
+            height: 35px;
+            flex: 0 0 35px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.75);
+            background: rgba(255, 255, 255, 0.045);
+            cursor: pointer;
+            transition: .18s ease;
+        }
+
+        .client-modal-close:hover { color: #fff; background: rgba(255, 255, 255, 0.09); }
+        .client-modal-close svg { width: 16px; height: 16px; }
+
+        .client-modal-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            overflow-wrap: anywhere;
+            padding: 24px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(139, 92, 246, .5) transparent;
+        }
+
+        .client-modal-body::-webkit-scrollbar,
+        .client-edit-grid::-webkit-scrollbar { width: 7px; }
+        .client-modal-body::-webkit-scrollbar-thumb,
+        .client-edit-grid::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, .5); border-radius: 8px; }
+
+        .client-modal-footer {
+            flex: 0 0 auto;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 17px 24px;
+            border-top: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .client-modal-cancel {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 18px;
+            border: 1px solid rgba(255, 255, 255, .10);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .045);
+            color: rgba(255, 255, 255, .82);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: .18s ease;
+        }
+
+        .client-modal-cancel:hover {
+            color: #fff;
+            background: rgba(139, 92, 246, .13);
+            border-color: rgba(139, 92, 246, .32);
+        }
+
+        /* Forms (add + edit) */
+
+        .client-form-grid,
+        .client-edit-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            column-gap: 22px;
+            row-gap: 20px;
+            align-items: start;
+        }
+
+        .client-edit-grid {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .client-form-field,
+        .client-edit-field {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .client-form-field.full,
+        .client-edit-field.full { grid-column: 1 / -1; }
+
+        .client-form-field label,
+        .client-edit-field label {
+            min-height: 18px;
+            margin: 0 0 8px;
+            color: rgba(244, 244, 245, 0.82);
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 18px;
+            letter-spacing: 0.01em;
+        }
+
+        /* View modal */
+
+        .client-view-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .client-view-field {
+            min-width: 0;
+            padding: 14px 15px;
+            border: 1px solid rgba(255, 255, 255, .10);
+            border-radius: 13px;
+            background: rgba(12, 11, 19, .72);
+        }
+
+        .client-view-field.full { grid-column: 1 / -1; }
+
+        .client-view-field label {
+            display: block;
+            margin-bottom: 7px;
+            color: rgba(196, 181, 253, 0.58);
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+        }
+
+        .client-view-field div {
+            color: rgba(248, 250, 252, 0.90);
+            font-size: 12px;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        /* Delete modal (bubble style) */
+
+        .client-delete-box {
+            width: min(540px, 100%);
+            border-radius: 22px;
+            background: #0d0b14;
+            border: 1px solid rgba(167, 139, 250, .25);
+            box-shadow: 0 30px 90px rgba(0, 0, 0, .65);
+        }
+
+        .client-delete-header {
+            display: flex;
+            align-items: center;
+            gap: 17px;
+            padding: 23px 27px;
+            background: linear-gradient(110deg, #281b40 0%, #191525 65%, #171e2d 100%);
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        .client-delete-icon {
+            width: 60px;
+            height: 60px;
+            flex: 0 0 60px;
+            display: grid;
+            place-items: center;
+            border-radius: 18px;
+            color: #d2baff;
+            background: rgba(124, 58, 237, .20);
+            border: 1px solid rgba(167, 139, 250, .25);
+        }
+
+        .client-delete-icon svg { width: 25px; height: 25px; }
+
+        .client-delete-heading { flex: 1; min-width: 0; }
+
+        .client-delete-eyebrow {
+            display: block;
+            margin-bottom: 8px;
+            color: #b68cff;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .client-delete-heading h2 {
+            margin: 0;
+            color: #f8f5ff;
+            font-size: 23px;
+            font-weight: 800;
+        }
+
+        .client-delete-heading p {
+            margin: 5px 0 0;
+            color: #9991a8;
+            font-size: 12px;
+        }
+
+        .client-delete-box .client-modal-close {
+            width: 46px;
+            height: 46px;
+            flex: 0 0 46px;
+            border: 2px solid #a78bfa;
+            border-radius: 14px;
+            color: #c4b5fd;
+            background: rgba(255, 255, 255, .035);
+        }
+
+        .client-delete-box .client-modal-body {
+            min-height: 110px;
+            padding: 28px 32px;
+            background: #0d0b14;
+        }
+
+        .client-delete-message {
+            margin: 0;
+            color: #f1edf8;
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        .client-delete-message strong { color: #c5a7f5; }
+
+        .client-delete-warning {
+            margin: 13px 0 0;
+            color: #958ba4;
+            font-size: 12px;
+        }
+
+        .client-delete-box .client-modal-footer {
+            padding: 19px 32px 23px;
+            gap: 12px;
+            background: #0d0b14;
+        }
+
+        #confirmDeleteClient {
+            min-height: 46px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #8747d9, #6330ae);
+            border: 1px solid rgba(196, 181, 253, .25);
+            box-shadow: none;
+        }
+
+        #confirmDeleteClient:hover { background: linear-gradient(135deg, #9858eb, #7540c5); }
+
+        /* ---------- Responsive ---------- */
+
+        @media (max-width: 1100px) {
+            .glass-sidebar { width: 220px; }
+            .main-area { left: 250px; padding: 14px; }
+            .dashboard-header { padding: 26px; }
+            .dashboard-header h1 { font-size: 42px; }
+        }
+
+        @media (max-width: 900px) {
+            .client-filters { grid-template-columns: 1fr 1fr; }
+            .client-search-wrap { grid-column: 1 / -1; }
+        }
+
+        @media (max-width: 768px) {
+            .glass-sidebar {
+                top: 10px;
+                left: 10px;
+                bottom: 10px;
+                width: 250px;
+                transform: translateX(-120%);
+                transition: transform 0.3s ease;
+            }
+
+            .glass-sidebar.open { transform: translateX(0); }
+
+            .mobile-menu-button { display: flex; align-items: center; justify-content: center; }
+
+            .main-area { left: 0; padding: 10px; }
+
+            .dashboard-box { padding: 12px; border-radius: 22px; }
+
+            .dashboard-header { min-height: auto; padding: 25px 20px; border-radius: 20px; }
+
+            .dashboard-header-content { flex-direction: column; align-items: flex-start; }
+
+            .client-hero-actions { align-items: stretch; width: 100%; }
+
+            .dashboard-header h1 { font-size: 34px; letter-spacing: -1px; }
+            .dashboard-header p { font-size: 12px; line-height: 1.6; }
+
+            .system-status { align-self: flex-start; }
+
+            .dashboard-content { padding: 25px 2px; }
+
+            .client-summary-grid { grid-template-columns: 1fr; gap: 12px; }
+
+            .client-list-header { padding: 18px; flex-wrap: wrap; }
+
+            .client-table { min-width: 820px; }
+
+            .client-table th, .client-table td { padding: 12px 10px; }
+
+            .client-action-btn { width: 42px; min-width: 42px; height: 42px; flex-basis: 42px; }
+            .client-action-btn svg { width: 19px; height: 19px; }
+        }
+
+        @media (max-width: 640px) {
+            .client-filters { grid-template-columns: 1fr; padding: 14px; }
+            .client-search-wrap { grid-column: auto; }
+
+            .client-modal { padding: 10px; }
+            .client-modal-box { max-height: calc(100dvh - 24px); border-radius: 18px; }
+
+            .client-modal-header, .client-modal-body, .client-modal-footer { padding: 16px; }
+            .client-edit-grid { padding: 16px; }
+
+            .client-form-grid, .client-edit-grid, .client-view-grid {
+                grid-template-columns: minmax(0, 1fr);
+                row-gap: 17px;
+            }
+
+            .client-form-field.full, .client-edit-field.full, .client-view-field.full { grid-column: auto; }
+
+            .client-search, .client-form-field input, .client-form-field textarea,
+            .client-edit-field input, .client-edit-field textarea, .cx-select-button { font-size: 16px; }
+
+            .client-form-field input, .client-edit-field input, .cx-select-button, .client-search {
+                height: 46px;
+                min-height: 46px;
+            }
+
+            .cx-select-option { min-height: 44px; font-size: 16px; }
+
+            .client-add-btn { width: 100%; }
+
+            .client-delete-header { padding: 22px; gap: 14px; }
+            .client-delete-icon { width: 52px; height: 52px; flex-basis: 52px; }
+            .client-delete-heading h2 { font-size: 21px; }
+            .client-delete-box .client-modal-close { width: 40px; height: 40px; flex-basis: 40px; }
+            .client-delete-box .client-modal-body { padding: 24px; }
+            .client-delete-box .client-modal-footer { padding: 18px 24px; }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-header h1 { font-size: 28px; }
+            .dashboard-header { padding: 22px 17px; }
+        }
+
+        /* ---------- Add button next to the count badge ---------- */
+
+        .client-list-tools {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .client-list-tools .client-count { min-height: 44px; }
+
+        /* ---------- Extra responsive rules ---------- */
+
+        @media (max-width: 900px) {
+            .client-list-header { flex-wrap: wrap; }
+        }
+
+        @media (max-width: 640px) {
+            .client-list-header { padding: 16px; }
+
+            .client-list-tools { width: 100%; justify-content: space-between; }
+            .client-list-tools .client-add-btn { flex: 1 1 auto; width: auto; }
+
+            .client-delete-box .client-modal-footer,
+            .client-modal-footer { flex-wrap: wrap; }
+
+            .client-modal-footer .client-modal-cancel,
+            .client-modal-footer .client-modal-submit { flex: 1 1 140px; }
+
+        }
+    </style>
+</head>
+
+<body>
+
+    <button class="menu-toggle mobile-menu-button" type="button" aria-label="Open menu">☰</button>
+
+    {% include "components/teamlead_sidebar.html" %}
+
+    <main class="main-area">
+        <div class="dashboard-box">
+
+            <!-- Header -->
+            <section class="dashboard-header client-hero">
+                <div class="dashboard-header-content">
+                    <div>
+                        <div class="dashboard-eyebrow">CYBEXEL TEAM LEAD PANEL</div>
+                        <h1>CLIENT DETAILS</h1>
+                        <p>
+                            Manage your clients, company information and project details.
+                        </p>
+                    </div>
+
+                    <div class="client-hero-actions">
+                        <div class="system-status">
+                            <span class="status-dot"></span>
+                            <span>System Online</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dashboard-content">
+
+                <!-- Summary -->
+                <div class="client-summary-grid">
+
+                    <div class="client-card client-summary-card">
+                        <div class="client-summary-top">
+                            <span class="client-summary-label">Total Clients</span>
+                            <span class="client-summary-icon">
+                                <i data-lucide="building-2"></i>
+                            </span>
+                        </div>
+                        <div class="client-summary-number">{{ total_clients|default:0 }}</div>
+                        <div class="client-summary-description">All registered clients</div>
+                    </div>
+
+                    <div class="client-card client-summary-card">
+                        <div class="client-summary-top">
+                            <span class="client-summary-label">Active Clients</span>
+                            <span class="client-summary-icon">
+                                <i data-lucide="user-check"></i>
+                            </span>
+                        </div>
+                        <div class="client-summary-number">{{ active_clients|default:0 }}</div>
+                        <div class="client-summary-description">Currently active clients</div>
+                    </div>
+
+                    <div class="client-card client-summary-card">
+                        <div class="client-summary-top">
+                            <span class="client-summary-label">Inactive Clients</span>
+                            <span class="client-summary-icon">
+                                <i data-lucide="user-x"></i>
+                            </span>
+                        </div>
+                        <div class="client-summary-number">{{ inactive_clients|default:0 }}</div>
+                        <div class="client-summary-description">Currently inactive clients</div>
+                    </div>
+
+                </div>
+
+                <!-- Client List -->
+                <section class="client-card client-list-card">
+
+                    <div class="client-list-header">
+                        <div>
+                            <span class="section-eyebrow">CLIENT WORKSPACE</span>
+                            <h2 class="client-list-heading">All Clients</h2>
+                            <p class="client-list-caption">
+                                View and manage your client information
+                            </p>
+                        </div>
+                        <div class="client-list-tools">
+                            <span class="client-count">
+                                {{ total_clients|default:0 }} Clients
+                            </span>
+
+                            <button type="button" class="client-add-btn" id="openAddClient">
+                                <i data-lucide="plus"></i>
+                                Add New Client
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Search and filters -->
+                    <div class="client-filters">
+
+                        <div class="client-search-wrap">
+                            <i data-lucide="search"></i>
+                            <input
+                                type="search"
+                                id="clientSearch"
+                                class="client-search"
+                                placeholder="Search client, company or contact..."
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <select id="branchFilter" class="client-select" aria-label="Filter by branch">
+                            <option value="">All Branches</option>
+                            <option value="coimbatore">Coimbatore</option>
+                            <option value="kochi">Kochi</option>
+                        </select>
+
+                        <select id="statusFilter" class="client-select" aria-label="Filter by status">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+
+                    </div>
+
+                    <!-- Table -->
+                    <div class="client-table-wrap">
+                        <table class="client-table">
+                            <thead>
+                                <tr>
+                                    <th>Client / Company</th>
+                                    <th>Contact Person</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Branch</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+
+                            <tbody
+                                id="clientTableBody"
+                                data-view-url-template="{% url 'teamlead_view_client' 0 %}"
+                                data-edit-url-template="{% url 'teamlead_edit_client' 0 %}"
+                            >
+                                {% for client in clients %}
+                                <tr
+                                    class="client-row"
+                                    data-search="{{ client.client_name|lower }} {{ client.company_name|lower }} {{ client.contact_person|lower }}"
+                                    data-branch="{{ client.branch }}"
+                                    data-status="{{ client.status }}"
+                                    data-id="{{ client.id }}"
+                                >
+                                    <td>
+                                        <div class="client-name">{{ client.client_name }}</div>
+                                        <div class="client-company">{{ client.company_name }}</div>
+                                    </td>
+
+                                    <td>{{ client.contact_person }}</td>
+                                    <td>{{ client.email|default:"—" }}</td>
+                                    <td>{{ client.phone_number|default:"—" }}</td>
+
+                                    <td>
+                                        <span class="client-branch">
+                                            {{ client.get_branch_display }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <span class="client-status {{ client.status }}">
+                                            {{ client.get_status_display }}
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="client-actions">
+                                            <button type="button"
+                                                class="client-action-btn"
+                                                title="View client"
+                                                aria-label="View client"
+                                                data-action="view">
+                                                <i data-lucide="eye"></i>
+                                            </button>
+
+                                            <button type="button" class="client-action-btn"
+                                                title="Edit client"
+                                                aria-label="Edit client"
+                                                data-action="edit">
+                                                <i data-lucide="pencil"></i>
+                                            </button>
+
+                                            <button type="button" class="client-action-btn delete"
+                                                title="Delete client"
+                                                aria-label="Delete client"
+                                                data-action="delete">
+                                                <i data-lucide="trash-2"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="client-empty">
+                                        <i data-lucide="building-2"></i>
+                                        <strong>No clients added yet</strong>
+                                        Your client records will appear here once added.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+
+                                <tr id="clientNoResults" hidden>
+                                    <td colspan="7" class="client-empty">
+                                        <i data-lucide="search-x"></i>
+                                        <strong>No matching clients found</strong>
+                                        Try changing your search or filters.
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                </section>
+
+            </section>
+        </div>
+    </main>
+
+    <!-- Add Client Modal -->
+    <div class="client-modal" id="clientModal">
+        <div class="client-modal-box">
+
+            <div class="client-modal-header">
+                <h2 class="client-modal-title">Add New Client</h2>
+                <button type="button" class="client-modal-close" id="closeClientModal"
+                    aria-label="Close">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="client-modal-body">
+                <form id="clientForm">
+                    {% csrf_token %}
+                    <div class="client-form-grid">
+
+                        <div class="client-form-field">
+                            <label>Client Name</label>
+                            <input type="text" id="client_name" name="client_name"
+                                placeholder="Enter client name" required maxlength="150">
+                        </div>
+
+                        <div class="client-form-field">
+                            <label>Company Name</label>
+                            <input type="text" id="company_name" name="company_name"
+                                placeholder="Enter company name" required maxlength="200">
+                        </div>
+
+                        <div class="client-form-field">
+                            <label>Contact Person</label>
+                            <input type="text" id="contact_person" name="contact_person"
+                                placeholder="Enter contact person" required maxlength="150">
+                        </div>
+
+                        <div class="client-form-field">
+                            <label>Email Address</label>
+                            <input type="email" id="email" name="email"
+                                placeholder="Enter email address" required>
+                        </div>
+
+                        <div class="client-form-field">
+                            <label>Phone Number</label>
+                            <input type="text" id="phone_number" name="phone_number"
+                                placeholder="Enter phone number" required maxlength="20">
+                        </div>
+
+                        <div class="client-form-field">
+                            <label>Branch</label>
+                            <select id="branch" name="branch" class="client-select" required>
+                                <option value="">Select Branch</option>
+                                <option value="coimbatore">Coimbatore</option>
+                                <option value="kochi">Kochi</option>
+                            </select>
+                        </div>
+
+                        <div class="client-form-field">
+                            <label>Client Status</label>
+                            <select id="status" name="status" class="client-select" required>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+
+                        <div class="client-form-field full">
+                            <label>Address</label>
+                            <textarea id="address" name="address"
+                                placeholder="Enter client address" required></textarea>
+                        </div>
+
+                        <div class="client-form-field full">
+                            <label>Project Details</label>
+                            <textarea id="project_details" name="project_details"
+                                placeholder="Enter project details"></textarea>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+
+            <div class="client-modal-footer">
+                <button type="button" class="client-modal-cancel" id="cancelClientModal">
+                    Cancel
+                </button>
+                <button type="submit" form="clientForm"
+                    class="client-modal-submit" id="saveClientBtn">
+                    Save Client
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    {% include "components/toast_notification.html" %}
+
+    <!-- View Client Modal -->
+    <div class="client-modal" id="clientViewModal">
+        <div class="client-modal-box">
+
+            <div class="client-modal-header">
+                <h2 class="client-modal-title">Client Details</h2>
+
+                <button type="button"
+                    class="client-modal-close"
+                    id="closeViewClientModal"
+                    aria-label="Close">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="client-modal-body">
+                <div class="client-view-grid">
+
+                    <div class="client-view-field">
+                        <label>Client Name</label>
+                        <div data-view-field="client_name">—</div>
+                    </div>
+
+                    <div class="client-view-field">
+                        <label>Company Name</label>
+                        <div data-view-field="company_name">—</div>
+                    </div>
+
+                    <div class="client-view-field">
+                        <label>Contact Person</label>
+                        <div data-view-field="contact_person">—</div>
+                    </div>
+
+                    <div class="client-view-field">
+                        <label>Email Address</label>
+                        <div data-view-field="email">—</div>
+                    </div>
+
+                    <div class="client-view-field">
+                        <label>Phone Number</label>
+                        <div data-view-field="phone_number">—</div>
+                    </div>
+
+                    <div class="client-view-field">
+                        <label>Branch</label>
+                        <div data-view-field="branch_display">—</div>
+                    </div>
+
+                    <div class="client-view-field">
+                        <label>Client Status</label>
+                        <div data-view-field="status_display">—</div>
+                    </div>
+
+                    <div class="client-view-field full">
+                        <label>Address</label>
+                        <div data-view-field="address">—</div>
+                    </div>
+
+                    <div class="client-view-field full">
+                        <label>Project Details</label>
+                        <div data-view-field="project_details">—</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="client-modal-footer">
+                <button type="button"
+                    class="client-modal-cancel"
+                    id="closeViewClientFooter">
+                    Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Edit Client Modal -->
+    <div class="client-modal" id="clientEditModal">
+        <div class="client-modal-box">
+            <div class="client-modal-header">
+                <h2 class="client-modal-title">Edit Client</h2>
+                <button type="button" class="client-modal-close" id="closeEditClientModal" aria-label="Close">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <form id="clientEditForm">
+                {% csrf_token %}
+
+                <div class="client-edit-grid">
+                    <div class="client-edit-field">
+                        <label>Client Name</label>
+                        <input type="text" name="client_name" required maxlength="150">
+                    </div>
+
+                    <div class="client-edit-field">
+                        <label>Company Name</label>
+                        <input type="text" name="company_name" required maxlength="200">
+                    </div>
+
+                    <div class="client-edit-field">
+                        <label>Contact Person</label>
+                        <input type="text" name="contact_person" required maxlength="150">
+                    </div>
+
+                    <div class="client-edit-field">
+                        <label>Email Address</label>
+                        <input type="email" name="email" required>
+                    </div>
+
+                    <div class="client-edit-field">
+                        <label>Phone Number</label>
+                        <input type="text" name="phone_number" required maxlength="20">
+                    </div>
+
+                    <div class="client-edit-field">
+                        <label>Branch</label>
+                        <select name="branch" class="client-select" required>
+                            <option value="">Select Branch</option>
+                            <option value="coimbatore">Coimbatore</option>
+                            <option value="kochi">Kochi</option>
+                        </select>
+                    </div>
+
+                    <div class="client-edit-field">
+                        <label>Client Status</label>
+                        <select name="status" class="client-select" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="client-edit-field full">
+                        <label>Address</label>
+                        <textarea name="address" required></textarea>
+                    </div>
+
+                    <div class="client-edit-field full">
+                        <label>Project Details</label>
+                        <textarea name="project_details"></textarea>
+                    </div>
+                </div>
+
+                <div class="client-modal-footer">
+                    <button type="button" class="client-modal-cancel" id="cancelEditClient">
+                        Cancel
+                    </button>
+                    <button type="submit" class="client-modal-submit" id="updateClientBtn">
+                        Update Client
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Client Confirmation Modal -->
+    <div class="client-modal" id="clientDeleteModal">
+        <div class="client-modal-box client-delete-box">
+
+            <div class="client-delete-header">
+                <div class="client-delete-icon">
+                    <i data-lucide="trash-2"></i>
+                </div>
+
+                <div class="client-delete-heading">
+                    <span class="client-delete-eyebrow">CLIENT MANAGEMENT</span>
+                    <h2>Delete client?</h2>
+                    <p>Confirm removal of this client record.</p>
+                </div>
+
+                <button type="button" class="client-modal-close" id="closeDeleteClientModal" aria-label="Close">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="client-modal-body">
+                <p class="client-delete-message">
+                    Are you sure you want to delete
+                    <strong id="deleteClientName">this client</strong>?
+                </p>
+                <p class="client-delete-warning">
+                    This action cannot be undone.
+                </p>
+            </div>
+
+            <div class="client-modal-footer">
+                <button type="button" class="client-modal-cancel" id="cancelDeleteClient">
+                    Cancel
+                </button>
+                <button type="button" class="client-modal-submit" id="confirmDeleteClient">
+                    Delete Client
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="{% static 'js/admin.js' %}"></script>
+    <script src="{% static 'js/activity.js' %}"></script>
+
+    <!-- Sidebar toggle (mobile) -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const sidebar = document.getElementById("sidebar");
+
+            document.querySelectorAll(".menu-toggle").forEach(function (button) {
+                button.addEventListener("click", function () {
+                    if (sidebar) sidebar.classList.toggle("open");
+                });
+            });
+
+            document.addEventListener("click", function (event) {
+                if (
+                    window.innerWidth <= 900 &&
+                    sidebar && sidebar.classList.contains("open") &&
+                    !sidebar.contains(event.target) &&
+                    !event.target.closest(".menu-toggle")
+                ) {
+                    sidebar.classList.remove("open");
+                }
+            });
+        });
+    </script>
+
+    <!-- Themed select dropdowns (UI only; original <select> values are kept) -->
+    <script>
+        (() => {
+            let opened = null, serial = 0;
+
+            const close = () => {
+                if (!opened) return;
+                opened.list.hidden = true;
+                opened.button.setAttribute("aria-expanded", "false");
+                opened.button.removeAttribute("aria-activedescendant");
+                opened = null;
+            };
+
+            window.cxCloseSelects = close;
+
+            const position = () => {
+                if (!opened) return;
+                const r = opened.button.getBoundingClientRect(), list = opened.list;
+                if (!opened.button.isConnected || r.bottom < 0 || r.top > innerHeight) { close(); return; }
+                const below = innerHeight - r.bottom - 12, above = r.top - 12;
+                const up = below < 180 && above > below;
+                list.style.width = Math.min(r.width, innerWidth - 24) + "px";
+                list.style.left = Math.max(12, Math.min(r.left, innerWidth - r.width - 12)) + "px";
+                list.style.maxHeight = Math.max(60, Math.min(260, up ? above : below)) + "px";
+                list.style.top = up ? "auto" : r.bottom + 6 + "px";
+                list.style.bottom = up ? innerHeight - r.top + 6 + "px" : "auto";
+            };
+
+            window.initCxSelects = (root = document) => {
+                root.querySelectorAll("select.client-select").forEach(select => {
+                    if (select.dataset.themed) { select.dispatchEvent(new Event("cx-select-sync")); return; }
+                    select.dataset.themed = "1";
+
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "cx-select";
+                    select.before(wrapper);
+                    wrapper.append(select);
+                    select.classList.add("cx-select-native");
+                    select.tabIndex = -1;
+
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "cx-select-button";
+                    const caption = document.createElement("span");
+                    const arrow = document.createElement("span");
+                    arrow.className = "cx-select-arrow";
+                    arrow.setAttribute("aria-hidden", "true");
+                    button.append(caption, arrow);
+                    wrapper.append(button);
+
+                    const list = document.createElement("div");
+                    list.className = "cx-select-options";
+                    list.id = "cxOptions" + (++serial);
+                    list.hidden = true;
+                    list.setAttribute("role", "listbox");
+                    document.body.append(list);
+
+                    const label = select.closest(".client-form-field, .client-edit-field")?.querySelector("label");
+                    const name = label?.textContent.trim() || select.getAttribute("aria-label") || "Choose an option";
+                    button.setAttribute("aria-haspopup", "listbox");
+                    button.setAttribute("aria-expanded", "false");
+                    button.setAttribute("aria-controls", list.id);
+                    list.setAttribute("aria-label", name);
+
+                    let active = select.selectedIndex, items = [], prefix = "", prefixTimer;
+
+                    function sync() {
+                        const selected = select.options[select.selectedIndex];
+                        caption.textContent = selected?.textContent.trim() || "Select an option";
+                        button.disabled = select.disabled;
+                        button.classList.toggle("is-placeholder", !select.value);
+                        button.setAttribute("aria-label", name + ": " + caption.textContent);
+                        if (select.validity.valid) button.removeAttribute("aria-invalid");
+                    }
+
+                    function highlight(index) {
+                        active = index;
+                        items.forEach((item, i) => item.classList.toggle("is-focused", i === active));
+                        if (items[active]) {
+                            button.setAttribute("aria-activedescendant", items[active].id);
+                            items[active].scrollIntoView({ block: "nearest" });
+                        }
+                    }
+
+                    function choose(index) {
+                        if (!select.options[index] || select.options[index].disabled) return;
+                        select.selectedIndex = index;
+                        select.dispatchEvent(new Event("input", { bubbles: true }));
+                        select.dispatchEvent(new Event("change", { bubbles: true }));
+                        sync();
+                        close();
+                        button.focus({ preventScroll: true });
+                    }
+
+                    function open() {
+                        close();
+                        list.replaceChildren();
+                        items = [...select.options].map((option, index) => {
+                            const item = document.createElement("div");
+                            item.className = "cx-select-option";
+                            item.id = list.id + "Option" + index;
+                            item.setAttribute("role", "option");
+                            item.setAttribute("aria-selected", String(option.selected));
+                            item.setAttribute("aria-disabled", String(option.disabled));
+                            const text = document.createElement("span");
+                            text.textContent = option.textContent.trim();
+                            item.append(text);
+                            if (option.selected) {
+                                const check = document.createElement("span");
+                                check.textContent = "✓";
+                                check.setAttribute("aria-hidden", "true");
+                                item.append(check);
+                            }
+                            item.addEventListener("pointerdown", event => event.preventDefault());
+                            item.addEventListener("click", () => choose(index));
+                            list.append(item);
+                            return item;
+                        });
+                        opened = { button, list };
+                        list.hidden = false;
+                        button.setAttribute("aria-expanded", "true");
+                        position();
+                        active = select.selectedIndex;
+                        if (active < 0 || select.options[active]?.disabled) {
+                            active = [...select.options].findIndex(option => !option.disabled);
+                        }
+                        highlight(active);
+                    }
+
+                    button.addEventListener("click", () => opened?.button === button ? close() : open());
+
+                    button.addEventListener("keydown", event => {
+                        if (event.key === "Escape") {
+                            if (opened?.button === button) { event.preventDefault(); event.stopPropagation(); close(); }
+                            return;
+                        }
+                        if (event.key === "Tab") { close(); return; }
+                        if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+                            event.preventDefault();
+                            if (opened?.button !== button) { open(); return; }
+                            const enabled = [...select.options].map((o, i) => o.disabled ? -1 : i).filter(i => i >= 0);
+                            let at = enabled.indexOf(active);
+                            if (event.key === "Home") at = 0;
+                            else if (event.key === "End") at = enabled.length - 1;
+                            else at = Math.max(0, Math.min(enabled.length - 1, at + (event.key === "ArrowDown" ? 1 : -1)));
+                            highlight(enabled[at]);
+                        } else if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            if (opened?.button === button) choose(active); else open();
+                        } else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+                            event.preventDefault();
+                            if (opened?.button !== button) open();
+                            clearTimeout(prefixTimer);
+                            prefix += event.key.toLowerCase();
+                            prefixTimer = setTimeout(() => prefix = "", 700);
+                            const index = [...select.options].findIndex(o => !o.disabled && o.textContent.trim().toLowerCase().startsWith(prefix));
+                            if (index >= 0) highlight(index);
+                        }
+                    });
+
+                    select.addEventListener("change", sync);
+                    select.addEventListener("cx-select-sync", sync);
+                    select.addEventListener("invalid", event => {
+                        event.preventDefault();
+                        button.setAttribute("aria-invalid", "true");
+                        button.focus();
+                    });
+                    label?.addEventListener("click", event => { event.preventDefault(); button.focus(); });
+                    select.form?.addEventListener("reset", () => { close(); setTimeout(sync, 0); });
+                    sync();
+                });
+            };
+
+            document.addEventListener("pointerdown", event => {
+                if (opened && !opened.button.contains(event.target) && !opened.list.contains(event.target)) close();
+            });
+            document.addEventListener("scroll", position, true);
+            window.addEventListener("resize", position);
+            document.addEventListener("DOMContentLoaded", () => window.initCxSelects());
+        })();
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            window.lucide?.createIcons({
+                attrs: { "stroke-width": "1.8" }
+            });
+
+            /* Search and combined filters */
+            const search = document.getElementById("clientSearch");
+            const branch = document.getElementById("branchFilter");
+            const status = document.getElementById("statusFilter");
+            const rows = () => [...document.querySelectorAll(".client-row")];
+            const getNoResults = () => document.getElementById("clientNoResults");
+
+            function filterClients() {
+                const query = search.value.trim().toLowerCase();
+                const selectedBranch = branch.value;
+                const selectedStatus = status.value;
+                let visible = 0;
+
+                rows().forEach(row => {
+                    const matchesSearch = row.dataset.search.includes(query);
+                    const matchesBranch = !selectedBranch || row.dataset.branch === selectedBranch;
+                    const matchesStatus = !selectedStatus || row.dataset.status === selectedStatus;
+                    const show = matchesSearch && matchesBranch && matchesStatus;
+
+                    row.hidden = !show;
+                    if (show) visible++;
+                });
+
+                const noResults = getNoResults();
+
+                if (noResults) {
+                    noResults.hidden = visible !== 0 || rows().length === 0;
+                }
+            }
+
+            search.addEventListener("input", filterClients);
+            branch.addEventListener("change", filterClients);
+            status.addEventListener("change", filterClients);
+
+            /* Modal open and close */
+            const modal = document.getElementById("clientModal");
+
+            function openModal() {
+                modal.classList.add("show");
+                document.body.style.overflow = "hidden";
+            }
+
+            function closeModal() {
+                window.cxCloseSelects?.();
+                modal.classList.remove("show");
+                document.body.style.overflow = "";
+            }
+
+            document.getElementById("openAddClient").addEventListener("click", openModal);
+            document.getElementById("closeClientModal").addEventListener("click", closeModal);
+            document.getElementById("cancelClientModal").addEventListener("click", closeModal);
+
+            modal.addEventListener("click", function (event) {
+                if (event.target === modal) closeModal();
+            });
+
+            document.addEventListener("keydown", function (event) {
+                if (event.key !== "Escape") return;
+
+                if (editModal.classList.contains("show")) {
+                    closeEditModal();
+                }
+
+                if (viewClientModal.classList.contains("show")) {
+                    closeViewModal();
+                }
+
+                if (modal.classList.contains("show")) {
+                    closeModal();
+                }
+                if (deleteModal.classList.contains("show")) {
+                    closeDeleteModal();
+                }
+            });
+
+            /* Add Client - AJAX submission */
+
+            const clientForm = document.getElementById("clientForm");
+            const saveClientBtn = document.getElementById("saveClientBtn");
+            const clientTableBody = document.getElementById("clientTableBody");
+            /* View Client - AJAX */
+
+            const viewClientModal = document.getElementById("clientViewModal");
+
+            function closeViewModal() {
+                viewClientModal.classList.remove("show");
+
+                if (!modal.classList.contains("show")) {
+                    document.body.style.overflow = "";
+                }
+            }
+
+            document.getElementById("closeViewClientModal")
+                .addEventListener("click", closeViewModal);
+
+            document.getElementById("closeViewClientFooter")
+                .addEventListener("click", closeViewModal);
+
+            viewClientModal.addEventListener("click", function (event) {
+                if (event.target === viewClientModal) {
+                    closeViewModal();
+                }
+            });
+
+            // Event delegation also supports newly added client rows
+            clientTableBody.addEventListener("click", async function (event) {
+
+                const viewButton = event.target.closest(
+                    '[data-action="view"]'
+                );
+
+                if (!viewButton) return;
+
+                const row = viewButton.closest(".client-row");
+
+                if (!row) return;
+
+                const clientId = row.dataset.id;
+
+                if (!clientId) {
+                    showToast("Client ID not found.", "error");
+                    return;
+                }
+
+                const urlTemplate = clientTableBody.dataset.viewUrlTemplate;
+
+                const viewUrl = urlTemplate.replace(
+                    "/0/view/",
+                    `/${clientId}/view/`
+                );
+
+                viewButton.disabled = true;
+
+                try {
+
+                    const response = await fetch(viewUrl, {
+                        method: "GET",
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        credentials: "same-origin"
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        showToast(
+                            result.message || "Unable to load client details.",
+                            "error"
+                        );
+                        return;
+                    }
+
+                    const client = result.client;
+
+                    // Populate read-only modal fields
+                    viewClientModal.querySelectorAll("[data-view-field]")
+                        .forEach(field => {
+
+                            const fieldName = field.dataset.viewField;
+
+                            field.textContent = client[fieldName] || "—";
+
+                        });
+
+                    viewClientModal.classList.add("show");
+                    document.body.style.overflow = "hidden";
+
+                    window.lucide?.createIcons({
+                        attrs: { "stroke-width": "1.8" }
+                    });
+
+                } catch (error) {
+
+                    console.error("View Client Error:", error);
+
+                    showToast(
+                        "Something went wrong while loading client details.",
+                        "error"
+                    );
+
+                } finally {
+
+                    viewButton.disabled = false;
+
+                }
+
+            });
+
+
+            /* Edit Client - AJAX */
+
+            const editModal = document.getElementById("clientEditModal");
+            const editForm = document.getElementById("clientEditForm");
+            const updateClientBtn = document.getElementById("updateClientBtn");
+
+            let editingClientRow = null;
+
+            function closeEditModal() {
+                window.cxCloseSelects?.();
+                editModal.classList.remove("show");
+
+                if (
+                    !modal.classList.contains("show") &&
+                    !viewClientModal.classList.contains("show")
+                ) {
+                    document.body.style.overflow = "";
+                }
+
+                editingClientRow = null;
+            }
+
+            document.getElementById("closeEditClientModal")
+                .addEventListener("click", closeEditModal);
+
+            document.getElementById("cancelEditClient")
+                .addEventListener("click", closeEditModal);
+
+            editModal.addEventListener("click", function (event) {
+                if (event.target === editModal) {
+                    closeEditModal();
+                }
+            });
+
+            clientTableBody.addEventListener("click", async function (event) {
+                const editButton = event.target.closest('[data-action="edit"]');
+
+                if (!editButton) return;
+
+                const row = editButton.closest(".client-row");
+                if (!row) return;
+
+                const clientId = row.dataset.id;
+
+                if (!clientId) {
+                    showToast("Client ID not found.", "error");
+                    return;
+                }
+
+                const urlTemplate = clientTableBody.dataset.viewUrlTemplate;
+                const viewUrl = urlTemplate.replace(
+                    "/0/view/",
+                    `/${clientId}/view/`
+                );
+
+                editButton.disabled = true;
+
+                try {
+                    const response = await fetch(viewUrl, {
+                        method: "GET",
+                        headers: {
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        credentials: "same-origin"
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        showToast(
+                            result.message || "Unable to load client details.",
+                            "error"
+                        );
+                        return;
+                    }
+
+                    const client = result.client;
+
+                    Object.keys(client).forEach(fieldName => {
+                        const field = editForm.elements.namedItem(fieldName);
+
+                        if (field) {
+                            field.value = client[fieldName] ?? "";
+                        }
+                    });
+
+                    // Keep themed dropdown captions in sync with the loaded values
+                    editForm.querySelectorAll("select").forEach(select => {
+                        select.dispatchEvent(new Event("cx-select-sync"));
+                    });
+
+                    editingClientRow = row;
+
+                    editModal.classList.add("show");
+                    document.body.style.overflow = "hidden";
+
+                } catch (error) {
+                    console.error("Load Edit Client Error:", error);
+                    showToast("Unable to load client details.", "error");
+
+                } finally {
+                    editButton.disabled = false;
+                }
+            });
+
+            editForm.addEventListener("submit", async function (event) {
+                event.preventDefault();
+
+                if (!editForm.reportValidity()) return;
+                if (updateClientBtn.disabled) return;
+
+                if (!editingClientRow) {
+                    showToast("Client record not found.", "error");
+                    return;
+                }
+
+                const clientId = editingClientRow.dataset.id;
+                const urlTemplate = clientTableBody.dataset.editUrlTemplate;
+
+                const editUrl = urlTemplate.replace(
+                    "/0/edit/",
+                    `/${clientId}/edit/`
+                );
+
+                const originalText = updateClientBtn.textContent;
+
+                updateClientBtn.disabled = true;
+                updateClientBtn.textContent = "Updating...";
+
+                try {
+                    const csrfToken = editForm.querySelector(
+                        '[name="csrfmiddlewaretoken"]'
+                    ).value;
+
+                    const response = await fetch(editUrl, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": csrfToken,
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        body: new FormData(editForm),
+                        credentials: "same-origin"
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        const firstError = result.errors
+                            ? Object.values(result.errors)[0]
+                            : null;
+
+                        showToast(
+                            firstError || result.message || "Unable to update client.",
+                            "error"
+                        );
+                        return;
+                    }
+
+                    const client = result.client;
+                    const row = editingClientRow;
+                    const oldStatus = row.dataset.status;
+
+                    row.dataset.search = [
+                        client.client_name,
+                        client.company_name,
+                        client.contact_person
+                    ].join(" ").toLowerCase();
+
+                    row.dataset.branch = client.branch;
+                    row.dataset.status = client.status;
+
+                    row.querySelector(".client-name").textContent =
+                        client.client_name;
+
+                    row.querySelector(".client-company").textContent =
+                        client.company_name;
+
+                    row.cells[1].textContent = client.contact_person || "—";
+                    row.cells[2].textContent = client.email || "—";
+                    row.cells[3].textContent = client.phone_number || "—";
+
+                    row.cells[4].querySelector(".client-branch").textContent =
+                        client.branch_display;
+
+                    const statusBadge = row.cells[5].querySelector(".client-status");
+                    statusBadge.className = "client-status " + client.status;
+                    statusBadge.textContent = client.status_display;
+
+                    if (oldStatus !== client.status) {
+                        const summaryNumbers = document.querySelectorAll(
+                            ".client-summary-number"
+                        );
+
+                        const activeCount = summaryNumbers[1];
+                        const inactiveCount = summaryNumbers[2];
+
+                        if (oldStatus === "active") {
+                            activeCount.textContent =
+                                Number(activeCount.textContent) - 1;
+                            inactiveCount.textContent =
+                                Number(inactiveCount.textContent) + 1;
+                        } else {
+                            inactiveCount.textContent =
+                                Number(inactiveCount.textContent) - 1;
+                            activeCount.textContent =
+                                Number(activeCount.textContent) + 1;
+                        }
+                    }
+
+                    closeEditModal();
+                    filterClients();
+
+                    showToast(result.message, "success");
+
+                } catch (error) {
+                    console.error("Edit Client Error:", error);
+                    showToast("Something went wrong. Please try again.", "error");
+
+                } finally {
+                    updateClientBtn.disabled = false;
+                    updateClientBtn.textContent = originalText;
+                }
+            });
+
+            clientForm.addEventListener("submit", async function (event) {
+                event.preventDefault();
+
+                if (!clientForm.reportValidity()) {
+                    return;
+                }
+
+                if (saveClientBtn.disabled) return;
+
+                const originalText = saveClientBtn.textContent;
+
+                saveClientBtn.disabled = true;
+                saveClientBtn.textContent = "Saving...";
+
+                const csrfToken = clientForm.querySelector(
+                    '[name="csrfmiddlewaretoken"]'
+                ).value;
+
+                try {
+                    const response = await fetch(
+                        "{% url 'teamlead_add_client' %}",
+                        {
+                            method: "POST",
+                            headers: {
+                                "X-CSRFToken": csrfToken,
+                                "X-Requested-With": "XMLHttpRequest"
+                            },
+                            body: new FormData(clientForm),
+                            credentials: "same-origin"
+                        }
+                    );
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        const firstError = result.errors
+                            ? Object.values(result.errors)[0]
+                            : null;
+
+                        showToast(
+                            firstError || result.message || "Unable to add client.",
+                            "error"
+                        );
+
+                        return;
+                    }
+
+                    const client = result.client;
+
+                    // Remove initial empty-state row if present
+                    const emptyRow = clientTableBody.querySelector(
+                        "tr .client-empty"
+                    );
+
+                    if (emptyRow) {
+                        emptyRow.closest("tr").remove();
+                    }
+
+                    // Create new client row safely
+                    const row = document.createElement("tr");
+                    row.className = "client-row";
+                    row.dataset.id = client.id;
+                    row.dataset.search = [
+                        client.client_name,
+                        client.company_name,
+                        client.contact_person
+                    ].join(" ").toLowerCase();
+
+                    row.dataset.branch = client.branch;
+                    row.dataset.status = client.status;
+
+                    function createCell(value) {
+                        const td = document.createElement("td");
+                        td.textContent = value || "—";
+                        return td;
+                    }
+
+                    const nameCell = document.createElement("td");
+
+                    const name = document.createElement("div");
+                    name.className = "client-name";
+                    name.textContent = client.client_name;
+
+                    const company = document.createElement("div");
+                    company.className = "client-company";
+                    company.textContent = client.company_name;
+
+                    nameCell.append(name, company);
+
+                    const branchCell = document.createElement("td");
+                    const branchBadge = document.createElement("span");
+                    branchBadge.className = "client-branch";
+                    branchBadge.textContent = client.branch_display;
+                    branchCell.appendChild(branchBadge);
+
+                    const statusCell = document.createElement("td");
+                    const statusBadge = document.createElement("span");
+                    statusBadge.className = "client-status " + client.status;
+                    statusBadge.textContent = client.status_display;
+                    statusCell.appendChild(statusBadge);
+
+                    const actionsCell = document.createElement("td");
+                    const actions = document.createElement("div");
+                    actions.className = "client-actions";
+
+                    [
+                        ["eye", "View client"],
+                        ["pencil", "Edit client"],
+                        ["trash-2", "Delete client"]
+                    ].forEach(([icon, title]) => {
+                        const button = document.createElement("button");
+                        button.type = "button";
+                        button.className = "client-action-btn";
+                        button.title = title;
+                        button.setAttribute("aria-label", title);
+
+                        if (icon === "trash-2") {
+                            button.classList.add("delete");
+                        }
+
+                        button.dataset.action = title.split(" ")[0].toLowerCase();
+
+                        const iconElement = document.createElement("i");
+                        iconElement.setAttribute("data-lucide", icon);
+
+                        button.appendChild(iconElement);
+                        actions.appendChild(button);
+                    });
+
+                    actionsCell.appendChild(actions);
+
+                    row.append(
+                        nameCell,
+                        createCell(client.contact_person),
+                        createCell(client.email),
+                        createCell(client.phone_number),
+                        branchCell,
+                        statusCell,
+                        actionsCell
+                    );
+
+                    clientTableBody.prepend(row);
+
+                    // Update summary counts
+                    const summaryNumbers = document.querySelectorAll(
+                        ".client-summary-number"
+                    );
+
+                    const total = summaryNumbers[0];
+                    const active = summaryNumbers[1];
+                    const inactive = summaryNumbers[2];
+
+                    total.textContent = Number(total.textContent) + 1;
+
+                    if (client.status === "active") {
+                        active.textContent = Number(active.textContent) + 1;
+                    } else {
+                        inactive.textContent = Number(inactive.textContent) + 1;
+                    }
+
+                    const clientCount = document.querySelector(".client-count");
+
+                    clientCount.textContent =
+                        `${total.textContent} Clients`;
+
+                    // Reapply current filters
+                    filterClients();
+
+                    window.lucide?.createIcons({
+                        attrs: { "stroke-width": "1.8" }
+                    });
+
+                    clientForm.reset();
+                    closeModal();
+
+                    showToast(result.message, "success");
+
+                } catch (error) {
+                    console.error("Add Client Error:", error);
+
+                    showToast(
+                        "Something went wrong. Please try again.",
+                        "error"
+                    );
+
+                } finally {
+                    saveClientBtn.disabled = false;
+                    saveClientBtn.textContent = originalText;
+                }
+            });
+
+            /* Delete Client - AJAX DELETE */
+
+            const deleteModal = document.getElementById("clientDeleteModal");
+            const confirmDeleteBtn = document.getElementById("confirmDeleteClient");
+            const deleteClientName = document.getElementById("deleteClientName");
+
+            let deletingClientRow = null;
+
+            function openDeleteModal(row) {
+                deletingClientRow = row;
+
+                const name = row.querySelector(".client-name");
+                deleteClientName.textContent = name
+                    ? name.textContent.trim()
+                    : "this client";
+
+                deleteModal.classList.add("show");
+                document.body.style.overflow = "hidden";
+
+                window.lucide?.createIcons({
+                    attrs: { "stroke-width": "1.8" }
+                });
+            }
+
+            function closeDeleteModal() {
+                deleteModal.classList.remove("show");
+
+                if (
+                    !modal.classList.contains("show") &&
+                    !viewClientModal.classList.contains("show") &&
+                    !editModal.classList.contains("show")
+                ) {
+                    document.body.style.overflow = "";
+                }
+
+                deletingClientRow = null;
+            }
+
+            document.getElementById("closeDeleteClientModal")
+                .addEventListener("click", closeDeleteModal);
+
+            document.getElementById("cancelDeleteClient")
+                .addEventListener("click", closeDeleteModal);
+
+            deleteModal.addEventListener("click", function (event) {
+                if (event.target === deleteModal) {
+                    closeDeleteModal();
+                }
+            });
+
+            clientTableBody.addEventListener("click", function (event) {
+                const deleteButton = event.target.closest('[data-action="delete"]');
+
+                if (!deleteButton) return;
+
+                const row = deleteButton.closest(".client-row");
+
+                if (!row) return;
+
+                openDeleteModal(row);
+            });
+
+            confirmDeleteBtn.addEventListener("click", async function () {
+                if (!deletingClientRow || confirmDeleteBtn.disabled) return;
+
+                const row = deletingClientRow;
+                const clientId = row.dataset.id;
+
+                if (!clientId) {
+                    showToast("Client ID not found.", "error");
+                    return;
+                }
+
+                const urlTemplate = "{% url 'teamlead_delete_client' 0 %}";
+
+                const deleteUrl = urlTemplate.replace(
+                    "/0/delete/",
+                    `/${clientId}/delete/`
+                );
+
+                const originalText = confirmDeleteBtn.textContent;
+
+                confirmDeleteBtn.disabled = true;
+                confirmDeleteBtn.textContent = "Deleting...";
+
+                try {
+                    const csrfToken = document.querySelector(
+                        '[name="csrfmiddlewaretoken"]'
+                    ).value;
+
+                    const response = await fetch(deleteUrl, {
+                        method: "DELETE",
+                        headers: {
+                            "X-CSRFToken": csrfToken,
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        credentials: "same-origin"
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || !result.success) {
+                        showToast(
+                            result.message || "Unable to delete client.",
+                            "error"
+                        );
+                        return;
+                    }
+
+                    const oldStatus = row.dataset.status;
+
+                    row.remove();
+
+                    const summaryNumbers = document.querySelectorAll(
+                        ".client-summary-number"
+                    );
+
+                    summaryNumbers[0].textContent =
+                        Math.max(0, Number(summaryNumbers[0].textContent) - 1);
+
+                    if (oldStatus === "active") {
+                        summaryNumbers[1].textContent =
+                            Math.max(0, Number(summaryNumbers[1].textContent) - 1);
+                    } else {
+                        summaryNumbers[2].textContent =
+                            Math.max(0, Number(summaryNumbers[2].textContent) - 1);
+                    }
+
+                    const total = Number(summaryNumbers[0].textContent);
+
+                    document.querySelector(".client-count").textContent =
+                        `${total} Clients`;
+
+                    if (rows().length === 0) {
+                        const emptyRow = document.createElement("tr");
+                        emptyRow.innerHTML = `
+                            <td colspan="7">
+                                <div class="client-empty">
+                                    No clients added yet.
+                                </div>
+                            </td>
+                        `;
+                        clientTableBody.appendChild(emptyRow);
+                    }
+
+                    closeDeleteModal();
+                    filterClients();
+
+                    showToast(result.message, "success");
+
+                } catch (error) {
+                    console.error("Delete Client Error:", error);
+                    showToast("Something went wrong. Please try again.", "error");
+
+                } finally {
+                    confirmDeleteBtn.disabled = false;
+                    confirmDeleteBtn.textContent = originalText;
+                }
+            });
+
+
+            /* Live update - table and counts refresh without a page reload */
+
+            (function liveUpdate() {
+                const POLL_MS = 10000;
+                let generation = 0;
+                let pending = null;
+                let paused = false;
+                let denied = false;
+
+                // Any local change invalidates a refresh that is already in flight
+                const bump = () => { generation++; pending?.abort(); };
+
+                clientForm.addEventListener("submit", bump);
+                editForm.addEventListener("submit", bump);
+                confirmDeleteBtn.addEventListener("click", bump);
+
+                const isBusy = () =>
+                    saveClientBtn.disabled ||
+                    updateClientBtn.disabled ||
+                    confirmDeleteBtn.disabled ||
+                    document.querySelector(".client-modal.show") ||
+                    document.querySelector('.cx-select-button[aria-expanded="true"]') ||
+                    document.querySelector(".client-action-btn:disabled");
+
+                const signature = tr =>
+                    [
+                        tr.dataset.id || "",
+                        tr.dataset.status || "",
+                        tr.dataset.branch || "",
+                        tr.textContent.replace(/\s+/g, " ").trim()
+                    ].join("|");
+
+                function applySnapshot(doc) {
+                    const nextBody = doc.getElementById("clientTableBody");
+                    if (!nextBody) return;
+
+                    const keep = tr => tr.id !== "clientNoResults";
+                    const nextRows = [...nextBody.children].filter(keep);
+                    const currentRows = [...clientTableBody.children].filter(keep);
+
+                    const changed =
+                        nextRows.map(signature).join("\n") !==
+                        currentRows.map(signature).join("\n");
+
+                    if (changed) {
+                        const noRes = getNoResults();
+
+                        currentRows.forEach(tr => tr.remove());
+                        nextRows.forEach(tr => {
+                            clientTableBody.insertBefore(
+                                document.importNode(tr, true),
+                                noRes
+                            );
+                        });
+
+                        window.lucide?.createIcons({
+                            attrs: { "stroke-width": "1.8" }
+                        });
+
+                        filterClients();
+                    }
+
+                    const nextNumbers = doc.querySelectorAll(".client-summary-number");
+                    const currentNumbers = document.querySelectorAll(".client-summary-number");
+
+                    nextNumbers.forEach((el, i) => {
+                        const target = currentNumbers[i];
+                        const value = el.textContent.trim();
+
+                        if (target && target.textContent.trim() !== value) {
+                            target.textContent = value;
+                        }
+                    });
+
+                    const nextCount = doc.querySelector(".client-count");
+                    const currentCount = document.querySelector(".client-count");
+
+                    if (nextCount && currentCount) {
+                        const value = nextCount.textContent.trim();
+
+                        if (currentCount.textContent.trim() !== value) {
+                            currentCount.textContent = value;
+                        }
+                    }
+                }
+
+                async function refresh() {
+                    if (paused || denied || document.hidden || pending || isBusy()) return;
+
+                    const controller = new AbortController();
+                    const ownGeneration = generation;
+                    const timer = setTimeout(() => controller.abort(), 12000);
+
+                    pending = controller;
+
+                    try {
+                        const response = await fetch(window.location.href, {
+                            credentials: "same-origin",
+                            cache: "no-store",
+                            signal: controller.signal
+                        });
+
+                        if (response.status === 401 || response.status === 403) {
+                            denied = true;
+                            showToast("Session expired. Please sign in again.", "warning");
+                            return;
+                        }
+
+                        if (!response.ok) return;
+
+                        const doc = new DOMParser().parseFromString(
+                            await response.text(),
+                            "text/html"
+                        );
+
+                        // Discard stale data if something changed while loading
+                        if (ownGeneration !== generation || paused || isBusy()) return;
+
+                        applySnapshot(doc);
+
+                    } catch (error) {
+                        /* Background refresh stays silent and retries next interval */
+                    } finally {
+                        clearTimeout(timer);
+                        if (pending === controller) pending = null;
+                    }
+                }
+
+                setInterval(refresh, POLL_MS);
+
+                document.addEventListener("visibilitychange", () => {
+                    if (!document.hidden) refresh();
+                });
+
+                window.addEventListener("pagehide", () => {
+                    paused = true;
+                    generation++;
+                    pending?.abort();
+                });
+
+                window.addEventListener("pageshow", event => {
+                    paused = false;
+                    if (event.persisted) refresh();
+                });
+            })();
+
+        });
+    </script>
+
+</body>
+</html>

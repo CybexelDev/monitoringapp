@@ -2,7 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.models import User  
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from .models import *
+from .models import User as EmployeeUser
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from datetime import date
@@ -5732,24 +5735,6 @@ def teamlead_notepad(request):
     return response
 
 
-# @never_cache
-# @require_POST
-# def teamlead_notepad_delete(request, pk):
-#     user_id = request.session.get("user_id")
-#     if not user_id or request.session.get("position") != "team_lead":
-#         return redirect("index")
-#     user = get_object_or_404(User, pk=user_id)
-#     note = get_object_or_404(Notepad, pk=pk, user=user)
-#     note.delete()
-#     messages.success(request, "Note deleted successfully.")
-#     sort = request.POST.get("sort", "updated")
-#     if sort not in {"updated", "created", "title"}:
-#         sort = "updated"
-#     return redirect(reverse("teamlead_notepad") + "?" + urlencode({
-#         "q": request.POST.get("q", "").strip()[:200],
-#         "sort": sort, "page": request.POST.get("page", "1"),
-#     }))
-
 @never_cache
 @require_http_methods(["DELETE"])
 def teamlead_notepad_delete(request, pk):
@@ -5835,25 +5820,6 @@ def teammember_notepad(request):
         response.status_code = 400
     return response
 
-
-# @never_cache
-# @require_POST
-# def teammember_notepad_delete(request, pk):
-#     user_id = request.session.get("user_id")
-#     if not user_id or request.session.get("position") != "team_member":
-#         return redirect("index")
-#     user = get_object_or_404(User, pk=user_id)
-#     note = get_object_or_404(Notepad, pk=pk, user=user)
-#     note.delete()
-#     messages.success(request, "Note deleted successfully.")
-#     sort = request.POST.get("sort", "updated")
-#     if sort not in {"updated", "created", "title"}:
-#         sort = "updated"
-#     return redirect(reverse("teammember_notepad") + "?" + urlencode({
-#         "q": request.POST.get("q", "").strip()[:200],
-#         "sort": sort, "page": request.POST.get("page", "1"),
-#     }))
-
 @never_cache
 @require_http_methods(["DELETE"])
 def teammember_notepad_delete(request, pk):
@@ -5867,7 +5833,7 @@ def teammember_notepad_delete(request, pk):
 
 from django.shortcuts import redirect, get_object_or_404
 from django.views.decorators.cache import never_cache
-
+from .models import Client
 
 @never_cache
 def teamlead_profile(request):
@@ -5905,6 +5871,305 @@ def teamlead_profile(request):
     response["Pragma"] = "no-cache"
     response["Expires"] = "0"
     return response
+
+@never_cache
+def teamlead_client_details(request):
+    if request.session.get("position") != "team_lead":
+        return redirect("index")
+
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        return redirect("index")
+
+    user = get_object_or_404(User, pk=user_id)
+
+    clients = Client.objects.filter(
+        team_lead=user
+    ).order_by("-created_at", "-id")
+
+    context = {
+        "user": user,
+        "clients": clients,
+        "total_clients": clients.count(),
+        "active_clients": clients.filter(status="active").count(),
+        "inactive_clients": clients.filter(status="inactive").count(),
+    }
+
+    return render(
+        request,
+        "team_lead/teamlead_client_details.html",
+        context
+    )
+
+
+@require_POST
+def teamlead_add_client(request):
+
+    # 1. Team Lead session validation
+    if request.session.get("position") != "team_lead":
+        return JsonResponse({
+            "success": False,
+            "message": "Unauthorized access."
+        }, status=403)
+
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        return JsonResponse({
+            "success": False,
+            "message": "Session expired. Please login again."
+        }, status=401)
+
+    user = get_object_or_404(EmployeeUser, pk=user_id)
+
+    # 2. Get submitted form data
+    data = request.POST
+
+    client_name = data.get("client_name", "").strip()
+    company_name = data.get("company_name", "").strip()
+    contact_person = data.get("contact_person", "").strip()
+    email = data.get("email", "").strip()
+    phone_number = data.get("phone_number", "").strip()
+    address = data.get("address", "").strip()
+    branch = data.get("branch", "").strip()
+    project_details = data.get("project_details", "").strip()
+    status = data.get("status", "active").strip() or "active"
+
+    # 3. Required field validation
+    required_fields = {
+        "client_name": client_name,
+        "company_name": company_name,
+        "contact_person": contact_person,
+        "email": email,
+        "phone_number": phone_number,
+        "address": address,
+        "branch": branch,
+    }
+
+    errors = {}
+
+    for field, value in required_fields.items():
+        if not value:
+            errors[field] = "This field is required."
+
+    if errors:
+        return JsonResponse({
+            "success": False,
+            "message": "Please fill all required fields.",
+            "errors": errors
+        }, status=400)
+
+    # 4. Create client with logged-in Team Lead
+    client = Client(
+        team_lead=user,
+        client_name=client_name,
+        company_name=company_name,
+        contact_person=contact_person,
+        email=email,
+        phone_number=phone_number,
+        address=address,
+        branch=branch,
+        project_details=project_details,
+        status=status,
+    )
+
+    # 5. Model-level validation
+    try:
+        client.full_clean()
+        client.save()
+
+    except ValidationError as exc:
+        if hasattr(exc, "message_dict"):
+            errors = {
+                field: messages[0]
+                for field, messages in exc.message_dict.items()
+            }
+        else:
+            errors = {"__all__": exc.messages[0]}
+
+        return JsonResponse({
+            "success": False,
+            "message": "Please check the submitted details.",
+            "errors": errors
+        }, status=400)
+
+    # 6. Return saved client details
+    return JsonResponse({
+        "success": True,
+        "message": "Client added successfully!",
+        "client": {
+            "id": client.id,
+            "client_name": client.client_name,
+            "company_name": client.company_name,
+            "contact_person": client.contact_person,
+            "email": client.email,
+            "phone_number": client.phone_number,
+            "address": client.address,
+            "branch": client.branch,
+            "branch_display": client.get_branch_display(),
+            "project_details": client.project_details,
+            "status": client.status,
+            "status_display": client.get_status_display(),
+        }
+    }, status=201)
+
+
+@require_GET
+def teamlead_view_client(request, pk):
+
+    # Team Lead session validation
+    if request.session.get("position") != "team_lead":
+        return JsonResponse({
+            "success": False,
+            "message": "Unauthorized access."
+        }, status=403)
+
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        return JsonResponse({
+            "success": False,
+            "message": "Session expired. Please login again."
+        }, status=401)
+
+    user = get_object_or_404(EmployeeUser, pk=user_id)
+
+    # Only allow the logged-in Team Lead to view their own clients
+    client = get_object_or_404(
+        Client,
+        pk=pk,
+        team_lead=user
+    )
+
+    return JsonResponse({
+        "success": True,
+        "client": {
+            "id": client.id,
+            "client_name": client.client_name,
+            "company_name": client.company_name,
+            "contact_person": client.contact_person,
+            "email": client.email,
+            "phone_number": client.phone_number,
+            "address": client.address,
+            "branch": client.branch,
+            "branch_display": client.get_branch_display(),
+            "project_details": client.project_details,
+            "status": client.status,
+            "status_display": client.get_status_display(),
+        }
+    })
+
+
+@require_POST
+def teamlead_edit_client(request, pk):
+
+    if request.session.get("position") != "team_lead":
+        return JsonResponse({
+            "success": False,
+            "message": "Unauthorized access."
+        }, status=403)
+
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        return JsonResponse({
+            "success": False,
+            "message": "Session expired. Please login again."
+        }, status=401)
+
+    user = get_object_or_404(EmployeeUser, pk=user_id)
+
+    client = get_object_or_404(
+        Client,
+        pk=pk,
+        team_lead=user
+    )
+
+    data = request.POST
+
+    client.client_name = data.get("client_name", "").strip()
+    client.company_name = data.get("company_name", "").strip()
+    client.contact_person = data.get("contact_person", "").strip()
+    client.email = data.get("email", "").strip()
+    client.phone_number = data.get("phone_number", "").strip()
+    client.address = data.get("address", "").strip()
+    client.branch = data.get("branch", "").strip()
+    client.project_details = data.get("project_details", "").strip()
+    client.status = data.get("status", "").strip()
+
+    try:
+        client.full_clean()
+        client.save()
+
+    except ValidationError as exc:
+        if hasattr(exc, "message_dict"):
+            errors = {
+                field: messages[0]
+                for field, messages in exc.message_dict.items()
+            }
+        else:
+            errors = {"__all__": exc.messages[0]}
+
+        return JsonResponse({
+            "success": False,
+            "message": "Please check the submitted details.",
+            "errors": errors
+        }, status=400)
+
+    return JsonResponse({
+        "success": True,
+        "message": "Client updated successfully!",
+        "client": {
+            "id": client.id,
+            "client_name": client.client_name,
+            "company_name": client.company_name,
+            "contact_person": client.contact_person,
+            "email": client.email,
+            "phone_number": client.phone_number,
+            "address": client.address,
+            "branch": client.branch,
+            "branch_display": client.get_branch_display(),
+            "project_details": client.project_details,
+            "status": client.status,
+            "status_display": client.get_status_display(),
+        }
+    })
+
+
+
+@require_http_methods(["DELETE"])
+def teamlead_delete_client(request, pk):
+
+    if request.session.get("position") != "team_lead":
+        return JsonResponse({
+            "success": False,
+            "message": "Unauthorized access."
+        }, status=403)
+
+    user_id = request.session.get("user_id")
+
+    if not user_id:
+        return JsonResponse({
+            "success": False,
+            "message": "Session expired. Please login again."
+        }, status=401)
+
+    user = get_object_or_404(EmployeeUser, pk=user_id)
+
+    client = get_object_or_404(
+        Client,
+        pk=pk,
+        team_lead=user
+    )
+
+    client.delete()
+
+    return JsonResponse({
+        "success": True,
+        "message": "Client deleted successfully!",
+        "client_id": pk
+    })
 
 
 

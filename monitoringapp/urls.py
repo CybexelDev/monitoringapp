@@ -103,6 +103,8 @@ path(
     path(
         "api/user-status/<int:user_id>/", views.get_user_status, name="get_user_status"
     ),
+# <----------- Team lead ---------------->
+
     path("teamlead/dashboard/", views.teamlead_dashboard, name="teamlead_dashboard"),
     path("teamlead_reports", views.teamlead_reports, name="teamlead_reports"),
     path(
@@ -205,6 +207,31 @@ path(
     "teamlead/reminders/<int:pk>/delete/",
     views.teamlead_reminder_delete,
     name="teamlead_reminder_delete",
+),
+path(
+    "teamlead/client-details/",
+    views.teamlead_client_details,
+    name="teamlead_client_details",
+),
+path(
+    "teamlead/client-details/add/",
+    views.teamlead_add_client,
+    name="teamlead_add_client",
+),
+path(
+    "teamlead/client-details/<int:pk>/view/",
+    views.teamlead_view_client,
+    name="teamlead_view_client",
+),
+path(
+    "teamlead/client-details/<int:pk>/edit/",
+    views.teamlead_edit_client,
+    name="teamlead_edit_client",
+),
+path(
+    "teamlead/client-details/<int:pk>/delete/",
+    views.teamlead_delete_client,
+    name="teamlead_delete_client",
 ),
 
     # <---TEAM MEMBERS--->
