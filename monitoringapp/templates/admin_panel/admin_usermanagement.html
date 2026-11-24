@@ -1716,7 +1716,7 @@ body.admin-usermanagement-page .edit-modal .profile-preview img[hidden] {
                                 <th>Image</th>
                                 <th>Emp ID</th>
                                 <th>Department</th>
-                                
+                                <th>Branch</th>                                
                                 <th>Job Position</th>
                                 <th>Designation</th>
                                 <th>Name</th>
@@ -1746,7 +1746,7 @@ body.admin-usermanagement-page .edit-modal .profile-preview img[hidden] {
 
                                 <td>{{ user.employee_id }}</td>
                                 <td>{{ user.department }}</td>
-                                
+                                <td>{{ user.branch.name|default:"—" }}</td>                                
                                 <td>{{ user.job_Position }}</td>
                                 <td>{{ user.designation }}</td>
                                 <td class="employee-name">{{ user.name }}</td>
@@ -1776,6 +1776,7 @@ body.admin-usermanagement-page .edit-modal .profile-preview img[hidden] {
                                             data-email="{{ user.email }}"
                                             data-phone="{{ user.phone }}"
                                             data-department="{{ user.department_id|default_if_none:'' }}"
+                                            data-branch="{{ user.branch_id|default_if_none:'' }}"                                            
                                             data-designation="{{ user.designation }}"
                                             data-job_position="{{ user.job_Position }}"
                                             
@@ -1804,7 +1805,7 @@ data-worklocation="{% if user.work_location and user.work_location != 'None' %}{
 
                             {% empty %}
                             <tr>
-                                <td colspan="13" class="empty-row">No users found</td>
+                                <td colspan="14" class="empty-row">No users found</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -1904,6 +1905,17 @@ data-worklocation="{% if user.work_location and user.work_location != 'None' %}{
                 </div>
             </div>
 
+            <div class="form-group">
+                <label for="branch" class="form-label">Branch</label>
+                <div class="select-wrapper">
+                    <select id="branch" name="branch" class="glass-select" required>
+                        <option value="">Select Branch</option>
+                        {% for b in branches %}{% if b.is_active %}
+                        <option value="{{ b.id }}">{{ b.name }}{% if b.is_head_office %} (Head Office){% endif %}</option>
+                        {% endif %}{% endfor %}
+                    </select>
+                </div>
+            </div>
             <div class="form-group">
                 <label for="work_location" class="form-label">Work Location</label>
                 <div class="input-wrapper">
@@ -2037,6 +2049,15 @@ data-worklocation="{% if user.work_location and user.work_location != 'None' %}{
             <div class="edit-form-group">
                 <label class="edit-label" for="edit_designation">Designation</label>
                 <select id="edit_designation" name="edit_designation" class="edit-select" required disabled><option value="">Choose department first</option></select>
+            </div>
+            <div class="edit-form-group">
+                <label class="edit-label" for="edit_branch">Branch</label>
+                <select id="edit_branch" name="edit_branch" class="edit-select">
+                    <option value="">Not assigned</option>
+                    {% for b in branches %}
+                    <option value="{{ b.id }}">{{ b.name }}{% if b.is_head_office %} (Head Office){% endif %}{% if not b.is_active %} (inactive){% endif %}</option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="edit-form-group">
@@ -2242,6 +2263,7 @@ function openAddEmployeeModal() {
     if (!modal) return;
 
     fillDesignationChoices(document.getElementById("department")?.value, "designation");
+    refreshBranchOptions();    
     setUserModalVisibility(modal, true);
     document.body.style.overflow = "hidden";
 
@@ -2279,6 +2301,7 @@ if (addEmployeeModal) {
 
 /* EDIT MODAL */
 function openEditModal(button) {
+    refreshBranchOptions();
     document.getElementById("edit_id").value = button.dataset.id || "";
     document.getElementById("edit_emp_id").value = button.dataset.empid || "";
     document.getElementById("edit_name").value = button.dataset.name || "";
@@ -2286,6 +2309,7 @@ function openEditModal(button) {
     document.getElementById("edit_phone").value = button.dataset.phone || "";
 
     setSelectValueOrText("edit_department", button.dataset.department);
+    setSelectValueOrText("edit_branch", button.dataset.branch);
 
     fillDesignationChoices(document.getElementById("edit_department").value, "edit_designation", button.dataset.designation || "");
     document.getElementById("edit_job_position").value = button.dataset.job_position || "";
@@ -2751,6 +2775,28 @@ document.addEventListener('keydown', function(event) {
     if (event.shiftKey && document.activeElement===first) { event.preventDefault(); last.focus(); }
     else if (!event.shiftKey && document.activeElement===last) { event.preventDefault(); first.focus(); }
 });
+/* Keep Branch dropdowns in sync with the server without a page reload. */
+function refreshBranchOptions() {
+    fetch(window.location.pathname, {credentials: "same-origin", cache: "no-store"})
+        .then(r => r.ok ? r.text() : "")
+        .then(html => { if (html) syncBranchOptions(new DOMParser().parseFromString(html, "text/html")); })
+        .catch(() => {});
+}
+function syncBranchOptions(doc) {
+    for (const id of ["branch", "edit_branch"]) {
+        const current = document.getElementById(id);
+        const fresh = doc.getElementById(id);
+        if (!current || !fresh) continue;
+        const signature = Array.from(fresh.options).map(o => o.value + "|" + o.textContent.trim()).join("\n");
+        if (current.dataset.branchSignature === signature) continue;
+        const selected = current.value;
+        current.replaceChildren(...Array.from(fresh.options).map(o => o.cloneNode(true)));
+        current.dataset.branchSignature = signature;
+        if (Array.from(current.options).some(o => o.value === selected)) current.value = selected;
+        // Rebuilds the custom dropdown label/menu.
+        current.dispatchEvent(new Event("change", {bubbles: true}));
+    }
+}
 
 /* One update controller for filtering, CRUD and background table updates. */
 (() => {
@@ -2807,6 +2853,7 @@ document.addEventListener('keydown', function(event) {
         }
         const count = document.getElementById('employeeCount');
         if (count) count.textContent = doc.getElementById('employeeCount')?.textContent || '0';
+        syncBranchOptions(doc);
         const catalog = doc.getElementById('departmentDesignationOptions');
         if (catalog) { try { departmentDesignationOptions = JSON.parse(catalog.textContent || '{}'); } catch (_) {} }
     }

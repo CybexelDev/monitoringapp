@@ -4,6 +4,7 @@ from . models import *
 admin.site.register(Department)
 admin.site.register(Team)
 admin.site.register(User)
+admin.site.register(Branch)
 admin.site.register(Announcement)
 admin.site.register(MorningReport)
 admin.site.register(EveningReport)

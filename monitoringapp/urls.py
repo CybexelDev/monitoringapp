@@ -395,6 +395,7 @@ path("accounts/profile/", views.accounts_profile, name="accounts_profile"),
     path("master-admin/users/edit/", views.master_admin_edit_user, name="master_admin_edit_user"),
     path("master-admin/users/<int:pk>/delete/", views.master_admin_delete_user, name="master_admin_delete_user"),
     path("master-admin/departments/", views.master_admin_departments, name="master_admin_departments"),
+    path("master-admin/branches/", views.master_admin_branches, name="master_admin_branches"),    
     path("master-admin/reports/", views.master_admin_reports, name="master_admin_reports"),
 path("master-admin/accounts/income/", views.master_admin_accounts_income, name="master_admin_accounts_income"),
 path("master-admin/accounts/income/<int:pk>/edit/", views.master_admin_accounts_income_edit, name="master_admin_accounts_income_edit"),
@@ -448,6 +449,20 @@ path("api/chat/push/<str:portal>/config/", chat_push.config, name="chat_push_con
 path("api/chat/push/<str:portal>/subscribe/", chat_push.subscribe, name="chat_push_subscribe"),
 path("api/chat/push/<str:portal>/unsubscribe/", chat_push.unsubscribe, name="chat_push_unsubscribe"),
 
-
+#<----HR------>
+path("hr/dashboard/", views.hr_dashboard, name="hr_dashboard"),
+path("hr/logout/", views.hr_logout, name="hr_logout"),
+path("hr/user-management/", views.hr_usermanagement, name="hr_usermanagement"),
+path("hr/announcements/", views.hr_announcements, name="hr_announcements"),
+path("hr/reports/", views.hr_reports, name="hr_reports"),
+path("hr/project-assigning/", views.hr_project_assigning, name="hr_project_assigning"),
+path("hr/tasks/", views.hr_tasks, name="hr_tasks"),
+path("hr/notepad/", views.hr_notepad, name="hr_notepad"),
+path("hr/repository/", views.hr_repository, name="hr_repository"),
+path("hr/chat/", views.hr_chat, name="hr_chat"),
+path("hr/google-meet/", views.hr_google_meet, name="hr_google_meet"),
+path("hr/reminders/", views.hr_reminders, name="hr_reminders"),
+path("hr/notifications/", views.hr_notifications, name="hr_notifications"),
+path("hr/profile/", views.hr_profile, name="hr_profile"),
 
 ]

@@ -22,7 +22,18 @@ class Team(models.Model):
     def __str__(self):
        return self.name
 
+class Branch(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    code = models.CharField(max_length=10, unique=True, null=True, blank=True)
+    is_head_office = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
 
 
 class User(models.Model):
@@ -38,6 +49,13 @@ class User(models.Model):
 
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True)
     team = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True)
+    branch = models.ForeignKey(
+        Branch,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="employees",
+    )
 
     job_Position = models.CharField(max_length=100)
     designation = models.CharField(max_length=100)

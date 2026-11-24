@@ -233,6 +233,16 @@ body.master-departments-page:has(.org-dialog[open]) #masterOrg{overflow:hidden!i
 @media(max-width:768px){
   .master-departments-page .org-table{min-width:760px}
 }
+/* Branches table: 3 columns */
+.master-departments-page .org-table.branch-table{min-width:480px}
+.master-departments-page .org-table.branch-table th:nth-child(1),
+.master-departments-page .org-table.branch-table td:nth-child(1){width:auto;text-align:left}
+.master-departments-page .org-table.branch-table th:nth-child(2),
+.master-departments-page .org-table.branch-table td:nth-child(2){width:140px;text-align:center;white-space:nowrap}
+.master-departments-page .org-table.branch-table th:nth-child(3),
+.master-departments-page .org-table.branch-table td:nth-child(3){width:120px;text-align:right}
+.master-departments-page .branch-section{margin-top:28px}
+
 </style>
 {% endblock %}
 {% block content %}
@@ -277,6 +287,37 @@ body.master-departments-page:has(.org-dialog[open]) #masterOrg{overflow:hidden!i
 </tbody>
 </table>
 </div></div>
+<div class="branch-section">
+ <div class="org-directory-heading"><div><span>COMPANY LOCATIONS</span><h2>Branches</h2></div><div class="org-heading-line" aria-hidden="true"></div><button type="button" class="org-btn" id="branchAdd"><i data-lucide="plus" aria-hidden="true"></i>Add Branch</button></div>
+ <div class="org-panel">
+  <div class="org-toolbar"><span class="org-count" id="branchCount" role="status" aria-live="polite"></span></div>
+  <p class="org-refresh-error" id="branchListError" role="status"></p>
+  <div class="org-scroll" tabindex="0" role="region" aria-label="Branch list">
+   <table class="org-table branch-table">
+    <thead><tr><th scope="col">Branch</th><th scope="col">Employees</th><th scope="col">Actions</th></tr></thead>
+    <tbody id="branchRows"><tr><td colspan="3" class="org-empty">Loading branches…</td></tr></tbody>
+   </table>
+  </div>
+ </div>
+</div>
+
+<dialog class="org-dialog" id="branchEditor" aria-labelledby="branchEditorTitle">
+ <form id="branchForm" method="post" action="{% url 'master_admin_branches' %}">{% csrf_token %}
+  <div class="org-dialog-head"><h2 id="branchEditorTitle">Add Branch</h2><button type="button" class="org-btn" data-bclose="branchEditor" aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div>
+  <div class="org-field"><label for="branchName">Branch name</label><input type="text" name="branch_name" id="branchName" required maxlength="100" autocomplete="off" placeholder="e.g. Bangalore"></div>
+  <p class="org-error" id="branchFormError" role="alert"></p>
+  <div class="org-foot"><button type="button" class="org-btn" data-bclose="branchEditor">Cancel</button><button type="submit" class="org-btn" id="branchSave">Add branch</button></div>
+ </form>
+</dialog>
+
+<dialog class="org-dialog" id="branchDelete" aria-labelledby="branchDeleteTitle">
+ <form id="branchDeleteForm" method="post" action="{% url 'master_admin_branches' %}">{% csrf_token %}
+  <div class="org-dialog-head"><h2 id="branchDeleteTitle">Delete branch?</h2><button type="button" class="org-btn" data-bclose="branchDelete" aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div>
+  <p class="org-muted" id="branchDeleteText" style="margin:14px 28px"></p>
+  <p class="org-error" id="branchDeleteError" role="alert" style="margin-left:28px;margin-right:28px"></p>
+  <div class="org-foot"><button type="button" class="org-btn" data-bclose="branchDelete">Cancel</button><button type="submit" class="org-btn org-btn-danger" id="branchDeleteConfirm">Delete branch</button></div>
+ </form>
+</dialog>
 </section>
 {{ department_items|json_script:'orgInitialData' }}
 <!-- <dialog class="org-dialog" id="orgEditor" aria-labelledby="orgEditorTitle"><th scope="col">Employee ID Code</th> -->
@@ -541,6 +582,125 @@ if (form === $('orgDeleteForm')) {
 document.addEventListener('visibilitychange',()=>{clearTimeout(timer);if(document.hidden){feedController?.abort();++feedSequence;}else poll();});
 window.addEventListener('online',poll);window.addEventListener('pagehide',()=>{pagePaused=true;++feedSequence;clearTimeout(timer);feedController?.abort();});window.addEventListener('pageshow',()=>{pagePaused=false;schedule();});
 render();schedule(1000);
+})();
+</script>
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const url = "{% url 'master_admin_branches' %}";
+const editor = $('branchEditor'), removal = $('branchDelete');
+document.body.append(editor, removal);
+let items = [], busy = false, pending = null;
+
+const notify = (message, type = 'success') => {
+  if (typeof window.showToast === 'function') { try { window.showToast(message, type); return; } catch (_) {} }
+  $('branchListError').textContent = type === 'error' ? message : '';
+};
+
+function render() {
+  const frag = document.createDocumentFragment();
+  for (const b of items) {
+    const tr = document.createElement('tr');
+    const name = document.createElement('td'); name.textContent = b.name;
+    if (b.is_head_office) {
+      const tag = document.createElement('span'); tag.className = 'org-tag'; tag.style.marginLeft = '8px'; tag.textContent = 'Head Office'; name.append(tag);
+    }
+    const count = document.createElement('td'); count.textContent = b.employees;
+    const actions = document.createElement('td');
+    const wrap = document.createElement('div'); wrap.className = 'org-row-actions';
+    const del = document.createElement('button'); del.type = 'button'; del.className = 'org-btn org-btn-danger';
+    del.dataset.bdelete = b.id; del.title = 'Delete ' + b.name; del.setAttribute('aria-label', 'Delete ' + b.name);
+    const icon = document.createElement('i'); icon.dataset.lucide = 'trash-2'; icon.setAttribute('aria-hidden', 'true');
+    del.append(icon); wrap.append(del); actions.append(wrap);
+    tr.append(name, count, actions); frag.append(tr);
+  }
+  if (!items.length) {
+    const tr = document.createElement('tr'), td = document.createElement('td');
+    td.colSpan = 3; td.className = 'org-empty'; td.textContent = 'No branches yet. Add your first branch.';
+    tr.append(td); frag.append(tr);
+  }
+  $('branchRows').replaceChildren(frag);
+  $('branchCount').textContent = items.length + (items.length === 1 ? ' branch' : ' branches');
+  window.lucide?.createIcons();
+}
+
+async function load() {
+  try {
+    const r = await fetch(url, {credentials: 'same-origin', cache: 'no-store', headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'}});
+    if (!(r.headers.get('Content-Type') || '').includes('application/json')) throw Error('Unable to load branches. Check your login.');
+    const data = await r.json();
+    if (!r.ok || !data.ok) throw Error(data.message || 'Unable to load branches.');
+    items = data.items; $('branchListError').textContent = ''; render();
+  } catch (e) { $('branchListError').textContent = e.message; }
+}
+
+$('branchAdd').addEventListener('click', () => {
+  $('branchForm').reset(); $('branchFormError').textContent = '';
+  editor.showModal(); $('branchName').focus();
+});
+
+document.addEventListener('click', event => {
+  const closer = event.target.closest('[data-bclose]');
+  if (closer) { if (!busy) $(closer.dataset.bclose).close(); return; }
+  const button = event.target.closest('#branchRows [data-bdelete]');
+  if (!button || busy) return;
+  const b = items.find(x => String(x.id) === button.dataset.bdelete); if (!b) return;
+  pending = b; $('branchDeleteError').textContent = '';
+  const blocked = b.is_head_office || b.employees > 0;
+  $('branchDeleteText').textContent = b.is_head_office
+    ? '“' + b.name + '” is the head office and cannot be deleted.'
+    : b.employees > 0
+      ? '“' + b.name + '” has ' + b.employees + ' employee(s). Move them to another branch before deleting.'
+      : 'Delete “' + b.name + '”? This cannot be undone.';
+  $('branchDeleteConfirm').disabled = blocked;
+  removal.showModal();
+});
+
+for (const d of [editor, removal]) d.addEventListener('cancel', e => { if (busy) e.preventDefault(); });
+
+$('branchForm').addEventListener('submit', async event => {
+  event.preventDefault(); if (busy) return;
+  busy = true; $('branchFormError').textContent = ''; $('branchSave').disabled = true;
+  try {
+    const r = await fetch(url, {method: 'POST', body: new FormData(event.target), credentials: 'same-origin', headers: {'X-Requested-With': 'XMLHttpRequest'}});
+    if (!(r.headers.get('Content-Type') || '').includes('application/json')) throw Error('The server did not confirm this change. Check your login.');
+    const data = await r.json();
+    if (!r.ok || !data.ok) throw Error(data.message || 'Unable to add branch.');
+    items = data.items; render(); editor.close(); notify(data.message);
+  } catch (e) { $('branchFormError').textContent = e.message; }
+  finally { busy = false; $('branchSave').disabled = false; }
+});
+
+$('branchDeleteForm').addEventListener('submit', async event => {
+  event.preventDefault(); if (busy || !pending) return;
+  busy = true; $('branchDeleteError').textContent = ''; $('branchDeleteConfirm').disabled = true;
+  try {
+    const token = new FormData(event.target).get('csrfmiddlewaretoken');
+    const target = new URL(url, window.location.origin); target.searchParams.set('branch_id', pending.id);
+    const r = await fetch(target, {method: 'DELETE', credentials: 'same-origin', cache: 'no-store', headers: {'X-CSRFToken': token, 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'}});
+    if (!(r.headers.get('Content-Type') || '').includes('application/json')) throw Error('The server did not confirm this change. Check your login.');
+    const data = await r.json();
+    if (!r.ok || !data.ok) throw Error(data.message || 'Unable to delete branch.');
+    items = data.items; render(); removal.close(); notify(data.message);
+  } catch (e) { $('branchDeleteError').textContent = e.message; $('branchDeleteConfirm').disabled = false; }
+  finally { busy = false; pending = null; }
+});
+let pollTimer = null;
+function schedulePoll(delay = 15000) {
+  clearTimeout(pollTimer);
+  if (document.hidden) return;
+  pollTimer = setTimeout(async () => {
+    if (!busy && !editor.open && !removal.open) await load();
+    schedulePoll();
+  }, delay);
+}
+document.addEventListener('visibilitychange', () => {
+  clearTimeout(pollTimer);
+  if (!document.hidden) { if (!busy) load(); schedulePoll(); }
+});
+window.addEventListener('online', () => { if (!busy) load(); });
+load().then(() => schedulePoll());
 })();
 </script>
 {% endblock %}

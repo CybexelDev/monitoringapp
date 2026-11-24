@@ -1768,7 +1768,7 @@ body.admin-usermanagement-page .profile-preview-hint {
                                 <th>Image</th>
                                 <th>Emp ID</th>
                                 <th>Department</th>
-                                
+                                <th>Branch</th>                                
                                 <th>Job Position</th>
                                 <th>Designation</th>
                                 <th>Name</th>
@@ -1798,7 +1798,7 @@ body.admin-usermanagement-page .profile-preview-hint {
 
                                 <td>{{ user.employee_id }}</td>
                                 <td>{{ user.department }}</td>
-                                
+                                <td>{{ user.branch.name|default:"—" }}</td>                                
                                 <td>{{ user.job_Position }}</td>
                                 <td>{{ user.designation }}</td>
                                 <td class="employee-name">{{ user.name }}</td>
@@ -1827,6 +1827,7 @@ body.admin-usermanagement-page .profile-preview-hint {
                                             data-email="{{ user.email }}"
                                             data-phone="{{ user.phone }}"
                                             data-department="{{ user.department_id|default_if_none:'' }}"
+                                            data-branch="{{ user.branch_id|default_if_none:'' }}"                                            
                                             data-designation="{{ user.designation }}"
                                             data-job_position="{{ user.job_Position }}"
                                             data-worklocation="{{ user.work_location }}"
@@ -1848,7 +1849,7 @@ body.admin-usermanagement-page .profile-preview-hint {
 
                             {% empty %}
                             <tr>
-                                <td colspan="13" class="empty-row">No users found</td>
+                                <td colspan="14" class="empty-row">No users found</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -1958,7 +1959,7 @@ body.admin-usermanagement-page .profile-preview-hint {
                     <select id="job_Position" name="job_Position" class="glass-select" required>
                         <option value="">Select Job Position</option>
                         <option value="Team Lead">Team Lead</option>
-                        <option value="Team Member">Team Member</option><option value="Management">Admin (Management)</option><option value="Accounts">Accounts</option>
+                        <option value="Team Member">Team Member</option><option value="Management">Admin (Management)</option><option value="Accounts">Accounts</option><option value="HR">HR</option>
                     </select>
                 </div>
             </div>
@@ -1968,6 +1969,18 @@ body.admin-usermanagement-page .profile-preview-hint {
                 <div class="input-wrapper">
                     <span class="input-icon"><i data-lucide="briefcase-business"></i></span>
                     <select id="designation" name="designation" class="glass-select" disabled><option value="">Choose department first</option></select>
+                </div>
+            </div>
+
+                        <div class="form-group">
+                <label for="branch" class="form-label">Branch</label>
+                <div class="select-wrapper">
+                    <select id="branch" name="branch" class="glass-select" required>
+                        <option value="">Select Branch</option>
+                        {% for b in branches %}{% if b.is_active %}
+                        <option value="{{ b.id }}">{{ b.name }}{% if b.is_head_office %} (Head Office){% endif %}</option>
+                        {% endif %}{% endfor %}
+                    </select>
                 </div>
             </div>
 
@@ -2104,12 +2117,21 @@ body.admin-usermanagement-page .profile-preview-hint {
 
             <div class="edit-form-group">
                 <label class="edit-label" for="edit_job_position">Job Position</label>
-                <select id="edit_job_position" name="edit_job_position" class="edit-select" required><option value="Team Lead">Team Lead</option><option value="Team Member">Team Member</option><option value="Management">Admin (Management)</option><option value="Accounts">Accounts</option></select>
+                <select id="edit_job_position" name="edit_job_position" class="edit-select" required><option value="Team Lead">Team Lead</option><option value="Team Member">Team Member</option><option value="Management">Admin (Management)</option><option value="Accounts">Accounts</option><option value="HR">HR</option></select>
             </div>
 
             <div class="edit-form-group">
                 <label class="edit-label" for="edit_designation">Designation</label>
                 <select id="edit_designation" name="edit_designation" class="edit-select" disabled><option value="">Choose department first</option></select>
+            </div>
+                        <div class="edit-form-group">
+                <label class="edit-label" for="edit_branch">Branch</label>
+                <select id="edit_branch" name="edit_branch" class="edit-select">
+                    <option value="">Not assigned</option>
+                    {% for b in branches %}
+                    <option value="{{ b.id }}">{{ b.name }}{% if b.is_head_office %} (Head Office){% endif %}{% if not b.is_active %} (inactive){% endif %}</option>
+                    {% endfor %}
+                </select>
             </div>
 
             <div class="edit-form-group">
@@ -2356,7 +2378,7 @@ updateAddEmployeeAvatar();
 function openAddEmployeeModal() {
     const modal = document.getElementById("addEmployeeModal");
     if (!modal) return;
-
+    refreshBranchOptions();
     fillDesignationChoices(document.getElementById("department")?.value, "designation");
     document.getElementById('status').value = 'inactive';
     setUserModalVisibility(modal, true);
@@ -2406,6 +2428,7 @@ if (addEmployeeModal) {
 
 /* EDIT MODAL */
 function openEditModal(button) {
+    refreshBranchOptions();    
     document.getElementById("edit_id").value = button.dataset.id || "";
     document.getElementById("edit_emp_id").value = button.dataset.empid || "";
     document.getElementById("edit_name").value = button.dataset.name || "";
@@ -2413,10 +2436,11 @@ function openEditModal(button) {
     document.getElementById("edit_phone").value = button.dataset.phone || "";
 
     setSelectValueOrText("edit_department", button.dataset.department);
+    setSelectValueOrText("edit_branch", button.dataset.branch);
 
     fillDesignationChoices(document.getElementById("edit_department").value, "edit_designation", button.dataset.designation || "");
     const rawRole = String(button.dataset.job_position || '').trim().toLowerCase().replace(/_/g, ' ');
-    const canonicalRole = {'management':'Management','accounts':'Accounts','accounts team':'Accounts','team lead':'Team Lead','team member':'Team Member'}[rawRole];
+    const canonicalRole = {'management':'Management','accounts':'Accounts','accounts team':'Accounts','hr':'HR','hr team':'HR','team lead':'Team Lead','team member':'Team Member'}[rawRole];
     document.getElementById("edit_job_position").value = canonicalRole || '';
     document.getElementById("edit_work_location").value = button.dataset.worklocation || "";
 
@@ -2918,6 +2942,28 @@ document.addEventListener('keydown', function(event) {
     if (event.shiftKey && document.activeElement===first) { event.preventDefault(); last.focus(); }
     else if (!event.shiftKey && document.activeElement===last) { event.preventDefault(); first.focus(); }
 });
+/* Keep Branch dropdowns in sync with the server without a page reload. */
+function refreshBranchOptions() {
+    fetch(window.location.pathname, {credentials: "same-origin", cache: "no-store"})
+        .then(r => r.ok ? r.text() : "")
+        .then(html => { if (html) syncBranchOptions(new DOMParser().parseFromString(html, "text/html")); })
+        .catch(() => {});
+}
+function syncBranchOptions(doc) {
+    for (const id of ["branch", "edit_branch"]) {
+        const current = document.getElementById(id);
+        const fresh = doc.getElementById(id);
+        if (!current || !fresh) continue;
+        const signature = Array.from(fresh.options).map(o => o.value + "|" + o.textContent.trim()).join("\n");
+        if (current.dataset.branchSignature === signature) continue;
+        const selected = current.value;
+        current.replaceChildren(...Array.from(fresh.options).map(o => o.cloneNode(true)));
+        current.dataset.branchSignature = signature;
+        if (Array.from(current.options).some(o => o.value === selected)) current.value = selected;
+        // Rebuilds the custom dropdown label/menu.
+        current.dispatchEvent(new Event("change", {bubbles: true}));
+    }
+}
 
 /* One update controller for filtering, CRUD and background table updates. */
 (() => {
@@ -2982,6 +3028,7 @@ document.addEventListener('keydown', function(event) {
             pagination.replaceChildren(...Array.from(nextPagination.childNodes));
             document.getElementById('userPage').value = nextPagination.dataset.currentPage;
         }
+        syncBranchOptions(doc);
         const catalog = doc.getElementById('departmentDesignationOptions');
         if (catalog) { try { departmentDesignationOptions = JSON.parse(catalog.textContent || '{}'); } catch (_) {} }
     }

@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User  
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from .models import User as Employee, Branch
 from .models import *
 from .models import User as EmployeeUser
 from datetime import datetime
@@ -695,7 +696,7 @@ def admin_usermanagement(request):
         ).order_by("name").values_list("name", flat=True))
         return JsonResponse({"ok": True, "items": names})
 
-    users = managed_users.select_related("department").order_by("-id")
+    users = managed_users.select_related("department", "branch").order_by("-id")
 
     # Hide currently logged-in management/admin user
     current_user_id = request.session.get("user_id")
@@ -739,6 +740,17 @@ def admin_usermanagement(request):
         designation = (designation or "").strip()
         if not _valid_department_designation(department_id, designation):
             messages.error(request, "Choose a designation belonging to the selected department.")
+            return redirect("admin_usermanagement")
+
+        branch = None
+        branch_value = (request.POST.get("branch") or "").strip()
+        if branch_value:
+            branch = Branch.objects.filter(pk=branch_value, is_active=True).first() if branch_value.isdigit() else None
+            if branch is None:
+                messages.error(request, "Choose a valid active branch.")
+                return redirect("admin_usermanagement")
+        elif not user_id:
+            messages.error(request, "Please select a branch.")
             return redirect("admin_usermanagement")
 
         # Foreign key fetch
@@ -832,6 +844,7 @@ def admin_usermanagement(request):
                         job_Position=job_Position,
                         designation=designation,
                         work_location=work_location,
+                        branch=branch,
                         username=username,
                         password=make_password(password) if password else "",
                         status=status,
@@ -880,6 +893,7 @@ def admin_usermanagement(request):
         "departments": departments,
         "job_positions": job_positions,
         "designation_options": _department_designation_options(),
+        "branches": Branch.objects.order_by("-is_head_office", "name"),
     }
     return render(request, "admin_panel/admin_usermanagement.html", context)
 
@@ -944,6 +958,19 @@ def edit_user(request):
         if not _valid_department_designation(dept_id, designation):
             return finish("Choose a designation belonging to the selected department.")
 
+        # Branch: keep the saved branch if the field is missing (stale page) or unchanged.
+        new_branch = user.branch
+        if "edit_branch" in request.POST:
+            branch_value = (request.POST.get("edit_branch") or "").strip()
+            if not branch_value:
+                new_branch = None
+            elif not branch_value.isdigit():
+                return finish("Choose a valid branch.")
+            elif str(user.branch_id or "") != branch_value:
+                new_branch = Branch.objects.filter(pk=branch_value, is_active=True).first()
+                if new_branch is None:
+                    return finish("Choose a valid active branch.")
+
         # ========== Check uniqueness before saving ==========
 
         if User.objects.filter(username=username).exclude(id=user.id).exists():
@@ -962,6 +989,7 @@ def edit_user(request):
         user.designation = designation
         user.work_location = _retain_work_location(user.work_location, work_location)
         user.status = status
+        user.branch = new_branch
 
         if password:
             user.password = make_password(password)
@@ -2294,6 +2322,8 @@ def login_view(request):
             return redirect("teamlead_dashboard")
         elif str(position).strip().lower().replace(" ", "_") in {"accounts", "accounts_team"}:
             return redirect("accounts_dashboard")
+        elif str(position).strip().lower().replace(" ", "_") in {"hr", "hr_team"}:   # ← ADD
+            return redirect("hr_dashboard")   
         elif position in {"management", "admin"}:
             return redirect("admin_dashboard")
         else:
@@ -2343,6 +2373,8 @@ def login_view(request):
             return redirect("teamlead_dashboard")
         elif db_position in {"accounts", "accounts_team"}:
             return redirect("accounts_dashboard")
+        elif db_position in {"hr", "hr_team"}:                                        # ← ADD
+            return redirect("hr_dashboard") 
         elif db_position in {"management", "admin"}:
             return redirect("admin_dashboard")
         else:
@@ -10811,25 +10843,31 @@ def _master_employee_form(data=None, files=None, instance=None):
     from django import forms
     from django.contrib.auth.hashers import make_password
     from django.contrib.auth.password_validation import validate_password
-    from .models import User as Employee, Designation
-
+    from .models import User as Employee, Designation , Branch 
+    from django.db.models import Q
     class EmployeeForm(forms.ModelForm):
         password_input = forms.CharField(required=False, strip=False)
         joining_date_input = forms.DateField(required=False)
         job_Position = forms.ChoiceField(choices=[
             ("Management", "Admin (Management)"), ("Team Lead", "Team Lead"),
-            ("Team Member", "Team Member"), ("Accounts", "Accounts"),
+            ("Team Member", "Team Member"), ("Accounts", "Accounts"),("HR", "HR"),
         ])
 
         class Meta:
             model = Employee
             fields = ["employee_id", "name", "email", "phone", "department",
-                      "job_Position", "designation", "work_location", "username", "profile_image", "status"]
+                      "job_Position", "designation", "work_location","branch", "username", "profile_image", "status"]
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.fields["department"].required = False
             self.fields["designation"].required = False
+                    # Active branches only; an employee's current branch stays valid even if it was deactivated later.
+            allowed = Q(is_active=True)
+            if self.instance.pk and self.instance.branch_id:
+                allowed |= Q(pk=self.instance.branch_id)
+            self.fields["branch"].queryset = Branch.objects.filter(allowed)
+            self.fields["branch"].required = False
 
         def clean(self):
             cleaned = super().clean()
@@ -10943,7 +10981,7 @@ def _master_employee_save(request, instance=None):
         "employee_id": "edit_emp_id", "name": "edit_name", "email": "edit_email",
         "phone": "edit_phone", "department": "edit_department",
         "job_Position": "edit_job_position", "designation": "edit_designation",
-        "work_location": "edit_work_location", "username": "edit_username",
+        "work_location": "edit_work_location", "branch": "edit_branch", "username": "edit_username",
         "status": "edit_status",
     }
 
@@ -10957,6 +10995,9 @@ def _master_employee_save(request, instance=None):
         data["work_location"] = _retain_work_location(
             instance.work_location or "", data["work_location"]
         )
+        # Stale page / old client without the branch field must not wipe the saved branch.
+        if "edit_branch" not in request.POST:
+            data["branch"] = str(instance.branch_id or "")    
 
     data["password_input"] = request.POST.get(
         "edit_password" if editing else "password", ""
@@ -10993,6 +11034,8 @@ def _master_employee_save(request, instance=None):
             if not editing:
                 if not data.get("department"):
                     return result(False, "Please select a department.")
+                if not data.get("branch"):
+                    return result(False, "Please select a branch.")
 
                 # Generate Employee ID only for new employees.
                 data["employee_id"] = _generate_department_employee_id(
@@ -11061,7 +11104,8 @@ def master_admin_usermanagement(request):
         return JsonResponse({"ok": True, "items": list(Designation.objects.filter(
             department_id=department_id).order_by("name").values_list("name", flat=True))})
 
-    users = Employee.objects.select_related("department").order_by("-id")
+    # users = Employee.objects.select_related("department").order_by("-id")
+    users = Employee.objects.select_related("department", "branch").order_by("-id")
     query = request.GET.get("search", "").strip()[:200]
     if query:
         users = users.filter(Q(name__icontains=query) | Q(email__icontains=query)
@@ -11080,11 +11124,12 @@ def master_admin_usermanagement(request):
     for department_id, name in Designation.objects.order_by("name").values_list("department_id", "name"):
         catalog.setdefault(str(department_id), []).append(name)
     roles = sorted(set(Employee.objects.exclude(job_Position="").values_list("job_Position", flat=True))
-                   | {"Management", "Team Lead", "Team Member", "Accounts"})
+       | {"Management", "Team Lead", "Team Member", "Accounts", "HR"})
     return render(request, "master_admin/master_admin_usermanagement.html", {
         "users": page.object_list, "page_obj": page, "total_filtered": total,
         "departments": Department.objects.order_by("name"),
         "job_positions": roles, "designation_options": catalog,
+        "branches": Branch.objects.order_by("-is_head_office", "name"),
     })
 
 
@@ -11350,6 +11395,48 @@ def master_admin_departments(request):
         return JsonResponse({"ok": True, "items": items})
     return render(request, "master_admin/master_admin_departments.html", {"department_items": items})
 
+@never_cache
+@require_http_methods(["GET", "POST", "DELETE"])
+def master_admin_branches(request):
+    from django.http import JsonResponse
+    from django.db import IntegrityError
+    from django.db.models import Count
+
+    if not _master_admin_allowed(request):
+        return JsonResponse({"ok": False, "message": "Master Admin access required."}, status=403)
+
+    def items():
+        rows = Branch.objects.annotate(n=Count("employees")).order_by("-is_head_office", "name")
+        return [{"id": b.pk, "name": b.name, "employees": b.n, "is_head_office": b.is_head_office} for b in rows]
+
+    if request.method == "POST":
+        name = " ".join((request.POST.get("branch_name") or "").split())
+        if not name:
+            return JsonResponse({"ok": False, "message": "Enter a branch name."}, status=400)
+        if len(name) > 100:
+            return JsonResponse({"ok": False, "message": "Branch name is too long."}, status=400)
+        if Branch.objects.filter(name__iexact=name).exists():
+            return JsonResponse({"ok": False, "message": "This branch already exists."}, status=400)
+        try:
+            Branch.objects.create(name=name, is_active=True)
+        except IntegrityError:
+            return JsonResponse({"ok": False, "message": "This branch already exists."}, status=400)
+        return JsonResponse({"ok": True, "message": "Branch added successfully.", "items": items()}, status=201)
+
+    if request.method == "DELETE":
+        raw = request.GET.get("branch_id", "")
+        branch = Branch.objects.filter(pk=raw).first() if raw.isdigit() else None
+        if branch is None:
+            return JsonResponse({"ok": False, "message": "Branch not found."}, status=404)
+        if branch.is_head_office:
+            return JsonResponse({"ok": False, "message": "The head office branch cannot be deleted."}, status=400)
+        count = branch.employees.count()
+        if count:
+            return JsonResponse({"ok": False, "message": f"This branch has {count} employee(s). Move them to another branch first."}, status=400)
+        branch.delete()
+        return JsonResponse({"ok": True, "message": "Branch deleted successfully.", "items": items()})
+
+    return JsonResponse({"ok": True, "items": items()})
 
 @never_cache
 @require_GET
@@ -15669,3 +15756,65 @@ for _notice_view_name, _notice_config in _MASTER_NOTICE_VIEWS.items():
     _notice_original = globals()[_notice_view_name]
     if not getattr(_notice_original, "_master_operation_notice", False):
         globals()[_notice_view_name] = _master_operation_notice(_notice_original, *_notice_config)
+
+
+
+
+# #<-------HR ----------------->
+
+def _hr_user(request):
+    """Return an HR user only when both DB and session roles match."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return None
+    user = User.objects.filter(pk=user_id).first()
+    if user is None:
+        return None
+    roles = {"hr", "hr_team"}
+    database_role = str(user.job_Position or "").strip().lower().replace(" ", "_")
+    session_role = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
+    return user if database_role in roles and session_role in roles else None
+
+def hr_dashboard(request):
+    current_user = _hr_user(request)
+    if current_user is None:
+        return HttpResponseForbidden("You do not have access to the HR dashboard.")
+    return render(request, "hr/hr_dashboard.html", {
+        "current_user": current_user,
+        "hr_active": "dashboard",
+    })  
+
+
+def hr_logout(request):
+    request.session.flush()
+    return redirect("login_view")
+
+
+
+
+def hr_usermanagement(request):
+    current_user = _hr_user(request)
+    if current_user is None:
+        return HttpResponseForbidden("You do not have access to this HR page.")
+    return render(request, "hr/hr_usermanagement.html", {
+        "current_user": current_user,
+        "hr_active": "usermanagement",
+    })
+def _hr_render(request, template, active):
+    current_user = _hr_user(request)
+    if current_user is None:
+        return HttpResponseForbidden("You do not have access to this HR page.")
+    return render(request, template, {"current_user": current_user, "hr_active": active})
+
+def hr_announcements(request):     return _hr_render(request, "hr/hr_announcements.html", "announcements")
+def hr_reports(request):           return _hr_render(request, "hr/hr_reports.html", "reports")
+def hr_project_assigning(request): return _hr_render(request, "hr/hr_project_assigning.html", "project_assigning")
+def hr_tasks(request):             return _hr_render(request, "hr/hr_tasks.html", "tasks")
+def hr_notepad(request):           return _hr_render(request, "hr/hr_notepad.html", "notepad")
+def hr_repository(request):        return _hr_render(request, "hr/hr_repository.html", "repository")
+def hr_chat(request):              return _hr_render(request, "hr/hr_chat.html", "chat")
+def hr_google_meet(request):       return _hr_render(request, "hr/hr_google_meet.html", "google_meet")
+def hr_reminders(request):         return _hr_render(request, "hr/hr_reminders.html", "reminders")
+def hr_notifications(request):     return _hr_render(request, "hr/hr_notifications.html", "notifications")
+def hr_profile(request):           return _hr_render(request, "hr/hr_profile.html", "profile")
+
