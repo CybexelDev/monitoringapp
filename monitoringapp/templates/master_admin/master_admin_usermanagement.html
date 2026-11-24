@@ -1643,7 +1643,7 @@ body.admin-usermanagement-page .action-buttons .edit-button svg,
 body.admin-usermanagement-page .action-buttons .delete-button svg{width:19px;height:19px;flex-shrink:0}
 body.admin-usermanagement-page .action-buttons .edit-button:focus-visible,
 body.admin-usermanagement-page .action-buttons .delete-button:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
-
+body.admin-usermanagement-page .filter-grid{grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr))}
 body.admin-usermanagement-page .profile-preview img {
     border-radius: 12px;
 }
@@ -1748,6 +1748,13 @@ body.admin-usermanagement-page .profile-preview-hint {
                                     </option>
                                     {% endif %}
                                 {% endfor %}
+                            </select>
+                                                        <select name="branch" class="filter-select">
+                                <option value="">All Branches</option>
+                                {% for b in branches %}
+                                <option value="{{ b.id }}" {% if request.GET.branch == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                                {% endfor %}
+                                <option value="none" {% if request.GET.branch == "none" %}selected{% endif %}>Not assigned</option>
                             </select>
                         </div>
                     </form>

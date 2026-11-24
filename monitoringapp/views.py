@@ -887,6 +887,12 @@ def admin_usermanagement(request):
 
     if position_filter:
         users = users.filter(job_Position=position_filter)
+        
+    branch_filter = request.GET.get("branch", "")
+    if branch_filter.isdigit():
+        users = users.filter(branch_id=int(branch_filter))
+    elif branch_filter == "none":
+        users = users.filter(branch__isnull=True)
 
     context = {
         "users": users,
@@ -11114,6 +11120,12 @@ def master_admin_usermanagement(request):
     position = request.GET.get("position", "")
     if department:
         users = users.filter(department__name=department)
+    
+    branch_filter = request.GET.get("branch", "")
+    if branch_filter.isdigit():
+        users = users.filter(branch_id=int(branch_filter))
+    elif branch_filter == "none":
+        users = users.filter(branch__isnull=True)
 
     if position:
         users = users.filter(job_Position=position)

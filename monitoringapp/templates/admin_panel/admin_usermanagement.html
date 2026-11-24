@@ -1614,6 +1614,8 @@ body.admin-usermanagement-page .edit-modal .profile-preview .profile-preview-fal
 body.admin-usermanagement-page .edit-modal .profile-preview img[hidden] {
     display: none;
 }
+
+body.admin-usermanagement-page #filterForm .filter-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 </style>
 {% endblock %}
 {% block content %}
@@ -1696,6 +1698,13 @@ body.admin-usermanagement-page .edit-modal .profile-preview img[hidden] {
                                     </option>
                                     {% endif %}
                                 {% endfor %}
+                            </select>
+                                                        <select name="branch" class="filter-select">
+                                <option value="">All Branches</option>
+                                {% for b in branches %}
+                                <option value="{{ b.id }}" {% if request.GET.branch == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                                {% endfor %}
+                                <option value="none" {% if request.GET.branch == "none" %}selected{% endif %}>Not assigned</option>
                             </select>
                         </div>
                     </form>
