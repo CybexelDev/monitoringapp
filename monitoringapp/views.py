@@ -887,7 +887,7 @@ def admin_usermanagement(request):
 
     if position_filter:
         users = users.filter(job_Position=position_filter)
-        
+
     branch_filter = request.GET.get("branch", "")
     if branch_filter.isdigit():
         users = users.filter(branch_id=int(branch_filter))
@@ -15818,11 +15818,191 @@ def _hr_render(request, template, active):
         return HttpResponseForbidden("You do not have access to this HR page.")
     return render(request, template, {"current_user": current_user, "hr_active": active})
 
-def hr_announcements(request):     return _hr_render(request, "hr/hr_announcements.html", "announcements")
+
+def _hr_scope(user):
+    """HR's branch decides visibility. Head Office HR sees every branch; others only their own."""
+    branch = getattr(user, "branch", None)
+    if branch is None:
+        return None
+    return {"branch": branch, "head": branch.is_head_office}
+
+
+def _hr_recipient_base(scope):
+    qs = User.objects.filter(
+        Q(job_Position__iexact="Team Lead") | Q(job_Position__iexact="Team Member")
+    ).select_related("branch")
+    if not scope["head"]:
+        qs = qs.filter(branch=scope["branch"])
+    return qs.order_by("name", "pk")
+
+
+@never_cache
+@require_http_methods(["GET", "POST", "DELETE"])
+def hr_announcements(request):
+    hr = _hr_user(request)
+    if hr is None:
+        if request.method != "GET":
+            return JsonResponse({"ok": False, "message": "HR access required."}, status=403)
+        return HttpResponseForbidden("You do not have access to this HR page.")
+
+    scope = _hr_scope(hr)
+    own = Announcement.objects.filter(
+        created_by=hr, is_admin_announcement=False,
+        is_master_admin_announcement=False, is_active=True,
+    )
+
+    if request.method == "DELETE":
+        raw = request.GET.get("announcement_id", "")
+        item = own.filter(pk=raw).first() if raw.isdigit() else None
+        if item is None:
+            return JsonResponse({"ok": False, "message": "Announcement not found."}, status=404)
+        item.delete()
+        return JsonResponse({"ok": True, "message": "Announcement deleted successfully."})
+
+    if request.method == "POST":
+        if scope is None:
+            return JsonResponse({"ok": False, "message": "No branch is assigned to your account."}, status=403)
+        message = (request.POST.get("message") or "").strip()
+        if not message:
+            return JsonResponse({"ok": False, "message": "Please enter an announcement message."}, status=400)
+        if len(message) > 3000:
+            return JsonResponse({"ok": False, "message": "Announcement is too long."}, status=400)
+
+        base = _hr_recipient_base(scope)
+        send_to = request.POST.get("send_to", "all")
+        if send_to == "all":
+            recipients = base
+        elif send_to == "leads":
+            recipients = base.filter(job_Position__iexact="Team Lead")
+        elif send_to.startswith("branch_") and scope["head"] and send_to[7:].isdigit():
+            branch = Branch.objects.filter(pk=int(send_to[7:]), is_active=True).first()
+            if branch is None:
+                return JsonResponse({"ok": False, "message": "Invalid branch."}, status=400)
+            recipients = base.filter(branch=branch)
+        elif send_to == "selected":
+            try:
+                ids = {int(v) for v in request.POST.getlist("recipient_ids")}
+            except (TypeError, ValueError):
+                return JsonResponse({"ok": False, "message": "Select valid recipients."}, status=400)
+            recipients = base.filter(pk__in=ids)  # base is already branch-restricted
+            if not ids or recipients.count() != len(ids):
+                return JsonResponse({"ok": False, "message": "Select valid recipients."}, status=400)
+        else:
+            return JsonResponse({"ok": False, "message": "Invalid recipient option."}, status=400)
+
+        recipients = list(recipients)
+        if not recipients:
+            return JsonResponse({"ok": False, "message": "No employees found for this option."}, status=400)
+
+        with transaction.atomic():
+            announcement = Announcement.objects.create(
+                title="HR Announcement", message=message, created_by=hr,
+            )
+            AnnouncementRecipient.objects.bulk_create([
+                AnnouncementRecipient(announcement=announcement, recipient=u) for u in recipients
+            ])
+        from .notification_signals import queue_announcement_recipient_notifications
+        queue_announcement_recipient_notifications(announcement.pk)
+        return JsonResponse({"ok": True, "message": f"Announcement sent to {len(recipients)} employee(s)."})
+
+    members = _hr_recipient_base(scope) if scope else User.objects.none()
+    branches = Branch.objects.filter(is_active=True).order_by("-is_head_office", "name") \
+        if scope and scope["head"] else []
+    return render(request, "hr/hr_announcements.html", {
+        "current_user": hr,
+        "hr_active": "announcements",
+        "no_branch": scope is None,
+        "is_head": bool(scope and scope["head"]),
+        "branch_name": scope["branch"].name if scope else "",
+        "branches": branches,
+        "team_members": members,
+        "announcements": own.annotate(recipient_count=Count("recipients")).order_by("-created_at", "-pk")[:50],
+    })
+
+
 def hr_reports(request):           return _hr_render(request, "hr/hr_reports.html", "reports")
 def hr_project_assigning(request): return _hr_render(request, "hr/hr_project_assigning.html", "project_assigning")
 def hr_tasks(request):             return _hr_render(request, "hr/hr_tasks.html", "tasks")
-def hr_notepad(request):           return _hr_render(request, "hr/hr_notepad.html", "notepad")
+
+
+@never_cache
+def hr_notepad(request):
+    user_id = request.session.get("user_id")
+    if not user_id or request.session.get("position") != "hr":   # check your HR value
+        return redirect("index")
+    user = get_object_or_404(User, pk=user_id)
+    owned = Notepad.objects.filter(user=user)
+    params = request.POST if request.method == "POST" else request.GET
+    query = params.get("q", "").strip()[:200]
+    sort = params.get("sort", "updated")
+    orderings = {"updated": ("-updated_at", "-id"), "created": ("-created_at", "-id"), "title": ("title", "id")}
+    if sort not in orderings:
+        sort = "updated"
+    notes = owned
+    if query:
+        notes = notes.filter(Q(title__icontains=query) | Q(content__icontains=query))
+    page_obj = Paginator(notes.order_by(*orderings[sort]), 4).get_page(params.get("page"))
+    selected_id = request.POST.get("note_id") if request.method == "POST" else None
+    note = None
+    if selected_id:
+        try:
+            selected_id = int(selected_id)
+        except (ValueError, TypeError):
+            return HttpResponseBadRequest("Invalid note ID.")
+        note = get_object_or_404(owned, pk=selected_id)
+    error = ""
+    title = note.title if note else ""
+    content = (note.content or "") if note else ""
+    if request.method == "POST":
+        title = request.POST.get("title", "").strip() or "Untitled"
+        content = request.POST.get("content", "")
+        if len(title) > 255:
+            error = "Title must be 255 characters or fewer."
+        elif not content.strip():
+            error = "Write some content before saving the note."
+        else:
+            if note:
+                note.title, note.content = title, content
+                note.save()
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                    return JsonResponse({
+                        "ok": True, "id": note.pk, "title": note.title,
+                        "content": note.content or "",
+                        "updated_at": timezone.localtime(note.updated_at).strftime("%d %b %Y, %I:%M %p"),
+                    })
+                messages.success(request, "Note updated successfully.")
+            else:
+                note = Notepad.objects.create(user=user, title=title, content=content)
+                messages.success(request, "Note created successfully.")
+            return redirect(reverse("hr_notepad") + "?" + urlencode({
+                "q": query if selected_id else "", "sort": sort if selected_id else "updated",
+                "page": page_obj.number if selected_id else 1,
+            }))
+    if error and selected_id and request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": error}, status=400)
+    response = render(request, "hr/hr_notepad.html", {
+        "note": None, "page_obj": page_obj, "query": query, "sort": sort,
+        "form_title": title if not selected_id else "",
+        "form_content": content if not selected_id else "",
+        "note_error": error,
+        "total_notes": owned.count(),
+    })
+    if error:
+        response.status_code = 400
+    return response
+
+
+@never_cache
+@require_http_methods(["DELETE"])
+def hr_notepad_delete(request, pk):
+    user_id = request.session.get("user_id")
+    if not user_id or request.session.get("position") != "hr":   # check your HR value
+        return JsonResponse({"ok": False, "message": "Please sign in again."}, status=403)
+    user = get_object_or_404(User, pk=user_id)
+    note = get_object_or_404(Notepad, pk=pk, user=user)
+    note.delete()
+    return JsonResponse({"ok": True, "message": "Note deleted successfully."})
+
 def hr_repository(request):        return _hr_render(request, "hr/hr_repository.html", "repository")
 def hr_chat(request):              return _hr_render(request, "hr/hr_chat.html", "chat")
 def hr_google_meet(request):       return _hr_render(request, "hr/hr_google_meet.html", "google_meet")
