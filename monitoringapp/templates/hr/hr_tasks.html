@@ -1,0 +1,374 @@
+{% extends 'hr/base.html' %}
+{% block title %}HR Tasks - Cybexel{% endblock %}
+{% block page_class %}master-tasks-page{% endblock %}
+{% block extra_css %}
+<style>
+.master-tasks-page .mt{--mt-line:rgba(171,140,244,.17);--mt-muted:#aaa3bb;--mt-accent:#b794f4;color:#f4f0fc;min-width:0;padding:24px}
+.mt *{box-sizing:border-box}.mt h1,.mt h2,.mt p{margin:0}.mt .eyebrow{font-size:11px;color:var(--mt-accent);letter-spacing:.13em;font-weight:700;margin-bottom:8px}.mt .subtitle{color:var(--mt-muted);font-size:13px;margin-top:8px}
+.mt .top,.mt .list-head,.mt .row-foot,.mt .pagination{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.mt .top{margin-bottom:24px}.mt button,.mt input,.mt select,.mt textarea{font:inherit}.mt button,.mt .page-link{cursor:pointer}.mt .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--mt-line);border-radius:9px;padding:10px 15px;background:rgba(139,92,246,.08);color:#efe9ff;font-weight:600;font-size:13px;text-decoration:none}.mt .primary{background:linear-gradient(110deg,#7545ba,#6541a4);border-color:rgba(181,146,255,.4)}.mt button:disabled{opacity:.55;cursor:wait}.mt svg{width:17px;height:17px}.mt :focus-visible{outline:2px solid #b794f4;outline-offset:3px}
+.mt .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px}.mt .stat{padding:17px 20px;border:1px solid var(--mt-line);border-radius:12px;background:rgba(255,255,255,.035)}.mt .stat span{font-size:12px;color:var(--mt-muted)}.mt .stat strong{display:block;font-size:25px;margin-top:8px}
+.mt .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:6px;border:1px solid var(--mt-line);background:rgba(255,255,255,.035);border-radius:15px;margin-bottom:18px}.mt .tabs a{display:flex;justify-content:center;align-items:center;gap:8px;min-height:46px;padding:9px;border:1px solid transparent;border-radius:10px;text-decoration:none;color:var(--mt-muted);font-size:13px;font-weight:700;text-align:center}.mt .tabs a[aria-current]{color:#fff;border-color:rgba(181,146,255,.28);background:linear-gradient(110deg,rgba(116,68,200,.34),rgba(81,68,167,.24))}
+.mt .filters{display:grid;grid-template-columns:minmax(180px,2fr) 1fr 1fr auto;gap:10px;margin-bottom:20px}.mt .search{position:relative}.mt .search svg{position:absolute;left:12px;top:13px;color:var(--mt-muted)}.mt input,.mt textarea,.mt select{width:100%;padding:10px 12px;border:1px solid var(--mt-line);border-radius:8px;background:#231b35;color:#f4f0fc;min-width:0;font-size:13px}.mt .search input{padding-left:38px}.mt select option{background:#231b35;color:#f4f0fc}.mt .list-head{margin-bottom:12px}.mt .list-head h2{font-size:15px}.mt .small{font-size:12px;color:var(--mt-muted)}
+.mt .task-list{display:grid;gap:10px}.mt .task-row{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 20px;border:1px solid var(--mt-line);border-radius:12px;background:rgba(255,255,255,.035)}.mt .task-main{min-width:0;flex:1}.mt .task-title{font-size:15px;font-weight:700;overflow-wrap:anywhere;margin-bottom:7px}.mt .task-desc{color:var(--mt-muted);font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.mt .meta{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--mt-muted);margin-top:11px}.mt .task-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.mt .status{font-size:11px;font-weight:700;padding:6px 9px;border-radius:6px;background:rgba(148,163,184,.12);color:#cbd5e1}.mt .status.in_progress{background:rgba(245,190,70,.13);color:#efc56b}.mt .status.completed{background:rgba(83,185,141,.13);color:#83d3ab}.mt .task-actions select{width:125px;font-size:11px;padding:7px}.mt .icon{display:inline-flex;align-items:center;justify-content:center;width:31px;height:31px;padding:0;border:1px solid var(--mt-line);background:rgba(139,92,246,.07);border-radius:7px;color:#d4c0fa}.mt .danger{color:#ef9ca6}.mt .pagination{margin-top:18px}.mt .empty{text-align:center;padding:40px;border:1px dashed var(--mt-line);border-radius:12px;color:var(--mt-muted)}
+.mt dialog{position:fixed;max-width:540px;width:calc(100% - 28px);max-height:85dvh;margin:auto;padding:0;border:1px solid #65517e;border-radius:15px;color:#f4f0fc;background:#251c35;box-shadow:0 20px 70px #0005;overflow:auto}.mt dialog::backdrop{background:rgba(12,8,20,.35);backdrop-filter:blur(2px)}.mt dialog .dialog-inner{padding:24px}.mt .dialog-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px}.mt .dialog-head h2{font-size:19px}.mt .field{margin-bottom:15px}.mt label{display:block;font-size:12px;margin-bottom:7px;color:#d1c5e4}.mt .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mt .dialog-footer{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}.mt .error{color:#ffacb6;font-size:12px;white-space:pre-wrap;margin-top:6px}.mt .view-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;color:#d9cee7;font-size:13px}.mt [hidden]{display:none!important}
+@media(max-width:850px){.mt .filters{grid-template-columns:1fr 1fr}.mt .search{grid-column:1/-1}.mt .task-row{align-items:flex-start;flex-direction:column;gap:13px}.mt .task-actions{width:100%}.mt .stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.master-tasks-page .mt{padding:12px}.mt .tabs a{font-size:11px;gap:5px;padding:8px 3px}.mt .tabs svg{display:none}.mt .task-row{padding:15px}.mt .form-grid{grid-template-columns:1fr}.mt .stat{padding:14px}.mt .top{gap:14px}}
+
+/* Master Admin tasks, aligned with User Management. */
+body.master-tasks-page .mt{box-sizing:border-box;height:100%;min-height:0;min-width:0;padding:16px;overflow-y:auto;overflow-x:hidden;border-radius:28px;background:linear-gradient(145deg,rgba(17,16,24,.94),rgba(8,9,14,.96));border:1px solid rgba(255,255,255,.10);scrollbar-width:thin;scrollbar-color:rgba(151,112,235,.65) transparent;overscroll-behavior:contain;--mt-line:rgba(255,255,255,.09);--mt-muted:#96939e;--mt-accent:#a78bfa}
+body.master-tasks-page .mt>.dashboard-header{margin-bottom:28px}
+body.master-tasks-page .mt .dashboard-header p{margin:18px 0 0;color:#96939e;font-size:14px;line-height:1.6}
+body.master-tasks-page .mt .dashboard-header h1{margin:0;letter-spacing:-2px}
+.master-tasks-page .mt-directory-heading{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:22px}
+.master-tasks-page .mt-directory-heading span{display:block;margin-bottom:5px;color:#8d7df2;font-size:9px;font-weight:800;letter-spacing:.18em}
+.master-tasks-page .mt-directory-heading h2{margin:0;font-size:21px;font-weight:750;color:#fff}
+.master-tasks-page .mt-heading-line{height:1px;flex:1;min-width:20px;background:linear-gradient(90deg,rgba(255,255,255,.10),transparent)}
+.master-tasks-page .mt .btn{min-height:40px;border-radius:11px;font-size:11px;color:#c4b5fd;background:rgba(126,96,230,.13);border-color:rgba(126,96,230,.20)}
+.master-tasks-page .mt .btn.primary{background:linear-gradient(135deg,rgba(117,89,220,.24),rgba(82,66,170,.16));border-color:rgba(139,112,255,.28);color:#dcd7ff}
+.master-tasks-page .mt #mtAdd{min-height:42px;font-size:12px;padding:0 16px;border-radius:12px}
+.master-tasks-page .mt .filters{display:grid;grid-template-columns:minmax(200px,2fr) minmax(130px,1fr) minmax(130px,1fr) auto;gap:12px;padding:18px;border-radius:17px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025);align-items:center}
+.master-tasks-page .mt :is(input,select,textarea){min-height:42px;padding:11px 13px;background:rgba(7,7,11,.60);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:#fff;font-size:12px;line-height:1.5}
+.master-tasks-page .mt .search{min-width:0;grid-column:auto}
+.master-tasks-page .mt .search input{padding-left:39px}
+.master-tasks-page .mt .search svg{top:50%;transform:translateY(-50%);color:#9d8cff;width:16px;height:16px}
+.master-tasks-page .mt select option{background:#171924}
+.master-tasks-page .mt .stats{gap:16px;margin-bottom:24px}
+.master-tasks-page .mt .stat{padding:21px;border-radius:20px;background:linear-gradient(145deg,rgba(28,30,43,.76),rgba(16,18,28,.66));border-color:rgba(255,255,255,.075);min-height:120px}
+.master-tasks-page .mt .stat span{color:#8f8c96;font-size:9px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase}
+.master-tasks-page .mt .stat strong{font-size:29px;margin-top:16px;line-height:1.2;font-variant-numeric:tabular-nums}
+.master-tasks-page .mt .stat:nth-child(1) strong{color:#c4b5fd}
+.master-tasks-page .mt .stat:nth-child(2) strong{color:#ff8d99}
+.master-tasks-page .mt .stat:nth-child(3) strong{color:#efc56b}
+.master-tasks-page .mt .stat:nth-child(4) strong{color:#68e69b}
+.master-tasks-page .mt .tabs a{min-height:43px;font-size:12px}
+.master-tasks-page .mt .list-head{margin:22px 2px 15px}
+.master-tasks-page .mt .list-head h2{font-size:18px;color:#fff}
+.master-tasks-page .mt .task-list{max-height:540px;overflow:auto;gap:12px;padding:2px 6px 6px 2px;scrollbar-width:thin;scrollbar-color:#74559b transparent;overscroll-behavior:contain}
+.master-tasks-page .mt .task-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:20px;padding:20px;border-radius:18px;background:linear-gradient(145deg,rgba(28,30,43,.76),rgba(16,18,28,.66));border-color:rgba(255,255,255,.075)}
+.master-tasks-page .mt .task-title{margin:0 0 7px;font-size:14px;color:#fff;line-height:1.5}
+.master-tasks-page .mt .task-desc{font-size:11px;line-height:1.7;margin:0;color:#96939e}
+.master-tasks-page .mt .meta{margin-top:12px;column-gap:14px;row-gap:7px;font-size:10px;line-height:1.6}
+.master-tasks-page .mt .task-actions{display:grid;grid-template-columns:34px 34px 34px;gap:8px;justify-content:end;align-items:center;min-width:0}
+.master-tasks-page .mt .task-actions .status{grid-column:1 / -1;justify-self:stretch;text-align:center;min-height:29px;padding:6px 9px;border:1px solid rgba(148,163,184,.18);font-size:10px;border-radius:7px;line-height:1.5}
+.master-tasks-page .mt .task-actions .status.in_progress{border-color:rgba(245,190,70,.24)}
+.master-tasks-page .mt .task-actions .status.completed{border-color:rgba(83,185,141,.24)}
+.master-tasks-page .mt .task-actions select{grid-column:1 / -1;width:100%;min-height:34px;padding:6px 9px;font-size:10px;border-radius:9px}
+.master-tasks-page .mt .icon{width:34px;height:34px;border-radius:9px;flex-shrink:0}
+.master-tasks-page .mt .icon[data-action=view]{background:rgba(126,96,230,.13);color:#c4b5fd;border-color:rgba(126,96,230,.20)}
+.master-tasks-page .mt .icon[data-action=edit]{background:rgba(68,119,210,.10);color:#8cb8ff;border-color:rgba(90,140,255,.17)}
+.master-tasks-page .mt .icon[data-action=delete],.master-tasks-page .mt .btn.danger{background:rgba(255,70,85,.07);color:#ff8994;border-color:rgba(255,80,95,.15)}
+.master-tasks-page .mt dialog{max-width:600px;max-height:calc(100dvh - 40px);border-radius:24px;background:linear-gradient(145deg,#241b30,#14121d);border-color:rgba(255,255,255,.09);scrollbar-width:thin;scrollbar-color:#7c3aed transparent;overscroll-behavior:contain}
+.master-tasks-page .mt dialog::backdrop{background:rgba(8,7,11,.3);backdrop-filter:blur(3px)}
+.master-tasks-page .mt .dialog-head h2{font-size:18px}
+.master-tasks-page .mt label{font-size:10px;font-weight:700;color:rgba(255,255,255,.62);letter-spacing:.04em}
+.master-tasks-page .mt .pagination>div{display:flex;gap:8px;flex-wrap:wrap}
+body.master-tasks-page:has(dialog[open]) #masterTaskRoot,body.master-tasks-page:has(dialog[open]) .task-list{overflow:hidden!important}
+@media(max-width:1100px){.master-tasks-page .mt .filters{grid-template-columns:repeat(2,minmax(0,1fr))}.master-tasks-page .mt .search{grid-column:1 / -1}.master-tasks-page .mt .stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:768px){body.master-tasks-page .mt{padding:13px!important;border-radius:20px}.master-tasks-page .mt .filters{padding:15px}.master-tasks-page .mt .stat{padding:17px}.master-tasks-page .mt .task-row{padding:17px;gap:14px}.master-tasks-page .mt .task-list{max-height:480px}.master-tasks-page .mt :is(input,select,textarea){font-size:16px}.master-tasks-page .mt .task-actions select{font-size:14px}.master-tasks-page .mt .dashboard-header p{font-size:12px}}
+@media(max-width:520px){.master-tasks-page .mt-directory-heading{gap:14px}.master-tasks-page .mt-heading-line{display:none}.master-tasks-page .mt #mtAdd{width:100%}.master-tasks-page .mt .filters{grid-template-columns:1fr}.master-tasks-page .mt .search{grid-column:auto}.master-tasks-page .mt .task-row{grid-template-columns:1fr}.master-tasks-page .mt .task-actions{width:100%;display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px}.master-tasks-page .mt .task-actions .status{flex:1 1 120px;min-width:0}.master-tasks-page .mt .task-actions select{flex:1 1 130px;width:auto;min-width:0}.master-tasks-page .mt .tabs svg{display:block;width:14px;height:14px}.master-tasks-page .mt .tabs a{font-size:11px;gap:5px}.master-tasks-page .mt .form-grid{grid-template-columns:1fr}.master-tasks-page .mt .dialog-inner{padding:18px}.master-tasks-page .mt .stat strong{font-size:27px}.master-tasks-page .mt .dashboard-header h1{letter-spacing:-1px}}
+@media(prefers-reduced-motion:reduce){.master-tasks-page .mt *{scroll-behavior:auto}}
+
+
+/* Responsive safeguards while retaining the current task design. */
+.master-tasks-page .mt :is(.dashboard-header-content,.dialog-footer){flex-wrap:wrap}
+.master-tasks-page .mt :is(.dashboard-header-content>div,.field,.stat,.task-actions,.tabs a){min-width:0}
+.master-tasks-page .mt :is(.meta span,.error,.small){overflow-wrap:anywhere}
+.master-tasks-page .mt .tabs a{flex-wrap:wrap}
+.master-tasks-page .mt .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.master-tasks-page .mt .task-list{scrollbar-gutter:stable;-webkit-overflow-scrolling:touch}
+.master-tasks-page .mt textarea{resize:vertical;max-width:100%}
+@media(max-width:520px){.master-tasks-page .mt .form-grid{grid-template-columns:1fr}.master-tasks-page .mt dialog{max-height:calc(100dvh - 24px)}.master-tasks-page .mt .task-actions select{font-size:16px}}
+@media(max-width:360px){.master-tasks-page .mt .stats{grid-template-columns:1fr}.master-tasks-page .mt .tabs{gap:3px;padding:4px}}
+body.master-tasks-page .finance-choice{position:relative;min-width:0;width:100%}
+body.master-tasks-page select.finance-native-choice{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;opacity:0;pointer-events:none;top:0;left:0}
+body.master-tasks-page .finance-select-toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;box-sizing:border-box;min-height:46px;padding:12px 15px;border-radius:13px;background:#0c0b11;border:1px solid #302a3b;color:#ece8f2;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+body.master-tasks-page .finance-select-toggle span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.master-tasks-page .finance-select-toggle:after{content:'';width:7px;height:7px;border:solid #b9a7d7;border-width:0 2px 2px 0;transform:rotate(45deg);flex-shrink:0;margin:0 3px 4px}
+body.master-tasks-page .finance-select-toggle[aria-expanded=true]:after{transform:rotate(225deg);margin-top:7px}
+body.master-tasks-page .finance-select-toggle:is(:focus-visible,[aria-expanded=true]){outline:2px solid #8050c833;outline-offset:1px;border-color:#70499e}
+body.master-tasks-page .finance-select-toggle:disabled{opacity:.5;cursor:not-allowed}
+body.master-tasks-page .finance-select-menu{position:fixed;box-sizing:border-box;z-index:100010;padding:10px;overflow:auto;overscroll-behavior:contain;border:1px solid #514064;border-radius:17px;background:linear-gradient(125deg,#281b42,#100e19 55%,#171e2e);box-shadow:0 20px 48px #0009;scrollbar-width:thin;scrollbar-color:#725596 #0c0b12}
+body.master-tasks-page .finance-select-menu[hidden]{display:none}
+body.master-tasks-page .finance-select-option{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;box-sizing:border-box;padding:12px 15px;color:#e8e1f4;border-radius:11px;font-size:14px;line-height:1.5;cursor:pointer;overflow-wrap:anywhere}
+body.master-tasks-page .finance-select-option[aria-selected=true]{background:linear-gradient(110deg,#52317e,#37244f);color:#f2e9ff;font-weight:700}
+body.master-tasks-page .finance-select-option[aria-selected=true]:after{content:'✓';font-size:20px;color:#dacef0}
+body.master-tasks-page .finance-select-option.is-active{box-shadow:inset 0 0 0 1px #9970d14d}
+body.master-tasks-page .finance-select-option:hover{background-color:#9760d733}
+body.master-tasks-page .finance-select-option[aria-disabled=true]{opacity:.4;cursor:default}
+body.master-tasks-page .finance-select-toggle:after{border-color:#c4a5fa}
+body.master-tasks-page .finance-select-option.is-active{background-color:#9760d726;box-shadow:inset 0 0 0 1px #b18aff66}
+body.master-tasks-page .finance-select-option[aria-disabled=true]{background:transparent;box-shadow:none}
+body.master-tasks-page .finance-select-toggle{min-height:54px;padding:14px 16px;border:1px solid #332b43;border-radius:13px;background:#0b0a10;color:#efedf4;font-size:16px}
+body.master-tasks-page .finance-select-toggle:is(:focus-visible,[aria-expanded=true]){border-color:#62428c;outline:2px solid #8b5cf612;outline-offset:1px}
+body.master-tasks-page .finance-select-toggle:after{width:7px;height:7px;border-color:#b5a3d3}
+body.master-tasks-page .finance-select-menu{padding:10px;border:1px solid #3c324c;border-radius:17px;background:linear-gradient(115deg,#211831 0%,#0d0c14 55%,#111522 100%);box-shadow:0 18px 40px #0007}
+body.master-tasks-page .finance-select-option{min-height:50px;padding:12px 16px;border-radius:11px;color:#eee9f6;font-size:16px;line-height:1.5}
+body.master-tasks-page .finance-select-option[aria-selected=true]{background:linear-gradient(110deg,#362451,#2e284d);color:#e9ddff;font-weight:700}
+body.master-tasks-page .finance-select-option[aria-selected=true]:after{color:#ddd1f4;font-size:22px}
+body.master-tasks-page .finance-select-option.is-active{box-shadow:none;background-color:#8b5cf61a}
+body.master-tasks-page .finance-select-option:hover{background-color:#8b5cf626}
+body.master-tasks-page .finance-select-option[aria-disabled=true]{background:transparent}
+/* Task popup reference: purple header, dark canvas and separate content/footer. */
+body.master-tasks-page .mt :is(#mtEditDialog,#mtViewDialog,#mtDeleteDialog){width:min(740px,calc(100vw - 32px));max-width:calc(100vw - 32px);max-height:calc(100dvh - 32px);padding:0;overflow:hidden;border:1px solid #393341;border-radius:24px;background:radial-gradient(ellipse at top left,#241936,transparent 55%),#0b0a12;box-shadow:0 30px 95px #0009;color:#f0edf6}
+body.master-tasks-page .mt #mtDeleteDialog{width:min(520px,calc(100vw - 32px))}
+body.master-tasks-page .mt dialog::backdrop{background:#05040999;backdrop-filter:blur(7px)}
+body.master-tasks-page .mt dialog>.dialog-inner{display:flex;flex-direction:column;max-height:calc(100dvh - 34px);min-height:0;padding:0}
+body.master-tasks-page .mt dialog .dialog-head{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:125px;margin:0;padding:26px 28px;background:linear-gradient(110deg,#281b42,#100e19 52%,#171e2e);border-bottom:1px solid #ffffff12}
+.mt .task-popup-title{display:flex;align-items:center;gap:16px;min-width:0}.mt .task-popup-title>div{min-width:0}
+.mt .task-popup-badge{display:grid;place-items:center;width:52px;height:52px;flex:0 0 52px;border-radius:16px;border:1px solid #a78bfa33;background:linear-gradient(135deg,#3d2566,#281d4d);color:#c4b5fd}.mt .task-popup-badge svg{width:24px;height:24px}
+.mt .task-popup-eyebrow{display:block;margin-bottom:8px;color:#b18aff;font-size:10px;font-weight:800;letter-spacing:2px}
+body.master-tasks-page .mt dialog .dialog-head h2{font-size:23px;line-height:1.4;overflow-wrap:anywhere;color:#faf8ff}
+body.master-tasks-page .mt dialog .dialog-head>.icon{width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:#ffffff04;border-color:#ffffff12;color:#95899f}
+body.master-tasks-page .mt :is(#mtEditor,.task-popup-body){min-height:0;overflow:auto;overscroll-behavior:contain;padding:26px 28px;scrollbar-width:thin;scrollbar-color:#725596 transparent}
+body.master-tasks-page .mt #mtEditor{margin:0}
+body.master-tasks-page .mt #mtEditor :is(input:not([type=hidden]),textarea){background:#0b0a11;border:1px solid #302a38;border-radius:12px;color:#e9e2f4;min-height:46px}
+body.master-tasks-page .mt #mtEditor label{font-size:12px;color:#d6d0df;margin-bottom:8px}
+body.master-tasks-page .mt dialog .dialog-footer{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap;margin:22px 0 0;padding:20px 0 0;border-top:1px solid #ffffff12}
+body.master-tasks-page .mt :is(#mtViewDialog,#mtDeleteDialog) .dialog-inner>.dialog-footer{flex:0 0 auto;margin:0;padding:20px 28px 24px}
+body.master-tasks-page .mt dialog .btn{min-height:46px;padding:11px 18px;border-radius:12px;background:#16131d;border:1px solid #2d2835;color:#c1b8ce;font-size:13px}
+body.master-tasks-page .mt :is(#mtSave,#mtConfirmDelete){background:linear-gradient(115deg,#8249d5,#6032a8)!important;border-color:#a78bfa55!important;color:#fff!important}
+.mt #mtErrors:empty,.mt #mtDeleteError:empty{display:none}.mt #mtDeleteText{margin:0;line-height:1.8}
+body.master-tasks-page .mt .task-actions>.finance-choice{grid-column:1/-1;width:100%;min-width:0}
+body.master-tasks-page .mt .task-actions .finance-select-toggle{min-height:38px;padding:8px 10px;font-size:12px;border-radius:10px}
+body.master-tasks-page .mt .filters :is(.search,.finance-choice){min-width:0}
+body.master-tasks-page .mt .filters .finance-select-toggle,body.master-tasks-page .mt .filters input:not([type=hidden]),body.master-tasks-page .mt .filters>.btn{box-sizing:border-box;min-height:46px;height:46px;font-size:13px}
+body.master-tasks-page .mt #mtEditor .finance-select-toggle{min-height:46px;font-size:13px}
+body.master-tasks-page .mt .task-actions .icon{width:38px;height:38px}
+body.master-tasks-page .mt .task-actions{grid-template-columns:repeat(3,38px)}
+@media(max-width:700px){body.master-tasks-page .mt .task-row{grid-template-columns:minmax(0,1fr)}body.master-tasks-page .mt .task-actions{width:100%;display:flex;flex-wrap:wrap;justify-content:flex-start}body.master-tasks-page .mt .task-actions>.finance-choice{flex:1 1 150px;width:auto}body.master-tasks-page .mt .task-actions>.status{flex:1 1 130px}}
+@media(max-width:600px){body.master-tasks-page .mt :is(#mtEditDialog,#mtViewDialog,#mtDeleteDialog){width:calc(100vw - 20px);max-height:calc(100dvh - 20px);border-radius:20px}body.master-tasks-page .mt dialog>.dialog-inner{max-height:calc(100dvh - 22px)}body.master-tasks-page .mt dialog .dialog-head{padding:22px 18px;min-height:110px;gap:12px}.mt .task-popup-title{gap:12px}.mt .task-popup-badge{width:44px;height:44px;flex-basis:44px}body.master-tasks-page .mt dialog .dialog-head h2{font-size:20px}body.master-tasks-page .mt :is(#mtEditor,.task-popup-body){padding:22px 18px}body.master-tasks-page .mt :is(#mtViewDialog,#mtDeleteDialog) .dialog-inner>.dialog-footer{padding:18px}body.master-tasks-page .mt #mtEditor :is(input,textarea,.finance-select-toggle){font-size:16px}body.master-tasks-page .mt .form-grid{grid-template-columns:1fr}.mt dialog .dialog-footer>.btn{flex:1}}
+
+
+/* Team filter removed; rebalance the remaining search controls. */
+body.master-tasks-page .mt .filters{grid-template-columns:minmax(0,2fr) minmax(160px,1fr) auto}
+@media(max-width:850px){body.master-tasks-page .mt .filters{grid-template-columns:minmax(0,1fr) auto}body.master-tasks-page .mt .filters .search{grid-column:1/-1}}
+@media(max-width:520px){body.master-tasks-page .mt .filters{grid-template-columns:minmax(0,1fr)}body.master-tasks-page .mt .filters .search{grid-column:auto}}
+
+
+/* Status menu must remain wide enough for complete option labels. */
+body.master-tasks-page .finance-select-option{display:flex;flex-wrap:nowrap;min-height:44px;padding:10px 14px;font-size:14px;line-height:1.5;white-space:nowrap;overflow-wrap:normal;word-break:normal;gap:14px}
+body.master-tasks-page .finance-select-option[aria-selected=true]:after{flex:0 0 18px;font-size:19px;text-align:center}
+body.master-tasks-page .mt .task-actions{grid-template-columns:repeat(3,42px)}
+body.master-tasks-page .mt .task-actions>.status{white-space:nowrap}
+body.master-tasks-page .mt .task-actions .finance-select-toggle{min-height:40px;padding:9px 11px;font-size:12px}
+body.master-tasks-page .mt .task-filter-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+body.master-tasks-page .mt .task-filter-actions>.btn{min-height:46px;height:46px;white-space:nowrap}
+@media(max-width:850px){body.master-tasks-page .mt .filters{grid-template-columns:minmax(0,1fr) auto}}
+@media(max-width:520px){body.master-tasks-page .mt .filters{grid-template-columns:minmax(0,1fr)}body.master-tasks-page .mt .task-filter-actions>.btn{flex:1}}
+
+body.master-tasks-page .mt .filters.has-branch{grid-template-columns:minmax(0,2fr) minmax(140px,1fr) minmax(140px,1fr) auto}
+@media(max-width:850px){body.master-tasks-page .mt .filters.has-branch{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}body.master-tasks-page .mt .filters.has-branch .task-filter-actions{grid-column:1/-1}}
+@media(max-width:520px){body.master-tasks-page .mt .filters.has-branch{grid-template-columns:minmax(0,1fr)}}
+</style>
+{% endblock %}
+{% block content %}
+<section class="dashboard-box mt" id="masterTaskRoot" data-list-url="{% url 'hr_tasks' %}">
+<section class="dashboard-header">
+            <div class="dashboard-header-content">
+                <div>
+                    <div class="dashboard-eyebrow">CYBEXEL HR PANEL</div>
+                    <h1>TASK MANAGEMENT</h1>
+                    <p>Manage tasks across team leads and team members{% if branch_name %} · {% if is_head %}All Branches{% else %}{{ branch_name }}{% endif %}{% endif %}.</p>
+                </div>
+
+                <div class="system-status">
+                    <span class="status-dot"></span>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </section>
+<div class="mt-directory-heading"><div><span>WORKSPACE TASKS</span><h2>Task Management</h2></div><div class="mt-heading-line" aria-hidden="true"></div><button class="btn primary" type="button" id="mtAdd"><i data-lucide="clipboard-plus" aria-hidden="true"></i>Assign Task</button></div>
+<form id="mtFilters" class="filters{% if is_head %} has-branch{% endif %}" method="get"><input type="hidden" name="tab" value="{{ task_tab }}"><div class="search"><i data-lucide="search" aria-hidden="true"></i><input name="q" value="{{ query }}" placeholder="Search tasks or people…" aria-label="Search tasks"></div><select name="status" aria-label="Task status"><option value="">All statuses</option><option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option><option value="in_progress" {% if selected_status == 'in_progress' %}selected{% endif %}>In Progress</option><option value="completed" {% if selected_status == 'completed' %}selected{% endif %}>Completed</option></select>{% if is_head %}<select name="branch" aria-label="Branch"><option value="">All branches</option>{% for b in branches %}<option value="{{ b.pk }}" {% if selected_branch == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>{% endfor %}</select>{% endif %}<div class="task-filter-actions"><button class="btn" type="submit">Apply filters</button><button class="btn" type="button" id="mtReset"><i data-lucide="rotate-ccw" aria-hidden="true"></i>Reset</button></div></form>
+<div id="mtResults">
+<div class="stats"><div class="stat"><span>Total tasks</span><strong>{{ total_tasks }}</strong></div><div class="stat"><span>Pending</span><strong>{{ pending_tasks }}</strong></div><div class="stat"><span>In progress</span><strong>{{ in_progress_tasks }}</strong></div><div class="stat"><span>Completed</span><strong>{{ completed_tasks }}</strong></div></div>
+<nav class="tabs" aria-label="Task assignee"><a href="?{{ filter_params }}&amp;tab=all" {% if task_tab == 'all' %}aria-current="page"{% endif %}><i data-lucide="list-checks" aria-hidden="true"></i>All Tasks</a><a href="?{{ filter_params }}&amp;tab=leads" {% if task_tab == 'leads' %}aria-current="page"{% endif %}><i data-lucide="user-round" aria-hidden="true"></i>Team Leads</a><a href="?{{ filter_params }}&amp;tab=members" {% if task_tab == 'members' %}aria-current="page"{% endif %}><i data-lucide="users-round" aria-hidden="true"></i>Team Members</a></nav>
+<div class="list-head"><h2>Task listing</h2><span class="small">{{ page_obj.paginator.count }} tasks · newest first</span></div>
+<div class="task-list" tabindex="0" role="region" aria-label="Task listing">{% for task in page_obj %}<article class="task-row" data-id="{{ task.pk }}" data-update="{% url 'hr_task_update' task.pk %}" data-delete="{% url 'hr_task_delete' task.pk %}"><div class="task-main"><h3 class="task-title">{{ task.title }}</h3><p class="task-desc">{{ task.description|default:'No description' }}</p><div class="meta"><span>Assigned to: {{ task.assignee_label }}</span><span>By: {{ task.creator_label }}</span><span>{{ task.created_at|date:'d M Y, h:i A' }}</span></div></div><div class="task-actions"><span class="status {{ task.status }}">{{ task.get_status_display }} · {{ task.progress }}%</span><select class="mtStatus" aria-label="Status for {{ task.title }}"><option value="pending" {% if task.status == 'pending' %}selected{% endif %}>Pending</option><option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option><option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option></select><button type="button" class="icon" data-action="view" aria-label="View task"><i data-lucide="eye" aria-hidden="true"></i></button><button type="button" class="icon" data-action="edit" aria-label="Edit task"><i data-lucide="pencil" aria-hidden="true"></i></button><button type="button" class="icon danger" data-action="delete" aria-label="Delete task"><i data-lucide="trash-2" aria-hidden="true"></i></button></div></article>{% empty %}<div class="empty">No tasks match these filters.</div>{% endfor %}</div>
+<div class="pagination"><span class="small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span><div>{% if page_obj.has_previous %}<a class="btn page-link" href="?{{ filter_params }}&amp;tab={{ task_tab }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}{% if page_obj.has_next %}<a class="btn page-link" href="?{{ filter_params }}&amp;tab={{ task_tab }}&amp;page={{ page_obj.next_page_number }}">Next</a>{% endif %}</div></div>
+{{ task_items|json_script:'mtTaskData' }}
+</div>
+{{ people_data|json_script:'mtPeopleData' }}
+<dialog id="mtEditDialog" aria-labelledby="mtEditHeading"><div class="dialog-inner"><div class="dialog-head"><div class="task-popup-title"><span class="task-popup-badge" aria-hidden="true"><i data-lucide="clipboard-plus"></i></span><div><span class="task-popup-eyebrow">TASK MANAGEMENT</span><h2 id="mtEditHeading">Assign Task</h2></div></div><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><form id="mtEditor" method="post" action="{% url 'hr_tasks' %}">{% csrf_token %}<div class="field"><label for="mtTitle">Task title</label><input id="mtTitle" name="title" maxlength="255" required></div><div class="field"><label for="mtDescription">Description</label><textarea id="mtDescription" name="description" rows="4"></textarea></div>{% if is_head %}<div class="field"><label for="mtBranch">Branch</label><select id="mtBranch" name="branch_filter"><option value="">All branches</option>{% for b in branches %}<option value="{{ b.pk }}">{{ b.name }}</option>{% endfor %}</select></div>{% endif %}<div class="field"><label for="mtAssignee">Assign to</label><select id="mtAssignee" name="assigned_to" required><option value="">Choose team lead or member</option>{% for person in people %}<option value="{{ person.pk }}">{{ person.name }} — {{ person.job_Position }}{% if is_head and person.branch %} · {{ person.branch.name }}{% endif %}</option>{% endfor %}</select></div><div class="form-grid"><div class="field"><label for="mtState">Status</label><select name="status" id="mtState"><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="completed">Completed</option></select></div><div class="field"><label for="mtProgress">Progress %</label><input id="mtProgress" name="progress" type="number" min="0" max="100" value="0" required></div></div><div id="mtErrors" class="error" role="alert"></div><div class="dialog-footer"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit" id="mtSave">Save task</button></div></form></div></dialog>
+<dialog id="mtViewDialog" aria-labelledby="mtViewHeading"><div class="dialog-inner"><div class="dialog-head"><div class="task-popup-title"><span class="task-popup-badge" aria-hidden="true"><i data-lucide="eye"></i></span><div><span class="task-popup-eyebrow">TASK MANAGEMENT</span><h2 id="mtViewHeading">Task details</h2></div></div><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><div class="task-popup-body"><div id="mtViewBody" class="view-text"></div></div><div class="dialog-footer"><button class="btn" type="button" data-close>Close</button></div></div></dialog>
+<dialog id="mtDeleteDialog" aria-labelledby="mtDeleteHeading"><div class="dialog-inner"><div class="dialog-head"><div class="task-popup-title"><span class="task-popup-badge" aria-hidden="true"><i data-lucide="trash-2"></i></span><div><span class="task-popup-eyebrow">TASK MANAGEMENT</span><h2 id="mtDeleteHeading">Delete task?</h2></div></div><button class="icon" type="button" data-close aria-label="Close"><i data-lucide="x" aria-hidden="true"></i></button></div><div class="task-popup-body"><p id="mtDeleteText" class="view-text"></p><p class="small" style="margin-top:10px">This removes the task from the assignee’s task list.</p><div class="error" id="mtDeleteError" role="alert"></div></div><div class="dialog-footer"><button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn danger" id="mtConfirmDelete">Delete task</button></div></div></dialog>
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+
+/* Purple dropdown enhancement; notifications use the shared toast component only. */
+(() => {
+ 'use strict';
+ if(window.masterTaskEnhancements)return;window.masterTaskEnhancements=true;
+ let current=null,active=-1,counter=0,typed='',typeTimer;
+ const entries=new Set();
+ function sync(entry){const text=entry.select.selectedOptions[0]?.textContent.trim()||'Select';if(entry.text.textContent!==text)entry.text.textContent=text;if(entry.button.disabled!==entry.select.disabled)entry.button.disabled=entry.select.disabled;entry.button.setAttribute('aria-required',String(entry.select.required));}
+ function close(){if(!current)return;current.menu.hidden=true;current.button.setAttribute('aria-expanded','false');current.button.removeAttribute('aria-activedescendant');current=null;}
+ function highlight(index){if(!current||!current.menu.children.length)return;const rows=[...current.menu.children];active=(index+rows.length)%rows.length;rows.forEach((row,i)=>row.classList.toggle('is-active',i===active));current.button.setAttribute('aria-activedescendant',rows[active].id);const row=rows[active],menu=current.menu;if(row.offsetTop<menu.scrollTop)menu.scrollTop=row.offsetTop;else if(row.offsetTop+row.offsetHeight>menu.scrollTop+menu.clientHeight)menu.scrollTop=row.offsetTop+row.offsetHeight-menu.clientHeight;}
+ function choose(index){if(!current)return;const entry=current,option=entry.select.options[index];if(!option||option.disabled)return;entry.select.selectedIndex=index;sync(entry);close();entry.select.dispatchEvent(new Event('change',{bubbles:true}));entry.button.removeAttribute('aria-invalid');entry.button.focus();}
+ function open(entry){close();sync(entry);if(entry.select.disabled)return;current=entry;const host=entry.select.closest('dialog')||document.body;host.append(entry.menu);entry.menu.replaceChildren();[...entry.select.options].forEach((option,index)=>{const row=document.createElement('div');row.id=entry.menu.id+'-'+index;row.className='finance-select-option';row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.selected));row.setAttribute('aria-disabled',String(option.disabled));row.textContent=option.textContent.trim();row.addEventListener('pointerdown',event=>event.preventDefault());row.addEventListener('click',()=>choose(index));entry.menu.append(row);});
+  const rect=entry.button.getBoundingClientRect(),below=innerHeight-rect.bottom-12,above=rect.top-12;const menuWidth=Math.min(Math.max(rect.width,220),innerWidth-24);entry.menu.style.width=menuWidth+'px';entry.menu.style.left=Math.max(12,Math.min(rect.left,innerWidth-menuWidth-12))+'px';entry.menu.style.maxHeight=Math.min(280,Math.max(above,below))+'px';entry.menu.hidden=false;const height=entry.menu.getBoundingClientRect().height;entry.menu.style.top=(below>=height?rect.bottom+7:Math.max(12,rect.top-height-7))+'px';entry.button.setAttribute('aria-expanded','true');highlight(Math.max(0,entry.select.selectedIndex));
+ }
+ function init(){
+  for(const entry of entries){if(!entry.select.isConnected){if(current===entry)close();entry.observer.disconnect();entry.menu.remove();entries.delete(entry);}else sync(entry);}
+  document.querySelectorAll('.mt select:not([multiple]):not([data-finance-choice])').forEach(select=>{
+   select.dataset.financeChoice='true';const wrap=document.createElement('div');wrap.className='finance-choice';select.before(wrap);wrap.append(select);select.classList.add('finance-native-choice');select.tabIndex=-1;
+   const button=document.createElement('button'),text=document.createElement('span'),menu=document.createElement('div');button.type='button';button.className='finance-select-toggle';button.append(text);button.setAttribute('role','combobox');button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');menu.id='finance-choice-'+counter++;menu.className='finance-select-menu';menu.hidden=true;menu.setAttribute('role','listbox');button.setAttribute('aria-controls',menu.id);
+   const label=select.labels?.[0];if(label){if(!label.id)label.id=menu.id+'-label';button.setAttribute('aria-labelledby',label.id);if(!label.contains(select))label.addEventListener('click',event=>{event.preventDefault();button.focus();});}else button.setAttribute('aria-label',select.name.replaceAll('_',' ')||'Select option');
+   wrap.append(button);(select.closest('dialog')||document.body).append(menu);
+   const entry={select,button,text,menu};entry.observer=new MutationObserver(()=>{sync(entry);if(current===entry)open(entry);});entry.observer.observe(select,{subtree:true,childList:true,attributes:true});entries.add(entry);sync(entry);
+   button.addEventListener('click',()=>current===entry?close():open(entry));select.addEventListener('change',()=>sync(entry));select.addEventListener('focus',()=>button.focus());select.addEventListener('invalid',()=>{button.setAttribute('aria-invalid','true');button.focus();});
+   button.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&current){event.preventDefault();event.stopPropagation();close();return;}if(event.key==='Tab'){close();return;}
+    if(['ArrowDown','ArrowUp','Home','End','Enter',' '].includes(event.key)){event.preventDefault();if(current!==entry){open(entry);return;}if(event.key==='Enter'||event.key===' '){choose(active);return;}const options=[...select.options];let index=event.key==='Home'?0:event.key==='End'?options.length-1:active+(event.key==='ArrowUp'?-1:1);const step=['ArrowUp','End'].includes(event.key)?-1:1;for(let n=0;n<options.length;n++){index=(index+options.length)%options.length;if(!options[index].disabled){highlight(index);break;}index+=step;}}
+    else if(event.key.length===1){typed+=event.key.toLowerCase();clearTimeout(typeTimer);typeTimer=setTimeout(()=>typed='',700);if(current!==entry)open(entry);const index=[...select.options].findIndex(option=>!option.disabled&&option.textContent.trim().toLowerCase().startsWith(typed));if(index>=0)highlight(index);}
+   });
+  });
+  if(current&&(!current.button.isConnected||current.select.closest('dialog')&&!current.select.closest('dialog').open))close();
+ }
+ let queued=false;const queue=()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;init();});};
+ new MutationObserver(queue).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open']});
+ document.addEventListener('pointerdown',event=>{if(current&&!current.button.contains(event.target)&&!current.menu.contains(event.target))close();});document.addEventListener('scroll',event=>{if(current&&!current.menu.contains(event.target))close();},true);window.addEventListener('resize',close);document.addEventListener('reset',()=>setTimeout(init,0));
+ document.addEventListener('close',event=>{const dialog=event.target;if(current&&dialog.contains(current.select))close();},true);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+
+
+</script>
+<script>
+(() => {
+ const root=document.getElementById('masterTaskRoot'); if(!root)return;
+ const results=document.getElementById('mtResults'), filters=document.getElementById('mtFilters'), editor=document.getElementById('mtEditor');
+ const edit=document.getElementById('mtEditDialog'), view=document.getElementById('mtViewDialog'), del=document.getElementById('mtDeleteDialog');
+ const errors=document.getElementById('mtErrors'), save=document.getElementById('mtSave'), confirm=document.getElementById('mtConfirmDelete');
+ const csrf=editor.querySelector('[name=csrfmiddlewaretoken]').value;
+ let current=new URL(location.href), busy=false, polling=false, deleting=null, timer, latest=0;
+ let pending=null,pagePaused=false,sessionExpired=false,listSignature='',returnFocus=null;
+ current.searchParams.delete('team');if(new URL(location.href).searchParams.has('team'))history.replaceState({},'',current);
+ const items=()=>JSON.parse(document.getElementById('mtTaskData').textContent);
+ const icons=()=>{if(window.lucide)window.lucide.createIcons();};
+ const toast=(message,type='success')=>{
+  const host=(document.getElementById('toastContainer')||document.getElementById('toast-container'));
+  const active=[edit,view,del].find(dialog=>dialog.open);
+  // Move the one shared toast container into the active dialog's top layer.
+  if(host){(active||document.body).append(host);}
+  if(typeof window.showToast==='function'){window.showToast(message,type);}else{alert(message);}
+ };
+ [edit,view,del].forEach(dialog=>dialog.addEventListener('close',()=>{
+  const host=(document.getElementById('toastContainer')||document.getElementById('toast-container'));
+  if(host&&dialog.contains(host))document.body.append(host);
+ }));
+ const anyOpen=()=>edit.open||view.open||del.open||!!document.querySelector('.finance-select-menu:not([hidden])');
+ let savedOverflow='';
+ function show(dialog){returnFocus=document.activeElement;savedOverflow=(document.getElementById('adminMain')||document.body).style.overflow;(document.getElementById('adminMain')||document.body).style.overflow='hidden';dialog.showModal();}
+ [edit,view,del].forEach(d=>{d.addEventListener('close',()=>{(document.getElementById('adminMain')||document.body).style.overflow=savedOverflow;if(returnFocus?.isConnected)returnFocus.focus({preventScroll:true});else document.getElementById('mtAdd').focus({preventScroll:true});});d.addEventListener('cancel',e=>{if(busy)e.preventDefault();});});
+ async function refresh(url=current,navigate=false){
+  if(pagePaused||sessionExpired||document.hidden||busy||anyOpen())return false;
+  pending?.abort();const controller=new AbortController();pending=controller;
+  const version=++latest,target=new URL(url,location.href),timeout=setTimeout(()=>controller.abort(),12000);
+  target.searchParams.delete('team');
+  try{
+   const response=await fetch(target,{credentials:'same-origin',headers:{'X-Requested-With':'XMLHttpRequest'},cache:'no-store',signal:controller.signal});
+   if(version!==latest||controller.signal.aborted||pagePaused)return false;
+   if(response.redirected||response.status===401||response.status===403){sessionExpired=true;toast('Your session or access has changed. Sign in again to continue.','error');return false;}
+   if(!response.ok)throw new Error('Unable to refresh tasks.');
+   const doc=new DOMParser().parseFromString(await response.text(),'text/html'),next=doc.getElementById('mtResults');
+   if(!next)throw new Error('Task list unavailable. Check your login.');
+   if(version!==latest||controller.signal.aborted||pagePaused||document.hidden||busy||anyOpen())return false;
+   if(listSignature!==next.innerHTML){
+    const list=results.querySelector('.task-list'),top=list?.scrollTop||0,left=list?.scrollLeft||0;
+    const active=document.activeElement,focused=results.contains(active)?active.closest('[data-action],.mtStatus'):null;
+    const id=focused?.closest('[data-id]')?.dataset.id,action=focused?.dataset.action,status=focused?.matches('.mtStatus');
+    listSignature=next.innerHTML;results.replaceChildren(...Array.from(next.childNodes));
+    const replacement=results.querySelector('.task-list');if(replacement){replacement.scrollTop=top;replacement.scrollLeft=left;}
+    if(id)Array.from(results.querySelectorAll(status?'.mtStatus':'[data-action]')).find(button=>button.closest('[data-id]')?.dataset.id===id&&(status||button.dataset.action===action))?.focus({preventScroll:true});
+    icons();
+   }
+   const incoming=doc.getElementById('mtAssignee'),select=document.getElementById('mtAssignee');
+   if(incoming&&select&&incoming.innerHTML!==select.innerHTML){const previous=select.value;select.replaceChildren(...Array.from(incoming.childNodes));select.value=previous;}
+   if(navigate){current=target;history.pushState({},'',current);filters.elements.namedItem('tab').value=current.searchParams.get('tab')||'all';}
+   return true;
+  }finally{clearTimeout(timeout);if(pending===controller)pending=null;}
+ }
+
+//  async function post(url,data){
+//   pending?.abort();++latest;
+//   if(!data.has('csrfmiddlewaretoken'))data.set('csrfmiddlewaretoken',csrf);
+//   let response;
+//   try{response=await fetch(url,{method:'POST',body:data,credentials:'same-origin',cache:'no-store',headers:{'X-CSRFToken':csrf,'X-Requested-With':'XMLHttpRequest','Accept':'application/json'},signal:AbortSignal.timeout(20000)});}
+
+async function post(url,data,method='POST'){
+  pending?.abort();++latest;
+  if(method==='POST'&&!data.has('csrfmiddlewaretoken'))data.set('csrfmiddlewaretoken',csrf);
+  let response;
+  try{response=await fetch(url,{method,body:method==='POST'?data:null,credentials:'same-origin',cache:'no-store',headers:{'X-CSRFToken':csrf,'X-Requested-With':'XMLHttpRequest','Accept':'application/json'},signal:AbortSignal.timeout(20000)});}
+
+  catch(error){throw new Error(error.name==='TimeoutError'?'The request timed out. Check the task list before retrying.':'Connection interrupted. Check the task list before retrying.');}
+  const text=await response.text();let result=null;
+  try{result=JSON.parse(text);}catch{}
+  if(response.redirected)throw new Error('Your session changed. Sign in again.');
+  if(!result){
+   if(response.status===403)throw new Error('Access or CSRF verification failed. Reload this page and sign in again if needed.');
+   if(response.status===404)throw new Error('The task or action URL was not found. Refresh the task list.');
+   if(response.status>=500)throw new Error('Server error while saving the task (HTTP '+response.status+'). Check the Django terminal traceback.');
+   throw new Error('The server returned an unexpected response (HTTP '+response.status+').');
+  }
+  if(!response.ok||result.ok!==true){
+   const detail=Object.entries(result.errors||{}).map(([field,entries])=>field+': '+entries.map(x=>x.message).join(' ')).join('\n');
+   throw new Error(detail||result.message||'Unable to save the task.');
+  }
+  return result;
+ }
+ function setup(item,row){if(busy||anyOpen())return;editor.reset();errors.textContent='';editor.setAttribute('action',row?row.dataset.update:root.dataset.listUrl);document.getElementById('mtEditHeading').textContent=item?'Edit Task':'Assign Task';save.textContent=item?'Save changes':'Assign task';if(item)for(const key of ['title','description','assigned_to','status','progress'])editor.elements.namedItem(key).value=item[key];show(edit);}
+ document.getElementById('mtAdd').addEventListener('click',()=>setup(null,null));
+ root.addEventListener('click',async e=>{
+  const close=e.target.closest('[data-close]');if(close&&!busy){close.closest('dialog').close();return;}
+  const link=e.target.closest('.tabs a,.page-link');if(link){if(busy||anyOpen()||e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();try{await refresh(new URL(link.href),true);}catch(err){toast(err.message,'error');}return;}
+  const button=e.target.closest('[data-action]');if(!button||busy)return;
+  const row=button.closest('[data-id]'), item=items().find(i=>String(i.id)===row.dataset.id);if(!item)return;
+  if(button.dataset.action==='edit')setup(item,row);
+  if(button.dataset.action==='view'){document.getElementById('mtViewBody').textContent=item.title+'\n\n'+(item.description||'No description')+'\n\nAssigned to: '+item.assignee+'\nCreated by: '+item.creator+'\nStatus: '+item.status.replaceAll('_',' ')+' · '+item.progress+'%';show(view);}
+  if(button.dataset.action==='delete'){deleting=row.dataset.delete;document.getElementById('mtDeleteText').textContent=item.title;document.getElementById('mtDeleteError').textContent='';show(del);}
+ });
+ editor.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;++latest;save.disabled=true;errors.textContent='';let result;try{result=await post(editor.getAttribute('action'),new FormData(editor));edit.close();toast(result.message||'Task updated successfully.');}catch(err){errors.textContent=err.message;toast(err.message,'error');}finally{busy=false;save.disabled=false;}if(result)try{await refresh();}catch(err){toast('Saved successfully. '+err.message,'warning');}});
+ confirm.addEventListener('click',async()=>{if(busy||!deleting)return;busy=true;++latest;confirm.disabled=true;let result;try{result=await post(deleting,new FormData(),'DELETE');del.close();toast(result.message||'Task updated successfully.');}catch(err){document.getElementById('mtDeleteError').textContent=err.message;toast(err.message,'error');}finally{busy=false;confirm.disabled=false;}if(result)try{await refresh();}catch(err){toast('Deleted successfully. '+err.message,'warning');}});
+ results.addEventListener('change',async e=>{if(!e.target.matches('.mtStatus'))return;const select=e.target,row=select.closest('[data-id]');if(busy){select.value=items().find(i=>String(i.id)===row.dataset.id).status;return;}busy=true;++latest;select.disabled=true;const original=items().find(i=>String(i.id)===row.dataset.id).status;let result;try{const data=new FormData();data.set('mode','status');data.set('status',select.value);result=await post(row.dataset.update,data);toast(result.message||'Task updated successfully.');}catch(err){select.value=original;toast(err.message,'error');}finally{busy=false;select.disabled=false;}if(result)try{await refresh();}catch(err){toast('Status saved. '+err.message,'warning');}});
+ document.getElementById('mtState').addEventListener('change',e=>{document.getElementById('mtProgress').value={pending:0,in_progress:50,completed:100}[e.target.value];});
+ filters.addEventListener('submit',async e=>{e.preventDefault();if(busy||anyOpen())return;const url=new URL(root.dataset.listUrl,location.origin);for(const [key,value] of new FormData(filters))if(value)url.searchParams.set(key,value);try{await refresh(url,true);}catch(err){toast(err.message,'error');}});
+
+ document.getElementById('mtReset').addEventListener('click',async()=>{
+  if(busy||anyOpen())return;
+  filters.elements.namedItem('q').value='';
+  const status=filters.elements.namedItem('status');status.value='';status.dispatchEvent(new Event('change',{bubbles:true}));const br=filters.elements.namedItem('branch');if(br){br.value='';br.dispatchEvent(new Event('change',{bubbles:true}));}
+  const url=new URL(root.dataset.listUrl,location.origin),tab=filters.elements.namedItem('tab').value;
+  if(tab&&tab!=='all')url.searchParams.set('tab',tab);
+  try{await refresh(url,true);}catch(err){toast(err.message,'error');}
+ });
+ window.addEventListener('popstate',async()=>{current=new URL(location.href);for(const key of ['tab','q','status','branch'].filter(k=>filters.elements.namedItem(k)))filters.elements.namedItem(key).value=current.searchParams.get(key)||(key==='tab'?'all':'');try{await refresh();}catch(err){toast(err.message,'error');}});
+ async function poll(){if(pagePaused||sessionExpired||pending||document.hidden||anyOpen()||busy||polling)return;polling=true;try{await refresh();}catch{}finally{polling=false;}}
+ setInterval(poll,20000);window.addEventListener('online',poll);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){++latest;pending?.abort();pending=null;}else poll();});
+ window.addEventListener('pagehide',()=>{pagePaused=true;++latest;pending?.abort();pending=null;});
+ window.addEventListener('pageshow',()=>{pagePaused=false;poll();});
+ let validationToast=false;
+ editor.addEventListener('invalid',event=>{if(validationToast)return;validationToast=true;toast(event.target.validationMessage||'Check the task fields.','warning');setTimeout(()=>{validationToast=false;},0);},true);
+ icons();
+})();
+</script>
+<script>
+(() => {
+ const branch=document.getElementById('mtBranch'),editor=document.getElementById('mtEditor');
+ if(!branch||!editor)return;
+ const people=JSON.parse(document.getElementById('mtPeopleData').textContent);
+ function rebuild(){
+  const select=editor.elements.namedItem('assigned_to'),keep=select.value,b=branch.value;
+  const options=[new Option('Choose team lead or member','')];
+  people.filter(p=>!b||String(p.branch)===b).forEach(p=>options.push(new Option(p.label,p.id)));
+  select.replaceChildren(...options);
+  select.value=[...select.options].some(o=>o.value===keep)?keep:'';
+ }
+ branch.addEventListener('change',rebuild);
+ editor.addEventListener('reset',()=>setTimeout(rebuild,0));
+})();
+</script>
+{% endblock %}

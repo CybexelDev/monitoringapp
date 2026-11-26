@@ -1,0 +1,655 @@
+
+{% extends 'hr/base.html' %}
+{% load static %}
+
+{% block title %}HR Profile - Cybexel{% endblock %}
+
+{% block content %}
+
+<style>
+.profile-content {
+    padding: 30px 0;
+}
+
+.profile-main-card,
+.profile-edit-card {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 25px;
+    padding: 26px;
+    border-radius: 22px;
+    background: linear-gradient(145deg, rgba(27,26,34,.95), rgba(16,16,22,.95));
+    border: 1px solid rgba(255,255,255,.09);
+    box-shadow: 0 15px 40px rgba(0,0,0,.18);
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.profile-image-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+}
+
+.profile-image-wrapper {
+    width: 150px;
+    height: 150px;
+    position: relative;
+    cursor: pointer;
+}
+
+.profile-image-wrapper img,
+.profile-initials {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #8054c7;
+    box-sizing: border-box;
+    box-shadow: 0 12px 35px rgba(0,0,0,.4);
+}
+
+.profile-initials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg,#3b2a5b,#21192f);
+    color: #f1eaff;
+    font-size: 55px;
+    font-weight: 800;
+}
+
+.profile-initials[hidden],
+.profile-image-wrapper img[hidden] {
+    display: none !important;
+}
+
+.profile-status {
+    position: absolute;
+    left: 18px;
+    bottom: 9px;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: #4ade80;
+    border: 3px solid #17151e;
+}
+
+.profile-camera {
+    position: absolute;
+    right: -2px;
+    bottom: 12px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background: linear-gradient(135deg,#7c4bd4,#5b32a7);
+    border: 2px solid #181620;
+    pointer-events: none;
+}
+
+.profile-image-hint {
+    margin-top: 17px;
+    font-size: 10px;
+    color: #99939f;
+    text-align: center;
+}
+
+.profile-details {
+    min-width: 0;
+}
+
+.profile-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 22px;
+}
+
+.profile-section-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #c4b5fd;
+    background: rgba(139,92,246,.12);
+    border: 1px solid rgba(139,92,246,.3);
+    flex-shrink: 0;
+}
+
+.profile-section-heading h3 {
+    margin: 0;
+    color: white;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.profile-section-heading p {
+    margin: 5px 0 0;
+    color: #99939f;
+    font-size: 11px;
+}
+
+.profile-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 12px;
+}
+
+.profile-info-item {
+    min-width: 0;
+    padding: 15px;
+    border-radius: 13px;
+    background: rgba(7,7,11,.45);
+    border: 1px solid rgba(255,255,255,.07);
+}
+
+.profile-info-label {
+    display: block;
+    margin-bottom: 7px;
+    color: #89838f;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.profile-info-value {
+    display: block;
+    color: #e5e1e9;
+    font-size: 12px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.profile-edit-card {
+    display: block;
+    margin-top: 22px;
+}
+
+.profile-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 17px;
+}
+
+.profile-form-group {
+    min-width: 0;
+}
+
+.profile-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #aaa4b1;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.profile-form-input {
+    width: 100%;
+    height: 50px;
+    padding: 0 14px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    outline: none;
+    color: white;
+    background: rgba(7,7,11,.5);
+    border: 1px solid rgba(255,255,255,.12);
+    font-size: 13px;
+}
+
+.profile-form-input:focus {
+    border-color: #9870e0;
+    box-shadow: 0 0 0 3px rgba(139,92,246,.1);
+}
+
+.profile-save-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 22px;
+}
+
+.profile-save-button {
+    min-height: 48px;
+    padding: 0 24px;
+    border: none;
+    border-radius: 13px;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg,#7c4bd4,#5b32a7);
+}
+
+.profile-save-button:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+.profile-message {
+    padding: 12px 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 12px;
+    background: rgba(139,92,246,.13);
+    border: 1px solid rgba(139,92,246,.3);
+}
+
+.profile-live-toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 99999;
+    padding: 13px 18px;
+    border-radius: 12px;
+    background: #211a30;
+    border: 1px solid #73608e;
+    color: white;
+}
+
+@media(max-width:1000px) {
+    .profile-main-card {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media(max-width:768px) {
+    .profile-main-card,
+    .profile-edit-card {
+        padding: 17px;
+    }
+
+    .profile-info-grid,
+    .profile-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-save-wrapper {
+        justify-content: stretch;
+    }
+
+    .profile-save-button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .profile-form-input {
+        font-size: 16px;
+    }
+}
+
+@media(max-width:480px) {
+    .profile-image-wrapper,
+    .profile-image-wrapper img,
+    .profile-initials {
+        width: 130px;
+        height: 130px;
+    }
+}
+
+</style>
+
+<div class="dashboard-box">
+
+    <section class="dashboard-header">
+        <div class="dashboard-header-content">
+            <div>
+                <div class="dashboard-eyebrow">CYBEXEL HR PANEL</div>
+                <h1>HR PROFILE</h1>
+                <p>Manage your personal information and account details.</p>
+            </div>
+
+            <div class="system-status">
+                <span class="status-dot"></span>
+                <span>System Online</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="profile-content">
+
+        <div class="section-heading">
+            <div>
+                <span class="section-eyebrow">ACCOUNT</span>
+                <h2>My Profile</h2>
+            </div>
+            <div class="heading-line"></div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="profile-message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="profile-main-card">
+
+            <div class="profile-image-section">
+
+                <div class="profile-image-wrapper" id="profile-container">
+
+                    <img
+                        id="profile-display"
+                        {% if current_user.profile_image %}
+                            src="{{ current_user.profile_image.url }}"
+                        {% else %}
+                            hidden
+                        {% endif %}
+                        alt="Profile Image"
+                    >
+
+                    <div
+                        id="profile-initials"
+                        class="profile-initials"
+                        {% if current_user.profile_image %}hidden{% endif %}
+                    >
+                        {{ current_user.name|default:current_user.username|first|upper }}
+                    </div>
+
+                    <input
+                        type="file"
+                        id="profile-input"
+                        accept="image/*"
+                        hidden
+                    >
+
+                    <span class="profile-status"
+                          title="{{ current_user.status }}">
+                    </span>
+
+                    <span class="profile-camera">
+                        <i data-lucide="camera"></i>
+                    </span>
+
+                </div>
+
+                <div class="profile-image-hint">
+                    Click the image to change your profile photo
+                </div>
+
+            </div>
+
+            <div class="profile-details">
+
+                <div class="profile-section-heading">
+                    <div class="profile-section-icon">
+                        <i data-lucide="circle-user-round"></i>
+                    </div>
+                    <div>
+                        <h3>Personal Information</h3>
+                        <p>Your current account information</p>
+                    </div>
+                </div>
+
+                <div class="profile-info-grid">
+
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">Full Name</span>
+                        <span class="profile-info-value">{{ current_user.name|default:"Not provided" }}</span>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">Employee ID</span>
+                        <span class="profile-info-value">{{ current_user.employee_id|default:"Not provided" }}</span>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">Email</span>
+                        <span class="profile-info-value">{{ current_user.email|default:"Not provided" }}</span>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">Phone</span>
+                        <span class="profile-info-value">{{ current_user.phone|default:"Not provided" }}</span>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">Department</span>
+                        <span class="profile-info-value">
+                            {% if current_user.department %}
+                                {{ current_user.department.name }}
+                            {% else %}
+                                Not assigned
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">Job Position</span>
+                        <span class="profile-info-value">{{ current_user.job_Position|default:"Not provided" }}</span>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">Designation</span>
+                        <span class="profile-info-value">{{ current_user.designation|default:"Not provided" }}</span>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">Work Location</span>
+                        <span class="profile-info-value">{{ current_user.work_location|default:"Not provided" }}</span>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">Joining Date</span>
+                        <span class="profile-info-value">{{ current_user.joining_date|date:"d M Y"|default:"Not provided" }}</span>
+                    </div>
+
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">Username</span>
+                        <span class="profile-info-value">{{ current_user.username|default:"Not provided" }}</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="profile-edit-card">
+
+            <div class="profile-section-heading">
+                <div class="profile-section-icon">
+                    <i data-lucide="user-pen"></i>
+                </div>
+                <div>
+                    <h3>Edit Profile</h3>
+                    <p>Update your basic profile information</p>
+                </div>
+            </div>
+
+            <form
+                method="POST"
+                action="{% url 'hr_profile' %}"
+                id="hr-profile-form"
+            >
+                {% csrf_token %}
+
+                <input type="hidden" name="action" value="edit_profile">
+
+                <div class="profile-form-grid">
+
+                    <div class="profile-form-group">
+                        <label for="profile-name">Full Name</label>
+                        <input
+                            type="text"
+                            id="profile-name"
+                            name="name"
+                            class="profile-form-input"
+                            value="{{ current_user.name }}"
+                            maxlength="150"
+                            required
+                        >
+                    </div>
+
+                    <div class="profile-form-group">
+                        <label for="profile-email">Email</label>
+                        <input
+                            type="email"
+                            id="profile-email"
+                            name="email"
+                            class="profile-form-input"
+                            value="{{ current_user.email }}"
+                            required
+                        >
+                    </div>
+
+                    <div class="profile-form-group">
+                        <label for="profile-phone">Phone</label>
+                        <input
+                            type="tel"
+                            id="profile-phone"
+                            name="phone"
+                            class="profile-form-input"
+                            value="{{ current_user.phone|default_if_none:'' }}"
+                            maxlength="15"
+                        >
+                    </div>
+
+                </div>
+
+                <div class="profile-save-wrapper">
+                    <button type="submit" class="profile-save-button">
+                        <i data-lucide="save"></i>
+                        <span>Save Changes</span>
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </section>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.getElementById("hr-profile-form");
+    const input = document.getElementById("profile-input");
+    const container = document.getElementById("profile-container");
+    const photo = document.getElementById("profile-display");
+    const initials = document.getElementById("profile-initials");
+
+    if (!form || !input || !container || !photo || !initials) return;
+
+    const toast = (message, error = false) => {
+        const existing = document.querySelector(".profile-live-toast");
+        if (existing) existing.remove();
+
+        const node = document.createElement("div");
+        node.className = "profile-live-toast";
+        node.setAttribute("role", "status");
+        node.textContent = message;
+
+        if (error) {
+            node.style.borderColor = "#dc6b78";
+        }
+
+        document.body.appendChild(node);
+        setTimeout(() => node.remove(), 4500);
+    };
+
+    function setPhoto(src) {
+        photo.src = src;
+        photo.hidden = false;
+        initials.hidden = true;
+
+        document.querySelectorAll("#sidebar img").forEach(img => {
+            if (img.alt?.toLowerCase().includes("profile")) {
+                img.src = src;
+            }
+        });
+    }
+
+    container.setAttribute("role", "button");
+    container.setAttribute("tabindex", "0");
+    container.setAttribute("aria-label", "Change profile photo");
+
+    container.addEventListener("click", () => {
+        input.click();
+    });
+
+    container.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            input.click();
+        }
+    });
+
+    input.addEventListener("change", async () => {
+
+        const file = input.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            toast("Please choose a valid image.", true);
+            input.value = "";
+            return;
+        }
+
+        const data = new FormData();
+        data.append("profile_image", file);
+        data.append("action", "edit_profile");
+        data.append(
+            "csrfmiddlewaretoken",
+            form.querySelector('[name="csrfmiddlewaretoken"]').value
+        );
+
+        input.disabled = true;
+
+        try {
+            const response = await fetch(form.action, {
+                method: "POST",
+                body: data,
+                credentials: "same-origin",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success || !result.image_url) {
+                throw new Error(result.error || "Photo upload failed.");
+            }
+
+            setPhoto(result.image_url);
+            toast("Profile photo updated successfully.");
+
+        } catch (error) {
+            toast(error.message || "Unable to upload photo.", true);
+        } finally {
+            input.disabled = false;
+            input.value = "";
+        }
+
+    });
+
+    form.addEventListener("submit", event => {
+
+        if (!form.reportValidity()) {
+            event.preventDefault();
+            return;
+        }
+
+    });
+
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+
+});
+</script>
+
+{% endblock %}
