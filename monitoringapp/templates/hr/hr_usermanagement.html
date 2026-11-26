@@ -1,0 +1,480 @@
+{% extends 'hr/base.html' %}
+{% load static %}
+{% block title %}HR User Management - Cybexel{% endblock %}
+{% block page_class %}hr-usermanagement-page{% endblock %}
+
+{% block extra_css %}
+<style>
+body.hr-usermanagement-page{--bg:#0c0b14;--field:#0c0b12;--line:#302a3b;--accent:#8b5cf6;--text:#eee8f7;--muted:#9a93a8}
+body.hr-usermanagement-page .dashboard-box{width:100%;height:100%;box-sizing:border-box;padding:16px;overflow:auto;border-radius:28px;background:linear-gradient(145deg,rgba(17,16,24,.94),rgba(8,9,14,.96));border:1px solid rgba(255,255,255,.10);scrollbar-width:thin;scrollbar-color:#8972b1 transparent}
+/* header */
+body.hr-usermanagement-page .dashboard-header{padding:32px 36px;border-radius:28px;background:linear-gradient(110deg,#231c2e,#11131c 55%,#20203a);border:1px solid rgba(255,255,255,.10);box-sizing:border-box}
+body.hr-usermanagement-page .dashboard-header-content{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+body.hr-usermanagement-page .dashboard-eyebrow{color:#b196f5;font-size:10px;font-weight:800;letter-spacing:3px;margin-bottom:12px}
+body.hr-usermanagement-page .dashboard-header h1{margin:0;font-size:clamp(30px,4vw,56px);font-weight:900;line-height:1.1;letter-spacing:-1.5px;background:linear-gradient(90deg,#faf5ff,#c4b5fd 45%,#66caff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+body.hr-usermanagement-page .dashboard-header p{margin:14px 0 0;color:#96939e;font-size:13px}
+body.hr-usermanagement-page .system-status{display:flex;align-items:center;gap:9px;padding:9px 17px;border-radius:30px;color:#9ee7ba;font-size:11px;background:rgba(52,211,153,.055);border:1px solid rgba(52,211,153,.17)}
+body.hr-usermanagement-page .status-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 12px rgba(74,222,128,.75)}
+body.hr-usermanagement-page .dashboard-content{padding:24px 0 30px}
+/* section heading */
+body.hr-usermanagement-page .section-heading{display:flex;align-items:center;gap:22px;margin-bottom:22px}
+body.hr-usermanagement-page .section-eyebrow{display:block;margin-bottom:8px;color:#a78bfa;font-size:10px;font-weight:800;letter-spacing:3px}
+body.hr-usermanagement-page .section-heading h2{margin:0;color:#fff;font-size:22px;font-weight:800}
+body.hr-usermanagement-page .heading-line{flex:1;min-width:20px;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.10),transparent)}
+body.hr-usermanagement-page .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 18px;border-radius:12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.2s}
+body.hr-usermanagement-page .btn svg{width:16px;height:16px}
+body.hr-usermanagement-page .btn-primary{color:#fff;background:linear-gradient(115deg,#834ad6,#6032ab);border:1px solid #ad82ef50}
+body.hr-usermanagement-page .btn-primary:hover{filter:brightness(1.1)}
+body.hr-usermanagement-page .btn-ghost{color:#c4b5fd;background:rgba(124,58,237,.08);border:1px solid rgba(139,92,246,.35)}
+body.hr-usermanagement-page .btn-cancel{color:#bcb4c8;background:#17141e;border:1px solid var(--line)}
+body.hr-usermanagement-page .btn:disabled{opacity:.6;cursor:wait}
+/* card + filters */
+body.hr-usermanagement-page .dashboard-card{padding:26px;border-radius:23px;background:linear-gradient(145deg,rgba(27,26,34,.90),rgba(16,16,22,.92));border:1px solid rgba(255,255,255,.09);box-shadow:0 20px 50px rgba(0,0,0,.20)}
+body.hr-usermanagement-page .filter-card{margin-bottom:20px;padding:18px;border-radius:17px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06)}
+body.hr-usermanagement-page .filter-heading{display:flex;align-items:center;gap:9px;margin-bottom:14px;color:rgba(255,255,255,.7);font-size:11px;font-weight:750}
+body.hr-usermanagement-page .filter-heading svg{width:16px;height:16px;color:#9d8cff}
+body.hr-usermanagement-page .filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+body.hr-usermanagement-page .search-row{grid-column:1/-1;display:flex;gap:10px;align-items:center}
+body.hr-usermanagement-page .search-field{position:relative;flex:1;min-width:0}
+body.hr-usermanagement-page .search-field svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#a78bfa;pointer-events:none}
+body.hr-usermanagement-page .field,body.hr-usermanagement-page select.field{width:100%;box-sizing:border-box;min-height:44px;padding:11px 14px;border:1px solid #383044;border-radius:12px;background:#111018;color:var(--text);font:inherit;font-size:13px;outline:none}
+body.hr-usermanagement-page .search-field .field{padding-left:38px}
+body.hr-usermanagement-page .field:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,.12)}
+body.hr-usermanagement-page .field::placeholder{color:#6f687b}
+body.hr-usermanagement-page select.field{appearance:none;-webkit-appearance:none;color-scheme:dark;cursor:pointer;padding-right:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23c4b5fd' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
+body.hr-usermanagement-page select.field option{background:#1b1726;color:#ede9fe}
+body.hr-usermanagement-page select.field:disabled{opacity:.6;cursor:not-allowed}
+/* table */
+body.hr-usermanagement-page .table-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:18px}
+body.hr-usermanagement-page .table-eyebrow{display:block;color:#a78bfa;font-size:9px;font-weight:800;letter-spacing:3px}
+body.hr-usermanagement-page .table-head h4{margin:4px 0 0;color:#fff;font-size:16px;font-weight:750}
+body.hr-usermanagement-page .count-badge{min-width:32px;height:28px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:rgba(126,96,230,.13);border:1px solid rgba(126,96,230,.20);color:#a89cff;font-size:11px;font-weight:750}
+body.hr-usermanagement-page .table-wrapper{max-height:65vh;overflow:auto;border:1px solid rgba(255,255,255,.06);border-radius:15px;background:rgba(0,0,0,.10);scrollbar-width:thin;scrollbar-color:#74559b transparent;overscroll-behavior:contain}
+body.hr-usermanagement-page .employee-table{width:100%;min-width:1300px;border-collapse:separate;border-spacing:0;color:rgba(255,255,255,.65);font-size:11px}
+body.hr-usermanagement-page .employee-table th{position:sticky;top:0;z-index:2;padding:13px 12px;text-align:left;background:#1b1726;color:rgba(255,255,255,.5);font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.065)}
+body.hr-usermanagement-page .employee-table td{padding:12px;white-space:nowrap;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,.045)}
+body.hr-usermanagement-page .employee-table tbody tr:hover{background:rgba(255,255,255,.025)}
+body.hr-usermanagement-page .employee-name{color:#fff;font-weight:700}
+body.hr-usermanagement-page .empty-row{padding:35px!important;text-align:center;color:rgba(255,255,255,.3)}
+body.hr-usermanagement-page .avatar-wrap{position:relative;width:38px;height:38px}
+body.hr-usermanagement-page .avatar,body.hr-usermanagement-page .avatar-fallback{width:38px;height:38px;border-radius:12px;object-fit:cover;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center}
+body.hr-usermanagement-page .avatar-fallback{background:linear-gradient(135deg,rgba(118,91,215,.35),rgba(49,93,168,.28));color:#fff;font-size:13px;font-weight:800}
+body.hr-usermanagement-page .user-status-dot{position:absolute;right:-2px;bottom:-2px;width:9px;height:9px;border:2px solid #171923;border-radius:50%;background:#45dc91}
+body.hr-usermanagement-page .user-status-dot[data-status="inactive"]{background:#ff6978}
+body.hr-usermanagement-page .status-text{display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);font-size:10px}
+body.hr-usermanagement-page .status-text::before{content:"";width:6px;height:6px;border-radius:50%;background:#45dc91}
+body.hr-usermanagement-page .status-text.inactive::before{background:#ff6978}
+body.hr-usermanagement-page .row-actions{display:flex;gap:8px}
+body.hr-usermanagement-page .icon-btn{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;background:transparent}
+body.hr-usermanagement-page .icon-btn svg{width:19px;height:19px}
+body.hr-usermanagement-page .icon-btn.edit{border:1px solid rgba(90,140,255,.17);background:rgba(68,119,210,.10);color:#8cb8ff}
+body.hr-usermanagement-page .icon-btn.del{border:1px solid rgba(255,80,95,.15);background:rgba(255,70,85,.07);color:#ff8994}
+body.hr-usermanagement-page .icon-btn:hover{filter:brightness(1.3)}
+/* modals */
+body.hr-usermanagement-page .modal{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,4,9,.66);backdrop-filter:blur(7px)}
+body.hr-usermanagement-page .modal[hidden]{display:none}
+body.hr-usermanagement-page .modal-box{width:100%;max-width:880px;max-height:calc(100dvh - 32px);overflow:auto;border-radius:24px;background:#0b0a12;border:1px solid #3b3548;box-shadow:0 30px 95px #0009;scrollbar-width:thin;scrollbar-color:#715098 #0b0a12}
+body.hr-usermanagement-page .modal-box.small{max-width:430px}
+body.hr-usermanagement-page .modal-header{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:26px 30px;background:linear-gradient(110deg,#251b3d,#12101e 48%,#171c2c);border-bottom:1px solid #ffffff12}
+body.hr-usermanagement-page .modal-title{margin:0;color:#faf7ff;font-size:22px;font-weight:800}
+body.hr-usermanagement-page .modal-sub{margin:6px 0 0;color:#8b819b;font-size:12px}
+body.hr-usermanagement-page .modal-close{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#ffffff04;border:1px solid #ffffff12;color:#a59bad;cursor:pointer}
+body.hr-usermanagement-page .modal-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 18px;padding:26px 30px 30px}
+body.hr-usermanagement-page .modal-form .full{grid-column:1/-1}
+body.hr-usermanagement-page .modal-form label{display:block;margin-bottom:8px;color:#d4cddd;font-size:12px;font-weight:700}
+body.hr-usermanagement-page .modal-form .field{background:var(--field);border-color:var(--line);min-height:48px}
+body.hr-usermanagement-page .modal-form input[type=date]{color-scheme:dark}
+body.hr-usermanagement-page .modal-form input[type=file]{padding:7px}
+body.hr-usermanagement-page .modal-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:12px;padding-top:20px;border-top:1px solid #ffffff12}
+body.hr-usermanagement-page .modal-text{margin:24px 30px;color:#b9afc8;font-size:13px;line-height:1.6}
+body.hr-usermanagement-page .modal-box.small .modal-actions{padding:0 30px 26px;border:0}
+body.hr-usermanagement-page .form-error{grid-column:1/-1;margin:0;color:#efa6b2;font-size:13px}
+body.hr-usermanagement-page .form-error:empty{display:none}
+@media(max-width:900px){body.hr-usermanagement-page .filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+ body.hr-usermanagement-page .filter-grid,body.hr-usermanagement-page .modal-form{grid-template-columns:1fr}
+ body.hr-usermanagement-page .search-row{flex-wrap:wrap}
+ body.hr-usermanagement-page .search-field{flex-basis:100%}
+ body.hr-usermanagement-page .modal-form{padding:20px 18px}
+ body.hr-usermanagement-page .modal-header{padding:20px 18px}
+ body.hr-usermanagement-page .field,body.hr-usermanagement-page select.field{font-size:16px}
+ body.hr-usermanagement-page .dashboard-header{padding:24px 20px;border-radius:22px}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-box">
+
+  <section class="dashboard-header">
+    <div class="dashboard-header-content">
+      <div>
+        <div class="dashboard-eyebrow">CYBEXEL HR PANEL</div>
+        <h1>USER MANAGEMENT</h1>
+        <p>Create, manage and maintain your organization users{% if branch_name %} · {{ branch_name }}{% endif %}.</p>
+      </div>
+      <div class="system-status"><span class="status-dot"></span><span>System Online</span></div>
+    </div>
+  </section>
+
+  <section class="dashboard-content">
+  {% if no_branch %}
+    <div class="dashboard-card"><p class="empty-row">No branch is assigned to your account. Ask the Master Admin to assign your branch.</p></div>
+  {% else %}
+
+    <div class="section-heading">
+      <div><span class="section-eyebrow">USER DIRECTORY</span><h2>Employee List</h2></div>
+      <div class="heading-line"></div>
+      <button type="button" class="btn btn-primary" id="openAdd"><i data-lucide="user-plus"></i><span>Add Employee</span></button>
+    </div>
+
+    <div class="dashboard-card">
+      <div class="filter-card">
+        <div class="filter-heading"><i data-lucide="sliders-horizontal"></i><span>FILTER EMPLOYEES</span></div>
+        <form id="filterForm">
+          <div class="filter-grid">
+            <div class="search-row">
+              <div class="search-field"><i data-lucide="search"></i>
+                <input type="search" name="search" value="{{ request.GET.search }}" class="field" placeholder="Search name, email or employee ID..." aria-label="Search employees"></div>
+              <button type="submit" class="btn btn-primary"><i data-lucide="filter"></i><span>Filter</span></button>
+              <button type="button" class="btn btn-ghost" id="resetFilters"><i data-lucide="rotate-ccw"></i><span>Reset</span></button>
+            </div>
+            <select name="department" class="field" aria-label="Department">
+              <option value="">All Departments</option>
+              {% for d in departments %}<option value="{{ d.name }}" {% if request.GET.department == d.name %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
+            </select>
+            <select name="position" class="field" aria-label="Position">
+              <option value="">All Positions</option>
+              <option value="Team Lead" {% if request.GET.position == "Team Lead" %}selected{% endif %}>Team Lead</option>
+              <option value="Team Member" {% if request.GET.position == "Team Member" %}selected{% endif %}>Team Member</option>
+            </select>
+            {% if is_head %}
+            <select name="branch" class="field" aria-label="Branch">
+              <option value="">All Branches</option>
+              {% for b in branches %}<option value="{{ b.id }}" {% if request.GET.branch == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>{% endfor %}
+              <option value="none" {% if request.GET.branch == "none" %}selected{% endif %}>Not assigned</option>
+            </select>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+
+      <div class="table-head">
+        <div><span class="table-eyebrow">EMPLOYEES</span><h4>Registered Users</h4></div>
+        <span class="count-badge" id="employeeCount">{{ users|length }}</span>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="employee-table">
+          <thead><tr>
+            <th>Image</th><th>Emp ID</th><th>Department</th><th>Branch</th><th>Job Position</th>
+            <th>Designation</th><th>Name</th><th>Email</th><th>Phone</th><th>Work Location</th>
+            <th>Joining Date</th><th>Username</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="employeeTableBody">
+            {% for user in users %}
+            <tr data-user-row="{{ user.pk }}">
+              <td><div class="avatar-wrap">
+                {% if user.profile_image %}<img class="avatar" src="{{ user.profile_image.url }}" alt="{{ user.name }}">
+                {% else %}<div class="avatar-fallback">{{ user.name|first|upper }}</div>{% endif %}
+                <span class="user-status-dot" data-status="{{ user.status }}" title="{{ user.status|capfirst }}"></span>
+              </div></td>
+              <td>{{ user.employee_id }}</td>
+              <td>{{ user.department|default:"—" }}</td>
+              <td>{{ user.branch.name|default:"—" }}</td>
+              <td>{{ user.job_Position }}</td>
+              <td>{{ user.designation|default:"—" }}</td>
+              <td class="employee-name">{{ user.name }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.phone|default:"—" }}</td>
+              <td>{{ user.work_location|default:"—" }}</td>
+              <td>{{ user.joining_date }}</td>
+              <td>{{ user.username }}</td>
+              <td><span class="status-text {% if user.status == 'inactive' %}inactive{% endif %}">{{ user.status|capfirst }}</span></td>
+              <td><div class="row-actions">
+                <button type="button" class="icon-btn edit" data-edit title="Edit" aria-label="Edit employee"
+                  data-id="{{ user.id }}" data-empid="{{ user.employee_id }}" data-name="{{ user.name }}"
+                  data-email="{{ user.email }}" data-phone="{{ user.phone|default_if_none:'' }}"
+                  data-department="{{ user.department_id|default_if_none:'' }}" data-branch="{{ user.branch_id|default_if_none:'' }}"
+                  data-designation="{{ user.designation }}" data-job="{{ user.job_Position }}"
+                  data-worklocation="{{ user.work_location|default_if_none:'' }}"
+                  data-joining="{{ user.joining_date|date:'Y-m-d' }}" data-username="{{ user.username }}"
+                  data-status="{{ user.status }}"><i data-lucide="pencil"></i></button>
+                <button type="button" class="icon-btn del" data-delete title="Delete" aria-label="Delete employee"
+                  data-name="{{ user.name }}" data-url="{% url 'hr_delete_user' user.id %}"><i data-lucide="trash-2"></i></button>
+              </div></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="14" class="empty-row">No users found</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+  </section>
+</div>
+
+{% if not no_branch %}
+<!-- ADD -->
+<div class="modal" id="addModal" hidden role="dialog" aria-modal="true" aria-labelledby="addTitle">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div><h2 class="modal-title" id="addTitle">Add Employee</h2><p class="modal-sub">Enter the employee information below</p></div>
+      <button type="button" class="modal-close" data-close aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <form id="addForm" class="modal-form" method="POST" action="{% url 'hr_add_user' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="full"><label for="profile_image">Profile Picture</label><input type="file" id="profile_image" name="profile_image" accept="image/*" class="field"></div>
+      <div><label for="name">Full Name</label><input type="text" id="name" name="name" class="field" required placeholder="Enter full name"></div>
+      <div><label for="employee_id">Employee ID</label><input type="text" id="employee_id" name="employee_id" class="field" readonly placeholder="Generated automatically"></div>
+      <div><label for="email">Email</label><input type="email" id="email" name="email" class="field" required placeholder="employee@company.com"></div>
+      <div><label for="phone">Phone</label><input type="text" id="phone" name="phone" class="field" placeholder="Phone number"></div>
+      <div><label for="department">Department</label>
+        <select id="department" name="department" class="field" required>
+          <option value="">Select Department</option>
+          {% for d in departments %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+        </select></div>
+      <div><label for="job_Position">Job Position</label>
+        <select id="job_Position" name="job_Position" class="field" required>
+          <option value="">Select Job Position</option>
+          <option value="Team Lead">Team Lead</option>
+          <option value="Team Member">Team Member</option>
+        </select></div>
+      <div><label for="designation">Designation</label>
+        <select id="designation" name="designation" class="field" required disabled><option value="">Choose department first</option></select></div>
+      {% if is_head %}
+      <div><label for="branch">Branch</label>
+        <select id="branch" name="branch" class="field" required>
+          <option value="">Select Branch</option>
+          {% for b in add_branches %}<option value="{{ b.id }}">{{ b.name }}{% if b.is_head_office %} (Head Office){% endif %}</option>{% endfor %}
+        </select></div>
+      {% endif %}
+      <div><label for="work_location">Work Location</label><input type="text" id="work_location" name="work_location" class="field" maxlength="150" placeholder="Work location"></div>
+      <div><label for="joining_date">Joining Date</label><input type="date" id="joining_date" name="joining_date" class="field" required></div>
+      <div><label for="username">Username</label><input type="text" id="username" name="username" class="field" required placeholder="Enter username" autocomplete="off"></div>
+      <div><label for="password">Password</label><input type="password" id="password" name="password" class="field" required placeholder="Enter password" autocomplete="new-password"></div>
+      <div><label for="status">Status</label>
+        <select id="status" name="status" class="field"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+      <p class="form-error" role="alert"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-cancel" data-close>Cancel</button>
+        <button type="submit" class="btn btn-primary"><i data-lucide="user-plus"></i>Add Employee</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- EDIT -->
+<div class="modal" id="editModal" hidden role="dialog" aria-modal="true" aria-labelledby="editTitle">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div><h2 class="modal-title" id="editTitle">Edit Employee</h2><p class="modal-sub">Update employee information</p></div>
+      <button type="button" class="modal-close" data-close aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <form id="editForm" class="modal-form" method="POST" action="{% url 'hr_edit_user' %}" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" id="edit_id" name="id">
+      <div><label for="edit_emp_id">Employee ID</label><input type="text" id="edit_emp_id" name="edit_emp_id" class="field" readonly></div>
+      <div><label for="edit_name">Full Name</label><input type="text" id="edit_name" name="edit_name" class="field" required></div>
+      <div><label for="edit_email">Email</label><input type="email" id="edit_email" name="edit_email" class="field" required></div>
+      <div><label for="edit_phone">Phone</label><input type="text" id="edit_phone" name="edit_phone" class="field"></div>
+      <div><label for="edit_department">Department</label>
+        <select id="edit_department" name="edit_department" class="field" required>
+          <option value="">Select Department</option>
+          {% for d in departments %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+        </select></div>
+      <div><label for="edit_job_position">Job Position</label>
+        <select id="edit_job_position" name="edit_job_position" class="field" required>
+          <option value="Team Lead">Team Lead</option>
+          <option value="Team Member">Team Member</option>
+        </select></div>
+      <div><label for="edit_designation">Designation</label>
+        <select id="edit_designation" name="edit_designation" class="field" required disabled><option value="">Choose department first</option></select></div>
+      {% if is_head %}
+      <div><label for="edit_branch">Branch</label>
+        <select id="edit_branch" name="edit_branch" class="field">
+          <option value="">Not assigned</option>
+          {% for b in branches %}<option value="{{ b.id }}">{{ b.name }}{% if b.is_head_office %} (Head Office){% endif %}{% if not b.is_active %} (inactive){% endif %}</option>{% endfor %}
+        </select></div>
+      {% endif %}
+      <div><label for="edit_work_location">Work Location</label><input type="text" id="edit_work_location" name="edit_work_location" class="field" maxlength="150"></div>
+      <div><label for="edit_joining_date">Joining Date</label><input type="date" id="edit_joining_date" name="edit_joining_date" class="field"></div>
+      <div><label for="edit_username">Username</label><input type="text" id="edit_username" name="edit_username" class="field" required autocomplete="off"></div>
+      <div><label for="edit_password">Password</label><input type="password" id="edit_password" name="edit_password" class="field" placeholder="Leave blank to keep current" autocomplete="new-password"></div>
+      <div><label for="edit_status">Status</label>
+        <select id="edit_status" name="edit_status" class="field"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+      <div class="full"><label for="edit_profile_upload">Profile Image</label><input type="file" id="edit_profile_upload" name="edit_profile_upload" class="field" accept="image/*"></div>
+      <p class="form-error" role="alert"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-cancel" data-close>Cancel</button>
+        <button type="submit" class="btn btn-primary"><i data-lucide="save"></i>Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- DELETE -->
+<div class="modal" id="deleteModal" hidden role="dialog" aria-modal="true" aria-labelledby="delTitle">
+  <div class="modal-box small">
+    <div class="modal-header"><h2 class="modal-title" id="delTitle">Delete employee?</h2>
+      <button type="button" class="modal-close" data-close aria-label="Close"><i data-lucide="x"></i></button></div>
+    <p class="modal-text" id="deleteText"></p>
+    <p class="form-error" id="deleteError" role="alert" style="margin:0 30px 14px"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-cancel" data-close>Cancel</button>
+      <button type="button" class="btn btn-primary" id="confirmDelete" style="background:#d44b60;border-color:#e57388">Delete employee</button>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{{ designation_options|json_script:"designationData" }}
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const filter = $('filterForm'), body = $('employeeTableBody');
+  if (!filter || !body) { window.lucide?.createIcons(); return; }
+
+  const notify = (msg, type = 'success') => {
+    if (typeof window.showToast === 'function') { try { window.showToast(msg, type); return; } catch (_) {} }
+    alert(msg);
+  };
+  const csrf = () => document.querySelector('#addForm [name=csrfmiddlewaretoken]')?.value || '';
+  let designations = {};
+  try { designations = JSON.parse($('designationData')?.textContent || '{}') || {}; } catch (_) {}
+
+  /* ---------- modals ---------- */
+  const modals = [$('addModal'), $('editModal'), $('deleteModal')];
+  const anyOpen = () => modals.some(m => m && !m.hidden);
+  function openModal(m) { m.hidden = false; document.body.style.overflow = 'hidden'; window.lucide?.createIcons(); }
+  function closeModal(m) { if (m) m.hidden = true; if (!anyOpen()) document.body.style.overflow = ''; }
+  modals.forEach(m => {
+    m?.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-close]')) closeModal(m); });
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') modals.forEach(closeModal); });
+
+  /* ---------- designations ---------- */
+  async function fillDesignations(deptId, selectId, selected = '') {
+    const sel = $(selectId); if (!sel) return;
+    const key = String(deptId || '');
+    const show = names => {
+      sel.replaceChildren(new Option(key ? 'Select designation' : 'Choose department first', ''));
+      names.forEach(n => sel.add(new Option(n, n)));
+      sel.disabled = !key || !names.length;
+      if (key && !names.length) sel.options[0].text = 'No designations for this department';
+      if (selected && names.includes(selected)) sel.value = selected;
+    };
+    if (!key) return show([]);
+    if (Array.isArray(designations[key])) show(designations[key]);
+    else { sel.replaceChildren(new Option('Loading designations…', '')); sel.disabled = true; }
+    try {
+      const u = new URL(location.pathname, location.origin); u.searchParams.set('designation_department', key);
+      const r = await fetch(u, {credentials: 'same-origin', cache: 'no-store', headers: {'X-Requested-With': 'XMLHttpRequest'}});
+      const d = await r.json();
+      if (!r.ok || !d.ok) throw Error(d.message || 'Unable to load designations.');
+      designations[key] = d.items; show(d.items);
+    } catch (err) { if (!Array.isArray(designations[key])) { sel.replaceChildren(new Option('Unable to load', '')); notify(err.message, 'error'); } }
+  }
+  $('department')?.addEventListener('change', e => fillDesignations(e.target.value, 'designation'));
+  $('edit_department')?.addEventListener('change', e => fillDesignations(e.target.value, 'edit_designation'));
+
+  /* ---------- add ---------- */
+  $('openAdd')?.addEventListener('click', () => {
+    $('addForm').reset(); $('addForm').querySelector('.form-error').textContent = '';
+    fillDesignations('', 'designation'); openModal($('addModal')); $('name').focus();
+  });
+
+  /* ---------- edit (delegated, rows are replaced live) ---------- */
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-edit]'); if (!b) return;
+    const d = b.dataset;
+    $('editForm').querySelector('.form-error').textContent = '';
+    $('edit_id').value = d.id; $('edit_emp_id').value = d.empid; $('edit_name').value = d.name;
+    $('edit_email').value = d.email; $('edit_phone').value = d.phone;
+    $('edit_department').value = d.department;
+    $('edit_job_position').value = d.job;
+    if ($('edit_branch')) $('edit_branch').value = d.branch;
+    $('edit_work_location').value = d.worklocation; $('edit_joining_date').value = d.joining;
+    $('edit_username').value = d.username; $('edit_password').value = '';
+    $('edit_status').value = d.status; $('edit_profile_upload').value = '';
+    fillDesignations(d.department, 'edit_designation', d.designation);
+    openModal($('editModal'));
+  });
+
+  /* ---------- save (add + edit) ---------- */
+  async function save(form, modal) {
+    const err = form.querySelector('.form-error'), btn = form.querySelector('[type=submit]');
+    err.textContent = ''; btn.disabled = true;
+    try {
+      const r = await fetch(form.action, {method: 'POST', body: new FormData(form), credentials: 'same-origin',
+        headers: {'X-Requested-With': 'XMLHttpRequest'}});
+      if (!(r.headers.get('Content-Type') || '').includes('application/json')) throw Error('The server did not confirm this change. Check your login.');
+      const d = await r.json();
+      if (!r.ok || !d.ok) throw Error(d.message || 'Unable to save employee.');
+      closeModal(modal); form.reset(); notify(d.message || 'Saved successfully.'); await refresh(true);
+    } catch (e) { err.textContent = e.message; notify(e.message, 'error'); }
+    finally { btn.disabled = false; }
+  }
+  $('addForm')?.addEventListener('submit', e => { e.preventDefault(); save(e.target, $('addModal')); });
+  $('editForm')?.addEventListener('submit', e => { e.preventDefault(); save(e.target, $('editModal')); });
+
+  /* ---------- delete ---------- */
+  let deleteUrl = '';
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-delete]'); if (!b) return;
+    deleteUrl = b.dataset.url; $('deleteError').textContent = '';
+    $('deleteText').textContent = 'This will permanently delete “' + b.dataset.name + '” and their related records. Continue?';
+    openModal($('deleteModal'));
+  });
+  $('confirmDelete')?.addEventListener('click', async e => {
+    const btn = e.currentTarget; btn.disabled = true; $('deleteError').textContent = '';
+    try {
+      const r = await fetch(deleteUrl, {method: 'DELETE', credentials: 'same-origin',
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf()}});
+      if (!(r.headers.get('Content-Type') || '').includes('application/json')) throw Error('The server did not confirm this change.');
+      const d = await r.json();
+      if (!r.ok || !d.ok) throw Error(d.message || 'Unable to delete employee.');
+      closeModal($('deleteModal')); notify(d.message); await refresh(true);
+    } catch (err) { $('deleteError').textContent = err.message; notify(err.message, 'error'); }
+    finally { btn.disabled = false; }
+  });
+
+  /* ---------- live list + filters ---------- */
+  let ctl = null, seq = 0, timer = null, debounce = null;
+  function listUrl() {
+    const u = new URL(location.pathname, location.origin);
+    for (const [k, v] of new FormData(filter)) if (String(v).trim()) u.searchParams.set(k, v);
+    return u;
+  }
+  async function refresh(force = false) {
+    if (document.hidden || (!force && anyOpen())) return;
+    ctl?.abort(); const c = new AbortController(); ctl = c; const token = ++seq;
+    try {
+      const r = await fetch(listUrl(), {credentials: 'same-origin', cache: 'no-store', signal: c.signal});
+      if (!r.ok) return;
+      const doc = new DOMParser().parseFromString(await r.text(), 'text/html');
+      const next = doc.getElementById('employeeTableBody');
+      if (!next || token !== seq) return;
+      if (body.innerHTML !== next.innerHTML) {
+        const w = body.closest('.table-wrapper'), l = w.scrollLeft, t = w.scrollTop;
+        body.replaceChildren(...Array.from(next.childNodes)); w.scrollLeft = l; w.scrollTop = t;
+        window.lucide?.createIcons();
+      }
+      $('employeeCount').textContent = doc.getElementById('employeeCount')?.textContent || '0';
+    } catch (_) {}
+  }
+  const schedule = () => { clearTimeout(timer); if (!document.hidden) timer = setTimeout(async () => { await refresh(); schedule(); }, 10000); };
+  filter.addEventListener('submit', e => { e.preventDefault(); refresh(true); });
+  filter.querySelectorAll('select').forEach(s => s.addEventListener('change', () => refresh(true)));
+  filter.querySelector('input[name=search]').addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(() => refresh(true), 250); });
+  $('resetFilters')?.addEventListener('click', () => { filter.querySelectorAll('input,select').forEach(c => { c.value = ''; }); refresh(true); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { refresh(); schedule(); } });
+
+  window.lucide?.createIcons();
+  schedule();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% load static %}
+
+{% with active_route=request.resolver_match.url_name %}
+<button id="adminMenuButton" class="menu-toggle mobile-menu-button" type="button" aria-label="Open sidebar" aria-controls="sidebar" aria-expanded="false"><i data-lucide="menu" aria-hidden="true"></i></button>
+<div id="adminSidebarOverlay" class="sidebar-overlay" hidden></div>
+
+<aside id="sidebar" class="glass-sidebar" aria-label="HR navigation">
+    <div class="sidebar-profile">
+        <div class="sidebar-logo"><img src="{% static 'images/logo.png' %}" alt="Cybexel"></div>
+        <div class="sidebar-profile-text"><h3>HR</h3><span>CYBEXEL WORKSPACE</span></div>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Main navigation">
+
+        <a href="{% url 'hr_dashboard' %}" class="sidebar-item {% if active_route == 'hr_dashboard' %}active{% endif %}" {% if active_route == 'hr_dashboard' %}aria-current="page"{% endif %}>
+            <span class="sidebar-icon"><i data-lucide="layout-dashboard" aria-hidden="true"></i></span><span>Dashboard</span></a>
+
+        <a href="{% url 'hr_usermanagement' %}" class="sidebar-item {% if active_route == 'hr_usermanagement' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="users" aria-hidden="true"></i></span><span>User Management</span></a>
+
+        <a href="{% url 'hr_announcements' %}" class="sidebar-item {% if active_route == 'hr_announcements' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="megaphone" aria-hidden="true"></i></span><span>Announcements</span></a>
+
+        <a href="{% url 'hr_reports' %}" class="sidebar-item {% if active_route == 'hr_reports' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span><span>Reports</span></a>
+
+        <a href="{% url 'hr_project_assigning' %}" class="sidebar-item {% if active_route == 'hr_project_assigning' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="folder-kanban" aria-hidden="true"></i></span><span>Project Assigning</span></a>
+
+        <a href="{% url 'hr_tasks' %}" class="sidebar-item {% if active_route == 'hr_tasks' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="list-checks" aria-hidden="true"></i></span><span>Tasks</span></a>
+
+        <a href="{% url 'hr_notepad' %}" class="sidebar-item {% if active_route == 'hr_notepad' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="notebook-pen" aria-hidden="true"></i></span><span>Notepad</span></a>
+
+        <a href="{% url 'hr_chat' %}" class="sidebar-item {% if active_route == 'hr_chat' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="messages-square" aria-hidden="true"></i></span><span>Chat</span></a>
+
+        <a href="{% url 'hr_google_meet' %}" class="sidebar-item {% if active_route == 'hr_google_meet' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="video" aria-hidden="true"></i></span><span>Google Meet</span></a>
+
+        <a href="{% url 'hr_reminders' %}" class="sidebar-item {% if active_route == 'hr_reminders' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="calendar-clock" aria-hidden="true"></i></span><span>Reminders</span></a>
+
+        <a href="{% url 'hr_notifications' %}" class="sidebar-item {% if active_route == 'hr_notifications' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="bell" aria-hidden="true"></i></span><span>Notifications</span></a>
+
+        <a href="{% url 'hr_profile' %}" class="sidebar-item {% if active_route == 'hr_profile' %}active{% endif %}">
+            <span class="sidebar-icon"><i data-lucide="user-round" aria-hidden="true"></i></span><span>Profile</span></a>
+    </nav>
+    <div class="sidebar-bottom">
+        <hr class="admin-logout-divider" aria-hidden="true">
+        <a href="{% url 'hr_logout' %}" class="sidebar-logout">
+            <span class="sidebar-icon"><i data-lucide="log-out" aria-hidden="true"></i></span><span>Logout</span>
+        </a>
+    </div>
+</aside>
+{% endwith %}
+
+<style>
+body.admin-workspace #sidebar .admin-logout-divider {
+    display: block; width: calc(100% - 16px); height: 1px;
+    margin: 0 8px 16px; padding: 0; border: 0; background: rgba(255,255,255,.12);
+}
+body.admin-workspace #sidebar .sidebar-logout { width: 100%; min-height: 47px; }
+body.admin-workspace #sidebar .sidebar-logout .sidebar-icon { width: 24px; min-width: 24px; }
+body.admin-workspace #sidebar .sidebar-logout .sidebar-icon svg { width: 23px; height: 19px; }
+body.admin-workspace #sidebar { min-height: 0; display: flex; flex-direction: column; }
+body.admin-workspace #sidebar .sidebar-profile,
+body.admin-workspace #sidebar .sidebar-bottom { flex-shrink: 0; }
+body.admin-workspace #sidebar .sidebar-nav {
+    flex: 1; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: hidden;
+    overscroll-behavior-y: contain; scrollbar-width: none; -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+}
+body.admin-workspace #sidebar .sidebar-nav::-webkit-scrollbar { display: none; width: 0; height: 0; }
+body.admin-workspace #sidebar .sidebar-item { min-width: 0; }
+body.admin-workspace #sidebar .sidebar-item > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 768px) {
+    body.admin-workspace #sidebar { width: min(250px, calc(100vw - 24px)); max-width: calc(100vw - 24px); }
+    body.admin-workspace #adminMenuButton.mobile-menu-button {
+        position: fixed; top: 31px; left: 29px; right: auto; z-index: 1101;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    body.admin-workspace #sidebar { transition: none !important; }
+}
+</style>
