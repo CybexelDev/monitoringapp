@@ -1,0 +1,1843 @@
+
+{% extends 'accounts/accounts_base.html' %}
+{% load static %}
+
+{% block accounts_page_class %}accounts-quotations-page{% endblock %}
+{% block title %}Accounts Quotations - Cybexel{% endblock %}
+{% block page_heading %}QUOTATIONS{% endblock %}
+{% block page_description %}Create and manage customer quotations.{% endblock %}
+
+{% block content %}
+
+<style>
+    .accounts-quotations-page .quotation-panel {
+        background: var(--accounts-card, #171426);
+        border: 1px solid rgba(255,255,255,.09);
+        border-radius: 16px;
+        padding: 22px;
+        min-width: 0;
+    }
+
+    .accounts-quotations-page .quotation-panel-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+    .accounts-quotations-page .quotation-panel-heading h2 {
+        margin: 0;
+        color: #fff;
+        font-size: 19px;
+        font-weight: 700;
+    }
+
+    .accounts-quotations-page .quotation-muted {
+        color: #a7a1b8;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+
+    .accounts-quotations-page .quotation-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 10px 16px;
+        border: 0;
+        border-radius: 9px;
+        background: #7950d8;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background .2s ease;
+    }
+
+    .accounts-quotations-page .quotation-button:hover {
+        background: #6840c5;
+    }
+
+    .accounts-quotations-page .quotation-filters {
+        display: grid;
+        grid-template-columns: minmax(220px, 1.4fr) repeat(2, minmax(145px, .8fr)) auto auto;
+        align-items: center;.accounts-quotations-page .quotation-date-filter {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.accounts-quotations-page .quotation-date-filter label {
+    color: #a9a2b9;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.accounts-quotations-page .quotation-date-filter input {
+    width: 100%;
+}
+
+.accounts-quotations-page .quotation-date-error {
+    grid-column: 1 / -1;
+    color: #ff929d;
+    font-size: 12px;
+}
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+
+    .accounts-quotations-page .quotation-filters input,
+    .accounts-quotations-page .quotation-filters select {
+        width: 100%;
+        min-width: 0;
+        min-height: 42px;
+        padding: 10px 12px;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 9px;
+        outline: none;
+        background: #211c31;
+        color: #fff;
+        font-size: 13px;
+    }
+
+    .accounts-quotations-page .quotation-filters input:focus,
+    .accounts-quotations-page .quotation-filters select:focus {
+        border-color: #936be8;
+    }
+
+    .accounts-quotations-page .quotation-filters input::placeholder {
+        color: #918aa4;
+    }
+
+    .accounts-quotations-page .quotation-reset {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        min-height: 42px;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 9px;
+        color: #c9c2da;
+        text-decoration: none;
+        font-size: 13px;
+    }
+
+    .accounts-quotations-page .quotation-table-scroll {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .accounts-quotations-page .quotation-table {
+        width: 100%;
+        min-width: 850px;
+        border-collapse: collapse;
+    }
+
+    .accounts-quotations-page .quotation-table th {
+        padding: 14px 12px;
+        color: #a9a2b9;
+        font-size: 11px;
+        font-weight: 700;
+        text-align: left;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        border-bottom: 1px solid rgba(255,255,255,.1);
+        white-space: nowrap;
+    }
+
+    .accounts-quotations-page .quotation-table td {
+        padding: 15px 12px;
+        color: #e8e4f0;
+        font-size: 13px;
+        border-bottom: 1px solid rgba(255,255,255,.07);
+        white-space: nowrap;
+    }
+
+    .accounts-quotations-page .quotation-table tbody tr:hover {
+        background: rgba(255,255,255,.025);
+    }
+
+    .accounts-quotations-page .quotation-number {
+        color: #c3a8ff;
+        font-weight: 700;
+    }
+
+    .accounts-quotations-page .quotation-status {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: capitalize;
+        background: rgba(255,255,255,.08);
+        color: #d8d2e4;
+    }
+
+    .accounts-quotations-page .quotation-status.status-draft {
+        background: rgba(150,150,170,.13);
+        color: #c9c6d4;
+    }
+
+    .accounts-quotations-page .quotation-status.status-sent {
+        background: rgba(78,145,235,.13);
+        color: #8dbdff;
+    }
+
+    .accounts-quotations-page .quotation-status.status-accepted {
+        background: rgba(55,190,125,.13);
+        color: #75e0a8;
+    }
+
+    .accounts-quotations-page .quotation-status.status-rejected {
+        background: rgba(235,85,100,.13);
+        color: #ff929d;
+    }
+
+    .accounts-quotations-page .quotation-empty {
+        padding: 55px 20px;
+        text-align: center;
+        color: #a7a1b8;
+    }
+
+    .accounts-quotations-page .quotation-empty-icon {
+        width: 52px;
+        height: 52px;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 14px;
+        border-radius: 14px;
+        background: rgba(130,90,220,.13);
+        color: #b99aff;
+    }
+
+    .accounts-quotations-page .quotation-empty h3 {
+        color: #f2eff8;
+        font-size: 16px;
+        margin: 0 0 7px;
+    }
+
+    .accounts-quotations-page .quotation-empty p {
+        margin: 0;
+        font-size: 13px;
+    }
+
+    .accounts-quotations-page .quotation-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 20px;
+        color: #aaa3ba;
+        font-size: 12px;
+    }
+
+    .accounts-quotations-page .quotation-page-links {
+        display: flex;
+        gap: 7px;
+    }
+
+    .accounts-quotations-page .quotation-page-links a,
+    .accounts-quotations-page .quotation-page-links span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 34px;
+        height: 34px;
+        padding: 0 10px;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 8px;
+        color: #ddd6ed;
+        text-decoration: none;
+    }
+
+    .accounts-quotations-page .quotation-page-links span {
+        color: #8d879d;
+        opacity: .5;
+    }
+
+    @media (max-width: 760px) {
+        .accounts-quotations-page .quotation-panel {
+            padding: 15px;
+        }
+
+        .accounts-quotations-page .quotation-filters {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .accounts-quotations-page .quotation-filters input[name="q"] {
+    grid-column: 1 / -1;
+}
+    }
+
+    @media (max-width: 460px) {
+        .accounts-quotations-page .quotation-filters {
+            grid-template-columns: 1fr;
+        }
+
+       .accounts-quotations-page .quotation-filters input[name="q"] {
+    grid-column: auto;
+}
+    }
+
+
+/* A4 Quotation Editor Modal */
+.quotation-editor-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(8, 6, 16, .88);
+    backdrop-filter: blur(7px);
+    padding: 20px;
+}
+
+.quotation-editor-modal.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.quotation-editor-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    background: #211c31;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.quotation-editor-toolbar button {
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 15px;
+    background: #7950d8;
+    color: white;
+    cursor: pointer;
+}
+
+.quotation-editor-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 25px 10px;
+}
+
+.quotation-a4-page {
+    position: relative;
+    width: 210mm;
+    min-height: 297mm;
+    box-sizing: border-box;
+    margin: 0 auto 25px;
+    padding: 19mm 18mm;
+    background: #fff;
+    color: #292536;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 8px 35px rgba(0,0,0,.35);
+    overflow: hidden;
+}
+
+.quotation-a4-page::before {
+    content: "CYBEXEL";
+    position: absolute;
+    top: 43%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    font-size: 65px;
+    font-weight: 800;
+    letter-spacing: 8px;
+    color: rgba(110, 75, 170, .045);
+    pointer-events: none;
+}
+
+.quotation-a4-content {
+    position: relative;
+    z-index: 1;
+}
+
+.quotation-a4-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid #7650bd;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+}
+
+.quotation-a4-brand {
+    color: #56358f;
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.quotation-a4-small {
+    color: #777184;
+    font-size: 10px;
+    text-align: right;
+    line-height: 1.7;
+}
+
+.quotation-a4-title {
+    color: #59388f;
+    font-size: 28px;
+    font-weight: 800;
+    margin: 25px 0;
+}
+
+.quotation-a4-section {
+    margin: 24px 0;
+}
+
+.quotation-a4-section h3 {
+    color: #5d3b91;
+    font-size: 15px;
+    border-bottom: 1px solid #ddd5eb;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+}
+
+.quotation-a4-section p,
+.quotation-a4-section li {
+    font-size: 12px;
+    line-height: 1.8;
+    color: #514d5c;
+}
+
+.quotation-a4-editable {
+    outline: none;
+    border-radius: 3px;
+}
+
+.quotation-a4-editable:focus {
+    background: #f8f4ff;
+    box-shadow: 0 0 0 2px rgba(121,80,216,.2);
+}
+
+.quotation-a4-footer {
+    position: absolute;
+    bottom: 12mm;
+    left: 18mm;
+    right: 18mm;
+    padding-top: 10px;
+    border-top: 1px solid #ddd5eb;
+    display: flex;
+    justify-content: space-between;
+    color: #827b90;
+    font-size: 9px;
+}
+
+@media (max-width: 760px) {
+    .quotation-editor-modal {
+        padding: 8px;
+    }
+
+    .quotation-a4-page {
+        width: 100%;
+        min-height: 297mm;
+        padding: 14mm 12mm;
+    }
+
+    .quotation-editor-toolbar {
+        flex-wrap: wrap;
+    }
+}
+/* View Quotation Modal */
+#quotationViewModal .quotation-editor-scroll {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+.quotation-view-page {
+    width: 210mm;
+    min-height: 297mm;
+    box-sizing: border-box;
+    background: #fff;
+    box-shadow: 0 8px 35px rgba(0,0,0,.35);
+}
+
+.quotation-view-frame {
+    display: block;
+    width: 210mm;
+    height: 297mm;
+    border: 0;
+    background: #fff;
+}
+
+@media (max-width: 760px) {
+    #quotationViewModal .quotation-editor-scroll {
+        align-items: flex-start;
+    }
+}
+.quotation-delete-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    background: rgba(8, 6, 16, .82);
+    backdrop-filter: blur(5px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.quotation-delete-modal.active {
+    display: flex;
+}
+
+.quotation-delete-dialog {
+    width: 100%;
+    max-width: 400px;
+    padding: 28px;
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 16px;
+    background: #211c31;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 15px 50px rgba(0,0,0,.4);
+}
+
+.quotation-delete-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 15px;
+    border-radius: 13px;
+    background: rgba(235,85,100,.13);
+    color: #ff929d;
+}
+
+.quotation-delete-dialog h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+}
+
+.quotation-delete-dialog p {
+    color: #aaa3ba;
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.quotation-delete-dialog strong {
+    color: #d4bdff;
+}
+
+.quotation-delete-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.quotation-delete-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 9px 17px;
+    border: 0;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#cancelQuotationDelete {
+    background: #393248;
+}
+
+#confirmQuotationDelete {
+    background: #b83d55;
+}
+
+#confirmQuotationDelete:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+</style>
+
+<style>
+/* ===== Quotations: User Management theme ===== */
+.accounts-quotations-page{--q-line:#302a3b;--q-field:#111018;--q-accent:#a78bfa;--q-scroll:#8972b1}
+
+/* main glass card */
+.accounts-quotations-page .quotation-panel{
+  padding:26px;border-radius:23px;
+  background:linear-gradient(145deg,rgba(27,26,34,.90),rgba(16,16,22,.92));
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:0 20px 50px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.035)}
+.accounts-quotations-page .quotation-panel-heading h2{font-size:22px;font-weight:800}
+.accounts-quotations-page .quotation-muted{color:#8f8c96}
+
+/* buttons */
+.accounts-quotations-page .quotation-button{
+  border:1px solid #ad82ef50;border-radius:12px;min-height:42px;
+  background:linear-gradient(115deg,#834ad6,#6032ab);
+  box-shadow:0 6px 18px #6238aa20;font-weight:750;transition:.2s}
+.accounts-quotations-page .quotation-button:hover{background:linear-gradient(115deg,#834ad6,#6032ab);filter:brightness(1.12);transform:translateY(-1px)}
+.accounts-quotations-page .quotation-button:disabled{opacity:.6;cursor:wait;transform:none}
+#openQuotationEditor{
+  border:1px solid rgba(139,112,255,.28);color:#dcd7ff;
+  background:linear-gradient(135deg,rgba(117,89,220,.24),rgba(82,66,170,.16));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 8px 20px rgba(72,52,160,.14)}
+
+/* filter bar */
+.accounts-quotations-page .quotation-filters{
+  padding:18px;border-radius:17px;background:rgba(255,255,255,.025);
+  border:1px solid rgba(255,255,255,.06);align-items:end}
+.accounts-quotations-page .quotation-filters input,
+.accounts-quotations-page .quotation-filters select{
+  min-height:44px;border:1px solid #383044;border-radius:10px;
+  background:var(--q-field);color:#eee8f8;color-scheme:dark}
+.accounts-quotations-page .quotation-filters input:focus,
+.accounts-quotations-page .quotation-filters select:focus{
+  border-color:#8b5cf6;outline:2px solid rgba(139,92,246,.15)}
+.accounts-quotations-page .quotation-date-filter label{color:rgba(255,255,255,.62);letter-spacing:.05em}
+.accounts-quotations-page .quotation-reset{
+  min-height:44px;border:1px solid rgba(139,92,246,.35);border-radius:10px;
+  background:rgba(124,58,237,.08);color:#c4b5fd;font-weight:700;transition:.2s}
+.accounts-quotations-page .quotation-reset:hover{color:#fff;border-color:rgba(139,92,246,.65)}
+
+/* table */
+.accounts-quotations-page .quotation-table-scroll{
+  max-height:65vh;overflow:auto;border:1px solid rgba(255,255,255,.06);
+  border-radius:15px;background:rgba(0,0,0,.10);
+  scrollbar-width:thin;scrollbar-color:var(--q-scroll) #191722;overscroll-behavior:contain}
+.accounts-quotations-page .quotation-table{border-collapse:separate;border-spacing:0}
+.accounts-quotations-page .quotation-table th{
+  position:sticky;top:0;z-index:2;background:#1b1726;
+  color:rgba(255,255,255,.50);font-size:9px;font-weight:800;letter-spacing:.08em;
+  border-bottom:1px solid rgba(255,255,255,.065)}
+.accounts-quotations-page .quotation-table td{
+  color:rgba(255,255,255,.65);font-size:11px;vertical-align:middle;
+  border-bottom:1px solid rgba(255,255,255,.045)}
+.accounts-quotations-page .quotation-table tbody tr:hover{background:rgba(255,255,255,.025)}
+.accounts-quotations-page .quotation-table tbody tr:last-child td{border-bottom:0}
+.accounts-quotations-page .quotation-number{color:#c4b5fd}
+
+/* row action buttons -> square icon buttons like User Management */
+.accounts-quotations-page .quotation-table td .quotation-button{
+  width:40px;height:40px;min-height:40px!important;padding:10px!important;
+  margin-right:6px;border-radius:10px;box-shadow:none}
+.accounts-quotations-page .quotation-download-trigger{background:rgba(52,211,153,.08)!important;border:1px solid rgba(52,211,153,.20)!important;color:#7ee8b4}
+.accounts-quotations-page .quotation-view-trigger{background:rgba(139,92,246,.10)!important;border:1px solid rgba(139,92,246,.25)!important;color:#c4b5fd}
+.accounts-quotations-page .quotation-edit-trigger{background:rgba(68,119,210,.10)!important;border:1px solid rgba(90,140,255,.17)!important;color:#8cb8ff}
+.accounts-quotations-page .quotation-delete-trigger{background:rgba(255,70,85,.07)!important;border:1px solid rgba(255,80,95,.15)!important;color:#ff8994}
+.accounts-quotations-page .quotation-table td .quotation-button:hover{filter:brightness(1.3);transform:translateY(-1px)}
+.accounts-quotations-page .quotation-table td .quotation-button svg{width:19px;height:19px}
+
+/* empty state + pagination */
+.accounts-quotations-page .quotation-empty-icon{background:linear-gradient(145deg,#41296a,#2b1c4d);border:1px solid #8055c950;color:#cbb6ff}
+.accounts-quotations-page .quotation-page-links a,
+.accounts-quotations-page .quotation-page-links span{border-radius:10px;border-color:#302a3b;background:#17141e;color:#bcb4c8}
+.accounts-quotations-page .quotation-page-links a:hover{color:#fff;border-color:#70499e}
+
+/* editor / view toolbar (outside page wrapper, so no .accounts-quotations-page prefix) */
+.quotation-editor-modal{background:rgba(5,4,9,.78);backdrop-filter:blur(7px)}
+.quotation-editor-toolbar{
+  padding:18px 24px;border:1px solid #3b3548;border-radius:20px;
+  background:linear-gradient(110deg,#251b3d 0%,#12101e 48%,#171c2c 100%);
+  box-shadow:0 20px 50px #0007}
+.quotation-editor-toolbar strong{font-size:18px;font-weight:800;color:#faf7ff}
+.quotation-editor-toolbar button{
+  display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:10px 18px;
+  border:1px solid #ad82ef50;border-radius:12px;
+  background:linear-gradient(115deg,#834ad6,#6032ab);font-weight:750;transition:.2s}
+.quotation-editor-toolbar button:hover{filter:brightness(1.12)}
+#closeQuotationEditor,#closeQuotationView{background:#17141e;border:1px solid #302a3b;color:#bcb4c8}
+.quotation-editor-scroll{scrollbar-width:thin;scrollbar-color:#715098 transparent}
+
+/* delete dialog */
+.quotation-delete-modal{background:rgba(5,4,9,.70);backdrop-filter:blur(7px)}
+.quotation-delete-dialog{
+  max-width:420px;border:1px solid #3b3548;border-radius:24px;
+  background:#0b0a12;box-shadow:0 30px 95px #0009;padding:32px}
+.quotation-delete-icon{border-radius:16px;background:rgba(255,70,85,.10);border:1px solid rgba(255,80,95,.20)}
+.quotation-delete-dialog h3{font-size:22px;font-weight:800;color:#faf7ff}
+.quotation-delete-dialog p{color:#b9afc8}
+.quotation-delete-actions button{min-height:46px;padding:10px 20px;border-radius:12px;transition:.2s}
+#cancelQuotationDelete{background:#17141e;border:1px solid #302a3b;color:#bcb4c8}
+#confirmQuotationDelete{background:linear-gradient(115deg,#d4485f,#a8304a);border:1px solid #ef8da033}
+.quotation-delete-actions button:hover:not(:disabled){filter:brightness(1.12)}
+
+@media(max-width:760px){
+  .accounts-quotations-page .quotation-panel{padding:16px;border-radius:20px}
+  .accounts-quotations-page .quotation-filters input,
+  .accounts-quotations-page .quotation-filters select{font-size:16px}
+}
+</style>
+<section class="quotation-panel">
+
+    <div class="quotation-panel-heading">
+        <div>
+            <h2>Quotation Management</h2>
+           <p class="quotation-muted">
+    View, search and manage your customer quotations.
+</p>
+        </div>
+
+        <button type="button" class="quotation-button" id="openQuotationEditor">
+    <i data-lucide="plus" aria-hidden="true"></i>
+    Add Quotation
+</button>
+    </div>
+
+<form method="GET" class="quotation-filters">
+
+    <input
+        type="search"
+        name="q"
+        value="{{ query }}"
+        placeholder="Search quotation number, customer or project..."
+        aria-label="Search quotations"
+    >
+
+    <div class="quotation-date-filter">
+        <label for="quotationDateFrom">From Date</label>
+        <input
+            type="date"
+            id="quotationDateFrom"
+            name="date_from"
+            value="{{ date_from }}"
+        >
+    </div>
+
+    <div class="quotation-date-filter">
+        <label for="quotationDateTo">To Date</label>
+        <input
+            type="date"
+            id="quotationDateTo"
+            name="date_to"
+            value="{{ date_to }}"
+        >
+    </div>
+
+    <button type="submit" class="quotation-button">
+        <i data-lucide="search" aria-hidden="true"></i>
+        Search
+    </button>
+
+    {% if has_filters %}
+        <a href="{% url 'accounts_quotations' %}" class="quotation-reset">
+            Reset
+        </a>
+    {% endif %}
+
+    {% if date_error %}
+        <div class="quotation-date-error">
+            {{ date_error }}
+        </div>
+    {% endif %}
+
+</form>
+
+
+    <div class="quotation-muted" style="margin-bottom: 12px;">
+        {{ total_entries }} quotation{{ total_entries|pluralize }}
+        found
+    </div>
+
+    <div class="quotation-table-scroll">
+
+        <table class="quotation-table">
+            <thead>
+                <tr>
+                    <th>Quotation Number</th>
+                    <th>Customer</th>
+                    <th>Project</th>
+                    <th>Quotation Date</th>
+                    <th>Valid Until</th>
+                    <th>Total Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for quotation in page_obj %}
+                    <tr>
+                        <td>
+                            <span class="quotation-number">
+                                {{ quotation.quotation_number }}
+                            </span>
+                        </td>
+
+                        <td>
+                            {{ quotation.customer_name|default:quotation.company_name|default:"—" }}
+                        </td>
+
+                        <td>{{ quotation.project_title|default:"—" }}</td>
+
+                        <td>{{ quotation.quotation_date|date:"d M Y" }}</td>
+
+                        <td>
+                            {% if quotation.valid_until %}
+                                {{ quotation.valid_until|date:"d M Y" }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+
+                        <td>₹{{ quotation.total_amount|floatformat:2 }}</td>
+
+                    
+
+                        <td><button
+    type="button"
+    class="quotation-button quotation-download-trigger"
+    data-view-url="{% url 'accounts_quotation_view' quotation.pk %}"
+    title="Download PDF"
+    style="padding:7px 10px; min-height:32px;"
+>
+    <i data-lucide="download" size="15"></i>
+</button>
+                            <button
+    type="button"
+    class="quotation-button quotation-view-trigger"
+    data-view-url="{% url 'accounts_quotation_view' quotation.pk %}"
+    title="View Quotation"
+    style="padding:7px 10px; min-height:32px;"
+>
+    <i data-lucide="eye" size="15"></i>
+</button>
+                            <button
+    type="button"
+    class="quotation-button quotation-edit-trigger"
+    data-view-url="{% url 'accounts_quotation_view' quotation.pk %}"
+    data-update-url="{% url 'accounts_quotation_update' quotation.pk %}"
+    title="Edit Quotation"
+    style="padding:7px 10px; min-height:32px;"
+>
+    <i data-lucide="pencil" size="15"></i>
+</button>
+<button
+    type="button"
+    class="quotation-button quotation-delete-trigger"
+    data-delete-url="{% url 'accounts_quotation_delete' quotation.pk %}"
+    data-quotation-number="{{ quotation.quotation_number|escape }}"
+    title="Delete Quotation"
+    style="padding:7px 10px; min-height:32px; background:#b83d55;"
+>
+    <i data-lucide="trash-2" size="15"></i>
+    
+</button>
+
+
+</td>
+                    </tr>
+
+                {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="quotation-empty">
+                                <div class="quotation-empty-icon">
+                                    <i data-lucide="file-text" size="25" aria-hidden="true"></i>
+                                </div>
+
+                                {% if has_filters %}
+                                    <h3>No matching quotations</h3>
+                                    <p>Try changing your search or date range.</p>
+                                {% else %}
+                                    <h3>No quotations yet</h3>
+                                    <p>Your saved quotations will appear here.</p>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+        <div class="quotation-pagination">
+
+            <div>
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </div>
+
+<div class="quotation-page-links">
+  {% if page_obj.has_previous %}
+    <a href="?q={{ query|urlencode }}&date_from={{ date_from|urlencode }}&date_to={{ date_to|urlencode }}&page={{ page_obj.previous_page_number }}" aria-label="Previous page"><i data-lucide="chevron-left" size="15"></i></a>
+  {% else %}
+    <span><i data-lucide="chevron-left" size="15"></i></span>
+  {% endif %}
+  {% if page_obj.has_next %}
+    <a href="?q={{ query|urlencode }}&date_from={{ date_from|urlencode }}&date_to={{ date_to|urlencode }}&page={{ page_obj.next_page_number }}" aria-label="Next page"><i data-lucide="chevron-right" size="15"></i></a>
+  {% else %}
+    <span><i data-lucide="chevron-right" size="15"></i></span>
+  {% endif %}
+</div>
+        </div>
+    {% endif %}
+
+</section>
+
+
+<div class="quotation-editor-modal" id="quotationEditorModal">
+
+    <div class="quotation-editor-toolbar">
+        <div>
+            <strong>Quotation Document Editor</strong>
+            <div style="font-size:11px;color:#aaa3ba;margin-top:4px;">
+                A4 Portrait · Four Pages
+            </div>
+        </div>
+
+       <div style="display:flex; gap:10px; align-items:center;">
+    <button type="button" id="saveQuotationButton">
+        <i data-lucide="save" size="15"></i>
+        Save Quotation
+    </button>
+
+    <button type="button" id="closeQuotationEditor">
+        Close
+    </button>
+</div>
+    </div>
+
+    <div class="quotation-editor-scroll">
+
+        <!-- PAGE 1 -->
+        <div class="quotation-a4-page">
+            <div class="quotation-a4-content">
+
+                <div class="quotation-a4-header">
+                    <div class="quotation-a4-brand">CYBEXEL</div>
+                    <div class="quotation-a4-small quotation-a4-editable"
+                         contenteditable="true">
+                        Cybexel Technologies<br>
+                        Company Address<br>
+                        Email | Phone | Website
+                    </div>
+                </div>
+
+                <h1 class="quotation-a4-title quotation-a4-editable"
+                    contenteditable="true">QUOTATION</h1>
+
+                <div class="quotation-a4-section">
+                    <h3>Quotation Information</h3>
+<p contenteditable="true"
+   class="quotation-a4-editable"
+   data-field="quotation_info">
+                    Quotation Number: QUO-XXXX<br>
+                        Date: DD/MM/YYYY<br>
+                        Valid Until: DD/MM/YYYY
+                    </p>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>Customer Information</h3>
+                   <p contenteditable="true"
+   class="quotation-a4-editable"
+   data-field="customer_info">
+                        Customer Name: [Enter Customer Name]<br>
+                        Company: [Enter Company Name]<br>
+                        Email: [Enter Email]<br>
+                        Phone: [Enter Phone]<br>
+                        Address: [Enter Address]
+                    </p>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>About Us</h3>
+                    <p contenteditable="true" class="quotation-a4-editable">
+                        [Enter your company introduction and background here.]
+                    </p>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>Project Overview</h3>
+                    <p contenteditable="true" class="quotation-a4-editable">
+                        [Describe the proposed project and its purpose.]
+                    </p>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>Goals & Objectives</h3>
+                    <p contenteditable="true" class="quotation-a4-editable">
+                        [Describe the expected goals and project objectives.]
+                    </p>
+                </div>
+
+            </div>
+            <div class="quotation-a4-footer">
+                <span>CYBEXEL TECHNOLOGIES</span>
+                <span>Page 01</span>
+            </div>
+        </div>
+
+        <!-- PAGE 2 -->
+        <div class="quotation-a4-page">
+            <div class="quotation-a4-content">
+
+                <div class="quotation-a4-header">
+                    <div class="quotation-a4-brand">CYBEXEL</div>
+                    <div class="quotation-a4-small">QUOTATION DOCUMENT</div>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>Project Scope</h3>
+                    <p contenteditable="true" class="quotation-a4-editable">
+                        [Describe the complete scope of the proposed project.]
+                    </p>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>Key Deliverables</h3>
+                    <p contenteditable="true" class="quotation-a4-editable">
+                        [List the main deliverables and services.]
+                    </p>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>Pricing Details</h3>
+                    <p contenteditable="true" class="quotation-a4-editable">
+                        [Add service descriptions, quantities and pricing details.]
+                    </p>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>Grand Total</h3>
+                    <p contenteditable="true"
+   class="quotation-a4-editable"
+   data-field="grand_total">
+                        [Enter subtotal, discount, taxes and grand total.]
+                    </p>
+                </div>
+
+            </div>
+            <div class="quotation-a4-footer">
+                <span>CYBEXEL TECHNOLOGIES</span>
+                <span>Page 02</span>
+            </div>
+        </div>
+
+        <!-- PAGE 3 -->
+        <div class="quotation-a4-page">
+            <div class="quotation-a4-content">
+
+                <div class="quotation-a4-header">
+                    <div class="quotation-a4-brand">CYBEXEL</div>
+                    <div class="quotation-a4-small">QUOTATION DOCUMENT</div>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>Project Execution</h3>
+                    <p contenteditable="true"
+   class="quotation-a4-editable"
+   data-field="project_overview">
+                        [Describe the project execution stages and estimated timeline.]
+                    </p>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>Why Choose Us</h3>
+                    <p contenteditable="true" class="quotation-a4-editable">
+                        [Describe your company's strengths, experience and advantages.]
+                    </p>
+                </div>
+
+            </div>
+            <div class="quotation-a4-footer">
+                <span>CYBEXEL TECHNOLOGIES</span>
+                <span>Page 03</span>
+            </div>
+        </div>
+
+        <!-- PAGE 4 -->
+        <div class="quotation-a4-page">
+            <div class="quotation-a4-content">
+
+                <div class="quotation-a4-header">
+                    <div class="quotation-a4-brand">CYBEXEL</div>
+                    <div class="quotation-a4-small">QUOTATION DOCUMENT</div>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>Next Step</h3>
+                    <p contenteditable="true" class="quotation-a4-editable">
+                        [Describe the next steps required to proceed with this quotation.]
+                    </p>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>Terms & Conditions</h3>
+                    <p contenteditable="true" class="quotation-a4-editable">
+                        [Enter the quotation terms and conditions.]
+                    </p>
+                </div>
+
+                <div class="quotation-a4-section">
+                    <h3>Customer Acceptance</h3>
+                    <p contenteditable="true"
+   class="quotation-a4-editable"
+   data-field="customer_info">
+                        Customer Name: ____________________<br><br>
+                        Signature: _________________________<br><br>
+                        Date: ______________________________
+                    </p>
+                </div>
+
+            </div>
+            <div class="quotation-a4-footer">
+                <span>CYBEXEL TECHNOLOGIES</span>
+                <span>Page 04</span>
+            </div>
+        </div>
+
+    </div>
+
+
+
+</div>
+
+
+<!-- VIEW QUOTATION MODAL -->
+<div class="quotation-editor-modal" id="quotationViewModal">
+
+    <div class="quotation-editor-toolbar">
+        <div>
+            <strong id="quotationViewTitle">View Quotation</strong>
+            <div style="font-size:11px;color:#aaa3ba;margin-top:4px;">
+                Read Only · Four A4 Pages
+            </div>
+        </div>
+
+        <button type="button" id="closeQuotationView">
+            Close
+        </button>
+    </div>
+
+    <div class="quotation-editor-scroll" id="quotationViewContent">
+
+        <div style="text-align:center;color:#aaa3ba;padding:30px;">
+            Loading quotation...
+        </div>
+
+    </div>
+
+</div>
+<!-- DELETE CONFIRMATION MODAL -->
+<div id="quotationDeleteModal" class="quotation-delete-modal">
+    <div class="quotation-delete-dialog">
+        <div class="quotation-delete-icon">
+            <i data-lucide="trash-2"></i>
+        </div>
+
+        <h3>Delete Quotation?</h3>
+
+        <p>
+            Are you sure you want to delete
+            <strong id="deleteQuotationNumber"></strong>?
+            This action cannot be undone.
+        </p>
+
+        <div class="quotation-delete-actions">
+            <button type="button" id="cancelQuotationDelete">
+                Cancel
+            </button>
+
+            <button type="button" id="confirmQuotationDelete">
+                <i data-lucide="trash-2" size="15"></i>
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const modal = document.getElementById("quotationEditorModal");
+    const openButton = document.getElementById("openQuotationEditor");
+    const closeButton = document.getElementById("closeQuotationEditor");
+    const originalQuotationPages = Array.from(
+    modal.querySelectorAll(".quotation-a4-page")
+).map(page => page.innerHTML);
+
+    if (!modal || !openButton || !closeButton) return;
+
+    function openEditor(resetContent = true) {
+
+    if (resetContent) {
+        modal.querySelectorAll(".quotation-a4-page").forEach(function (page, index) {
+            page.innerHTML = originalQuotationPages[index];
+        });
+
+        editingQuotationUpdateUrl = null;
+
+        saveButton.disabled = false;
+        saveButton.innerHTML =
+            '<i data-lucide="save" size="15"></i> Save Quotation';
+
+        if (typeof lucide !== "undefined") {
+            lucide.createIcons();
+        }
+    }
+
+    modal.classList.add("active");
+    document.body.style.overflow = "hidden";
+}
+
+    function closeEditor() {
+        modal.classList.remove("active");
+        document.body.style.overflow = "";
+    }
+
+    openButton.addEventListener("click", openEditor);
+    closeButton.addEventListener("click", closeEditor);
+
+    modal.addEventListener("click", function (event) {
+        if (event.target === modal) {
+            closeEditor();
+        }
+    });
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && modal.classList.contains("active")) {
+            closeEditor();
+        }
+    });
+    let editingQuotationUpdateUrl = null;
+    const saveButton = document.getElementById("saveQuotationButton");
+
+if (saveButton) {
+    saveButton.addEventListener("click", async function () {
+
+        const pages = Array.from(
+            modal.querySelectorAll(".quotation-a4-page")
+        ).map(page => page.innerHTML);
+
+        function getFieldText(fieldName) {
+            const element = modal.querySelector(
+                `[data-field="${fieldName}"]`
+            );
+
+            return element ? element.innerText.trim() : "";
+        }
+
+        function getLabelValue(text, label) {
+            const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            const match = text.match(
+                new RegExp("^\\s*" + escapedLabel + "\\s*:\\s*(.*)$", "im")
+            );
+
+            return match ? match[1].trim() : "";
+        }
+
+        function convertDate(value) {
+            const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+
+            if (match) {
+                return `${match[3]}-${match[2]}-${match[1]}`;
+            }
+
+            return value;
+        }
+
+        const quotationInfo = getFieldText("quotation_info");
+        const customerInfo = getFieldText("customer_info");
+        const totalText = getFieldText("grand_total");
+
+        const totalMatch = totalText.match(
+            /(?:grand\s*total|total)\s*[:\-]?\s*(?:₹|INR)?\s*([\d,]+(?:\.\d{1,2})?)/i
+        );
+
+        const totalAmount = totalMatch
+            ? totalMatch[1].replace(/,/g, "")
+            : "0.00";
+
+        const quotationNumber = getLabelValue(
+            quotationInfo,
+            "Quotation Number"
+        );
+
+        if (!quotationNumber) {
+            alert("Please enter a quotation number in Page 1.");
+            return;
+        }
+
+        const payload = {
+            quotation_number: quotationNumber,
+            pages: pages,
+            metadata: {
+                quotation_date: convertDate(
+                    getLabelValue(quotationInfo, "Date")
+                ),
+                valid_until: convertDate(
+                    getLabelValue(quotationInfo, "Valid Until")
+                ),
+                customer_name: getLabelValue(
+                    customerInfo,
+                    "Customer Name"
+                ),
+                company_name: getLabelValue(
+                    customerInfo,
+                    "Company"
+                ),
+                customer_email: getLabelValue(
+                    customerInfo,
+                    "Email"
+                ),
+                customer_phone: getLabelValue(
+                    customerInfo,
+                    "Phone"
+                ),
+                customer_address: getLabelValue(
+                    customerInfo,
+                    "Address"
+                ),
+                project_title: "",
+                total_amount: totalAmount
+            }
+        };
+
+        const csrfToken = document.cookie
+            .split("; ")
+            .find(row => row.startsWith("csrftoken="))
+            ?.split("=")[1];
+
+        saveButton.disabled = true;
+        saveButton.textContent = "Saving...";
+
+        try {
+            const saveUrl = editingQuotationUpdateUrl
+                || "{% url 'accounts_quotation_save' %}";
+
+            const response = await fetch(
+                saveUrl,
+                {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken || ""
+                    },
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.error || "Unable to save quotation."
+                );
+            }
+
+            alert(result.message);
+            window.location.reload();
+
+        } catch (error) {
+            alert(error.message || "Something went wrong while saving.");
+
+            saveButton.disabled = false;
+            saveButton.innerHTML =
+                '<i data-lucide="save" size="15"></i> Save Quotation';
+
+            if (typeof lucide !== "undefined") {
+                lucide.createIcons();
+            }
+        }
+    });
+}
+
+
+
+// VIEW QUOTATION MODAL
+
+const viewModal = document.getElementById("quotationViewModal");
+const viewContent = document.getElementById("quotationViewContent");
+const viewTitle = document.getElementById("quotationViewTitle");
+const closeViewButton = document.getElementById("closeQuotationView");
+
+function closeViewModal() {
+    viewModal.classList.remove("active");
+    document.body.style.overflow = "";
+    viewContent.innerHTML = "";
+}
+
+if (closeViewButton) {
+    closeViewButton.addEventListener("click", closeViewModal);
+}
+
+if (viewModal) {
+    viewModal.addEventListener("click", function (event) {
+        if (event.target === viewModal) {
+            closeViewModal();
+        }
+    });
+}
+
+document.addEventListener("keydown", function (event) {
+    if (
+        event.key === "Escape" &&
+        viewModal &&
+        viewModal.classList.contains("active")
+    ) {
+        closeViewModal();
+    }
+});
+
+document.querySelectorAll(".quotation-view-trigger").forEach(function (button) {
+
+    button.addEventListener("click", async function () {
+
+        const viewUrl = button.dataset.viewUrl;
+
+        viewModal.classList.add("active");
+        document.body.style.overflow = "hidden";
+
+        viewContent.innerHTML = `
+            <div style="color:#aaa3ba;padding:30px;text-align:center;">
+                Loading quotation...
+            </div>
+        `;
+
+        try {
+            const response = await fetch(viewUrl, {
+                method: "GET",
+                credentials: "same-origin",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.error || "Unable to load quotation."
+                );
+            }
+
+            viewTitle.textContent =
+                result.quotation.quotation_number;
+
+            viewContent.innerHTML = "";
+
+            result.quotation.pages.forEach(function (page, index) {
+
+                const wrapper = document.createElement("div");
+                wrapper.className = "quotation-view-page";
+
+                const frame = document.createElement("iframe");
+                frame.className = "quotation-view-frame";
+                frame.setAttribute("sandbox", "");
+
+                frame.title = "Quotation Page " + (index + 1);
+                const parser = new DOMParser();
+
+const parsedPage = parser.parseFromString(
+    page,
+    "text/html"
+);
+
+// Remove editing permission from all elements
+parsedPage.querySelectorAll("[contenteditable]").forEach(function (element) {
+    element.removeAttribute("contenteditable");
+});
+
+// Make the entire document read-only
+parsedPage.body.setAttribute("contenteditable", "false");
+
+const readOnlyPage = parsedPage.body.innerHTML;
+
+                frame.srcdoc = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta
+                            http-equiv="Content-Security-Policy"
+                            content="default-src 'none'; img-src data:; style-src 'unsafe-inline';"
+                        >
+                        <style>
+                            * {
+                                box-sizing: border-box;
+                            }
+
+                            body {
+                                margin: 0;
+                                background: #fff;
+                                color: #292536;
+                                font-family: Arial, sans-serif;
+                            }
+
+                            .quotation-a4-page {
+                                position: relative;
+                                width: 210mm;
+                                min-height: 297mm;
+                                padding: 19mm 18mm;
+                                background: #fff;
+                                overflow: hidden;
+                            }
+
+                            .quotation-a4-page::before {
+                                content: "CYBEXEL";
+                                position: absolute;
+                                top: 43%;
+                                left: 50%;
+                                transform: translate(-50%, -50%) rotate(-35deg);
+                                font-size: 65px;
+                                font-weight: 800;
+                                letter-spacing: 8px;
+                                color: rgba(110, 75, 170, .045);
+                                pointer-events: none;
+                            }
+
+                            .quotation-a4-content {
+                                position: relative;
+                                z-index: 1;
+                            }
+
+                            .quotation-a4-header {
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                border-bottom: 3px solid #7650bd;
+                                padding-bottom: 15px;
+                                margin-bottom: 30px;
+                            }
+
+                            .quotation-a4-brand {
+                                color: #56358f;
+                                font-size: 25px;
+                                font-weight: 800;
+                                letter-spacing: 1px;
+                            }
+
+                            .quotation-a4-small {
+                                color: #777184;
+                                font-size: 10px;
+                                text-align: right;
+                                line-height: 1.7;
+                            }
+
+                            .quotation-a4-title {
+                                color: #59388f;
+                                font-size: 28px;
+                                font-weight: 800;
+                                margin: 25px 0;
+                            }
+
+                            .quotation-a4-section {
+                                margin: 24px 0;
+                            }
+
+                            .quotation-a4-section h3 {
+                                color: #5d3b91;
+                                font-size: 15px;
+                                border-bottom: 1px solid #ddd5eb;
+                                padding-bottom: 8px;
+                                margin-bottom: 12px;
+                            }
+
+                            .quotation-a4-section p,
+                            .quotation-a4-section li {
+                                font-size: 12px;
+                                line-height: 1.8;
+                                color: #514d5c;
+                            }
+
+                            .quotation-a4-footer {
+                                position: absolute;
+                                bottom: 12mm;
+                                left: 18mm;
+                                right: 18mm;
+                                padding-top: 10px;
+                                border-top: 1px solid #ddd5eb;
+                                display: flex;
+                                justify-content: space-between;
+                                color: #827b90;
+                                font-size: 9px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="quotation-a4-page">
+                            ${readOnlyPage}
+                        </div>
+                    </body>
+                    </html>
+                `;
+
+                wrapper.appendChild(frame);
+                viewContent.appendChild(wrapper);
+            });
+
+        } catch (error) {
+            viewContent.innerHTML = `
+                <div style="color:#ff929d;padding:30px;text-align:center;">
+                    ${error.message}
+                </div>
+            `;
+        }
+    });
+});
+
+// EDIT QUOTATION
+
+document.querySelectorAll(".quotation-edit-trigger").forEach(function (button) {
+
+    button.addEventListener("click", async function () {
+
+        const viewUrl = button.dataset.viewUrl;
+        const updateUrl = button.dataset.updateUrl;
+
+        editingQuotationUpdateUrl = updateUrl;
+
+        button.disabled = true;
+
+        try {
+            const response = await fetch(viewUrl, {
+                method: "GET",
+                credentials: "same-origin",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.error || "Unable to load quotation."
+                );
+            }
+
+            const pages = modal.querySelectorAll(".quotation-a4-page");
+
+            if (result.quotation.pages.length !== 4 || pages.length !== 4) {
+                throw new Error("All four quotation pages are required.");
+            }
+
+            result.quotation.pages.forEach(function (page, index) {
+                pages[index].innerHTML = page;
+            });
+
+            openEditor(false);
+
+        } catch (error) {
+            editingQuotationUpdateUrl = null;
+            alert(error.message || "Unable to open quotation.");
+
+        } finally {
+            button.disabled = false;
+        }
+    });
+});
+
+
+// DOWNLOAD QUOTATION PDF
+
+document.querySelectorAll(".quotation-download-trigger").forEach(function (button) {
+
+    button.addEventListener("click", async function () {
+
+        const viewUrl = button.dataset.viewUrl;
+        let pdfContainer = null;
+
+        button.disabled = true;
+
+        try {
+            const response = await fetch(viewUrl, {
+                method: "GET",
+                credentials: "same-origin",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.error || "Unable to load quotation."
+                );
+            }
+
+            const savedPages = result.quotation.pages;
+
+            if (!Array.isArray(savedPages) || savedPages.length !== 4) {
+                throw new Error("All four A4 pages are required.");
+            }
+
+            // Create PDF container using the tested rendering method
+            pdfContainer = document.createElement("div");
+
+            Object.assign(pdfContainer.style, {
+                position: "relative",
+                width: "210mm",
+                background: "#ffffff",
+                zIndex: "999999"
+            });
+
+            savedPages.forEach(function (pageHTML) {
+
+                const page = document.createElement("div");
+
+                page.className = "quotation-a4-page";
+
+                page.style.width = "210mm";
+                page.style.height = "297mm";
+                page.style.minHeight = "297mm";
+
+                page.innerHTML = pageHTML;
+
+                page.querySelectorAll("[contenteditable]").forEach(function (element) {
+                    element.removeAttribute("contenteditable");
+                });
+
+                pdfContainer.appendChild(page);
+            });
+
+            document.body.appendChild(pdfContainer);
+
+            const quotationNumber = result.quotation.quotation_number
+                .replace(/[\\/:*?"<>|]/g, "_");
+
+            await html2pdf().set({
+                margin: 0,
+
+                filename: quotationNumber + ".pdf",
+
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: "#ffffff",
+                    logging: false
+                },
+
+                jsPDF: {
+                    unit: "mm",
+                    format: "a4",
+                    orientation: "portrait"
+                },
+
+                pagebreak: {
+                    mode: ["css", "legacy"]
+                }
+
+            }).from(pdfContainer).save();
+
+        } catch (error) {
+
+            alert(error.message || "Unable to download quotation PDF.");
+
+        } finally {
+
+            if (pdfContainer) {
+                pdfContainer.remove();
+            }
+
+            button.disabled = false;
+        }
+    });
+});
+
+
+// DELETE QUOTATION
+
+const deleteModal = document.getElementById("quotationDeleteModal");
+const deleteNumber = document.getElementById("deleteQuotationNumber");
+const cancelDeleteButton = document.getElementById("cancelQuotationDelete");
+const confirmDeleteButton = document.getElementById("confirmQuotationDelete");
+
+let selectedDeleteButton = null;
+
+function closeDeleteModal() {
+    deleteModal.classList.remove("active");
+    selectedDeleteButton = null;
+}
+
+document.querySelectorAll(".quotation-delete-trigger").forEach(function (button) {
+
+    button.addEventListener("click", function () {
+        selectedDeleteButton = button;
+
+        deleteNumber.textContent = button.dataset.quotationNumber;
+        deleteModal.classList.add("active");
+
+        if (typeof lucide !== "undefined") {
+            lucide.createIcons();
+        }
+    });
+});
+
+cancelDeleteButton.addEventListener("click", closeDeleteModal);
+
+deleteModal.addEventListener("click", function (event) {
+    if (event.target === deleteModal) {
+        closeDeleteModal();
+    }
+});
+
+confirmDeleteButton.addEventListener("click", async function () {
+
+    if (!selectedDeleteButton) return;
+
+    const deleteUrl = selectedDeleteButton.dataset.deleteUrl;
+
+    const csrfToken = document.cookie
+        .split("; ")
+        .find(row => row.startsWith("csrftoken="))
+        ?.split("=")[1];
+
+    confirmDeleteButton.disabled = true;
+    confirmDeleteButton.textContent = "Deleting...";
+
+    try {
+        const response = await fetch(deleteUrl, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+                "X-CSRFToken": csrfToken || "",
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(
+                result.error || "Unable to delete quotation."
+            );
+        }
+
+        window.location.reload();
+
+    } catch (error) {
+        alert(error.message || "Unable to delete quotation.");
+
+        confirmDeleteButton.disabled = false;
+        confirmDeleteButton.innerHTML =
+            '<i data-lucide="trash-2" size="15"></i> Delete';
+
+        if (typeof lucide !== "undefined") {
+            lucide.createIcons();
+        }
+    }
+});
+});
+
+
+</script>
+
+
+{% endblock %}

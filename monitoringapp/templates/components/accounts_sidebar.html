@@ -3,6 +3,7 @@
 {% url 'accounts_income' as income_url %}
 {% url 'accounts_expenses' as expenses_url %}
 {% url 'accounts_sales' as sales_url %}
+{% url 'accounts_quotations' as quotations_url %}
 {% url 'accounts_reminders' as reminders_url %}
 {% url 'accounts_notepad' as notepad_url %}
 {% url 'accounts_notifications' as notifications_url %}
@@ -20,6 +21,19 @@
     {% if income_url %}<a class="accounts-nav-item {% if accounts_active == 'income' %}active{% endif %}" href="{{ income_url }}"><i data-lucide="arrow-down-left" aria-hidden="true"></i><span>Income</span></a>{% else %}<button type="button" class="accounts-nav-item" disabled title="Income page will be connected next"><i data-lucide="arrow-down-left" aria-hidden="true"></i><span>Income</span></button>{% endif %}
     {% if expenses_url %}<a class="accounts-nav-item {% if accounts_active == 'expenses' %}active{% endif %}" href="{{ expenses_url }}"><i data-lucide="arrow-up-right" aria-hidden="true"></i><span>Expenses</span></a>{% else %}<button type="button" class="accounts-nav-item" disabled title="Expenses page will be connected next"><i data-lucide="arrow-up-right" aria-hidden="true"></i><span>Expenses</span></button>{% endif %}
     {% if sales_url %}<a class="accounts-nav-item {% if accounts_active == 'sales' %}active{% endif %}" href="{{ sales_url }}"><i data-lucide="receipt-text" aria-hidden="true"></i><span>Sales</span></a>{% else %}<button type="button" class="accounts-nav-item" disabled title="Sales page will be connected next"><i data-lucide="receipt-text" aria-hidden="true"></i><span>Sales</span></button>{% endif %}
+    {% if quotations_url %}
+<a class="accounts-nav-item {% if accounts_active == 'quotations' %}active{% endif %}"
+   href="{{ quotations_url }}">
+    <i data-lucide="file-text" aria-hidden="true"></i>
+    <span>Quotations</span>
+</a>
+{% else %}
+<button type="button" class="accounts-nav-item" disabled
+        title="Quotations page will be connected next">
+    <i data-lucide="file-text" aria-hidden="true"></i>
+    <span>Quotations</span>
+</button>
+{% endif %}
     {% if notepad_url %}
     <a class="accounts-nav-item {% if accounts_active == 'notepad' %}active{% endif %}" href="{{ notepad_url }}">
       <i data-lucide="notebook-pen" aria-hidden="true"></i><span>Notepad</span>
