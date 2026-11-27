@@ -661,7 +661,48 @@
 
                 height: 46px;
             }
-        }
+        }/* Password show / hide */
+.field input#password {
+    padding-right: 46px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #817b8c;
+    cursor: pointer;
+
+    transition: color .2s ease, background .2s ease;
+}
+
+.password-toggle:hover {
+    color: #a78bfa;
+    background: rgba(139, 92, 246, .10);
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid #a78bfa;
+    outline-offset: 1px;
+}
+
+.password-toggle svg {
+    width: 17px;
+    height: 17px;
+    stroke-width: 1.7;
+}
 
     </style>
 </head>
@@ -792,6 +833,10 @@
                         <span class="input-icon">
                             <i data-lucide="lock-keyhole"></i>
                         </span>
+                        <button type="button" class="password-toggle" id="passwordToggle"
+        aria-label="Show password" aria-pressed="false">
+    <i data-lucide="eye"></i>
+</button>
 
                     </div>
 
@@ -829,7 +874,27 @@
 
 </div>
 
+<script>
+    lucide.createIcons();
 
+    (function () {
+        const input  = document.getElementById("password");
+        const toggle = document.getElementById("passwordToggle");
+        if (!input || !toggle) return;
+
+        toggle.addEventListener("click", function () {
+            const show = input.type === "password";
+            input.type = show ? "text" : "password";
+
+            toggle.setAttribute("aria-pressed", String(show));
+            toggle.setAttribute("aria-label", show ? "Hide password" : "Show password");
+            toggle.innerHTML = '<i data-lucide="' + (show ? "eye-off" : "eye") + '"></i>';
+            lucide.createIcons();
+
+            input.focus();
+        });
+    })();
+</script>
 <script>
     lucide.createIcons();
 </script>
