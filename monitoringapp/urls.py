@@ -1,10 +1,7 @@
-
-
 from django.urls import path, re_path
 from . import views
 from . import chat_receipts
 from . import chat_push
-
 
 urlpatterns = [
     path("", views.index, name="index"),
@@ -12,47 +9,46 @@ urlpatterns = [
     path("admin_logout/", views.admin_logout, name="admin_logout"),
     path("admin_dashboard", views.admin_dashboard, name="admin_dashboard"),
     path("admin-panel/notepad/", views.admin_notepad, name="admin_notepad"),
-path(
-    "admin-panel/notepad/<int:pk>/delete/",
-    views.admin_notepad_delete,
-    name="admin_notepad_delete",
-),
-path(
-    "admin-panel/repository/",
-    views.admin_repository,
-    name="admin_repository",
-),
-path(
-    "admin-panel/repository/<int:pk>/delete/",
-    views.admin_repository_delete,
-    name="admin_repository_delete",
-),
-path(
-    "admin-panel/repository/<int:pk>/file/",
-    views.admin_repository_file,
-    name="admin_repository_file",
-),
-path(
-    "admin-panel/announcements/",
-    views.admin_announcements,
-    name="admin_announcements",
-),
-path(
-    "admin-panel/announcements/<int:pk>/delete/",
-    views.admin_announcement_delete,
-    name="admin_announcement_delete",
-),
-path(
-    "teamlead/announcements/<int:pk>/admin-seen/",
-    views.teamlead_admin_announcement_seen,
-    name="teamlead_admin_announcement_seen",
-),
-path(
-    "admin-panel/google-meet/",
-    views.admin_google_meet,
-    name="admin_google_meet",
-),
-
+    path(
+        "admin-panel/notepad/<int:pk>/delete/",
+        views.admin_notepad_delete,
+        name="admin_notepad_delete",
+    ),
+    path(
+        "admin-panel/repository/",
+        views.admin_repository,
+        name="admin_repository",
+    ),
+    path(
+        "admin-panel/repository/<int:pk>/delete/",
+        views.admin_repository_delete,
+        name="admin_repository_delete",
+    ),
+    path(
+        "admin-panel/repository/<int:pk>/file/",
+        views.admin_repository_file,
+        name="admin_repository_file",
+    ),
+    path(
+        "admin-panel/announcements/",
+        views.admin_announcements,
+        name="admin_announcements",
+    ),
+    path(
+        "admin-panel/announcements/<int:pk>/delete/",
+        views.admin_announcement_delete,
+        name="admin_announcement_delete",
+    ),
+    path(
+        "teamlead/announcements/<int:pk>/admin-seen/",
+        views.teamlead_admin_announcement_seen,
+        name="teamlead_admin_announcement_seen",
+    ),
+    path(
+        "admin-panel/google-meet/",
+        views.admin_google_meet,
+        name="admin_google_meet",
+    ),
     path(
         "delete-department/<int:pk>/", views.delete_department, name="delete_department"
     ),
@@ -60,28 +56,43 @@ path(
     path(
         "admin_usermanagement", views.admin_usermanagement, name="admin_usermanagement"
     ),
-path("admin-chat/<int:user_id>/", views.admin_chat_room, name="admin_chat_room"),
-path("admin-chat/group/<int:group_id>/", views.admin_group_chat, name="admin_group_chat"),
-path(
-    "api/chat/meta/",
-    chat_receipts.chat_meta,
-    name="chat_meta",
-),
-path(
-    "api/chat/read/",
-    chat_receipts.chat_mark_read,
-    name="chat_mark_read",
-),
-path("admin-panel/notifications/", views.admin_notifications, name="admin_notifications"),
-path("admin-panel/notifications/read-all/", views.admin_notifications_read_all, name="admin_notifications_read_all"),
-path("admin-panel/notifications/<int:notification_id>/open/", views.admin_notification_open, name="admin_notification_open"),
-path("admin-panel/reminders/", views.admin_reminders, name="admin_reminders"),
-path(
-    "admin-panel/reminders/<int:pk>/delete/",
-    views.admin_reminder_delete,
-    name="admin_reminder_delete"
-),
-
+    path("admin-chat/<int:user_id>/", views.admin_chat_room, name="admin_chat_room"),
+    path(
+        "admin-chat/group/<int:group_id>/",
+        views.admin_group_chat,
+        name="admin_group_chat",
+    ),
+    path(
+        "api/chat/meta/",
+        chat_receipts.chat_meta,
+        name="chat_meta",
+    ),
+    path(
+        "api/chat/read/",
+        chat_receipts.chat_mark_read,
+        name="chat_mark_read",
+    ),
+    path(
+        "admin-panel/notifications/",
+        views.admin_notifications,
+        name="admin_notifications",
+    ),
+    path(
+        "admin-panel/notifications/read-all/",
+        views.admin_notifications_read_all,
+        name="admin_notifications_read_all",
+    ),
+    path(
+        "admin-panel/notifications/<int:notification_id>/open/",
+        views.admin_notification_open,
+        name="admin_notification_open",
+    ),
+    path("admin-panel/reminders/", views.admin_reminders, name="admin_reminders"),
+    path(
+        "admin-panel/reminders/<int:pk>/delete/",
+        views.admin_reminder_delete,
+        name="admin_reminder_delete",
+    ),
     path("delete/<int:id>/", views.delete_user, name="delete_user"),
     path("edit-user/", views.edit_user, name="edit_user"),
     path("add-contact/", views.add_contact, name="add_contact"),
@@ -103,8 +114,7 @@ path(
     path(
         "api/user-status/<int:user_id>/", views.get_user_status, name="get_user_status"
     ),
-# <----------- Team lead ---------------->
-
+    # <----------- Team lead ---------------->
     path("teamlead/dashboard/", views.teamlead_dashboard, name="teamlead_dashboard"),
     path("teamlead_reports", views.teamlead_reports, name="teamlead_reports"),
     path(
@@ -131,10 +141,10 @@ path(
         name="teamlead_announcements",
     ),
     path(
-    "teamlead/announcements/<int:pk>/delete/",
-    views.teamlead_announcement_delete,
-    name="teamlead_announcement_delete",
-),
+        "teamlead/announcements/<int:pk>/delete/",
+        views.teamlead_announcement_delete,
+        name="teamlead_announcement_delete",
+    ),
     path("teamlead_repository/", views.teamlead_repository, name="teamlead_repository"),
     path(
         "teamlead_repository/delete/<int:pk>/",
@@ -147,14 +157,14 @@ path(
         views.teamlead_google_meet,
         name="teamlead_google_meet",
     ),
-    path("teamlead_chat/", views.teamlead_chat, name="teamlead_chat"),
+    path("teamlead/chat/", views.teamlead_chat, name="teamlead_chat"),
     path(
-        "teamlead_chat/<int:user_id>/",
+        "teamlead/chat/<int:user_id>/",
         views.teamlead_chat_room,
         name="teamlead_chat_room",
     ),
     path(
-        "teamlead_chat/group/<int:group_id>/",
+        "teamlead/chat/group/<int:group_id>/",
         views.teamlead_group_chat_view,
         name="teamlead_group_chat_view",
     ),
@@ -175,14 +185,23 @@ path(
         views.delete_task_teamlead,
         name="delete_task_teamlead",
     ),
-
     path("teamlead/logout/", views.teamlead_logout, name="teamlead_logout"),
     # path("teammember_chat/", views.teammember_chat, name="teammember_chat"),
     path("chat/", views.teammember_chat, name="teammember_chat"),
-    path("chat/<int:user_id>/", views.teammember_chat_room, name="teammember_chat_room"),
+    path(
+        "chat/<int:user_id>/", views.teammember_chat_room, name="teammember_chat_room"
+    ),
     path("chat/<int:user_id>/", views.teammember_chat_room, name="chat_room"),
-    path("chat/group/<int:group_id>/", views.teammember_group_chat, name="teammember_group_chat"),
-    path("chat/group/<int:group_id>/", views.teammember_group_chat, name="group_chat_view"),
+    path(
+        "chat/group/<int:group_id>/",
+        views.teammember_group_chat,
+        name="teammember_group_chat",
+    ),
+    path(
+        "chat/group/<int:group_id>/",
+        views.teammember_group_chat,
+        name="group_chat_view",
+    ),
     path(
         "teamlead/notifications/",
         views.teamlead_notifications,
@@ -203,46 +222,45 @@ path(
         views.teamlead_reminders,
         name="teamlead_reminders",
     ),
-path(
-    "teamlead/reminders/<int:pk>/delete/",
-    views.teamlead_reminder_delete,
-    name="teamlead_reminder_delete",
-),
-path(
-    "teamlead/client-details/",
-    views.teamlead_client_details,
-    name="teamlead_client_details",
-),
-path(
-    "teamlead/client-details/add/",
-    views.teamlead_add_client,
-    name="teamlead_add_client",
-),
-path(
-    "teamlead/client-details/<int:pk>/view/",
-    views.teamlead_view_client,
-    name="teamlead_view_client",
-),
-path(
-    "teamlead/client-details/<int:pk>/edit/",
-    views.teamlead_edit_client,
-    name="teamlead_edit_client",
-),
-path(
-    "teamlead/client-details/<int:pk>/delete/",
-    views.teamlead_delete_client,
-    name="teamlead_delete_client",
-),
-
+    path(
+        "teamlead/reminders/<int:pk>/delete/",
+        views.teamlead_reminder_delete,
+        name="teamlead_reminder_delete",
+    ),
+    path(
+        "teamlead/client-details/",
+        views.teamlead_client_details,
+        name="teamlead_client_details",
+    ),
+    path(
+        "teamlead/client-details/add/",
+        views.teamlead_add_client,
+        name="teamlead_add_client",
+    ),
+    path(
+        "teamlead/client-details/<int:pk>/view/",
+        views.teamlead_view_client,
+        name="teamlead_view_client",
+    ),
+    path(
+        "teamlead/client-details/<int:pk>/edit/",
+        views.teamlead_edit_client,
+        name="teamlead_edit_client",
+    ),
+    path(
+        "teamlead/client-details/<int:pk>/delete/",
+        views.teamlead_delete_client,
+        name="teamlead_delete_client",
+    ),
     # <---TEAM MEMBERS--->
     path("teammember/logout/", views.teammember_logout, name="teammember_logout"),
-        path(
+    path(
         "teammember_task/update/<int:task_id>/", views.update_task, name="update_task"
     ),
     path(
         "teammember_task/delete/<int:task_id>/", views.delete_task, name="delete_task"
     ),
-        path(
+    path(
         "teammember_repository/",
         views.teammember_repository,
         name="teammember_repository",
@@ -265,205 +283,523 @@ path(
         views.teammember_google_meet,
         name="teammember_google_meet",
     ),
-        path(
+    path(
         "teammember/dashboard/", views.teammember_dashboard, name="teammember_dashboard"
     ),
-        path("teammember_reports/", views.teammember_reports, name="teammember_reports"),
-    path("teammember/announcements/", views.teammember_announcements, name="teammember_announcements"),
-path("teammember/announcements/<int:pk>/seen/", views.teammember_announcement_seen, name="teammember_announcement_seen"),
-path("teammember/reminders/", views.teammember_reminders, name="teammember_reminders"),
-path(
-    "teammember/reminders/<int:pk>/delete/",
-    views.teammember_reminder_delete,
-    name="teammember_reminder_delete",
+    path("teammember_reports/", views.teammember_reports, name="teammember_reports"),
+    path(
+        "teammember/announcements/",
+        views.teammember_announcements,
+        name="teammember_announcements",
+    ),
+    path(
+        "teammember/announcements/<int:pk>/seen/",
+        views.teammember_announcement_seen,
+        name="teammember_announcement_seen",
+    ),
+    path(
+        "teammember/reminders/", views.teammember_reminders, name="teammember_reminders"
+    ),
+    path(
+        "teammember/reminders/<int:pk>/delete/",
+        views.teammember_reminder_delete,
+        name="teammember_reminder_delete",
+    ),
+    path(
+        "teammember/notifications/",
+        views.teammember_notifications,
+        name="teammember_notifications",
+    ),
+    path(
+        "teammember/notifications/read-all/",
+        views.teammember_notifications_read_all,
+        name="teammember_notifications_read_all",
+    ),
+    path(
+        "teammember/notifications/<int:notification_id>/open/",
+        views.teammember_notification_open,
+        name="teammember_notification_open",
+    ),
+    path(
+        "teammember_project/<int:pk>/seen/",
+        views.teammember_project_seen,
+        name="teammember_project_seen",
+    ),
+    path(
+        "api/chat/meta/",
+        chat_receipts.chat_meta,
+        name="chat_meta",
+    ),
+    path(
+        "api/chat/read/",
+        chat_receipts.chat_mark_read,
+        name="chat_mark_read",
+    ),
+    # <----------------------ACCOUNTS TEAM--------------------->
+    path("accounts/dashboard/", views.accounts_dashboard, name="accounts_dashboard"),
+    path("accounts/logout/", views.accounts_logout, name="accounts_logout"),
+    path("accounts/income/", views.accounts_income, name="accounts_income"),
+    path(
+        "accounts/income/<int:pk>/edit/",
+        views.accounts_income_edit,
+        name="accounts_income_edit",
+    ),
+    path(
+        "accounts/income/<int:pk>/delete/",
+        views.accounts_income_delete,
+        name="accounts_income_delete",
+    ),
+    path(
+        "accounts/expenses/",
+        views.accounts_expenses,
+        name="accounts_expenses",
+    ),
+    path(
+        "accounts/expenses/<int:pk>/edit/",
+        views.accounts_expense_edit,
+        name="accounts_expense_edit",
+    ),
+    path(
+        "accounts/expenses/<int:pk>/delete/",
+        views.accounts_expense_delete,
+        name="accounts_expense_delete",
+    ),
+    path(
+        "accounts/sales/",
+        views.accounts_sales,
+        name="accounts_sales",
+    ),
+    path(
+        "accounts/sales/<int:pk>/edit/",
+        views.accounts_sale_edit,
+        name="accounts_sale_edit",
+    ),
+    path(
+        "accounts/sales/<int:pk>/delete/",
+        views.accounts_sale_delete,
+        name="accounts_sale_delete",
+    ),
+    path(
+        "accounts/expenses/<int:pk>/receipt/",
+        views.accounts_expense_receipt,
+        name="accounts_expense_receipt",
+    ),
+    path(
+        "accounts/expenses/<int:pk>/history/",
+        views.accounts_expense_history,
+        name="accounts_expense_history",
+    ),
+    path(
+        "accounts/expenses/<int:pk>/delete/",
+        views.accounts_expense_delete,
+        name="accounts_expense_delete",
+    ),
+    path(
+        "accounts/income/<int:pk>/receipt/",
+        views.accounts_income_receipt,
+        name="accounts_income_receipt",
+    ),
+    path(
+        "accounts/income/<int:pk>/history/",
+        views.accounts_income_history,
+        name="accounts_income_history",
+    ),
+    path(
+        "accounts/sales/<int:pk>/invoice/",
+        views.accounts_sale_invoice,
+        name="accounts_sale_invoice",
+    ),
+    path(
+        "accounts/sales/<int:pk>/payments/",
+        views.accounts_sale_payments,
+        name="accounts_sale_payments",
+    ),
+    path(
+        "accounts/notifications/",
+        views.accounts_notifications,
+        name="accounts_notifications",
+    ),
+    path(
+        "accounts/notifications/read-all/",
+        views.accounts_notifications_read_all,
+        name="accounts_notifications_read_all",
+    ),
+    path(
+        "accounts/notifications/<int:pk>/action/",
+        views.accounts_notification_action,
+        name="accounts_notification_action",
+    ),
+    path(
+        "accounts/reminders/",
+        views.accounts_reminders,
+        name="accounts_reminders",
+    ),
+    path(
+        "accounts/reminders/<int:pk>/delete/",
+        views.accounts_reminder_delete,
+        name="accounts_reminder_delete",
+    ),
+    path("accounts/notepad/", views.accounts_notepad, name="accounts_notepad"),
+    path(
+        "accounts/notepad/delete/<int:pk>/",
+        views.accounts_notepad_delete,
+        name="accounts_notepad_delete",
+    ),
+    path("accounts/profile/", views.accounts_profile, name="accounts_profile"),
+    path(
+        "accounts/sales/",
+        views.accounts_sales,
+        name="accounts_sales",
+    ),
+    path(
+        "accounts/sales/<int:pk>/edit/",
+        views.accounts_sale_edit,
+        name="accounts_sale_edit",
+    ),
+    path(
+        "accounts/sales/<int:pk>/delete/",
+        views.accounts_sale_delete,
+        name="accounts_sale_delete",
+    ),
+    path(
+    "accounts/quotations/",
+    views.accounts_quotations,
+    name="accounts_quotations",
 ),
-path("teammember/notifications/", views.teammember_notifications, name="teammember_notifications"),
-path("teammember/notifications/read-all/", views.teammember_notifications_read_all, name="teammember_notifications_read_all"),
-path("teammember/notifications/<int:notification_id>/open/", views.teammember_notification_open, name="teammember_notification_open"),
 
 path(
-    "teammember_project/<int:pk>/seen/",
-    views.teammember_project_seen,
-    name="teammember_project_seen",
+    "accounts/quotations/save/",
+    views.accounts_quotation_save,
+    name="accounts_quotation_save",
+),
+path(
+    "accounts/quotations/<int:pk>/",
+    views.accounts_quotation_view,
+    name="accounts_quotation_view",
+),
+path(
+    "accounts/quotations/<int:pk>/update/",
+    views.accounts_quotation_update,
+    name="accounts_quotation_update",
 ),
 
 path(
-    "api/chat/meta/",
-    chat_receipts.chat_meta,
-    name="chat_meta",
-),
-path(
-    "api/chat/read/",
-    chat_receipts.chat_mark_read,
-    name="chat_mark_read",
+    "accounts/quotations/<int:pk>/delete/",
+    views.accounts_quotation_delete,
+    name="accounts_quotation_delete",
 ),
 
-#<----------------------ACCOUNTS TEAM--------------------->
 
-path("accounts/dashboard/", views.accounts_dashboard, name="accounts_dashboard"),
-path("accounts/logout/", views.accounts_logout, name="accounts_logout"),
-path("accounts/income/", views.accounts_income, name="accounts_income"),
-path(
-    "accounts/income/<int:pk>/edit/",
-    views.accounts_income_edit,
-    name="accounts_income_edit",
-),
-path(
-    "accounts/income/<int:pk>/delete/",
-    views.accounts_income_delete,
-    name="accounts_income_delete",
-),
-path(
-    "accounts/expenses/",
-    views.accounts_expenses,
-    name="accounts_expenses",
-),
-path(
-    "accounts/expenses/<int:pk>/edit/",
-    views.accounts_expense_edit,
-    name="accounts_expense_edit",
-),
-path(
-    "accounts/expenses/<int:pk>/delete/",
-    views.accounts_expense_delete,
-    name="accounts_expense_delete",
-),
-path(
-    "accounts/sales/",
-    views.accounts_sales,
-    name="accounts_sales",
-),
-path(
-    "accounts/sales/<int:pk>/edit/",
-    views.accounts_sale_edit,
-    name="accounts_sale_edit",
-),
-path(
-    "accounts/sales/<int:pk>/delete/",
-    views.accounts_sale_delete,
-    name="accounts_sale_delete",
-),
-path("accounts/expenses/<int:pk>/receipt/", views.accounts_expense_receipt, name="accounts_expense_receipt"),
-path("accounts/expenses/<int:pk>/history/", views.accounts_expense_history, name="accounts_expense_history"),
-path(
-    "accounts/expenses/<int:pk>/delete/",
-    views.accounts_expense_delete,
-    name="accounts_expense_delete"
-),
-path("accounts/income/<int:pk>/receipt/", views.accounts_income_receipt, name="accounts_income_receipt"),
-path("accounts/income/<int:pk>/history/", views.accounts_income_history, name="accounts_income_history"),
-path("accounts/sales/<int:pk>/invoice/", views.accounts_sale_invoice, name="accounts_sale_invoice"),
-path("accounts/sales/<int:pk>/payments/", views.accounts_sale_payments, name="accounts_sale_payments"),
-path(
-    "accounts/notifications/",
-    views.accounts_notifications,
-    name="accounts_notifications",
-),
-path(
-    "accounts/notifications/read-all/",
-    views.accounts_notifications_read_all,
-    name="accounts_notifications_read_all",
-),
-path(
-    "accounts/notifications/<int:pk>/action/",
-    views.accounts_notification_action,
-    name="accounts_notification_action",
-),
-path(
-    "accounts/reminders/",
-    views.accounts_reminders,
-    name="accounts_reminders",
-),
-
-path(
-    "accounts/reminders/<int:pk>/delete/",
-    views.accounts_reminder_delete,
-    name="accounts_reminder_delete",
-),
-
-path("accounts/notepad/", views.accounts_notepad, name="accounts_notepad"),
-path(
-    "accounts/notepad/delete/<int:pk>/",
-    views.accounts_notepad_delete,
-    name="accounts_notepad_delete",
-),
-path("accounts/profile/", views.accounts_profile, name="accounts_profile"),
+    # <-------MASTER_ADMIN----------------->
     path("master-admin/login/", views.master_admin_login, name="master_admin_login"),
     path("master-admin/logout/", views.master_admin_logout, name="master_admin_logout"),
-    path("master-admin/dashboard/", views.master_admin_dashboard, name="master_admin_dashboard"),
-    path("master-admin/users/", views.master_admin_usermanagement, name="master_admin_usermanagement"),
-    path("master-admin/users/edit/", views.master_admin_edit_user, name="master_admin_edit_user"),
-    path("master-admin/users/<int:pk>/delete/", views.master_admin_delete_user, name="master_admin_delete_user"),
-    path("master-admin/departments/", views.master_admin_departments, name="master_admin_departments"),
-    path("master-admin/branches/", views.master_admin_branches, name="master_admin_branches"),    
-    path("master-admin/reports/", views.master_admin_reports, name="master_admin_reports"),
-path("master-admin/accounts/income/", views.master_admin_accounts_income, name="master_admin_accounts_income"),
-path("master-admin/accounts/income/<int:pk>/edit/", views.master_admin_accounts_income_edit, name="master_admin_accounts_income_edit"),
-path("master-admin/accounts/income/<int:pk>/delete/", views.master_admin_accounts_income_delete, name="master_admin_accounts_income_delete"),
-path("master-admin/accounts/income/<int:pk>/receipt/", views.master_admin_accounts_income_receipt, name="master_admin_accounts_income_receipt"),
-path("master-admin/accounts/income/<int:pk>/history/", views.master_admin_accounts_income_history, name="master_admin_accounts_income_history"),
-path("master-admin/accounts/expenses/", views.master_admin_accounts_expenses, name="master_admin_accounts_expenses"),
-path("master-admin/accounts/expense/<int:pk>/edit/", views.master_admin_accounts_expense_edit, name="master_admin_accounts_expense_edit"),
-path("master-admin/accounts/expense/<int:pk>/delete/", views.master_admin_accounts_expense_delete, name="master_admin_accounts_expense_delete"),
-path("master-admin/accounts/expense/<int:pk>/receipt/", views.master_admin_accounts_expense_receipt, name="master_admin_accounts_expense_receipt"),
-path("master-admin/accounts/expense/<int:pk>/history/", views.master_admin_accounts_expense_history, name="master_admin_accounts_expense_history"),
-path("master-admin/accounts/sales/", views.master_admin_accounts_sales, name="master_admin_accounts_sales"),
-path("master-admin/accounts/sale/<int:pk>/edit/", views.master_admin_accounts_sale_edit, name="master_admin_accounts_sale_edit"),
-path("master-admin/accounts/sale/<int:pk>/delete/", views.master_admin_accounts_sale_delete, name="master_admin_accounts_sale_delete"),
-path("master-admin/accounts/sale/<int:pk>/invoice/", views.master_admin_accounts_sale_invoice, name="master_admin_accounts_sale_invoice"),
-path("master-admin/accounts/sale/<int:pk>/payments/", views.master_admin_accounts_sale_payments, name="master_admin_accounts_sale_payments"),
-path("master-admin/accounts/", views.master_admin_accounts_overview, name="master_admin_accounts_overview"),
-path("master-admin/tasks/", views.master_admin_tasks, name="master_admin_tasks"),
-path("master-admin/tasks/<int:pk>/update/", views.master_admin_task_update, name="master_admin_task_update"),
-path("master-admin/tasks/<int:pk>/delete/", views.master_admin_task_delete, name="master_admin_task_delete"),
-path("master-admin/projects/", views.master_admin_projects, name="master_admin_projects"),
-path("master-admin/projects/<int:pk>/update/", views.master_admin_project_update, name="master_admin_project_update"),
-path("master-admin/projects/<int:pk>/delete/", views.master_admin_project_delete, name="master_admin_project_delete"),
-path("master-admin/announcements/", views.master_admin_announcements, name="master_admin_announcements"),
-path("portal/announcements/<int:pk>/", views.portal_announcement_detail, name="portal_announcement_detail"),
-path("portal/announcements/<int:pk>/seen/", views.portal_announcement_seen, name="portal_announcement_seen"),
+    path(
+        "master-admin/dashboard/",
+        views.master_admin_dashboard,
+        name="master_admin_dashboard",
+    ),
+    path(
+        "master-admin/users/",
+        views.master_admin_usermanagement,
+        name="master_admin_usermanagement",
+    ),
+    path(
+        "master-admin/users/edit/",
+        views.master_admin_edit_user,
+        name="master_admin_edit_user",
+    ),
+    path(
+        "master-admin/users/<int:pk>/delete/",
+        views.master_admin_delete_user,
+        name="master_admin_delete_user",
+    ),
+    path(
+        "master-admin/departments/",
+        views.master_admin_departments,
+        name="master_admin_departments",
+    ),
+    path(
+        "master-admin/branches/",
+        views.master_admin_branches,
+        name="master_admin_branches",
+    ),
+    path(
+        "master-admin/reports/", views.master_admin_reports, name="master_admin_reports"
+    ),
+    path(
+        "master-admin/accounts/income/",
+        views.master_admin_accounts_income,
+        name="master_admin_accounts_income",
+    ),
+    path(
+        "master-admin/accounts/income/<int:pk>/edit/",
+        views.master_admin_accounts_income_edit,
+        name="master_admin_accounts_income_edit",
+    ),
+    path(
+        "master-admin/accounts/income/<int:pk>/delete/",
+        views.master_admin_accounts_income_delete,
+        name="master_admin_accounts_income_delete",
+    ),
+    path(
+        "master-admin/accounts/income/<int:pk>/receipt/",
+        views.master_admin_accounts_income_receipt,
+        name="master_admin_accounts_income_receipt",
+    ),
+    path(
+        "master-admin/accounts/income/<int:pk>/history/",
+        views.master_admin_accounts_income_history,
+        name="master_admin_accounts_income_history",
+    ),
+    path(
+        "master-admin/accounts/expenses/",
+        views.master_admin_accounts_expenses,
+        name="master_admin_accounts_expenses",
+    ),
+    path(
+        "master-admin/accounts/expense/<int:pk>/edit/",
+        views.master_admin_accounts_expense_edit,
+        name="master_admin_accounts_expense_edit",
+    ),
+    path(
+        "master-admin/accounts/expense/<int:pk>/delete/",
+        views.master_admin_accounts_expense_delete,
+        name="master_admin_accounts_expense_delete",
+    ),
+    path(
+        "master-admin/accounts/expense/<int:pk>/receipt/",
+        views.master_admin_accounts_expense_receipt,
+        name="master_admin_accounts_expense_receipt",
+    ),
+    path(
+        "master-admin/accounts/expense/<int:pk>/history/",
+        views.master_admin_accounts_expense_history,
+        name="master_admin_accounts_expense_history",
+    ),
+    path(
+        "master-admin/accounts/sales/",
+        views.master_admin_accounts_sales,
+        name="master_admin_accounts_sales",
+    ),
+    path(
+        "master-admin/accounts/sale/<int:pk>/edit/",
+        views.master_admin_accounts_sale_edit,
+        name="master_admin_accounts_sale_edit",
+    ),
+    path(
+        "master-admin/accounts/sale/<int:pk>/delete/",
+        views.master_admin_accounts_sale_delete,
+        name="master_admin_accounts_sale_delete",
+    ),
+    path(
+        "master-admin/accounts/sale/<int:pk>/invoice/",
+        views.master_admin_accounts_sale_invoice,
+        name="master_admin_accounts_sale_invoice",
+    ),
+    path(
+        "master-admin/accounts/sale/<int:pk>/payments/",
+        views.master_admin_accounts_sale_payments,
+        name="master_admin_accounts_sale_payments",
+    ),
+    path(
+        "master-admin/accounts/",
+        views.master_admin_accounts_overview,
+        name="master_admin_accounts_overview",
+    ),
+    path("master-admin/tasks/", views.master_admin_tasks, name="master_admin_tasks"),
+    path(
+        "master-admin/tasks/<int:pk>/update/",
+        views.master_admin_task_update,
+        name="master_admin_task_update",
+    ),
+    path(
+        "master-admin/tasks/<int:pk>/delete/",
+        views.master_admin_task_delete,
+        name="master_admin_task_delete",
+    ),
+    path(
+        "master-admin/projects/",
+        views.master_admin_projects,
+        name="master_admin_projects",
+    ),
+    path(
+        "master-admin/projects/<int:pk>/update/",
+        views.master_admin_project_update,
+        name="master_admin_project_update",
+    ),
+    path(
+        "master-admin/projects/<int:pk>/delete/",
+        views.master_admin_project_delete,
+        name="master_admin_project_delete",
+    ),
+    path(
+        "master-admin/announcements/",
+        views.master_admin_announcements,
+        name="master_admin_announcements",
+    ),
+    path(
+        "portal/announcements/<int:pk>/",
+        views.portal_announcement_detail,
+        name="portal_announcement_detail",
+    ),
+    path(
+        "portal/announcements/<int:pk>/seen/",
+        views.portal_announcement_seen,
+        name="portal_announcement_seen",
+    ),
+    path(
+        "master-admin/announcements/unread-count/",
+        views.master_admin_announcement_unread_count,
+        name="master_admin_announcement_unread_count",
+    ),
+    path(
+        "master-admin/repository/",
+        views.master_admin_repository,
+        name="master_admin_repository",
+    ),
+    path(
+        "master-admin/repository/<str:source>/<int:pk>/update/",
+        views.master_admin_repository_update,
+        name="master_admin_repository_update",
+    ),
+    path(
+        "master-admin/repository/<str:source>/<int:pk>/delete/",
+        views.master_admin_repository_delete,
+        name="master_admin_repository_delete",
+    ),
+    path(
+        "master-admin/repository/<str:source>/<int:pk>/file/",
+        views.master_admin_repository_file,
+        name="master_admin_repository_file",
+    ),
+    path(
+        "master-admin/google-meet/",
+        views.master_admin_google_meet,
+        name="master_admin_google_meet",
+    ),
+    path(
+        "master-admin/google-meet/<int:pk>/delete/",
+        views.master_admin_google_meet_delete,
+        name="master_admin_google_meet_delete",
+    ),
+    path(
+        "master-admin/notifications/",
+        views.master_admin_notifications,
+        name="master_admin_notifications",
+    ),
+    path(
+        "master-admin/notifications/<int:pk>/action/",
+        views.master_admin_notification_action,
+        name="master_admin_notification_action",
+    ),
+    path(
+        "master-admin/reminders/",
+        views.master_admin_reminders,
+        name="master_admin_reminders",
+    ),
+    path(
+        "master-admin/reminders/<int:pk>/delete/",
+        views.master_admin_reminder_delete,
+        name="master_admin_reminder_delete",
+    ),
+    path(
+        "master-admin/notepad/", views.master_admin_notepad, name="master_admin_notepad"
+    ),
+    path(
+        "master-admin/notepad/<int:pk>/delete/",
+        views.master_admin_notepad_delete,
+        name="master_admin_notepad_delete",
+    ),
+    path(
+        "master-admin/profile/", views.master_admin_profile, name="master_admin_profile"
+    ),
+    path("master-admin/chat/", views.master_admin_chat, name="master_admin_chat"),
+    path(
+        "master-admin/chat/<int:user_id>/",
+        views.master_admin_chat_room,
+        name="master_admin_chat_room",
+    ),
+    path(
+        "master-admin/group/<int:group_id>/",
+        views.master_admin_group_chat,
+        name="master_admin_group_chat",
+    ),
+    path(
+        "master-admin/chat/meta/",
+        views.master_admin_chat_meta,
+        name="master_admin_chat_meta",
+    ),
+    path(
+        "master-admin/chat/read/",
+        views.master_admin_chat_read,
+        name="master_admin_chat_read",
+    ),
+    path(
+        "api/chat/push/<str:portal>/config/", chat_push.config, name="chat_push_config"
+    ),
+    path(
+        "api/chat/push/<str:portal>/subscribe/",
+        chat_push.subscribe,
+        name="chat_push_subscribe",
+    ),
+    path(
+        "api/chat/push/<str:portal>/unsubscribe/",
+        chat_push.unsubscribe,
+        name="chat_push_unsubscribe",
+    ),
+    # <----HR------>
+    path("hr/dashboard/", views.hr_dashboard, name="hr_dashboard"),
+    path("hr/logout/", views.hr_logout, name="hr_logout"),
+    path("hr/user-management/", views.hr_usermanagement, name="hr_usermanagement"),
+    path("hr/user-management/add/", views.hr_add_user, name="hr_add_user"),
+    path("hr/user-management/edit/", views.hr_edit_user, name="hr_edit_user"),
+    path(
+        "hr/user-management/<int:pk>/delete/",
+        views.hr_delete_user,
+        name="hr_delete_user",
+    ),
+    path("hr/announcements/", views.hr_announcements, name="hr_announcements"),
+    path("hr/reports/", views.hr_reports, name="hr_reports"),
+    path(
+        "hr/project-assigning/", views.hr_project_assigning, name="hr_project_assigning"
+    ),
+    path(
+        "hr/project-assigning/update/<int:pk>/",
+        views.hr_project_update,
+        name="hr_project_update",
+    ),
+    path(
+        "hr/project-assigning/delete/<int:pk>/",
+        views.hr_project_delete,
+        name="hr_project_delete",
+    ),
+    path("hr/tasks/", views.hr_tasks, name="hr_tasks"),
+    path("hr/tasks/update/<int:pk>/", views.hr_task_update, name="hr_task_update"),
+path("hr/tasks/delete/<int:pk>/", views.hr_task_delete, name="hr_task_delete"),
+    path("hr/notepad/", views.hr_notepad, name="hr_notepad"),
+    path(
+        "hr/notepad/delete/<int:pk>/", views.hr_notepad_delete, name="hr_notepad_delete"
+    ),
+    path("hr/google-meet/", views.hr_google_meet, name="hr_google_meet"),
+    path(
+        "hr/google-meet/delete/<int:pk>/",
+        views.hr_google_meet_delete,
+        name="hr_google_meet_delete",
+    ),
+    path("hr/reminders/", views.hr_reminders, name="hr_reminders"),
+    path("hr/notifications/", views.hr_notifications, name="hr_notifications"),
+    path("hr/profile/", views.hr_profile, name="hr_profile"),
+    path("hr/chat/", views.hr_chat, name="hr_chat"),
+
 path(
-    "master-admin/announcements/unread-count/",
-    views.master_admin_announcement_unread_count,
-    name="master_admin_announcement_unread_count",
+    "hr/chat/<int:user_id>/",
+    views.hr_chat_room,
+    name="hr_chat_room",
 ),
-path("master-admin/repository/", views.master_admin_repository, name="master_admin_repository"),
-path("master-admin/repository/<str:source>/<int:pk>/update/", views.master_admin_repository_update, name="master_admin_repository_update"),
-path("master-admin/repository/<str:source>/<int:pk>/delete/", views.master_admin_repository_delete, name="master_admin_repository_delete"),
-path("master-admin/repository/<str:source>/<int:pk>/file/", views.master_admin_repository_file, name="master_admin_repository_file"),
-path("master-admin/google-meet/", views.master_admin_google_meet, name="master_admin_google_meet"),
-path("master-admin/google-meet/<int:pk>/delete/", views.master_admin_google_meet_delete, name="master_admin_google_meet_delete"),
-path("master-admin/notifications/", views.master_admin_notifications, name="master_admin_notifications"),
-path("master-admin/notifications/<int:pk>/action/", views.master_admin_notification_action, name="master_admin_notification_action"),
-path("master-admin/reminders/", views.master_admin_reminders, name="master_admin_reminders"),
-path("master-admin/reminders/<int:pk>/delete/", views.master_admin_reminder_delete, name="master_admin_reminder_delete"),
-path("master-admin/notepad/", views.master_admin_notepad, name="master_admin_notepad"),
-path("master-admin/notepad/<int:pk>/delete/", views.master_admin_notepad_delete, name="master_admin_notepad_delete"),
-path("master-admin/profile/", views.master_admin_profile, name="master_admin_profile"),
-path("master-admin/chat/", views.master_admin_chat, name="master_admin_chat"),
-path("master-admin/chat/<int:user_id>/", views.master_admin_chat_room, name="master_admin_chat_room"),
-path("master-admin/group/<int:group_id>/", views.master_admin_group_chat, name="master_admin_group_chat"),
-path("master-admin/chat/meta/", views.master_admin_chat_meta, name="master_admin_chat_meta"),
-path("master-admin/chat/read/", views.master_admin_chat_read, name="master_admin_chat_read"),
-path("api/chat/push/<str:portal>/config/", chat_push.config, name="chat_push_config"),
-path("api/chat/push/<str:portal>/subscribe/", chat_push.subscribe, name="chat_push_subscribe"),
-path("api/chat/push/<str:portal>/unsubscribe/", chat_push.unsubscribe, name="chat_push_unsubscribe"),
 
-#<----HR------>
-path("hr/dashboard/", views.hr_dashboard, name="hr_dashboard"),
-path("hr/logout/", views.hr_logout, name="hr_logout"),
-path("hr/user-management/", views.hr_usermanagement, name="hr_usermanagement"),
-path("hr/announcements/", views.hr_announcements, name="hr_announcements"),
-path("hr/reports/", views.hr_reports, name="hr_reports"),
-path("hr/project-assigning/", views.hr_project_assigning, name="hr_project_assigning"),
-path("hr/tasks/", views.hr_tasks, name="hr_tasks"),
-path("hr/notepad/", views.hr_notepad, name="hr_notepad"),
-path("hr/notepad/delete/<int:pk>/", views.hr_notepad_delete, name="hr_notepad_delete"),
-path("hr/repository/", views.hr_repository, name="hr_repository"),
-path("hr/chat/", views.hr_chat, name="hr_chat"),
-path("hr/google-meet/", views.hr_google_meet, name="hr_google_meet"),
-path("hr/reminders/", views.hr_reminders, name="hr_reminders"),
-path("hr/notifications/", views.hr_notifications, name="hr_notifications"),
-path("hr/profile/", views.hr_profile, name="hr_profile"),
-
+path(
+    "hr/chat/group/<int:group_id>/",
+    views.hr_group_chat_view,
+    name="hr_group_chat_view",
+),
 ]

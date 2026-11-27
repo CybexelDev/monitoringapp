@@ -5,151 +5,254 @@
 
 {% block extra_css %}
 <style>
-body.hr-usermanagement-page{--bg:#0c0b14;--field:#0c0b12;--line:#302a3b;--accent:#8b5cf6;--text:#eee8f7;--muted:#9a93a8}
-body.hr-usermanagement-page .dashboard-box{width:100%;height:100%;box-sizing:border-box;padding:16px;overflow:auto;border-radius:28px;background:linear-gradient(145deg,rgba(17,16,24,.94),rgba(8,9,14,.96));border:1px solid rgba(255,255,255,.10);scrollbar-width:thin;scrollbar-color:#8972b1 transparent}
-/* header */
-body.hr-usermanagement-page .dashboard-header{padding:32px 36px;border-radius:28px;background:linear-gradient(110deg,#231c2e,#11131c 55%,#20203a);border:1px solid rgba(255,255,255,.10);box-sizing:border-box}
-body.hr-usermanagement-page .dashboard-header-content{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
-body.hr-usermanagement-page .dashboard-eyebrow{color:#b196f5;font-size:10px;font-weight:800;letter-spacing:3px;margin-bottom:12px}
-body.hr-usermanagement-page .dashboard-header h1{margin:0;font-size:clamp(30px,4vw,56px);font-weight:900;line-height:1.1;letter-spacing:-1.5px;background:linear-gradient(90deg,#faf5ff,#c4b5fd 45%,#66caff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-body.hr-usermanagement-page .dashboard-header p{margin:14px 0 0;color:#96939e;font-size:13px}
-body.hr-usermanagement-page .system-status{display:flex;align-items:center;gap:9px;padding:9px 17px;border-radius:30px;color:#9ee7ba;font-size:11px;background:rgba(52,211,153,.055);border:1px solid rgba(52,211,153,.17)}
-body.hr-usermanagement-page .status-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 12px rgba(74,222,128,.75)}
-body.hr-usermanagement-page .dashboard-content{padding:24px 0 30px}
-/* section heading */
-body.hr-usermanagement-page .section-heading{display:flex;align-items:center;gap:22px;margin-bottom:22px}
-body.hr-usermanagement-page .section-eyebrow{display:block;margin-bottom:8px;color:#a78bfa;font-size:10px;font-weight:800;letter-spacing:3px}
-body.hr-usermanagement-page .section-heading h2{margin:0;color:#fff;font-size:22px;font-weight:800}
-body.hr-usermanagement-page .heading-line{flex:1;min-width:20px;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.10),transparent)}
-body.hr-usermanagement-page .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 18px;border-radius:12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.2s}
-body.hr-usermanagement-page .btn svg{width:16px;height:16px}
-body.hr-usermanagement-page .btn-primary{color:#fff;background:linear-gradient(115deg,#834ad6,#6032ab);border:1px solid #ad82ef50}
-body.hr-usermanagement-page .btn-primary:hover{filter:brightness(1.1)}
-body.hr-usermanagement-page .btn-ghost{color:#c4b5fd;background:rgba(124,58,237,.08);border:1px solid rgba(139,92,246,.35)}
-body.hr-usermanagement-page .btn-cancel{color:#bcb4c8;background:#17141e;border:1px solid var(--line)}
-body.hr-usermanagement-page .btn:disabled{opacity:.6;cursor:wait}
-/* card + filters */
-body.hr-usermanagement-page .dashboard-card{padding:26px;border-radius:23px;background:linear-gradient(145deg,rgba(27,26,34,.90),rgba(16,16,22,.92));border:1px solid rgba(255,255,255,.09);box-shadow:0 20px 50px rgba(0,0,0,.20)}
-body.hr-usermanagement-page .filter-card{margin-bottom:20px;padding:18px;border-radius:17px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06)}
-body.hr-usermanagement-page .filter-heading{display:flex;align-items:center;gap:9px;margin-bottom:14px;color:rgba(255,255,255,.7);font-size:11px;font-weight:750}
-body.hr-usermanagement-page .filter-heading svg{width:16px;height:16px;color:#9d8cff}
-body.hr-usermanagement-page .filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-body.hr-usermanagement-page .search-row{grid-column:1/-1;display:flex;gap:10px;align-items:center}
-body.hr-usermanagement-page .search-field{position:relative;flex:1;min-width:0}
-body.hr-usermanagement-page .search-field svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#a78bfa;pointer-events:none}
-body.hr-usermanagement-page .field,body.hr-usermanagement-page select.field{width:100%;box-sizing:border-box;min-height:44px;padding:11px 14px;border:1px solid #383044;border-radius:12px;background:#111018;color:var(--text);font:inherit;font-size:13px;outline:none}
-body.hr-usermanagement-page .search-field .field{padding-left:38px}
-body.hr-usermanagement-page .field:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,.12)}
-body.hr-usermanagement-page .field::placeholder{color:#6f687b}
-body.hr-usermanagement-page select.field{appearance:none;-webkit-appearance:none;color-scheme:dark;cursor:pointer;padding-right:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23c4b5fd' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
-body.hr-usermanagement-page select.field option{background:#1b1726;color:#ede9fe}
-body.hr-usermanagement-page select.field:disabled{opacity:.6;cursor:not-allowed}
-/* table */
-body.hr-usermanagement-page .table-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:18px}
-body.hr-usermanagement-page .table-eyebrow{display:block;color:#a78bfa;font-size:9px;font-weight:800;letter-spacing:3px}
-body.hr-usermanagement-page .table-head h4{margin:4px 0 0;color:#fff;font-size:16px;font-weight:750}
-body.hr-usermanagement-page .count-badge{min-width:32px;height:28px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:rgba(126,96,230,.13);border:1px solid rgba(126,96,230,.20);color:#a89cff;font-size:11px;font-weight:750}
-body.hr-usermanagement-page .table-wrapper{max-height:65vh;overflow:auto;border:1px solid rgba(255,255,255,.06);border-radius:15px;background:rgba(0,0,0,.10);scrollbar-width:thin;scrollbar-color:#74559b transparent;overscroll-behavior:contain}
-body.hr-usermanagement-page .employee-table{width:100%;min-width:1300px;border-collapse:separate;border-spacing:0;color:rgba(255,255,255,.65);font-size:11px}
-body.hr-usermanagement-page .employee-table th{position:sticky;top:0;z-index:2;padding:13px 12px;text-align:left;background:#1b1726;color:rgba(255,255,255,.5);font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.065)}
-body.hr-usermanagement-page .employee-table td{padding:12px;white-space:nowrap;vertical-align:middle;border-bottom:1px solid rgba(255,255,255,.045)}
-body.hr-usermanagement-page .employee-table tbody tr:hover{background:rgba(255,255,255,.025)}
-body.hr-usermanagement-page .employee-name{color:#fff;font-weight:700}
-body.hr-usermanagement-page .empty-row{padding:35px!important;text-align:center;color:rgba(255,255,255,.3)}
-body.hr-usermanagement-page .avatar-wrap{position:relative;width:38px;height:38px}
-body.hr-usermanagement-page .avatar,body.hr-usermanagement-page .avatar-fallback{width:38px;height:38px;border-radius:12px;object-fit:cover;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center}
-body.hr-usermanagement-page .avatar-fallback{background:linear-gradient(135deg,rgba(118,91,215,.35),rgba(49,93,168,.28));color:#fff;font-size:13px;font-weight:800}
-body.hr-usermanagement-page .user-status-dot{position:absolute;right:-2px;bottom:-2px;width:9px;height:9px;border:2px solid #171923;border-radius:50%;background:#45dc91}
-body.hr-usermanagement-page .user-status-dot[data-status="inactive"]{background:#ff6978}
-body.hr-usermanagement-page .status-text{display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);font-size:10px}
-body.hr-usermanagement-page .status-text::before{content:"";width:6px;height:6px;border-radius:50%;background:#45dc91}
-body.hr-usermanagement-page .status-text.inactive::before{background:#ff6978}
-body.hr-usermanagement-page .row-actions{display:flex;gap:8px}
-body.hr-usermanagement-page .icon-btn{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;background:transparent}
-body.hr-usermanagement-page .icon-btn svg{width:19px;height:19px}
-body.hr-usermanagement-page .icon-btn.edit{border:1px solid rgba(90,140,255,.17);background:rgba(68,119,210,.10);color:#8cb8ff}
-body.hr-usermanagement-page .icon-btn.del{border:1px solid rgba(255,80,95,.15);background:rgba(255,70,85,.07);color:#ff8994}
-body.hr-usermanagement-page .icon-btn:hover{filter:brightness(1.3)}
-/* modals */
-body.hr-usermanagement-page .modal{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,4,9,.66);backdrop-filter:blur(7px)}
-body.hr-usermanagement-page .modal[hidden]{display:none}
-body.hr-usermanagement-page .modal-box{width:100%;max-width:880px;max-height:calc(100dvh - 32px);overflow:auto;border-radius:24px;background:#0b0a12;border:1px solid #3b3548;box-shadow:0 30px 95px #0009;scrollbar-width:thin;scrollbar-color:#715098 #0b0a12}
-body.hr-usermanagement-page .modal-box.small{max-width:430px}
-body.hr-usermanagement-page .modal-header{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:26px 30px;background:linear-gradient(110deg,#251b3d,#12101e 48%,#171c2c);border-bottom:1px solid #ffffff12}
-body.hr-usermanagement-page .modal-title{margin:0;color:#faf7ff;font-size:22px;font-weight:800}
-body.hr-usermanagement-page .modal-sub{margin:6px 0 0;color:#8b819b;font-size:12px}
-body.hr-usermanagement-page .modal-close{width:42px;height:42px;display:flex;align-items:center;justify-content:center;border-radius:12px;background:#ffffff04;border:1px solid #ffffff12;color:#a59bad;cursor:pointer}
-body.hr-usermanagement-page .modal-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 18px;padding:26px 30px 30px}
-body.hr-usermanagement-page .modal-form .full{grid-column:1/-1}
-body.hr-usermanagement-page .modal-form label{display:block;margin-bottom:8px;color:#d4cddd;font-size:12px;font-weight:700}
-body.hr-usermanagement-page .modal-form .field{background:var(--field);border-color:var(--line);min-height:48px}
-body.hr-usermanagement-page .modal-form input[type=date]{color-scheme:dark}
-body.hr-usermanagement-page .modal-form input[type=file]{padding:7px}
-body.hr-usermanagement-page .modal-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:12px;padding-top:20px;border-top:1px solid #ffffff12}
-body.hr-usermanagement-page .modal-text{margin:24px 30px;color:#b9afc8;font-size:13px;line-height:1.6}
-body.hr-usermanagement-page .modal-box.small .modal-actions{padding:0 30px 26px;border:0}
-body.hr-usermanagement-page .form-error{grid-column:1/-1;margin:0;color:#efa6b2;font-size:13px}
-body.hr-usermanagement-page .form-error:empty{display:none}
-@media(max-width:900px){body.hr-usermanagement-page .filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+body.hr-usermanagement-page{--hr-field:#0c0b12;--hr-line:#302a3b;--hr-accent:#a78bfa;--hr-text:#eee8f7;--hr-scroll:#8972b1}
+body.hr-usermanagement-page *{box-sizing:border-box}
+
+/* ---------- page shell + header ---------- */
+body.hr-usermanagement-page .hr-box{width:100%;height:100%;padding:16px;overflow:auto;border-radius:28px;background:linear-gradient(145deg,rgba(17,16,24,.94),rgba(8,9,14,.96));border:1px solid rgba(255,255,255,.10);box-shadow:0 25px 80px rgba(0,0,0,.35);scrollbar-width:thin;scrollbar-color:var(--hr-scroll) #191722}
+body.hr-usermanagement-page .hr-box.is-locked{overflow:hidden}
+body.hr-usermanagement-page .hr-header{min-height:200px;padding:32px 36px;border-radius:28px;background:linear-gradient(110deg,#231c2e 0%,#11131c 55%,#20203a 100%);border:1px solid rgba(255,255,255,.10);display:flex;align-items:center}
+body.hr-usermanagement-page .hr-header-inner{width:100%;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+body.hr-usermanagement-page .hr-header-inner>div:first-child{min-width:0;flex:1 1 260px}
+body.hr-usermanagement-page .hr-eyebrow{margin-bottom:12px;color:#b196f5;font-size:10px;font-weight:800;letter-spacing:3px}
+body.hr-usermanagement-page .hr-header h1{display:inline-block;max-width:100%;margin:0;font-size:clamp(34px,4vw,58px);font-weight:900;line-height:1.12;letter-spacing:-1.5px;overflow-wrap:anywhere;background:linear-gradient(90deg,#faf5ff 0%,#c4b5fd 45%,#66caff 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+body.hr-usermanagement-page .hr-header p{margin:14px 0 0;color:#96939e;font-size:13px}
+body.hr-usermanagement-page .hr-status{display:flex;align-items:center;gap:9px;flex-shrink:0;padding:9px 17px;border-radius:30px;color:#9ee7ba;font-size:11px;background:rgba(52,211,153,.055);border:1px solid rgba(52,211,153,.17)}
+body.hr-usermanagement-page .hr-status i{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 12px rgba(74,222,128,.75)}
+body.hr-usermanagement-page .hr-content{padding:24px 0 30px}
+
+/* ---------- section heading + add button ---------- */
+body.hr-usermanagement-page .hr-section{display:flex;align-items:center;gap:22px;margin-bottom:24px}
+body.hr-usermanagement-page .hr-section-title{min-width:0}
+body.hr-usermanagement-page .hr-section-eyebrow{display:block;margin-bottom:8px;color:var(--hr-accent);font-size:10px;font-weight:800;letter-spacing:3px}
+body.hr-usermanagement-page .hr-section h2{margin:0;color:#fff;font-size:22px;font-weight:800}
+body.hr-usermanagement-page .hr-line{flex:1 1 auto;min-width:20px;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.10),transparent)}
+body.hr-usermanagement-page .hr-add-btn{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 16px;border:1px solid rgba(139,112,255,.28);border-radius:12px;background:linear-gradient(135deg,rgba(117,89,220,.24),rgba(82,66,170,.16));color:#dcd7ff;font:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:.2s;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 8px 20px rgba(72,52,160,.14)}
+body.hr-usermanagement-page .hr-add-btn:hover{transform:translateY(-1px);border-color:rgba(157,137,255,.50)}
+body.hr-usermanagement-page .hr-add-btn svg{width:17px;height:17px}
+
+/* ---------- card + filters ---------- */
+body.hr-usermanagement-page .hr-card{width:100%;min-width:0;padding:26px;border-radius:23px;background:linear-gradient(145deg,rgba(27,26,34,.90),rgba(16,16,22,.92));border:1px solid rgba(255,255,255,.09);box-shadow:0 20px 50px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.035)}
+body.hr-usermanagement-page .hr-filter-card{margin-bottom:20px;padding:18px;border-radius:17px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06)}
+body.hr-usermanagement-page .hr-filter-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+body.hr-usermanagement-page .hr-filter-title{display:flex;align-items:center;gap:9px;color:rgba(255,255,255,.70);font-size:11px;font-weight:750}
+body.hr-usermanagement-page .hr-filter-title svg{width:17px;height:17px;color:#9b7cff}
+body.hr-usermanagement-page .hr-reset{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 13px;border:1px solid rgba(139,92,246,.35);border-radius:9px;background:rgba(124,58,237,.08);color:#c4b5fd;font:inherit;font-size:11px;font-weight:700;cursor:pointer;transition:.2s}
+body.hr-usermanagement-page .hr-reset svg{width:14px;height:14px}
+body.hr-usermanagement-page .hr-reset:hover{color:#fff;border-color:rgba(139,92,246,.65);background:linear-gradient(135deg,rgba(124,58,237,.20),rgba(99,102,241,.16))}
+body.hr-usermanagement-page .hr-filter-grid{display:grid;grid-template-columns:minmax(0,2fr) repeat(3,minmax(0,1fr));gap:12px;align-items:start}
+body.hr-usermanagement-page .hr-filter-grid.cols-3{grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr))}
+body.hr-usermanagement-page .hr-filter-grid>*{min-width:0}
+body.hr-usermanagement-page .hr-search{width:100%;min-height:46px;padding:11px 14px;border:1px solid #383044;border-radius:10px;background:#111018;color:var(--hr-text);font:inherit;font-size:14px;outline:none}
+body.hr-usermanagement-page .hr-search::placeholder{color:#6f687b}
+body.hr-usermanagement-page .hr-search:focus{border-color:#8b5cf6;outline:2px solid rgba(139,92,246,.15)}
+
+/* ---------- table ---------- */
+body.hr-usermanagement-page .hr-table-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:18px}
+body.hr-usermanagement-page .hr-table-eyebrow{display:block;color:var(--hr-accent);font-size:9px;font-weight:800;letter-spacing:.16em}
+body.hr-usermanagement-page .hr-table-head h4{margin:4px 0 0;color:#fff;font-size:16px;font-weight:750}
+body.hr-usermanagement-page .hr-count{min-width:32px;height:28px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;background:rgba(126,96,230,.13);border:1px solid rgba(126,96,230,.20);color:#a89cff;font-size:11px;font-weight:750}
+body.hr-usermanagement-page .hr-table-wrap{width:100%;max-height:65vh;overflow:auto;border:1px solid rgba(255,255,255,.06);border-radius:15px;background:rgba(0,0,0,.10);scrollbar-width:thin;scrollbar-color:var(--hr-scroll) #191722;overscroll-behavior:contain}
+body.hr-usermanagement-page .hr-table{width:100%;min-width:1250px;border-collapse:separate;border-spacing:0;color:rgba(255,255,255,.65);font-size:11px}
+body.hr-usermanagement-page .hr-table th{position:sticky;top:0;z-index:2;padding:13px 12px;text-align:left;background:#1b1726;color:rgba(255,255,255,.50);font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.065)}
+body.hr-usermanagement-page .hr-table td{padding:12px;white-space:nowrap;vertical-align:middle;color:rgba(255,255,255,.62);border-bottom:1px solid rgba(255,255,255,.045)}
+body.hr-usermanagement-page .hr-table tbody tr:hover{background:rgba(255,255,255,.025)}
+body.hr-usermanagement-page .hr-table tbody tr:last-child td{border-bottom:0}
+body.hr-usermanagement-page .hr-name{color:#fff!important;font-weight:700}
+body.hr-usermanagement-page .hr-empty{padding:35px!important;text-align:center;color:rgba(255,255,255,.28)!important}
+body.hr-usermanagement-page .hr-avatar-wrap{position:relative;width:38px;height:38px}
+body.hr-usermanagement-page .hr-avatar,body.hr-usermanagement-page .hr-avatar-fallback{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:12px;object-fit:cover;border:1px solid rgba(255,255,255,.08)}
+body.hr-usermanagement-page .hr-avatar-fallback{background:linear-gradient(135deg,rgba(118,91,215,.35),rgba(49,93,168,.28));color:#fff;font-size:13px;font-weight:800}
+body.hr-usermanagement-page .hr-dot{position:absolute;right:-2px;bottom:-2px;width:9px;height:9px;border:2px solid #171923;border-radius:50%;background:#45dc91;box-shadow:0 0 8px rgba(69,220,145,.55)}
+body.hr-usermanagement-page .hr-dot[data-status="inactive"]{background:#ff6978;box-shadow:0 0 8px rgba(255,105,120,.35)}
+body.hr-usermanagement-page .hr-pill{display:inline-flex;align-items:center;gap:7px;padding:5px 9px;border-radius:999px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);font-size:10px}
+body.hr-usermanagement-page .hr-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:#45dc91}
+body.hr-usermanagement-page .hr-pill.inactive::before{background:#ff6978}
+body.hr-usermanagement-page .hr-actions{display:flex;align-items:center;gap:8px}
+body.hr-usermanagement-page .hr-icon-btn{width:40px;height:40px;flex:0 0 40px;display:inline-flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;transition:.18s}
+body.hr-usermanagement-page .hr-icon-btn svg{width:19px;height:19px}
+body.hr-usermanagement-page .hr-icon-btn.edit{border:1px solid rgba(90,140,255,.17);background:rgba(68,119,210,.10);color:#8cb8ff}
+body.hr-usermanagement-page .hr-icon-btn.del{border:1px solid rgba(255,80,95,.15);background:rgba(255,70,85,.07);color:#ff8994}
+body.hr-usermanagement-page .hr-icon-btn:hover{transform:translateY(-1px);filter:brightness(1.25)}
+body.hr-usermanagement-page .hr-icon-btn:focus-visible{outline:2px solid #c4b5fd;outline-offset:3px}
+
+/* ---------- modals ---------- */
+body.hr-usermanagement-page .hr-modal{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,4,9,.66);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+body.hr-usermanagement-page .hr-modal[hidden]{display:none}
+body.hr-usermanagement-page .hr-modal-box{width:100%;max-width:850px;max-height:calc(100dvh - 32px);overflow-y:auto;overflow-x:hidden;border:1px solid #3b3548;border-radius:24px;background:#0b0a12;box-shadow:0 30px 95px #0009;color-scheme:dark;scrollbar-width:thin;scrollbar-color:#715098 #0b0a12}
+body.hr-usermanagement-page .hr-modal-box.add{max-width:900px}
+body.hr-usermanagement-page .hr-modal-box.small{max-width:420px}
+body.hr-usermanagement-page .hr-modal-head{display:flex;align-items:center;justify-content:space-between;gap:15px;min-height:130px;padding:30px 32px;background:linear-gradient(110deg,#251b3d 0%,#12101e 48%,#171c2c 100%);border-bottom:1px solid #ffffff12;border-radius:23px 23px 0 0}
+body.hr-usermanagement-page .hr-modal-box.small .hr-modal-head{min-height:100px;padding:24px 28px}
+body.hr-usermanagement-page .hr-modal-title-wrap{min-width:0;display:flex;align-items:center;gap:18px}
+body.hr-usermanagement-page .hr-modal-icon{width:58px;height:58px;min-width:58px;display:flex;align-items:center;justify-content:center;border-radius:17px;background:linear-gradient(145deg,#41296a,#2b1c4d);border:1px solid #8055c950;color:#cbb6ff}
+body.hr-usermanagement-page .hr-modal-icon svg{width:25px;height:25px}
+body.hr-usermanagement-page .hr-modal-title{margin:0;color:#faf7ff;font-size:25px;line-height:1.25;font-weight:800;letter-spacing:-.4px}
+body.hr-usermanagement-page .hr-modal-box.small .hr-modal-title{font-size:22px}
+body.hr-usermanagement-page .hr-modal-sub{margin:9px 0 0;color:#8b819b;font-size:12px;line-height:1.6}
+body.hr-usermanagement-page .hr-modal-close{width:43px;height:43px;flex:0 0 43px;display:flex;align-items:center;justify-content:center;border:1px solid #ffffff12;border-radius:13px;background:#ffffff04;color:#a59bad;cursor:pointer}
+body.hr-usermanagement-page .hr-modal-close:hover{background:#8c5ed01c;color:#e5d6ff;border-color:#8055c966}
+body.hr-usermanagement-page .hr-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 18px;padding:28px 32px 32px}
+body.hr-usermanagement-page .hr-field{min-width:0}
+body.hr-usermanagement-page .hr-field.full{grid-column:1/-1}
+body.hr-usermanagement-page .hr-label{display:block;margin-bottom:9px;color:#d4cddd;font-size:12px;font-weight:700}
+body.hr-usermanagement-page .hr-input-wrap{position:relative;min-width:0}
+body.hr-usermanagement-page .hr-input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#9983bb;pointer-events:none;z-index:2;display:flex}
+body.hr-usermanagement-page .hr-input-icon svg{width:16px;height:16px}
+body.hr-usermanagement-page .hr-input{display:block;width:100%;min-height:52px;padding:12px 15px;border:1px solid var(--hr-line);border-radius:14px;background:var(--hr-field);color:var(--hr-text);font:inherit;font-size:13px;outline:none}
+body.hr-usermanagement-page .hr-input.with-icon{padding-left:42px}
+body.hr-usermanagement-page .hr-input::placeholder{color:#6f687b;opacity:1}
+body.hr-usermanagement-page .hr-input:focus{outline:2px solid rgba(167,139,250,.55);outline-offset:2px;border-color:#9b80d3}
+body.hr-usermanagement-page .hr-input:read-only{opacity:.75}
+body.hr-usermanagement-page .hr-input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #0c0b12 inset;-webkit-text-fill-color:#eee8f7;caret-color:#eee8f7}
+body.hr-usermanagement-page .hr-input[type=file]{padding:8px}
+body.hr-usermanagement-page .hr-input[type=file]::file-selector-button{margin-right:10px;padding:8px 12px;border:0;border-radius:8px;background:#38304f;color:#f0e9ff;font:inherit;font-size:12px;cursor:pointer}
+body.hr-usermanagement-page .hr-pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;border:0;background:transparent;color:rgba(255,255,255,.4);cursor:pointer}
+body.hr-usermanagement-page .hr-pw-toggle:hover{color:#fff}
+body.hr-usermanagement-page .hr-pw-toggle svg{width:18px;height:18px}
+body.hr-usermanagement-page .hr-form-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:12px;margin-top:12px;padding-top:22px;border-top:1px solid #ffffff12}
+body.hr-usermanagement-page .hr-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:49px;padding:12px 20px;border-radius:12px;font:inherit;font-size:12px;font-weight:750;cursor:pointer;transition:.2s}
+body.hr-usermanagement-page .hr-btn svg{width:14px;height:14px}
+body.hr-usermanagement-page .hr-btn.primary{background:linear-gradient(115deg,#834ad6,#6032ab);border:1px solid #ad82ef50;box-shadow:0 6px 18px #6238aa20;color:#fff}
+body.hr-usermanagement-page .hr-btn.cancel{background:#17141e;border:1px solid #302a3b;color:#bcb4c8}
+body.hr-usermanagement-page .hr-btn.danger{background:linear-gradient(115deg,#d4485f,#a8304a);border:1px solid #ef8da033;color:#fff}
+body.hr-usermanagement-page .hr-btn:hover{filter:brightness(1.1)}
+body.hr-usermanagement-page .hr-btn:disabled{opacity:.6;cursor:wait}
+body.hr-usermanagement-page .hr-error{grid-column:1/-1;margin:0;color:#efa6b2;font-size:13px;line-height:1.5}
+body.hr-usermanagement-page .hr-error:empty{display:none}
+body.hr-usermanagement-page .hr-del-text{margin:24px 28px;color:#b9afc8;font-size:13px;line-height:1.6}
+body.hr-usermanagement-page .hr-modal-box.small .hr-error{margin:0 28px 10px}
+body.hr-usermanagement-page .hr-modal-box.small .hr-form-actions{margin:14px 28px 28px;padding-top:20px}
+
+/* profile preview */
+body.hr-usermanagement-page .hr-preview{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+body.hr-usermanagement-page .hr-preview img,body.hr-usermanagement-page .hr-preview-fallback{width:64px;height:64px;flex:none;border-radius:15px;border:1px solid rgba(255,255,255,.10);object-fit:cover}
+body.hr-usermanagement-page .hr-preview-fallback{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,rgba(118,91,215,.35),rgba(49,93,168,.28));color:#fff;font-size:22px;font-weight:800}
+body.hr-usermanagement-page .hr-preview img[hidden],body.hr-usermanagement-page .hr-preview-fallback[hidden]{display:none}
+body.hr-usermanagement-page .hr-preview-text{color:rgba(255,255,255,.45);font-size:11px;line-height:1.5}
+body.hr-usermanagement-page .hr-preview-text b{display:block;margin-bottom:5px;color:rgba(255,255,255,.55);font-size:10px;font-weight:700}
+
+/* ---------- custom dropdown ---------- */
+body.hr-usermanagement-page .hr-choice{position:relative;min-width:0;width:100%}
+body.hr-usermanagement-page select.hr-native{position:absolute!important;inset:0;width:100%;height:100%;opacity:0;pointer-events:none}
+body.hr-usermanagement-page .hr-choice-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:52px;padding:12px 15px;border:1px solid var(--hr-line);border-radius:14px;background:var(--hr-field);color:#eee8f7;text-align:left;font:inherit;font-size:13px;cursor:pointer}
+body.hr-usermanagement-page .hr-choice.in-filter .hr-choice-toggle{min-height:46px;border-color:#383044;border-radius:10px;background:#111018;font-size:14px}
+body.hr-usermanagement-page .hr-choice-toggle span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+body.hr-usermanagement-page .hr-choice-toggle::after{content:'';width:7px;height:7px;flex-shrink:0;border:solid #b9a7d7;border-width:0 2px 2px 0;transform:rotate(45deg);margin:0 3px 4px 0}
+body.hr-usermanagement-page .hr-choice-toggle[aria-expanded=true]::after{transform:rotate(225deg);margin-top:7px}
+body.hr-usermanagement-page .hr-choice-toggle:focus-visible,body.hr-usermanagement-page .hr-choice-toggle[aria-expanded=true]{outline:none;border-color:#6e489e;box-shadow:0 0 0 2px #8f5ed015}
+body.hr-usermanagement-page .hr-choice-toggle:disabled{opacity:.5;cursor:not-allowed}
+body.hr-usermanagement-page .hr-choice-toggle[aria-invalid=true]{border-color:#c4566b}
+body.hr-usermanagement-page .hr-choice-menu{position:fixed;z-index:100010;overflow-y:auto;overscroll-behavior:contain;padding:10px;border:1px solid #34303d;border-radius:17px;background:linear-gradient(135deg,#1d172b 0%,#0c0b12 72%);box-shadow:0 20px 48px #0009,inset 0 1px 0 #ffffff05;scrollbar-width:thin;scrollbar-color:#725596 #0c0b12}
+body.hr-usermanagement-page .hr-choice-menu[hidden]{display:none}
+body.hr-usermanagement-page .hr-choice-option{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:12px 15px;border-radius:11px;color:#e8e1f4;font-size:14px;cursor:pointer;overflow-wrap:anywhere}
+body.hr-usermanagement-page .hr-choice-option:hover{background:#7952ae26}
+body.hr-usermanagement-page .hr-choice-option[aria-selected=true]{background:linear-gradient(110deg,#32234f,#292344);color:#e9defb;font-weight:700}
+body.hr-usermanagement-page .hr-choice-option[aria-selected=true]::after{content:'✓';font-size:18px;font-weight:400;color:#dacef0}
+body.hr-usermanagement-page .hr-choice-option.is-active{box-shadow:inset 0 0 0 1px #9970d14d}
+body.hr-usermanagement-page .hr-choice-option[aria-disabled=true]{opacity:.4;cursor:default}
+
+/* ---------- custom calendar ---------- */
+body.hr-usermanagement-page .hr-date{position:relative;width:100%;min-width:0}
+body.hr-usermanagement-page .hr-date-toggle{width:100%;min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;border:1px solid var(--hr-line);border-radius:14px;background:var(--hr-field);color:#eee8f7;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+body.hr-usermanagement-page .hr-date-toggle:hover,body.hr-usermanagement-page .hr-date-toggle[aria-expanded=true]{border-color:#70499e}
+body.hr-usermanagement-page .hr-date-toggle span.ph{color:rgba(255,255,255,.36)}
+body.hr-usermanagement-page .hr-date-toggle svg{width:17px;height:17px;flex:0 0 auto;color:#c4b5fd}
+body.hr-usermanagement-page .hr-cal{display:none;width:100%;max-width:375px;margin-top:8px;padding:16px;border:1px solid #393146;border-radius:20px;background:radial-gradient(ellipse at 0 0,rgba(139,92,246,.17),transparent 45%),radial-gradient(ellipse at 100% 0,rgba(96,165,250,.10),transparent 35%),#0c0b14;box-shadow:0 18px 40px #0006}
+body.hr-usermanagement-page .hr-date.open .hr-cal{display:block}
+body.hr-usermanagement-page .hr-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+body.hr-usermanagement-page .hr-cal-title{color:#fff;font-size:15px;font-weight:800}
+body.hr-usermanagement-page .hr-cal-nav{width:40px;height:40px;display:grid;place-items:center;border:1px solid #393146;border-radius:12px;background:rgba(255,255,255,.04);color:#e5dcf6;cursor:pointer}
+body.hr-usermanagement-page .hr-cal-nav:hover{background:rgba(139,92,246,.18)}
+body.hr-usermanagement-page .hr-cal-nav svg{width:18px;height:18px}
+body.hr-usermanagement-page .hr-cal-week,body.hr-usermanagement-page .hr-cal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+body.hr-usermanagement-page .hr-cal-week{margin-bottom:12px;color:#898492;font-size:12px;font-weight:800;text-align:center}
+body.hr-usermanagement-page .hr-cal-day{width:100%;height:42px;padding:0;border:1px solid transparent;border-radius:10px;background:transparent;color:#dedbe5;font:inherit;font-size:14px;cursor:pointer}
+body.hr-usermanagement-page .hr-cal-day:hover{background:rgba(139,92,246,.18)}
+body.hr-usermanagement-page .hr-cal-day.muted{color:#514b5c}
+body.hr-usermanagement-page .hr-cal-day.today{border-color:#527da7;color:#bdd6f3}
+body.hr-usermanagement-page .hr-cal-day.selected{background:rgba(139,92,246,.24);border-color:#a78bfa;color:#fff}
+body.hr-usermanagement-page .hr-cal-foot{display:flex;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid #27222f}
+body.hr-usermanagement-page .hr-cal-foot button{padding:5px 7px;border:0;border-radius:7px;background:transparent;color:#c4b5fd;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+body.hr-usermanagement-page .hr-cal-foot button:hover{color:#fff;background:rgba(139,92,246,.14)}
+
+/* ---------- responsive ---------- */
+@media(max-width:1100px){body.hr-usermanagement-page .hr-filter-grid,body.hr-usermanagement-page .hr-filter-grid.cols-3{grid-template-columns:repeat(2,minmax(0,1fr))}body.hr-usermanagement-page .hr-filter-grid>.hr-search{grid-column:1/-1}}
+@media(max-width:768px){
+ body.hr-usermanagement-page .hr-box{padding:12px;border-radius:22px}
+ body.hr-usermanagement-page .hr-header{min-height:auto;padding:26px 22px;border-radius:22px}
+ body.hr-usermanagement-page .hr-header h1{font-size:clamp(28px,7vw,42px);letter-spacing:-.7px}
+ body.hr-usermanagement-page .hr-line{display:none}
+ body.hr-usermanagement-page .hr-section{gap:10px}
+ body.hr-usermanagement-page .hr-add-btn{min-height:38px;padding:0 12px;border-radius:10px}
+ body.hr-usermanagement-page .hr-add-btn span{display:none}
+ body.hr-usermanagement-page .hr-table-wrap{max-height:min(440px,60dvh)}
+ body.hr-usermanagement-page .hr-input,body.hr-usermanagement-page .hr-search,body.hr-usermanagement-page .hr-choice-toggle{font-size:16px}
+}
 @media(max-width:600px){
- body.hr-usermanagement-page .filter-grid,body.hr-usermanagement-page .modal-form{grid-template-columns:1fr}
- body.hr-usermanagement-page .search-row{flex-wrap:wrap}
- body.hr-usermanagement-page .search-field{flex-basis:100%}
- body.hr-usermanagement-page .modal-form{padding:20px 18px}
- body.hr-usermanagement-page .modal-header{padding:20px 18px}
- body.hr-usermanagement-page .field,body.hr-usermanagement-page select.field{font-size:16px}
- body.hr-usermanagement-page .dashboard-header{padding:24px 20px;border-radius:22px}
+ body.hr-usermanagement-page .hr-filter-grid,body.hr-usermanagement-page .hr-filter-grid.cols-3,body.hr-usermanagement-page .hr-form{grid-template-columns:1fr}
+ body.hr-usermanagement-page .hr-card{padding:15px}
+ body.hr-usermanagement-page .hr-modal{padding:10px}
+ body.hr-usermanagement-page .hr-modal-head{min-height:110px;padding:22px 18px}
+ body.hr-usermanagement-page .hr-form{padding:22px 18px;gap:18px}
+ body.hr-usermanagement-page .hr-modal-title{font-size:21px}
+ body.hr-usermanagement-page .hr-modal-icon{width:46px;height:46px;min-width:46px;border-radius:14px}
+ body.hr-usermanagement-page .hr-modal-title-wrap{gap:12px}
+ body.hr-usermanagement-page .hr-form-actions{flex-direction:column-reverse}
+ body.hr-usermanagement-page .hr-form-actions .hr-btn{width:100%}
+ body.hr-usermanagement-page .hr-del-text{margin:22px 18px}
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-box">
+<div class="hr-box" id="hrBox">
 
-  <section class="dashboard-header">
-    <div class="dashboard-header-content">
+  <section class="hr-header">
+    <div class="hr-header-inner">
       <div>
-        <div class="dashboard-eyebrow">CYBEXEL HR PANEL</div>
+        <div class="hr-eyebrow">CYBEXEL HR PANEL</div>
         <h1>USER MANAGEMENT</h1>
         <p>Create, manage and maintain your organization users{% if branch_name %} · {{ branch_name }}{% endif %}.</p>
       </div>
-      <div class="system-status"><span class="status-dot"></span><span>System Online</span></div>
+      <div class="hr-status"><i></i><span>System Online</span></div>
     </div>
   </section>
 
-  <section class="dashboard-content">
+  <section class="hr-content">
   {% if no_branch %}
-    <div class="dashboard-card"><p class="empty-row">No branch is assigned to your account. Ask the Master Admin to assign your branch.</p></div>
+    <div class="hr-card"><p class="hr-empty">No branch is assigned to your account. Ask the Master Admin to assign your branch.</p></div>
   {% else %}
 
-    <div class="section-heading">
-      <div><span class="section-eyebrow">USER DIRECTORY</span><h2>Employee List</h2></div>
-      <div class="heading-line"></div>
-      <button type="button" class="btn btn-primary" id="openAdd"><i data-lucide="user-plus"></i><span>Add Employee</span></button>
+    <div class="hr-section">
+      <div class="hr-section-title"><span class="hr-section-eyebrow">USER DIRECTORY</span><h2>Employee List</h2></div>
+      <div class="hr-line"></div>
+      <button type="button" class="hr-add-btn" id="hrOpenAdd" aria-label="Add Employee"><i data-lucide="user-plus"></i><span>Add Employee</span></button>
     </div>
 
-    <div class="dashboard-card">
-      <div class="filter-card">
-        <div class="filter-heading"><i data-lucide="sliders-horizontal"></i><span>FILTER EMPLOYEES</span></div>
-        <form id="filterForm">
-          <div class="filter-grid">
-            <div class="search-row">
-              <div class="search-field"><i data-lucide="search"></i>
-                <input type="search" name="search" value="{{ request.GET.search }}" class="field" placeholder="Search name, email or employee ID..." aria-label="Search employees"></div>
-              <button type="submit" class="btn btn-primary"><i data-lucide="filter"></i><span>Filter</span></button>
-              <button type="button" class="btn btn-ghost" id="resetFilters"><i data-lucide="rotate-ccw"></i><span>Reset</span></button>
-            </div>
-            <select name="department" class="field" aria-label="Department">
+    <div class="hr-card">
+      <div class="hr-filter-card">
+        <div class="hr-filter-head">
+          <div class="hr-filter-title"><i data-lucide="sliders-horizontal"></i><span>FILTER EMPLOYEES</span></div>
+          <button type="button" class="hr-reset" id="hrReset" title="Reset Filters"><i data-lucide="rotate-ccw"></i><span>Reset</span></button>
+        </div>
+        <form id="hrFilter" autocomplete="off">
+          <div class="hr-filter-grid{% if not is_head %} cols-3{% endif %}">
+            <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search name, email or employee ID..." class="hr-search" aria-label="Search employees">
+
+            <select name="department" aria-label="Department" data-filter>
               <option value="">All Departments</option>
               {% for d in departments %}<option value="{{ d.name }}" {% if request.GET.department == d.name %}selected{% endif %}>{{ d.name }}</option>{% endfor %}
             </select>
-            <select name="position" class="field" aria-label="Position">
+
+            <select name="position" aria-label="Position" data-filter>
               <option value="">All Positions</option>
               <option value="Team Lead" {% if request.GET.position == "Team Lead" %}selected{% endif %}>Team Lead</option>
               <option value="Team Member" {% if request.GET.position == "Team Member" %}selected{% endif %}>Team Member</option>
             </select>
+
             {% if is_head %}
-            <select name="branch" class="field" aria-label="Branch">
+            <select name="branch" aria-label="Branch" data-filter>
               <option value="">All Branches</option>
               {% for b in branches %}<option value="{{ b.id }}" {% if request.GET.branch == b.id|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>{% endfor %}
               <option value="none" {% if request.GET.branch == "none" %}selected{% endif %}>Not assigned</option>
@@ -159,53 +262,54 @@ body.hr-usermanagement-page .form-error:empty{display:none}
         </form>
       </div>
 
-      <div class="table-head">
-        <div><span class="table-eyebrow">EMPLOYEES</span><h4>Registered Users</h4></div>
-        <span class="count-badge" id="employeeCount">{{ users|length }}</span>
+      <div class="hr-table-head">
+        <div><span class="hr-table-eyebrow">EMPLOYEES</span><h4>Registered Users</h4></div>
+        <span class="hr-count" id="hrCount">{{ users|length }}</span>
       </div>
 
-      <div class="table-wrapper">
-        <table class="employee-table">
+      <div class="hr-table-wrap">
+        <table class="hr-table">
           <thead><tr>
             <th>Image</th><th>Emp ID</th><th>Department</th><th>Branch</th><th>Job Position</th>
             <th>Designation</th><th>Name</th><th>Email</th><th>Phone</th><th>Work Location</th>
             <th>Joining Date</th><th>Username</th><th>Status</th><th>Actions</th>
           </tr></thead>
-          <tbody id="employeeTableBody">
+          <tbody id="hrRows">
             {% for user in users %}
-            <tr data-user-row="{{ user.pk }}">
-              <td><div class="avatar-wrap">
-                {% if user.profile_image %}<img class="avatar" src="{{ user.profile_image.url }}" alt="{{ user.name }}">
-                {% else %}<div class="avatar-fallback">{{ user.name|first|upper }}</div>{% endif %}
-                <span class="user-status-dot" data-status="{{ user.status }}" title="{{ user.status|capfirst }}"></span>
+            <tr data-row="{{ user.pk }}">
+              <td><div class="hr-avatar-wrap">
+                {% if user.profile_image %}<img class="hr-avatar" src="{{ user.profile_image.url }}" alt="{{ user.name }}">
+                {% else %}<div class="hr-avatar-fallback">{{ user.name|first|upper }}</div>{% endif %}
+                <span class="hr-dot" data-status="{{ user.status }}" title="{{ user.status|capfirst }}"></span>
               </div></td>
               <td>{{ user.employee_id }}</td>
               <td>{{ user.department|default:"—" }}</td>
               <td>{{ user.branch.name|default:"—" }}</td>
               <td>{{ user.job_Position }}</td>
               <td>{{ user.designation|default:"—" }}</td>
-              <td class="employee-name">{{ user.name }}</td>
+              <td class="hr-name">{{ user.name }}</td>
               <td>{{ user.email }}</td>
               <td>{{ user.phone|default:"—" }}</td>
               <td>{{ user.work_location|default:"—" }}</td>
               <td>{{ user.joining_date }}</td>
               <td>{{ user.username }}</td>
-              <td><span class="status-text {% if user.status == 'inactive' %}inactive{% endif %}">{{ user.status|capfirst }}</span></td>
-              <td><div class="row-actions">
-                <button type="button" class="icon-btn edit" data-edit title="Edit" aria-label="Edit employee"
+              <td><span class="hr-pill {% if user.status == 'inactive' %}inactive{% endif %}">{{ user.status|capfirst }}</span></td>
+              <td><div class="hr-actions">
+                <button type="button" class="hr-icon-btn edit" data-edit title="Edit" aria-label="Edit employee"
                   data-id="{{ user.id }}" data-empid="{{ user.employee_id }}" data-name="{{ user.name }}"
                   data-email="{{ user.email }}" data-phone="{{ user.phone|default_if_none:'' }}"
                   data-department="{{ user.department_id|default_if_none:'' }}" data-branch="{{ user.branch_id|default_if_none:'' }}"
                   data-designation="{{ user.designation }}" data-job="{{ user.job_Position }}"
-                  data-worklocation="{{ user.work_location|default_if_none:'' }}"
+                  data-worklocation="{% if user.work_location and user.work_location != 'None' %}{{ user.work_location }}{% endif %}"
                   data-joining="{{ user.joining_date|date:'Y-m-d' }}" data-username="{{ user.username }}"
-                  data-status="{{ user.status }}"><i data-lucide="pencil"></i></button>
-                <button type="button" class="icon-btn del" data-delete title="Delete" aria-label="Delete employee"
+                  data-status="{{ user.status }}"
+                  data-profile="{% if user.profile_image %}{{ user.profile_image.url }}{% endif %}"><i data-lucide="pencil"></i></button>
+                <button type="button" class="hr-icon-btn del" data-delete title="Delete" aria-label="Delete employee"
                   data-name="{{ user.name }}" data-url="{% url 'hr_delete_user' user.id %}"><i data-lucide="trash-2"></i></button>
               </div></td>
             </tr>
             {% empty %}
-            <tr><td colspan="14" class="empty-row">No users found</td></tr>
+            <tr><td colspan="14" class="hr-empty">No users found</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -216,114 +320,198 @@ body.hr-usermanagement-page .form-error:empty{display:none}
 </div>
 
 {% if not no_branch %}
-<!-- ADD -->
-<div class="modal" id="addModal" hidden role="dialog" aria-modal="true" aria-labelledby="addTitle">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div><h2 class="modal-title" id="addTitle">Add Employee</h2><p class="modal-sub">Enter the employee information below</p></div>
-      <button type="button" class="modal-close" data-close aria-label="Close"><i data-lucide="x"></i></button>
+<!-- ================= ADD ================= -->
+<div class="hr-modal" id="hrAddModal" hidden role="dialog" aria-modal="true" aria-labelledby="hrAddTitle">
+  <div class="hr-modal-box add">
+    <div class="hr-modal-head">
+      <div class="hr-modal-title-wrap">
+        <div class="hr-modal-icon"><i data-lucide="user-plus"></i></div>
+        <div><h2 class="hr-modal-title" id="hrAddTitle">Add Employee</h2><p class="hr-modal-sub">Enter the employee information below</p></div>
+      </div>
+      <button type="button" class="hr-modal-close" data-close aria-label="Close"><i data-lucide="x"></i></button>
     </div>
-    <form id="addForm" class="modal-form" method="POST" action="{% url 'hr_add_user' %}" enctype="multipart/form-data">
+
+    <form id="hrAddForm" class="hr-form" method="POST" action="{% url 'hr_add_user' %}" enctype="multipart/form-data" novalidate autocomplete="off">
       {% csrf_token %}
-      <div class="full"><label for="profile_image">Profile Picture</label><input type="file" id="profile_image" name="profile_image" accept="image/*" class="field"></div>
-      <div><label for="name">Full Name</label><input type="text" id="name" name="name" class="field" required placeholder="Enter full name"></div>
-      <div><label for="employee_id">Employee ID</label><input type="text" id="employee_id" name="employee_id" class="field" readonly placeholder="Generated automatically"></div>
-      <div><label for="email">Email</label><input type="email" id="email" name="email" class="field" required placeholder="employee@company.com"></div>
-      <div><label for="phone">Phone</label><input type="text" id="phone" name="phone" class="field" placeholder="Phone number"></div>
-      <div><label for="department">Department</label>
-        <select id="department" name="department" class="field" required>
+      <div class="hr-field full">
+        <label class="hr-label" for="add_image">Profile Picture</label>
+        <div class="hr-preview">
+          <img id="addPreviewImg" hidden alt="Profile Preview">
+          <div id="addPreviewFallback" class="hr-preview-fallback">?</div>
+          <div class="hr-preview-text"><b>Profile Preview</b>Name initial will appear if no image is uploaded.</div>
+        </div>
+        <input type="file" id="add_image" name="profile_image" accept="image/*" class="hr-input">
+      </div>
+
+      <div class="hr-field"><label class="hr-label" for="add_name">Full Name</label>
+        <div class="hr-input-wrap"><span class="hr-input-icon"><i data-lucide="user"></i></span>
+        <input type="text" id="add_name" name="name" class="hr-input with-icon" placeholder="Enter full name" required></div></div>
+
+      <div class="hr-field"><label class="hr-label" for="add_empid">Employee ID</label>
+        <div class="hr-input-wrap"><span class="hr-input-icon"><i data-lucide="badge"></i></span>
+        <input type="text" id="add_empid" name="employee_id" class="hr-input with-icon" placeholder="Generated automatically" readonly></div></div>
+
+      <div class="hr-field"><label class="hr-label" for="add_email">Email</label>
+        <div class="hr-input-wrap"><span class="hr-input-icon"><i data-lucide="mail"></i></span>
+        <input type="email" id="add_email" name="email" class="hr-input with-icon" placeholder="employee@company.com" required></div></div>
+
+      <div class="hr-field"><label class="hr-label" for="add_phone">Phone</label>
+        <div class="hr-input-wrap"><span class="hr-input-icon"><i data-lucide="phone"></i></span>
+        <input type="text" id="add_phone" name="phone" class="hr-input with-icon" placeholder="Phone number"></div></div>
+
+      <div class="hr-field"><label class="hr-label" for="add_department">Department</label>
+        <select id="add_department" name="department" required>
           <option value="">Select Department</option>
           {% for d in departments %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
         </select></div>
-      <div><label for="job_Position">Job Position</label>
-        <select id="job_Position" name="job_Position" class="field" required>
+
+      <div class="hr-field"><label class="hr-label" for="add_job">Job Position</label>
+        <select id="add_job" name="job_Position" required>
           <option value="">Select Job Position</option>
           <option value="Team Lead">Team Lead</option>
           <option value="Team Member">Team Member</option>
         </select></div>
-      <div><label for="designation">Designation</label>
-        <select id="designation" name="designation" class="field" required disabled><option value="">Choose department first</option></select></div>
+
+      <div class="hr-field"><label class="hr-label" for="add_designation">Designation</label>
+        <select id="add_designation" name="designation" required disabled><option value="">Choose department first</option></select></div>
+
       {% if is_head %}
-      <div><label for="branch">Branch</label>
-        <select id="branch" name="branch" class="field" required>
+      <div class="hr-field"><label class="hr-label" for="add_branch">Branch</label>
+        <select id="add_branch" name="branch" required data-branch-select>
           <option value="">Select Branch</option>
           {% for b in add_branches %}<option value="{{ b.id }}">{{ b.name }}{% if b.is_head_office %} (Head Office){% endif %}</option>{% endfor %}
         </select></div>
       {% endif %}
-      <div><label for="work_location">Work Location</label><input type="text" id="work_location" name="work_location" class="field" maxlength="150" placeholder="Work location"></div>
-      <div><label for="joining_date">Joining Date</label><input type="date" id="joining_date" name="joining_date" class="field" required></div>
-      <div><label for="username">Username</label><input type="text" id="username" name="username" class="field" required placeholder="Enter username" autocomplete="off"></div>
-      <div><label for="password">Password</label><input type="password" id="password" name="password" class="field" required placeholder="Enter password" autocomplete="new-password"></div>
-      <div><label for="status">Status</label>
-        <select id="status" name="status" class="field"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
-      <p class="form-error" role="alert"></p>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-cancel" data-close>Cancel</button>
-        <button type="submit" class="btn btn-primary"><i data-lucide="user-plus"></i>Add Employee</button>
+
+      <div class="hr-field"><label class="hr-label" for="add_location">Work Location</label>
+        <div class="hr-input-wrap"><span class="hr-input-icon"><i data-lucide="map-pin"></i></span>
+        <input type="text" id="add_location" name="work_location" class="hr-input with-icon" maxlength="150" placeholder="Work location"></div></div>
+
+      <div class="hr-field"><label class="hr-label">Joining Date</label>
+        <div class="hr-date" data-date>
+          <input type="hidden" name="joining_date" id="add_joining" required>
+          <button type="button" class="hr-date-toggle" aria-expanded="false"><span class="ph" data-display>dd-mm-yyyy</span><i data-lucide="calendar-days"></i></button>
+          <div class="hr-cal"></div>
+        </div></div>
+
+      <div class="hr-field"><label class="hr-label" for="add_username">Username</label>
+        <div class="hr-input-wrap"><span class="hr-input-icon"><i data-lucide="at-sign"></i></span>
+        <input type="text" id="add_username" name="username" class="hr-input with-icon" placeholder="Enter username" required autocomplete="off"></div></div>
+
+      <div class="hr-field"><label class="hr-label" for="add_password">Password</label>
+        <div class="hr-input-wrap">
+        <input type="password" id="add_password" name="password" class="hr-input" placeholder="Enter password" required autocomplete="new-password" style="padding-right:46px">
+        <button type="button" class="hr-pw-toggle" data-pw="add_password" aria-label="Show password"><i data-lucide="eye"></i></button></div></div>
+
+      <div class="hr-field"><label class="hr-label" for="add_status">Status</label>
+        <select id="add_status" name="status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+
+      <p class="hr-error" role="alert"></p>
+      <div class="hr-form-actions">
+        <button type="button" class="hr-btn cancel" data-close><i data-lucide="x"></i>Cancel</button>
+        <button type="submit" class="hr-btn primary"><i data-lucide="user-plus"></i>Add Employee</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- EDIT -->
-<div class="modal" id="editModal" hidden role="dialog" aria-modal="true" aria-labelledby="editTitle">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div><h2 class="modal-title" id="editTitle">Edit Employee</h2><p class="modal-sub">Update employee information</p></div>
-      <button type="button" class="modal-close" data-close aria-label="Close"><i data-lucide="x"></i></button>
+<!-- ================= EDIT ================= -->
+<div class="hr-modal" id="hrEditModal" hidden role="dialog" aria-modal="true" aria-labelledby="hrEditTitle">
+  <div class="hr-modal-box">
+    <div class="hr-modal-head">
+      <div class="hr-modal-title-wrap">
+        <div class="hr-modal-icon"><i data-lucide="user-pen"></i></div>
+        <div><h2 class="hr-modal-title" id="hrEditTitle">Edit Employee</h2><p class="hr-modal-sub">Update employee information</p></div>
+      </div>
+      <button type="button" class="hr-modal-close" data-close aria-label="Close"><i data-lucide="x"></i></button>
     </div>
-    <form id="editForm" class="modal-form" method="POST" action="{% url 'hr_edit_user' %}" enctype="multipart/form-data">
+
+    <form id="hrEditForm" class="hr-form" method="POST" action="{% url 'hr_edit_user' %}" enctype="multipart/form-data" novalidate autocomplete="off">
       {% csrf_token %}
       <input type="hidden" id="edit_id" name="id">
-      <div><label for="edit_emp_id">Employee ID</label><input type="text" id="edit_emp_id" name="edit_emp_id" class="field" readonly></div>
-      <div><label for="edit_name">Full Name</label><input type="text" id="edit_name" name="edit_name" class="field" required></div>
-      <div><label for="edit_email">Email</label><input type="email" id="edit_email" name="edit_email" class="field" required></div>
-      <div><label for="edit_phone">Phone</label><input type="text" id="edit_phone" name="edit_phone" class="field"></div>
-      <div><label for="edit_department">Department</label>
-        <select id="edit_department" name="edit_department" class="field" required>
+
+      <div class="hr-field"><label class="hr-label" for="edit_empid">Employee ID</label>
+        <input type="text" id="edit_empid" name="edit_emp_id" class="hr-input" readonly></div>
+      <div class="hr-field"><label class="hr-label" for="edit_name">Full Name</label>
+        <input type="text" id="edit_name" name="edit_name" class="hr-input" required></div>
+      <div class="hr-field"><label class="hr-label" for="edit_email">Email</label>
+        <input type="email" id="edit_email" name="edit_email" class="hr-input" required></div>
+      <div class="hr-field"><label class="hr-label" for="edit_phone">Phone</label>
+        <input type="text" id="edit_phone" name="edit_phone" class="hr-input"></div>
+
+      <div class="hr-field"><label class="hr-label" for="edit_department">Department</label>
+        <select id="edit_department" name="edit_department" required>
           <option value="">Select Department</option>
           {% for d in departments %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
         </select></div>
-      <div><label for="edit_job_position">Job Position</label>
-        <select id="edit_job_position" name="edit_job_position" class="field" required>
+
+      <div class="hr-field"><label class="hr-label" for="edit_job">Job Position</label>
+        <select id="edit_job" name="edit_job_position" required>
           <option value="Team Lead">Team Lead</option>
           <option value="Team Member">Team Member</option>
         </select></div>
-      <div><label for="edit_designation">Designation</label>
-        <select id="edit_designation" name="edit_designation" class="field" required disabled><option value="">Choose department first</option></select></div>
+
+      <div class="hr-field"><label class="hr-label" for="edit_designation">Designation</label>
+        <select id="edit_designation" name="edit_designation" required disabled><option value="">Choose department first</option></select></div>
+
       {% if is_head %}
-      <div><label for="edit_branch">Branch</label>
-        <select id="edit_branch" name="edit_branch" class="field">
+      <div class="hr-field"><label class="hr-label" for="edit_branch">Branch</label>
+        <select id="edit_branch" name="edit_branch" data-branch-select>
           <option value="">Not assigned</option>
           {% for b in branches %}<option value="{{ b.id }}">{{ b.name }}{% if b.is_head_office %} (Head Office){% endif %}{% if not b.is_active %} (inactive){% endif %}</option>{% endfor %}
         </select></div>
       {% endif %}
-      <div><label for="edit_work_location">Work Location</label><input type="text" id="edit_work_location" name="edit_work_location" class="field" maxlength="150"></div>
-      <div><label for="edit_joining_date">Joining Date</label><input type="date" id="edit_joining_date" name="edit_joining_date" class="field"></div>
-      <div><label for="edit_username">Username</label><input type="text" id="edit_username" name="edit_username" class="field" required autocomplete="off"></div>
-      <div><label for="edit_password">Password</label><input type="password" id="edit_password" name="edit_password" class="field" placeholder="Leave blank to keep current" autocomplete="new-password"></div>
-      <div><label for="edit_status">Status</label>
-        <select id="edit_status" name="edit_status" class="field"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
-      <div class="full"><label for="edit_profile_upload">Profile Image</label><input type="file" id="edit_profile_upload" name="edit_profile_upload" class="field" accept="image/*"></div>
-      <p class="form-error" role="alert"></p>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-cancel" data-close>Cancel</button>
-        <button type="submit" class="btn btn-primary"><i data-lucide="save"></i>Save Changes</button>
+
+      <div class="hr-field"><label class="hr-label" for="edit_location">Work Location</label>
+        <input type="text" id="edit_location" name="edit_work_location" class="hr-input" maxlength="150"></div>
+
+      <div class="hr-field"><label class="hr-label">Joining Date</label>
+        <div class="hr-date" data-date>
+          <input type="hidden" name="edit_joining_date" id="edit_joining">
+          <button type="button" class="hr-date-toggle" aria-expanded="false"><span class="ph" data-display>dd-mm-yyyy</span><i data-lucide="calendar-days"></i></button>
+          <div class="hr-cal"></div>
+        </div></div>
+
+      <div class="hr-field"><label class="hr-label" for="edit_username">Username</label>
+        <input type="text" id="edit_username" name="edit_username" class="hr-input" required autocomplete="off"></div>
+
+      <div class="hr-field"><label class="hr-label" for="edit_password">Password</label>
+        <input type="password" id="edit_password" name="edit_password" class="hr-input" placeholder="Leave blank to keep current" autocomplete="new-password"></div>
+
+      <div class="hr-field"><label class="hr-label" for="edit_status">Status</label>
+        <select id="edit_status" name="edit_status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+
+      <div class="hr-field full">
+        <label class="hr-label" for="edit_image">Profile Image</label>
+        <div class="hr-preview">
+          <img id="editPreviewImg" hidden alt="Profile Preview">
+          <div id="editPreviewFallback" class="hr-preview-fallback">?</div>
+          <div class="hr-preview-text"><b>Current profile image</b>Choose a file only if you want to replace it.</div>
+        </div>
+        <input type="file" id="edit_image" name="edit_profile_upload" accept="image/*" class="hr-input">
+      </div>
+
+      <p class="hr-error" role="alert"></p>
+      <div class="hr-form-actions">
+        <button type="button" class="hr-btn cancel" data-close><i data-lucide="x"></i>Cancel</button>
+        <button type="submit" class="hr-btn primary"><i data-lucide="save"></i>Save Changes</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- DELETE -->
-<div class="modal" id="deleteModal" hidden role="dialog" aria-modal="true" aria-labelledby="delTitle">
-  <div class="modal-box small">
-    <div class="modal-header"><h2 class="modal-title" id="delTitle">Delete employee?</h2>
-      <button type="button" class="modal-close" data-close aria-label="Close"><i data-lucide="x"></i></button></div>
-    <p class="modal-text" id="deleteText"></p>
-    <p class="form-error" id="deleteError" role="alert" style="margin:0 30px 14px"></p>
-    <div class="modal-actions">
-      <button type="button" class="btn btn-cancel" data-close>Cancel</button>
-      <button type="button" class="btn btn-primary" id="confirmDelete" style="background:#d44b60;border-color:#e57388">Delete employee</button>
+<!-- ================= DELETE ================= -->
+<div class="hr-modal" id="hrDeleteModal" hidden role="dialog" aria-modal="true" aria-labelledby="hrDelTitle">
+  <div class="hr-modal-box small">
+    <div class="hr-modal-head">
+      <h2 class="hr-modal-title" id="hrDelTitle">Delete employee?</h2>
+      <button type="button" class="hr-modal-close" data-close aria-label="Close"><i data-lucide="x"></i></button>
+    </div>
+    <p class="hr-del-text" id="hrDelText"></p>
+    <p class="hr-error" id="hrDelError" role="alert"></p>
+    <div class="hr-form-actions">
+      <button type="button" class="hr-btn cancel" data-close>Cancel</button>
+      <button type="button" class="hr-btn danger" id="hrConfirmDelete">Delete employee</button>
     </div>
   </div>
 </div>
@@ -331,150 +519,380 @@ body.hr-usermanagement-page .form-error:empty{display:none}
 {% endblock %}
 
 {% block extra_js %}
-{{ designation_options|json_script:"designationData" }}
+<script src="{% static 'js/activity.js' %}?v=presence-fix-20261015" defer></script>
+{{ designation_options|json_script:"hrDesignationData" }}
 <script>
 (() => {
   const $ = id => document.getElementById(id);
-  const filter = $('filterForm'), body = $('employeeTableBody');
-  if (!filter || !body) { window.lucide?.createIcons(); return; }
+  const filter = $('hrFilter'), rows = $('hrRows');
+  if (!filter || !rows) { window.lucide?.createIcons(); return; }
 
   const notify = (msg, type = 'success') => {
     if (typeof window.showToast === 'function') { try { window.showToast(msg, type); return; } catch (_) {} }
     alert(msg);
   };
-  const csrf = () => document.querySelector('#addForm [name=csrfmiddlewaretoken]')?.value || '';
-  let designations = {};
-  try { designations = JSON.parse($('designationData')?.textContent || '{}') || {}; } catch (_) {}
+  const csrf = () => document.querySelector('#hrAddForm [name=csrfmiddlewaretoken]')?.value || '';
+  const icons = () => window.lucide?.createIcons();
 
-  /* ---------- modals ---------- */
-  const modals = [$('addModal'), $('editModal'), $('deleteModal')];
+  /* ================= custom dropdowns ================= */
+  const choices = []; let openChoice = null, typed = '', typedTimer;
+  function closeChoice() {
+    if (!openChoice) return;
+    openChoice.menu.hidden = true; openChoice.btn.setAttribute('aria-expanded', 'false'); openChoice = null;
+  }
+  function enhance(select) {
+    if (select.dataset.enhanced) return; select.dataset.enhanced = '1';
+    const wrap = document.createElement('div'); wrap.className = 'hr-choice';
+    if (select.closest('#hrFilter')) wrap.classList.add('in-filter');
+    select.before(wrap); wrap.append(select); select.classList.add('hr-native'); select.tabIndex = -1;
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'hr-choice-toggle';
+    btn.setAttribute('aria-haspopup', 'listbox'); btn.setAttribute('aria-expanded', 'false');
+    btn.append(document.createElement('span'));
+    const label = select.id ? document.querySelector('label[for="' + select.id + '"]') : null;
+    btn.setAttribute('aria-label', label?.textContent.trim() || select.getAttribute('aria-label') || select.name);
+    if (label) label.addEventListener('click', e => { e.preventDefault(); btn.focus(); });
+    const menu = document.createElement('div'); menu.className = 'hr-choice-menu'; menu.hidden = true; menu.setAttribute('role', 'listbox');
+    wrap.append(btn); document.body.append(menu);
+    const entry = { select, btn, menu, active: -1 }; choices.push(entry);
+
+    const sync = () => {
+      btn.firstChild.textContent = select.selectedOptions[0]?.textContent.trim() || 'Select';
+      btn.disabled = select.disabled;
+      if (select.value) btn.removeAttribute('aria-invalid');
+    };
+    const highlight = i => {
+      const items = [...menu.children]; if (!items.length) return;
+      entry.active = (i + items.length) % items.length;
+      items.forEach((n, k) => n.classList.toggle('is-active', k === entry.active));
+      items[entry.active].scrollIntoView({ block: 'nearest' });
+    };
+    const choose = i => {
+      const o = select.options[i]; if (!o || o.disabled) return;
+      select.selectedIndex = i; sync(); closeChoice();
+      select.dispatchEvent(new Event('change', { bubbles: true })); btn.focus();
+    };
+    const open = () => {
+      closeChoice(); sync(); if (select.disabled) return;
+      menu.replaceChildren();
+      [...select.options].forEach((o, i) => {
+        const row = document.createElement('div'); row.className = 'hr-choice-option'; row.setAttribute('role', 'option');
+        row.setAttribute('aria-selected', String(o.selected)); row.setAttribute('aria-disabled', String(o.disabled));
+        row.textContent = o.textContent.trim();
+        row.addEventListener('pointerdown', e => e.preventDefault());
+        row.addEventListener('click', () => choose(i));
+        menu.append(row);
+      });
+      const r = btn.getBoundingClientRect(), below = innerHeight - r.bottom - 12, above = r.top - 12;
+      menu.style.width = Math.min(r.width, innerWidth - 20) + 'px';
+      menu.style.left = Math.max(10, Math.min(r.left, innerWidth - r.width - 10)) + 'px';
+      menu.style.maxHeight = Math.min(280, Math.max(below, above)) + 'px';
+      menu.hidden = false;
+      const h = menu.getBoundingClientRect().height;
+      menu.style.top = (below >= Math.min(280, h) ? r.bottom + 7 : Math.max(10, r.top - h - 7)) + 'px';
+      btn.setAttribute('aria-expanded', 'true'); openChoice = entry; highlight(Math.max(0, select.selectedIndex));
+    };
+    btn.addEventListener('click', () => openChoice === entry ? closeChoice() : open());
+    btn.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && openChoice) { e.preventDefault(); e.stopPropagation(); closeChoice(); return; }
+      if (e.key === 'Tab') { closeChoice(); return; }
+      if (['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter', ' '].includes(e.key)) {
+        e.preventDefault();
+        if (openChoice !== entry) { open(); return; }
+        if (e.key === 'Enter' || e.key === ' ') { choose(entry.active); return; }
+        const last = select.options.length - 1;
+        highlight(e.key === 'Home' ? 0 : e.key === 'End' ? last : entry.active + (e.key === 'ArrowDown' ? 1 : -1));
+      } else if (e.key.length === 1) {
+        clearTimeout(typedTimer); typed += e.key.toLowerCase(); typedTimer = setTimeout(() => typed = '', 700);
+        if (openChoice !== entry) open();
+        const m = [...select.options].findIndex(o => !o.disabled && o.textContent.trim().toLowerCase().startsWith(typed));
+        if (m >= 0) highlight(m);
+      }
+    });
+    select.addEventListener('change', sync);
+    new MutationObserver(() => { sync(); if (openChoice === entry) open(); }).observe(select, { childList: true, subtree: true, attributes: true });
+    sync(); entry.sync = sync;
+  }
+  document.querySelectorAll('select').forEach(s => { if (s.closest('#hrFilter, #hrAddForm, #hrEditForm')) enhance(s); });
+  document.addEventListener('pointerdown', e => { if (openChoice && !openChoice.menu.contains(e.target) && !openChoice.btn.contains(e.target)) closeChoice(); });
+  document.addEventListener('scroll', e => { if (openChoice && !openChoice.menu.contains(e.target)) closeChoice(); }, true);
+  window.addEventListener('resize', closeChoice);
+  const syncChoices = () => choices.forEach(c => c.sync());
+
+  /* ================= custom calendar ================= */
+  const pad = n => String(n).padStart(2, '0');
+  const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const parse = v => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v || '')) return null;
+    const [y, m, d] = v.split('-').map(Number), dt = new Date(y, m - 1, d);
+    return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d ? dt : null;
+  };
+  const sameDay = (a, b) => a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  const monthFmt = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' });
+  const pickers = [];
+  function initPicker(root) {
+    const input = root.querySelector('input[type=hidden]'), toggle = root.querySelector('.hr-date-toggle'),
+          display = root.querySelector('[data-display]'), cal = root.querySelector('.hr-cal');
+    cal.innerHTML = '<div class="hr-cal-head"><button type="button" class="hr-cal-nav" data-prev aria-label="Previous month"><i data-lucide="chevron-left"></i></button><span class="hr-cal-title"></span><button type="button" class="hr-cal-nav" data-next aria-label="Next month"><i data-lucide="chevron-right"></i></button></div><div class="hr-cal-week"><span>SU</span><span>MO</span><span>TU</span><span>WE</span><span>TH</span><span>FR</span><span>SA</span></div><div class="hr-cal-days"></div><div class="hr-cal-foot"><button type="button" data-clear>Clear</button><button type="button" data-today>Today</button></div>';
+    const title = cal.querySelector('.hr-cal-title'), days = cal.querySelector('.hr-cal-days');
+    let selected = parse(input.value), view = new Date((selected || new Date()).getFullYear(), (selected || new Date()).getMonth(), 1);
+    const paintDisplay = () => {
+      if (selected) { display.textContent = `${pad(selected.getDate())}-${pad(selected.getMonth() + 1)}-${selected.getFullYear()}`; display.classList.remove('ph'); }
+      else { display.textContent = 'dd-mm-yyyy'; display.classList.add('ph'); }
+    };
+    const paint = () => {
+      title.textContent = monthFmt.format(view); days.replaceChildren();
+      const y = view.getFullYear(), m = view.getMonth(), first = new Date(y, m, 1).getDay(),
+            total = new Date(y, m + 1, 0).getDate(), prevTotal = new Date(y, m, 0).getDate();
+      const add = (date, muted) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'hr-cal-day' + (muted ? ' muted' : '');
+        b.textContent = date.getDate();
+        if (sameDay(date, new Date())) b.classList.add('today');
+        if (sameDay(date, selected)) b.classList.add('selected');
+        b.addEventListener('click', e => {
+          e.preventDefault(); e.stopPropagation();
+          selected = new Date(date.getFullYear(), date.getMonth(), date.getDate()); input.value = iso(selected);
+          view = new Date(selected.getFullYear(), selected.getMonth(), 1); paintDisplay(); close();
+        });
+        days.append(b);
+      };
+      for (let i = first - 1; i >= 0; i--) add(new Date(y, m - 1, prevTotal - i), true);
+      for (let d = 1; d <= total; d++) add(new Date(y, m, d), false);
+      const rest = (7 - ((first + total) % 7)) % 7;
+      for (let d = 1; d <= rest; d++) add(new Date(y, m + 1, d), true);
+    };
+    const close = () => { root.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); };
+    const sync = () => { selected = parse(input.value); const a = selected || new Date(); view = new Date(a.getFullYear(), a.getMonth(), 1); paintDisplay(); paint(); };
+    toggle.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation();
+      if (root.classList.contains('open')) { close(); return; }
+      pickers.forEach(p => p.close()); sync(); root.classList.add('open'); toggle.setAttribute('aria-expanded', 'true'); icons();
+    });
+    cal.addEventListener('click', e => {
+      const t = e.target.closest('button'); if (!t) return; e.preventDefault(); e.stopPropagation();
+      if (t.hasAttribute('data-prev')) { view = new Date(view.getFullYear(), view.getMonth() - 1, 1); paint(); }
+      else if (t.hasAttribute('data-next')) { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); paint(); }
+      else if (t.hasAttribute('data-clear')) { selected = null; input.value = ''; view = new Date(new Date().getFullYear(), new Date().getMonth(), 1); paintDisplay(); paint(); close(); }
+      else if (t.hasAttribute('data-today')) { const n = new Date(); selected = new Date(n.getFullYear(), n.getMonth(), n.getDate()); input.value = iso(selected); view = new Date(n.getFullYear(), n.getMonth(), 1); paintDisplay(); paint(); close(); }
+    });
+    input.addEventListener('change', sync);
+    pickers.push({ root, input, close, sync }); paintDisplay(); paint();
+  }
+  document.querySelectorAll('[data-date]').forEach(initPicker);
+  document.addEventListener('click', e => pickers.forEach(p => { if (!p.root.contains(e.target)) p.close(); }));
+  const setDate = (input, value) => { input.value = value || ''; input.dispatchEvent(new Event('change')); };
+
+  /* ================= modals ================= */
+  const modals = [$('hrAddModal'), $('hrEditModal'), $('hrDeleteModal')];
   const anyOpen = () => modals.some(m => m && !m.hidden);
-  function openModal(m) { m.hidden = false; document.body.style.overflow = 'hidden'; window.lucide?.createIcons(); }
-  function closeModal(m) { if (m) m.hidden = true; if (!anyOpen()) document.body.style.overflow = ''; }
-  modals.forEach(m => {
-    m?.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-close]')) closeModal(m); });
+  let lastFocus = null;
+  function openModal(m) { lastFocus = document.activeElement; m.hidden = false; $('hrBox').classList.add('is-locked'); document.body.style.overflow = 'hidden'; icons(); }
+  function closeModal(m) {
+    if (!m || m.hidden) return; m.hidden = true; pickers.forEach(p => p.close()); closeChoice();
+    if (!anyOpen()) { $('hrBox').classList.remove('is-locked'); document.body.style.overflow = ''; }
+    if (lastFocus?.isConnected) lastFocus.focus();
+  }
+  modals.forEach(m => m?.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-close]')) closeModal(m); }));
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape' || openChoice) return;
+    if (pickers.some(p => p.root.classList.contains('open'))) { pickers.forEach(p => p.close()); return; }
+    modals.forEach(closeModal);
   });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') modals.forEach(closeModal); });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return;
+    const m = modals.find(x => x && !x.hidden); if (!m) return;
+    const f = [...m.querySelectorAll('button,input,select,textarea,a[href]')].filter(el => !el.disabled && el.type !== 'hidden' && !el.classList.contains('hr-native') && el.getClientRects().length);
+    if (!f.length) return;
+    if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+  });
 
-  /* ---------- designations ---------- */
+  /* ================= avatar previews ================= */
+  const initial = n => (String(n || '').trim().charAt(0) || '?').toUpperCase();
+  function bindPreview(nameId, fileId, imgId, fbId) {
+    const name = $(nameId), file = $(fileId), img = $(imgId), fb = $(fbId);
+    const paint = () => {
+      const f = file.files[0];
+      if (!f) { if (!img.dataset.server) { img.hidden = true; img.removeAttribute('src'); fb.textContent = initial(name.value); fb.hidden = false; } return; }
+      const r = new FileReader(); r.onload = () => { if (file.files[0] !== f) return; img.src = r.result; img.hidden = false; fb.hidden = true; }; r.readAsDataURL(f);
+    };
+    name.addEventListener('input', () => { if (!file.files.length && !img.dataset.server) fb.textContent = initial(name.value); });
+    file.addEventListener('change', paint);
+  }
+  bindPreview('add_name', 'add_image', 'addPreviewImg', 'addPreviewFallback');
+  bindPreview('edit_name', 'edit_image', 'editPreviewImg', 'editPreviewFallback');
+
+  /* ================= password toggle ================= */
+  document.querySelectorAll('[data-pw]').forEach(b => b.addEventListener('click', () => {
+    const i = $(b.dataset.pw), show = i.type === 'password'; i.type = show ? 'text' : 'password';
+    b.innerHTML = `<i data-lucide="${show ? 'eye-off' : 'eye'}"></i>`; icons();
+  }));
+
+  /* ================= designations ================= */
+  let designations = {};
+  try { designations = JSON.parse($('hrDesignationData')?.textContent || '{}') || {}; } catch (_) {}
+  const desigReq = new Map();
   async function fillDesignations(deptId, selectId, selected = '') {
     const sel = $(selectId); if (!sel) return;
     const key = String(deptId || '');
+    desigReq.get(selectId)?.abort(); const ctl = new AbortController(); desigReq.set(selectId, ctl);
     const show = names => {
       sel.replaceChildren(new Option(key ? 'Select designation' : 'Choose department first', ''));
       names.forEach(n => sel.add(new Option(n, n)));
       sel.disabled = !key || !names.length;
       if (key && !names.length) sel.options[0].text = 'No designations for this department';
       if (selected && names.includes(selected)) sel.value = selected;
+      sel.dispatchEvent(new Event('change'));
     };
     if (!key) return show([]);
     if (Array.isArray(designations[key])) show(designations[key]);
-    else { sel.replaceChildren(new Option('Loading designations…', '')); sel.disabled = true; }
+    else { sel.replaceChildren(new Option('Loading designations…', '')); sel.disabled = true; sel.dispatchEvent(new Event('change')); }
     try {
       const u = new URL(location.pathname, location.origin); u.searchParams.set('designation_department', key);
-      const r = await fetch(u, {credentials: 'same-origin', cache: 'no-store', headers: {'X-Requested-With': 'XMLHttpRequest'}});
+      const r = await fetch(u, { credentials: 'same-origin', cache: 'no-store', signal: ctl.signal, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+      if (!(r.headers.get('Content-Type') || '').includes('application/json')) throw Error('Designation endpoint is not connected.');
       const d = await r.json();
-      if (!r.ok || !d.ok) throw Error(d.message || 'Unable to load designations.');
+      if (!r.ok || !d.ok || !Array.isArray(d.items)) throw Error(d.message || 'Unable to load designations.');
+      if (desigReq.get(selectId) !== ctl) return;
       designations[key] = d.items; show(d.items);
-    } catch (err) { if (!Array.isArray(designations[key])) { sel.replaceChildren(new Option('Unable to load', '')); notify(err.message, 'error'); } }
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      if (!Array.isArray(designations[key])) { sel.replaceChildren(new Option('Unable to load — choose department again', '')); sel.disabled = true; sel.dispatchEvent(new Event('change')); notify(err.message, 'error'); }
+    }
   }
-  $('department')?.addEventListener('change', e => fillDesignations(e.target.value, 'designation'));
-  $('edit_department')?.addEventListener('change', e => fillDesignations(e.target.value, 'edit_designation'));
+  $('add_department').addEventListener('change', e => fillDesignations(e.target.value, 'add_designation'));
+  $('edit_department').addEventListener('change', e => fillDesignations(e.target.value, 'edit_designation'));
 
-  /* ---------- add ---------- */
-  $('openAdd')?.addEventListener('click', () => {
-    $('addForm').reset(); $('addForm').querySelector('.form-error').textContent = '';
-    fillDesignations('', 'designation'); openModal($('addModal')); $('name').focus();
+  /* ================= add ================= */
+  $('hrOpenAdd').addEventListener('click', () => {
+    const f = $('hrAddForm'); f.reset(); f.querySelector('.hr-error').textContent = '';
+    setDate($('add_joining'), ''); $('add_status').value = 'inactive';
+    $('addPreviewImg').hidden = true; $('addPreviewImg').removeAttribute('src'); $('addPreviewFallback').hidden = false; $('addPreviewFallback').textContent = '?';
+    fillDesignations('', 'add_designation'); syncChoices(); refresh(true);
+    openModal($('hrAddModal')); $('add_name').focus();
   });
 
-  /* ---------- edit (delegated, rows are replaced live) ---------- */
+  /* ================= edit (delegated: rows are replaced live) ================= */
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-edit]'); if (!b) return;
-    const d = b.dataset;
-    $('editForm').querySelector('.form-error').textContent = '';
-    $('edit_id').value = d.id; $('edit_emp_id').value = d.empid; $('edit_name').value = d.name;
+    const d = b.dataset, f = $('hrEditForm'); f.reset(); f.querySelector('.hr-error').textContent = '';
+    $('edit_id').value = d.id; $('edit_empid').value = d.empid; $('edit_name').value = d.name;
     $('edit_email').value = d.email; $('edit_phone').value = d.phone;
-    $('edit_department').value = d.department;
-    $('edit_job_position').value = d.job;
+    $('edit_department').value = d.department; $('edit_job').value = d.job;
     if ($('edit_branch')) $('edit_branch').value = d.branch;
-    $('edit_work_location').value = d.worklocation; $('edit_joining_date').value = d.joining;
+    $('edit_location').value = d.worklocation; setDate($('edit_joining'), d.joining);
     $('edit_username').value = d.username; $('edit_password').value = '';
-    $('edit_status').value = d.status; $('edit_profile_upload').value = '';
+    $('edit_status').value = d.status; $('edit_image').value = '';
+    const img = $('editPreviewImg'), fb = $('editPreviewFallback');
+    if (d.profile) { img.src = d.profile; img.hidden = false; img.dataset.server = '1'; fb.hidden = true; }
+    else { img.removeAttribute('src'); img.hidden = true; delete img.dataset.server; fb.textContent = initial(d.name); fb.hidden = false; }
     fillDesignations(d.department, 'edit_designation', d.designation);
-    openModal($('editModal'));
+    syncChoices(); refresh(true); openModal($('hrEditModal'));
   });
 
-  /* ---------- save (add + edit) ---------- */
+  /* ================= save (add + edit) ================= */
+  function validate(form) {
+    for (const el of form.querySelectorAll('[required]')) {
+      if (el.type === 'hidden') { if (!el.value) return 'Please choose the joining date.'; continue; }
+      if (el.disabled) { if (el.tagName === 'SELECT') return 'Choose a department that has designations.'; continue; }
+      if (!String(el.value).trim()) {
+        const c = choices.find(x => x.select === el); c?.btn.setAttribute('aria-invalid', 'true');
+        const lbl = form.querySelector('label[for="' + el.id + '"]')?.textContent.trim() || 'this field';
+        (c?.btn || el).focus(); return 'Please fill in ' + lbl + '.';
+      }
+    }
+    return '';
+  }
   async function save(form, modal) {
-    const err = form.querySelector('.form-error'), btn = form.querySelector('[type=submit]');
-    err.textContent = ''; btn.disabled = true;
+    const err = form.querySelector('.hr-error'), btn = form.querySelector('[type=submit]');
+    err.textContent = '';
+    const problem = validate(form); if (problem) { err.textContent = problem; return; }
+    btn.disabled = true;
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 30000);
     try {
-      const r = await fetch(form.action, {method: 'POST', body: new FormData(form), credentials: 'same-origin',
-        headers: {'X-Requested-With': 'XMLHttpRequest'}});
+      const r = await fetch(form.action, { method: 'POST', body: new FormData(form), credentials: 'same-origin', signal: ctl.signal, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
       if (!(r.headers.get('Content-Type') || '').includes('application/json')) throw Error('The server did not confirm this change. Check your login.');
       const d = await r.json();
       if (!r.ok || !d.ok) throw Error(d.message || 'Unable to save employee.');
-      closeModal(modal); form.reset(); notify(d.message || 'Saved successfully.'); await refresh(true);
-    } catch (e) { err.textContent = e.message; notify(e.message, 'error'); }
-    finally { btn.disabled = false; }
+      closeModal(modal); notify(d.message || 'Saved successfully.'); await refresh(true);
+    } catch (e) {
+      const m = e.name === 'AbortError' ? 'The request timed out. Check the list before retrying; the change may have saved.' : (e instanceof TypeError ? 'Connection interrupted. Check the list before retrying.' : e.message);
+      err.textContent = m; notify(m, 'error');
+    } finally { clearTimeout(to); btn.disabled = false; }
   }
-  $('addForm')?.addEventListener('submit', e => { e.preventDefault(); save(e.target, $('addModal')); });
-  $('editForm')?.addEventListener('submit', e => { e.preventDefault(); save(e.target, $('editModal')); });
+  $('hrAddForm').addEventListener('submit', e => { e.preventDefault(); save(e.target, $('hrAddModal')); });
+  $('hrEditForm').addEventListener('submit', e => { e.preventDefault(); save(e.target, $('hrEditModal')); });
 
-  /* ---------- delete ---------- */
+  /* ================= delete ================= */
   let deleteUrl = '';
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-delete]'); if (!b) return;
-    deleteUrl = b.dataset.url; $('deleteError').textContent = '';
-    $('deleteText').textContent = 'This will permanently delete “' + b.dataset.name + '” and their related records. Continue?';
-    openModal($('deleteModal'));
+    deleteUrl = b.dataset.url; $('hrDelError').textContent = '';
+    $('hrDelText').textContent = 'This will permanently delete “' + b.dataset.name + '” and their related records. Continue?';
+    openModal($('hrDeleteModal'));
   });
-  $('confirmDelete')?.addEventListener('click', async e => {
-    const btn = e.currentTarget; btn.disabled = true; $('deleteError').textContent = '';
+  $('hrConfirmDelete').addEventListener('click', async e => {
+    const btn = e.currentTarget; btn.disabled = true; $('hrDelError').textContent = '';
     try {
-      const r = await fetch(deleteUrl, {method: 'DELETE', credentials: 'same-origin',
-        headers: {'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf()}});
+      const r = await fetch(deleteUrl, { method: 'DELETE', credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrf() } });
       if (!(r.headers.get('Content-Type') || '').includes('application/json')) throw Error('The server did not confirm this change.');
       const d = await r.json();
       if (!r.ok || !d.ok) throw Error(d.message || 'Unable to delete employee.');
-      closeModal($('deleteModal')); notify(d.message); await refresh(true);
-    } catch (err) { $('deleteError').textContent = err.message; notify(err.message, 'error'); }
+      closeModal($('hrDeleteModal')); notify(d.message); await refresh(true);
+    } catch (err) { $('hrDelError').textContent = err.message; notify(err.message, 'error'); }
     finally { btn.disabled = false; }
   });
 
-  /* ---------- live list + filters ---------- */
-  let ctl = null, seq = 0, timer = null, debounce = null;
-  function listUrl() {
+  /* ================= live list, filters, branch options ================= */
+  let ctl = null, seq = 0, timer = null, debounce = null, signature = rows.innerHTML;
+  const listUrl = () => {
     const u = new URL(location.pathname, location.origin);
     for (const [k, v] of new FormData(filter)) if (String(v).trim()) u.searchParams.set(k, v);
     return u;
+  };
+  function syncBranchOptions(doc) {
+    doc.querySelectorAll('select[data-branch-select]').forEach(fresh => {
+      const cur = $(fresh.id); if (!cur) return;
+      const sig = [...fresh.options].map(o => o.value + '|' + o.textContent.trim()).join('\n');
+      if (cur.dataset.sig === sig) return;
+      const keep = cur.value; cur.replaceChildren(...[...fresh.options].map(o => o.cloneNode(true))); cur.dataset.sig = sig;
+      if ([...cur.options].some(o => o.value === keep)) cur.value = keep;
+      cur.dispatchEvent(new Event('change'));
+    });
   }
   async function refresh(force = false) {
-    if (document.hidden || (!force && anyOpen())) return;
-    ctl?.abort(); const c = new AbortController(); ctl = c; const token = ++seq;
+    if (document.hidden) return;
+    if (!force && anyOpen()) return;
+    ctl?.abort(); const c = new AbortController(); ctl = c; const token = ++seq, to = setTimeout(() => c.abort(), 12000);
     try {
-      const r = await fetch(listUrl(), {credentials: 'same-origin', cache: 'no-store', signal: c.signal});
+      const r = await fetch(listUrl(), { credentials: 'same-origin', cache: 'no-store', signal: c.signal });
+      if (r.status === 401 || r.status === 403 || r.redirected) { clearTimeout(timer); notify('Your access or session has changed. Sign in again to continue.', 'error'); return; }
       if (!r.ok) return;
       const doc = new DOMParser().parseFromString(await r.text(), 'text/html');
-      const next = doc.getElementById('employeeTableBody');
-      if (!next || token !== seq) return;
-      if (body.innerHTML !== next.innerHTML) {
-        const w = body.closest('.table-wrapper'), l = w.scrollLeft, t = w.scrollTop;
-        body.replaceChildren(...Array.from(next.childNodes)); w.scrollLeft = l; w.scrollTop = t;
-        window.lucide?.createIcons();
+      const next = doc.getElementById('hrRows'); if (!next || token !== seq) return;
+      if (signature !== next.innerHTML) {
+        const w = rows.closest('.hr-table-wrap'), l = w.scrollLeft, t = w.scrollTop;
+        signature = next.innerHTML; rows.replaceChildren(...Array.from(next.childNodes)); w.scrollLeft = l; w.scrollTop = t; icons();
       }
-      $('employeeCount').textContent = doc.getElementById('employeeCount')?.textContent || '0';
-    } catch (_) {}
+      $('hrCount').textContent = doc.getElementById('hrCount')?.textContent || '0';
+      syncBranchOptions(doc);
+      const cat = doc.getElementById('hrDesignationData');
+      if (cat) { try { designations = JSON.parse(cat.textContent || '{}') || {}; } catch (_) {} }
+    } catch (_) {} finally { clearTimeout(to); }
   }
   const schedule = () => { clearTimeout(timer); if (!document.hidden) timer = setTimeout(async () => { await refresh(); schedule(); }, 10000); };
-  filter.addEventListener('submit', e => { e.preventDefault(); refresh(true); });
-  filter.querySelectorAll('select').forEach(s => s.addEventListener('change', () => refresh(true)));
-  filter.querySelector('input[name=search]').addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(() => refresh(true), 250); });
-  $('resetFilters')?.addEventListener('click', () => { filter.querySelectorAll('input,select').forEach(c => { c.value = ''; }); refresh(true); });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { refresh(); schedule(); } });
+  const change = () => { clearTimeout(debounce); refresh(true); schedule(); };
+  filter.addEventListener('submit', e => { e.preventDefault(); change(); });
+  filter.querySelectorAll('select').forEach(s => s.addEventListener('change', change));
+  filter.querySelector('input[name=search]').addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(change, 250); });
+  $('hrReset').addEventListener('click', () => {
+    filter.querySelectorAll('input').forEach(i => { i.value = ''; });
+    filter.querySelectorAll('select').forEach(s => { s.selectedIndex = 0; s.dispatchEvent(new Event('change')); });
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(timer); ctl?.abort(); } else { refresh(); schedule(); } });
+  window.addEventListener('online', () => refresh());
+  window.addEventListener('pagehide', () => { clearTimeout(timer); ctl?.abort(); });
 
-  window.lucide?.createIcons();
-  schedule();
+  icons(); schedule();
 })();
 </script>
 {% endblock %}

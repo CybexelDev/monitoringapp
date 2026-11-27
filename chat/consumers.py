@@ -517,6 +517,37 @@ class MasterAdminGroupChatConsumer(MasterAdminChatConsumer):
     group_chat = True
 
 
+class HRChatConsumer(MemberChatConsumer):
+    allowed_positions = {"hr"}
+
+    @database_sync_to_async
+    def is_hr_user(self):
+        from monitoringapp.models import User
+
+        return User.objects.filter(
+            pk=self.user_id,
+            job_Position__iexact="HR",
+        ).exists()
+
+    async def allowed(self):
+        return (
+            await self.is_hr_user()
+            and await super().allowed()
+        )
+
+    async def save_message(self, message):
+        if not await self.is_hr_user():
+            return None
+
+        return await super().save_message(message)
+
+
+class HRGroupChatConsumer(HRChatConsumer):
+    group_chat = True
+
+
+
+
 class MasterAdminChatUpdatesConsumer(ChatUpdatesConsumer):
     @database_sync_to_async
     def get_user_id(self):

@@ -513,16 +513,6 @@ class GroupMember(models.Model):
         return f"{self.user.name} in {self.group.name}"
 
 
-# class GroupMessage(models.Model):
-#     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='messages')
-#     sender = models.ForeignKey('User', on_delete=models.CASCADE)
-#     message = models.TextField()
-#     timestamp = models.DateTimeField(default=timezone.now)
-
-#     def __str__(self):
-#         return f"{self.sender.name}: {self.message[:30]}"
-
-
 class GroupMessage(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey('User', on_delete=models.CASCADE)
@@ -934,60 +924,6 @@ class AccountsIncomeHistory(models.Model):
 # monitoringapp/models.py: add these imports at the top only if missing.
 from decimal import Decimal
 from django.core.validators import MinValueValidator
-
-
-# # Append this class BELOW AccountsIncome. Keep all existing models unchanged.
-# # Your existing models.py already imports models, timezone and defines User.
-# class AccountsExpense(models.Model):
-#     PAYMENT_METHODS = [
-#         ("cash", "Cash"),
-#         ("bank_transfer", "Bank Transfer"),
-#         ("upi", "UPI"),
-#         ("card", "Card"),
-#         ("other", "Other"),
-#     ]
-
-#     date = models.DateField(default=timezone.localdate)
-#     category = models.CharField(max_length=100)
-#     amount = models.DecimalField(
-#         max_digits=14,
-#         decimal_places=2,
-#         validators=[MinValueValidator(Decimal("0.01"))],
-#     )
-#     payment_method = models.CharField(
-#         max_length=20,
-#         choices=PAYMENT_METHODS,
-#         default="bank_transfer",
-#     )
-#     paid_to = models.CharField(max_length=150, blank=True)
-#     description = models.TextField()
-#     reference = models.CharField(max_length=150, blank=True)
-#     created_by = models.ForeignKey(
-#         User,
-#         on_delete=models.SET_NULL,
-#         null=True,
-#         blank=True,
-#         related_name="accounts_expense_entries",
-#     )
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-
-#     class Meta:
-#         ordering = ["-date", "-id"]
-#         indexes = [
-#             models.Index(fields=["date"], name="accounts_expense_date_idx"),
-#         ]
-#         constraints = [
-#             models.CheckConstraint(
-#                 condition=models.Q(amount__gt=0),
-#                 name="accounts_expense_amount_gt_zero",
-#             ),
-#         ]
-
-#     def __str__(self):
-#         return f"{self.date} | {self.category} | {self.amount}"
-
-# Replace the old AccountsExpense class with this entire block.
 from pathlib import Path
 from uuid import uuid4
 from decimal import Decimal
@@ -1615,3 +1551,121 @@ class Client(models.Model):
 
     def __str__(self):
         return self.client_name
+
+class HRProjectAudit(models.Model):
+    actor = models.ForeignKey("monitoringapp.User", null=True, blank=True,
+                              on_delete=models.SET_NULL, related_name="+")
+    actor_name = models.CharField(max_length=255)
+    project_number = models.PositiveIntegerField(db_index=True)
+    action = models.CharField(max_length=20)
+    before = models.JSONField(default=dict, blank=True)
+    after = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+
+class AccountsQuotationTemplate(models.Model):
+    name = models.CharField(max_length=150, default="Temporary Quotation Template")
+    version = models.PositiveIntegerField(default=1)
+    design_data = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-version", "-id"]
+
+    def __str__(self):
+        return f"{self.name} (v{self.version})"
+
+
+class AccountsQuotation(models.Model):
+    STATUS_CHOICES = [
+        ("draft", "Draft"),
+        ("sent", "Sent"),
+        ("accepted", "Accepted"),
+        ("rejected", "Rejected"),
+    ]
+
+    quotation_number = models.CharField(
+        max_length=100,
+        unique=True,
+    )
+
+    template = models.ForeignKey(
+        AccountsQuotationTemplate,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="quotations",
+    )
+
+    customer_name = models.CharField(max_length=200, blank=True)
+    company_name = models.CharField(max_length=200, blank=True)
+    customer_email = models.EmailField(blank=True)
+    customer_phone = models.CharField(max_length=30, blank=True)
+    customer_address = models.TextField(blank=True)
+
+    quotation_date = models.DateField(default=timezone.localdate)
+    valid_until = models.DateField(null=True, blank=True)
+
+    project_title = models.CharField(max_length=255, blank=True)
+    project_description = models.TextField(blank=True)
+
+    subtotal = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    discount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    tax_amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+    total_amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal("0.00"),
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="draft",
+        db_index=True,
+    )
+
+    # Editable quotation document content and layout
+    document_data = models.JSONField(default=dict, blank=True)
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_quotations",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-quotation_date", "-id"]
+        indexes = [
+            models.Index(
+                fields=["quotation_date"],
+                name="accounts_quotation_date_idx",
+            ),
+            models.Index(
+                fields=["status", "quotation_date"],
+                name="accounts_quotation_status_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.quotation_number} - {self.customer_name}"

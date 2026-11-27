@@ -6,6 +6,8 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from .models import User as Employee, Branch
 from .models import *
+from django.utils import timezone
+from collections import Counter
 from .models import User as EmployeeUser
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
@@ -17,7 +19,9 @@ from django.views.decorators.http import (
     require_POST,
     require_http_methods,
 )
-from django.http import HttpResponse
+import json
+from decimal import Decimal, InvalidOperation
+from django.http import HttpResponse, HttpResponseForbidden
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
 from django.contrib.auth.decorators import login_required
@@ -26,7 +30,7 @@ from django.contrib.auth.hashers import check_password, make_password
 import random
 from django.core.mail import send_mail
 from datetime import time, timedelta
-from django.utils.dateparse import parse_datetime,parse_time
+from django.utils.dateparse import parse_datetime,parse_time, parse_date
 from django.utils.timezone import localtime, make_aware, is_naive
 from django.views.decorators.cache import never_cache
 from django.utils.cache import add_never_cache_headers
@@ -62,29 +66,7 @@ def admin_logout(request):
     request.session.flush()
     return redirect("index")
 
-# @never_cache
-# @require_POST
-# def delete_department(request, pk):
-#     from django.http import HttpResponseForbidden, JsonResponse
-#     from django.db.models.deletion import ProtectedError, RestrictedError
 
-#     if _admin_notepad_owner(request) is None:
-#         return HttpResponseForbidden("Admin access required.")
-#     ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-#     item = get_object_or_404(Department, pk=pk)
-#     try:
-#         item.delete()
-#     except (ProtectedError, RestrictedError):
-#         message = "This department is still in use and cannot be deleted."
-#         if ajax:
-#             return JsonResponse({"ok": False, "message": message}, status=409)
-#         messages.error(request, message)
-#         return redirect("admin_dashboard")
-#     message = "Department deleted successfully."
-#     if ajax:
-#         return JsonResponse({"ok": True, "message": message})
-#     messages.success(request, message)
-#     return redirect("admin_dashboard")
 
 @never_cache
 @require_http_methods(["DELETE"])
@@ -1158,22 +1140,7 @@ def admin_notepad(request):
         response.status_code = 400
     return response
 
-# @never_cache
-# @require_POST
-# def admin_notepad_delete(request, pk):
-#     owner = _admin_notepad_owner(request)
-#     if owner is None:
-#         return redirect("login_view")
-#     note = get_object_or_404(AdminNotepad, pk=pk, **owner)
-#     note.delete()
-#     messages.success(request, "Note deleted successfully.")
-#     sort = request.POST.get("sort", "updated")
-#     if sort not in {"updated", "created", "title"}:
-#         sort = "updated"
-#     return redirect(reverse("admin_notepad") + "?" + urlencode({
-#         "q": request.POST.get("q", "").strip()[:200],
-#         "sort": sort, "page": request.POST.get("page", "1"),
-#     }))
+
 
 
 @never_cache
@@ -1292,15 +1259,6 @@ def admin_repository(request):
         "form_link": request.POST.get("link", "") if error else "",
     }, status=400 if error else 200)
 
-# @never_cache
-# @require_POST
-# def admin_repository_delete(request, pk):
-#     if _admin_notepad_owner(request) is None:
-#         return redirect("login_view")
-#     resource = get_object_or_404(AdminKnowledge, pk=pk)
-#     resource.delete()
-#     messages.success(request, "Resource deleted successfully.")
-#     return redirect("admin_repository")
 
 @never_cache
 @require_http_methods(["DELETE"])
@@ -8536,7 +8494,6 @@ def accounts_income(request):
     }, status=400 if request.method == "POST" or filter_error else 200)
 
 @never_cache
-# @require_POST
 @require_http_methods(["DELETE"]) 
 def accounts_income_delete(request, pk):
     actor = _accounts_user(request)
@@ -9231,7 +9188,6 @@ def accounts_sales(request):
 
 
 @never_cache
-# @require_POST
 @require_http_methods(["DELETE"]) 
 def accounts_sale_delete(request, pk):
     actor = _accounts_user(request)
@@ -10632,8 +10588,360 @@ def accounts_sale_edit(request, pk):
     })
 
 
+@never_cache
+@require_GET
+def accounts_quotations(request):
+    if not request.session.get("user_id"):
+        return redirect("login_view")
+
+    current_user = _accounts_user(request)
+
+    if current_user is None:
+        return HttpResponseForbidden(
+            "You do not have access to Accounts quotations."
+        )
+
+    from datetime import date
+
+    entries = AccountsQuotation.objects.select_related(
+        "template",
+        "created_by",
+    )
+
+    query = request.GET.get("q", "").strip()[:200]
+    date_from = request.GET.get("date_from", "").strip()
+    date_to = request.GET.get("date_to", "").strip()
+
+    date_error = ""
+
+    if query:
+        entries = entries.filter(
+            Q(quotation_number__icontains=query)
+            | Q(customer_name__icontains=query)
+            | Q(company_name__icontains=query)
+            | Q(project_title__icontains=query)
+        )
+
+    parsed_from = None
+    parsed_to = None
+
+    try:
+        if date_from:
+            parsed_from = date.fromisoformat(date_from)
+
+        if date_to:
+            parsed_to = date.fromisoformat(date_to)
+
+    except ValueError:
+        date_error = "Please select valid dates."
+        date_from = ""
+        date_to = ""
+
+    if not date_error and parsed_from and parsed_to:
+        if parsed_from > parsed_to:
+            date_error = "From date cannot be later than To date."
+
+    if not date_error:
+        if parsed_from:
+            entries = entries.filter(
+                quotation_date__gte=parsed_from
+            )
+
+        if parsed_to:
+            entries = entries.filter(
+                quotation_date__lte=parsed_to
+            )
+
+    total_entries = entries.count()
+
+    paginator = Paginator(entries, 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    return render(
+        request,
+        "accounts/accounts_quotations.html",
+        {
+            "current_user": current_user,
+            "accounts_active": "quotations",
+            "page_obj": page_obj,
+            "query": query,
+            "date_from": date_from,
+            "date_to": date_to,
+            "date_error": date_error,
+            "total_entries": total_entries,
+            "has_filters": bool(query or date_from or date_to),
+        },
+    )
 
 
+@never_cache
+@require_POST
+def accounts_quotation_save(request):
+    if not request.session.get("user_id"):
+        return JsonResponse(
+            {"success": False, "error": "Session expired. Please login again."},
+            status=401,
+        )
+
+    current_user = _accounts_user(request)
+
+    if current_user is None:
+        return JsonResponse(
+            {"success": False, "error": "You do not have access to Accounts quotations."},
+            status=403,
+        )
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+
+        quotation_number = str(
+            payload.get("quotation_number", "")
+        ).strip()
+
+        pages = payload.get("pages")
+        metadata = payload.get("metadata", {})
+
+        if not quotation_number:
+            raise ValueError("Quotation number is required.")
+
+        if not isinstance(pages, list) or len(pages) != 4:
+            raise ValueError("Quotation must contain all four A4 pages.")
+
+        if not all(isinstance(page, str) for page in pages):
+            raise ValueError("Invalid quotation page content.")
+
+        if not isinstance(metadata, dict):
+            raise ValueError("Invalid quotation information.")
+
+        if AccountsQuotation.objects.filter(
+            quotation_number__iexact=quotation_number
+        ).exists():
+            raise ValueError(
+                "This quotation number already exists."
+            )
+
+        quotation_date = parse_date(
+            str(metadata.get("quotation_date", "")).strip()
+        )
+
+        valid_until = parse_date(
+            str(metadata.get("valid_until", "")).strip()
+        )
+
+        total_amount = Decimal(
+            str(metadata.get("total_amount", "0") or "0")
+        )
+
+        if not total_amount.is_finite() or total_amount < 0:
+            raise ValueError("Invalid quotation total amount.")
+
+        with transaction.atomic():
+            quotation = AccountsQuotation.objects.create(
+                quotation_number=quotation_number,
+                customer_name=str(metadata.get("customer_name", "")).strip(),
+                company_name=str(metadata.get("company_name", "")).strip(),
+                quotation_date=quotation_date or timezone.localdate(),
+                valid_until=valid_until,
+                project_title=str(metadata.get("project_title", "")).strip(),
+                total_amount=total_amount,
+                status="draft",
+                document_data={
+                    "pages": pages,
+                    "metadata": metadata,
+                },
+                created_by=current_user,
+            )
+
+        return JsonResponse({
+            "success": True,
+            "message": "Quotation saved successfully.",
+            "quotation_id": quotation.pk,
+            "quotation_number": quotation.quotation_number,
+        })
+
+    except (ValueError, InvalidOperation, TypeError, json.JSONDecodeError) as exc:
+        return JsonResponse({
+            "success": False,
+            "error": str(exc),
+        }, status=400)
+
+    except IntegrityError:
+        return JsonResponse({
+            "success": False,
+            "error": "This quotation number already exists.",
+        }, status=409)
+
+
+@never_cache
+@require_GET
+def accounts_quotation_view(request, pk):
+    if not request.session.get("user_id"):
+        return JsonResponse(
+            {"success": False, "error": "Session expired. Please login again."},
+            status=401,
+        )
+
+    current_user = _accounts_user(request)
+
+    if current_user is None:
+        return JsonResponse(
+            {"success": False, "error": "Access denied."},
+            status=403,
+        )
+
+    quotation = get_object_or_404(
+        AccountsQuotation.objects.select_related(
+            "template",
+            "created_by",
+        ),
+        pk=pk,
+    )
+
+    document_data = quotation.document_data or {}
+    pages = document_data.get("pages", [])
+
+    if not isinstance(pages, list) or len(pages) != 4:
+        return JsonResponse(
+            {"success": False, "error": "Saved quotation pages are incomplete."},
+            status=400,
+        )
+
+    return JsonResponse({
+        "success": True,
+        "quotation": {
+            "id": quotation.pk,
+            "quotation_number": quotation.quotation_number,
+            "status": quotation.get_status_display(),
+            "pages": pages,
+        },
+    })
+
+
+@never_cache
+@require_POST
+def accounts_quotation_update(request, pk):
+    if not request.session.get("user_id"):
+        return JsonResponse(
+            {"success": False, "error": "Session expired. Please login again."},
+            status=401,
+        )
+
+    current_user = _accounts_user(request)
+
+    if current_user is None:
+        return JsonResponse(
+            {"success": False, "error": "Access denied."},
+            status=403,
+        )
+
+    quotation = get_object_or_404(AccountsQuotation, pk=pk)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+
+        quotation_number = str(
+            payload.get("quotation_number", "")
+        ).strip()
+
+        pages = payload.get("pages")
+        metadata = payload.get("metadata", {})
+
+        if not quotation_number:
+            raise ValueError("Quotation number is required.")
+
+        if not isinstance(pages, list) or len(pages) != 4:
+            raise ValueError("All four A4 pages are required.")
+
+        if not all(isinstance(page, str) for page in pages):
+            raise ValueError("Invalid quotation page content.")
+
+        if not isinstance(metadata, dict):
+            raise ValueError("Invalid quotation information.")
+
+        if AccountsQuotation.objects.filter(
+            quotation_number__iexact=quotation_number
+        ).exclude(pk=quotation.pk).exists():
+            raise ValueError("This quotation number already exists.")
+
+        quotation_date = parse_date(
+            str(metadata.get("quotation_date", "")).strip()
+        )
+        valid_until = parse_date(
+            str(metadata.get("valid_until", "")).strip()
+        )
+
+        total_amount = Decimal(
+            str(metadata.get("total_amount", "0") or "0")
+        )
+
+        if not total_amount.is_finite() or total_amount < 0:
+            raise ValueError("Invalid quotation total amount.")
+
+        with transaction.atomic():
+            quotation.quotation_number = quotation_number
+            quotation.customer_name = str(
+                metadata.get("customer_name", "")
+            ).strip()
+            quotation.company_name = str(
+                metadata.get("company_name", "")
+            ).strip()
+            quotation.quotation_date = (
+                quotation_date or timezone.localdate()
+            )
+            quotation.valid_until = valid_until
+            quotation.total_amount = total_amount
+            quotation.document_data = {
+                "pages": pages,
+                "metadata": metadata,
+            }
+
+            quotation.save()
+
+        return JsonResponse({
+            "success": True,
+            "message": "Quotation updated successfully.",
+            "quotation_id": quotation.pk,
+        })
+
+    except (ValueError, InvalidOperation, TypeError, json.JSONDecodeError) as exc:
+        return JsonResponse(
+            {"success": False, "error": str(exc)},
+            status=400,
+        )
+    except IntegrityError:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "This quotation number already exists.",
+            },
+            status=409,
+        )
+
+@never_cache
+@require_POST
+def accounts_quotation_delete(request, pk):
+    if not request.session.get("user_id"):
+        return JsonResponse(
+            {"success": False, "error": "Session expired. Please login again."},
+            status=401,
+        )
+
+    current_user = _accounts_user(request)
+
+    if current_user is None:
+        return JsonResponse(
+            {"success": False, "error": "Access denied."},
+            status=403,
+        )
+
+    quotation = get_object_or_404(AccountsQuotation, pk=pk)
+
+    quotation.delete()
+
+    return JsonResponse({
+        "success": True,
+        "message": "Quotation deleted successfully.",
+    })
 
 #<------------MASTER-ADMIN------------------>
 
@@ -10739,59 +11047,6 @@ def master_admin_dashboard(request):
     })
 
 
-
-# def _generate_department_employee_id(department_id):
-#     import re
-#     from django.db import transaction
-#     from django.utils import timezone
-#     from .models import User as Employee, Department
-
-#     # Must run inside transaction.atomic()
-#     if not transaction.get_connection().in_atomic_block:
-#         raise RuntimeError("Employee ID generation requires an active transaction.")
-
-#     try:
-#         # PostgreSQL: lock this department until employee creation completes.
-#         department = Department.objects.select_for_update().get(pk=department_id)
-#     except (Department.DoesNotExist, ValueError, TypeError):
-#         raise ValueError("Please select a valid department.")
-    
-#     department_code = (department.employee_id_code or "").strip().upper()
-
-#     if not department_code:
-#         raise ValueError(
-#         f"Employee ID code is not configured for department: {department.name}"
-#     )
-
-#     if not department_code:
-#         raise ValueError(
-#             f"Employee ID mapping is not configured for department: {department.name}"
-#         )
-
-#     # Match IDs belonging to this department code, irrespective of year.
-#     pattern = re.compile(
-#         rf"^C\d{{2}}{re.escape(department_code)}(\d{{3}})$",
-#         re.IGNORECASE
-#     )
-
-#     max_sequence = 0
-
-#     # Check all existing IDs so previous years' sequences are preserved.
-#     for existing_id in Employee.objects.values_list("employee_id", flat=True).iterator():
-#         match = pattern.fullmatch((existing_id or "").strip())
-
-#         if match:
-#             max_sequence = max(max_sequence, int(match.group(1)))
-
-#     if max_sequence >= 999:
-#         raise ValueError(
-#             f"Employee ID sequence limit reached for {department.name}."
-#         )
-
-#     year_code = timezone.localdate().year % 100
-#     next_sequence = max_sequence + 1
-
-#     return f"C{year_code:02d}{department_code}{next_sequence:03d}"
 
 
 
@@ -12775,11 +13030,6 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 from .models import Task, User, Team, TeamLeadNotification, MasterAdminTaskAudit
 
-
-# def _master_task_people():
-#     return User.objects.annotate(task_role=Lower(Trim("job_Position"))).filter(
-#         task_role__in=["team lead", "team_lead", "team member", "team_member"]
-#     ).select_related("team", "department").order_by("name", "pk")
 
 def _master_task_people():
     return User.objects.annotate(
@@ -15802,16 +16052,121 @@ def hr_logout(request):
     return redirect("login_view")
 
 
-
-
+@never_cache
+@require_http_methods(["GET"])
 def hr_usermanagement(request):
-    current_user = _hr_user(request)
-    if current_user is None:
+    hr = _hr_user(request)
+    if hr is None:
         return HttpResponseForbidden("You do not have access to this HR page.")
+
+    scope = _hr_scope(hr)  # None when the HR has no branch
+    if "designation_department" in request.GET:
+        try:
+            dept_id = int(request.GET["designation_department"])
+        except (TypeError, ValueError):
+            return JsonResponse({"ok": False, "message": "Invalid department."}, status=400)
+        return JsonResponse({"ok": True, "items": list(
+            Designation.objects.filter(department_id=dept_id).order_by("name").values_list("name", flat=True))})
+    users = _hr_recipient_base(scope).select_related("department") if scope else User.objects.none()
+
+    search = request.GET.get("search", "").strip()[:200]
+    if search:
+        users = users.filter(
+            Q(name__icontains=search) | Q(email__icontains=search)
+            | Q(employee_id__icontains=search) | Q(username__icontains=search)
+        )
+    department = request.GET.get("department", "")
+    if department:
+        users = users.filter(department__name=department)
+    position = request.GET.get("position", "")
+    if position in {"Team Lead", "Team Member"}:
+        users = users.filter(job_Position=position)
+
+    is_head = bool(scope and scope["head"])
+    branch_filter = request.GET.get("branch", "")
+    if is_head:  # only Head Office HR may filter by branch; others are locked server-side
+        if branch_filter.isdigit():
+            users = users.filter(branch_id=int(branch_filter))
+        elif branch_filter == "none":
+            users = users.filter(branch__isnull=True)
+
     return render(request, "hr/hr_usermanagement.html", {
-        "current_user": current_user,
+        "current_user": hr,
         "hr_active": "usermanagement",
+        "no_branch": scope is None,
+        "is_head": is_head,
+        "branch_name": scope["branch"].name if scope else "",
+        "branches": Branch.objects.order_by("-is_head_office", "name") if is_head else [],
+        "departments": Department.objects.order_by("name"),
+        "job_positions": ["Team Lead", "Team Member"],
+        "users": users,
+        "designation_options": _department_designation_options(),
+        "add_branches": Branch.objects.filter(is_active=True).order_by("-is_head_office", "name") if is_head else [],
     })
+
+def _hr_save_employee(request, hr, scope, instance=None):
+    """Create/edit through the Master Admin form, locked to the HR's branch scope."""
+    editing = instance is not None
+    post = request.POST.copy()
+    prefix = "edit_" if editing else ""
+
+    role = post.get("edit_job_position" if editing else "job_Position", "")
+    if role not in {"Team Lead", "Team Member"}:
+        return JsonResponse({"ok": False, "message": "Choose Team Lead or Team Member."}, status=400)
+
+    # Non-head HR: branch is forced server-side, whatever the browser sent.
+    if not scope["head"]:
+        post["edit_branch" if editing else "branch"] = str(scope["branch"].pk)
+
+    request.POST = post
+    return _master_employee_save(request, instance)
+
+
+@never_cache
+@require_POST
+def hr_add_user(request):
+    hr = _hr_user(request)
+    if hr is None:
+        return JsonResponse({"ok": False, "message": "HR access required."}, status=403)
+    scope = _hr_scope(hr)
+    if scope is None:
+        return JsonResponse({"ok": False, "message": "No branch is assigned to your account."}, status=403)
+    return _hr_save_employee(request, hr, scope)
+
+
+@never_cache
+@require_POST
+def hr_edit_user(request):
+    hr = _hr_user(request)
+    if hr is None:
+        return JsonResponse({"ok": False, "message": "HR access required."}, status=403)
+    scope = _hr_scope(hr)
+    if scope is None:
+        return JsonResponse({"ok": False, "message": "No branch is assigned to your account."}, status=403)
+    raw = request.POST.get("id", "")
+    employee = _hr_recipient_base(scope).filter(pk=raw).first() if raw.isdigit() else None
+    if employee is None:
+        return JsonResponse({"ok": False, "message": "Employee not found."}, status=404)
+    return _hr_save_employee(request, hr, scope, employee)
+
+
+@never_cache
+@require_http_methods(["DELETE"])
+def hr_delete_user(request, pk):
+    hr = _hr_user(request)
+    if hr is None:
+        return JsonResponse({"ok": False, "message": "HR access required."}, status=403)
+    scope = _hr_scope(hr)
+    if scope is None:
+        return JsonResponse({"ok": False, "message": "No branch is assigned to your account."}, status=403)
+    employee = _hr_recipient_base(scope).filter(pk=pk).first()
+    if employee is None:
+        return JsonResponse({"ok": False, "message": "Employee not found."}, status=404)
+    employee.delete()
+    return JsonResponse({"ok": True, "message": "Employee deleted successfully."})
+
+
+
 def _hr_render(request, template, active):
     current_user = _hr_user(request)
     if current_user is None:
@@ -15920,9 +16275,396 @@ def hr_announcements(request):
     })
 
 
-def hr_reports(request):           return _hr_render(request, "hr/hr_reports.html", "reports")
-def hr_project_assigning(request): return _hr_render(request, "hr/hr_project_assigning.html", "project_assigning")
-def hr_tasks(request):             return _hr_render(request, "hr/hr_tasks.html", "tasks")
+def _hr_project_denied(request, message="HR access required."):
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": message}, status=403)
+    return HttpResponseForbidden(message)
+
+
+def _hr_project_gate(request):
+    """Returns (hr_user, scope, error_response)."""
+    hr = _hr_user(request)
+    if hr is None:
+        return None, None, _hr_project_denied(request)
+    scope = _hr_scope(hr)
+    if scope is None:
+        return hr, None, _hr_project_denied(request, "No branch is assigned to your account.")
+    return hr, scope, None
+
+
+def _hr_project_people(scope):
+    """Kochi (head office) HR -> every branch. Other HR -> own branch only."""
+    people = _master_project_people().select_related("branch")
+    return people if scope["head"] else people.filter(branch=scope["branch"])
+
+
+def _hr_project_in_scope(project, scope):
+    if scope["head"]:
+        return True
+    return project.assign_to.branch_id == scope["branch"].pk
+
+
+class HRProjectForm(MasterAdminProjectForm):
+    """Same validation as Master Admin, but assignee / lead are limited to HR's scope."""
+
+    def __init__(self, *args, scope=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["assign_to"].queryset = _hr_project_people(scope)
+        if not scope["head"]:
+            self.fields["assigned_by"].queryset = \
+                self.fields["assigned_by"].queryset.filter(branch=scope["branch"])
+
+
+def _hr_project_audit(hr, project, action, before=None):
+    project._master_admin_action = action
+    before = before or {}
+    record = MasterAdminProjectAudit.objects.create(
+        actor=hr, actor_name=("HR: " + (hr.name or hr.username))[:255],
+        project_number=project.pk, action=action, before=before,
+        after={} if action == "deleted" else _master_project_snapshot(project))
+    recipients = {project.assign_to_id, project.assigned_by_id,
+                  before.get("assign_to"), before.get("assigned_by")} - {None}
+    for person in _master_project_people().filter(pk__in=recipients):
+        role = str(person.project_role or "").strip().lower().replace("_", " ")
+        if person.pk == project.assign_to_id and role == "team member":
+            continue
+        TeamLeadNotification.objects.create(
+            recipient=person, kind="project", title=f"Project {action}",
+            message=f"{record.actor_name} {action} project #{project.pk}: {project.work_name}",
+            url=reverse("teamlead_project_assigning"
+                        if person.project_role in {"team lead", "team_lead"}
+                        else "teammember_project"))
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def hr_project_assigning(request):
+    hr, scope, denied = _hr_project_gate(request)
+    if denied:
+        return denied
+
+    if request.method == "POST":
+        form = HRProjectForm(request.POST, scope=scope)
+        files, images, error = _master_project_uploads(request)
+        if not form.is_valid() or error:
+            return JsonResponse({"ok": False, "message": error or "Please correct the highlighted fields.",
+                                 "errors": form.errors.get_json_data()}, status=400)
+        with transaction.atomic():
+            project = form.save()
+            _master_project_save_files(project, files, images)
+            _hr_project_audit(hr, project, "created")
+        return JsonResponse({"ok": True, "message": "Project assigned successfully.", "id": project.pk}, status=201)
+
+    projects = ProjectAssign.objects.select_related(
+        "team", "department", "assign_to", "assigned_by").prefetch_related("files", "images")
+    if not scope["head"]:
+        projects = projects.filter(assign_to__branch=scope["branch"])
+    query = request.GET.get("q", "").strip()[:200]
+    if query:
+        projects = projects.filter(Q(work_name__icontains=query) | Q(description__icontains=query)
+            | Q(assign_to__name__icontains=query) | Q(assigned_by__name__icontains=query))
+    department = request.GET.get("department", "")
+    if department.isdigit():
+        projects = projects.filter(department_id=int(department))
+    else:
+        department = ""
+    state = request.GET.get("status", "")
+    if state in dict(ProjectAssign.STATUS_CHOICES):
+        projects = projects.filter(status=state)
+    else:
+        state = ""
+    priority = request.GET.get("priority", "")
+    if priority in dict(ProjectAssign.PRIORITY_CHOICES):
+        projects = projects.filter(priority=priority)
+    else:
+        priority = ""
+    counts = dict(projects.order_by().values_list("status").annotate(total=Count("pk")))
+    today = timezone.localdate()
+    overdue = projects.filter(deadline__lt=today).exclude(status="Completed").count()
+    page = Paginator(projects.order_by("-assigned_date", "-pk"), 20).get_page(request.GET.get("page"))
+    items = list(page.object_list)
+    authors = {}
+    for audit in MasterAdminProjectAudit.objects.filter(
+            action="created", project_number__in=[p.pk for p in items]).order_by("pk"):
+        authors.setdefault(audit.project_number, audit.actor_name)
+    data = []
+    for item in items:
+        item.is_overdue = bool(item.deadline and item.deadline < today and item.status != "Completed")
+        if item.pk in authors:
+            who = authors[item.pk]
+            item.recorded_by_name = who if who.startswith("HR:") else "Master Admin: " + who
+        else:
+            item.recorded_by_name = item.assigned_by.name
+        attachments = [{"name": f.file.name.split("/")[-1], "url": f.file.url} for f in item.files.all() if f.file]
+        attachments += [{"name": f.image.name.split("/")[-1], "url": f.image.url} for f in item.images.all() if f.image]
+        for field in [item.upload_file, item.upload_image]:
+            if field:
+                attachments.append({"name": field.name.split("/")[-1], "url": field.url})
+        data.append({"id": item.pk, **_master_project_snapshot(item), "assignee_name": item.assign_to.name,
+                     "owner_name": item.assigned_by.name, "department_name": item.department.name,
+                     "recorded_by": item.recorded_by_name, "attachments": attachments})
+    page.object_list = items
+    params = request.GET.copy()
+    params.pop("page", None)
+    people = list(_hr_project_people(scope))
+
+    def label(p):   # Kochi HR sees which branch each person belongs to
+        return f"{p.name} · {p.branch.name}" if scope["head"] and p.branch_id else p.name
+
+    return render(request, "hr/hr_project_assigning.html", {
+        "current_user": hr, "hr_active": "project_assigning",
+        "is_head": scope["head"], "branch_name": scope["branch"].name,
+        "page_obj": page, "project_items": data,
+        "query": query, "selected_department": department,
+        "selected_status": state, "selected_priority": priority, "filter_params": params.urlencode(),
+        "departments": Department.objects.order_by("name"),
+        "people": people, "people_data": [{"id": p.pk, "name": label(p),
+            "department": p.department_id, "role": p.project_role} for p in people],
+        "statuses": ProjectAssign.STATUS_CHOICES, "priorities": ProjectAssign.PRIORITY_CHOICES,
+        "total_projects": sum(counts.values()), "ongoing_projects": counts.get("In Progress", 0),
+        "completed_projects": counts.get("Completed", 0), "overdue_projects": overdue,
+    })
+
+
+@never_cache
+@require_POST
+def hr_project_update(request, pk):
+    hr, scope, denied = _hr_project_gate(request)
+    if denied:
+        return denied
+    with transaction.atomic():
+        project = ProjectAssign.objects.select_for_update().filter(pk=pk).first()
+        if project is None or not _hr_project_in_scope(project, scope):
+            return JsonResponse({"ok": False, "message": "Project no longer exists."}, status=404)
+        before = _master_project_snapshot(project)
+        data = request.POST
+        if data.get("mode") == "status":
+            status = data.get("status", "")
+            if status not in dict(ProjectAssign.STATUS_CHOICES):
+                return JsonResponse({"ok": False, "message": "Invalid project status."}, status=400)
+            project.status = status
+            project.save(update_fields=["status"])
+            _hr_project_audit(hr, project, "updated", before)
+            return JsonResponse({"ok": True, "message": "Project status updated successfully."})
+        form = HRProjectForm(data, instance=project, scope=scope)
+        files, images, error = _master_project_uploads(request)
+        if not form.is_valid() or error:
+            return JsonResponse({"ok": False, "message": error or "Please correct the highlighted fields.",
+                                 "errors": form.errors.get_json_data()}, status=400)
+        project = form.save()
+        _master_project_save_files(project, files, images)
+        _hr_project_audit(hr, project, "updated", before)
+    return JsonResponse({"ok": True, "message": "Project updated successfully."})
+
+
+@never_cache
+@require_http_methods(["DELETE"])
+def hr_project_delete(request, pk):
+    hr, scope, denied = _hr_project_gate(request)
+    if denied:
+        return denied
+    with transaction.atomic():
+        project = ProjectAssign.objects.select_for_update().filter(pk=pk).first()
+        if project is None or not _hr_project_in_scope(project, scope):
+            return JsonResponse({"ok": False, "message": "Project no longer exists."}, status=404)
+        _hr_project_audit(hr, project, "deleted", _master_project_snapshot(project))
+        project.delete()
+    return JsonResponse({"ok": True, "message": "Project deleted successfully."})
+
+
+def _hr_project_denied(request, message="HR access required."):
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": message}, status=403)
+    return HttpResponseForbidden(message)
+
+
+def _hr_project_gate(request):
+    """Returns (hr_user, scope, error_response)."""
+    hr = _hr_user(request)
+    if hr is None:
+        return None, None, _hr_project_denied(request)
+    scope = _hr_scope(hr)
+    if scope is None:
+        return hr, None, _hr_project_denied(request, "No branch is assigned to your account.")
+    return hr, scope, None
+
+
+def _hr_project_people(scope):
+    """Kochi (head office) HR -> every branch. Other HR -> own branch only."""
+    people = _master_project_people().select_related("branch")
+    return people if scope["head"] else people.filter(branch=scope["branch"])
+
+
+def _hr_project_in_scope(project, scope):
+    if scope["head"]:
+        return True
+    return project.assign_to.branch_id == scope["branch"].pk
+
+
+class HRProjectForm(MasterAdminProjectForm):
+    """Same validation as Master Admin, but assignee / lead are limited to HR's scope."""
+
+    def __init__(self, *args, scope=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["assign_to"].queryset = _hr_project_people(scope)
+        if not scope["head"]:
+            self.fields["assigned_by"].queryset = \
+                self.fields["assigned_by"].queryset.filter(branch=scope["branch"])
+
+
+def _hr_project_audit(hr, project, action, before=None):
+    project._master_admin_action = action
+    before = before or {}
+    record = HRProjectAudit.objects.create(
+        actor=hr, actor_name=(hr.name or hr.username)[:255],
+        project_number=project.pk, action=action, before=before,
+        after={} if action == "deleted" else _master_project_snapshot(project))
+    recipients = {project.assign_to_id, project.assigned_by_id,
+                  before.get("assign_to"), before.get("assigned_by")} - {None}
+    for person in _master_project_people().filter(pk__in=recipients):
+        role = str(person.project_role or "").strip().lower().replace("_", " ")
+        if person.pk == project.assign_to_id and role == "team member":
+            continue
+        TeamLeadNotification.objects.create(
+            recipient=person, kind="project", title=f"Project {action}",
+            message=f"HR {record.actor_name} {action} project #{project.pk}: {project.work_name}",
+            url=reverse("teamlead_project_assigning"
+                        if person.project_role in {"team lead", "team_lead"}
+                        else "teammember_project"))
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def hr_project_assigning(request):
+    hr, scope, denied = _hr_project_gate(request)
+    if denied:
+        return denied
+
+    if request.method == "POST":
+        form = HRProjectForm(request.POST, scope=scope)
+        files, images, error = _master_project_uploads(request)
+        if not form.is_valid() or error:
+            return JsonResponse({"ok": False, "message": error or "Please correct the highlighted fields.",
+                                 "errors": form.errors.get_json_data()}, status=400)
+        with transaction.atomic():
+            project = form.save()
+            _master_project_save_files(project, files, images)
+            _hr_project_audit(hr, project, "created")
+        return JsonResponse({"ok": True, "message": "Project assigned successfully.", "id": project.pk}, status=201)
+
+    projects = ProjectAssign.objects.select_related(
+        "team", "department", "assign_to", "assigned_by").prefetch_related("files", "images")
+    if not scope["head"]:
+        projects = projects.filter(assign_to__branch=scope["branch"])
+    query = request.GET.get("q", "").strip()[:200]
+    if query:
+        projects = projects.filter(Q(work_name__icontains=query) | Q(description__icontains=query)
+            | Q(assign_to__name__icontains=query) | Q(assigned_by__name__icontains=query))
+    department = request.GET.get("department", "")
+    if department.isdigit():
+        projects = projects.filter(department_id=int(department))
+    else:
+        department = ""
+    state = request.GET.get("status", "")
+    if state in dict(ProjectAssign.STATUS_CHOICES):
+        projects = projects.filter(status=state)
+    else:
+        state = ""
+    priority = request.GET.get("priority", "")
+    if priority in dict(ProjectAssign.PRIORITY_CHOICES):
+        projects = projects.filter(priority=priority)
+    else:
+        priority = ""
+    counts = dict(projects.order_by().values_list("status").annotate(total=Count("pk")))
+    today = timezone.localdate()
+    overdue = projects.filter(deadline__lt=today).exclude(status="Completed").count()
+    page = Paginator(projects.order_by("-assigned_date", "-pk"), 20).get_page(request.GET.get("page"))
+    items = list(page.object_list)
+    ids = [p.pk for p in items]
+    authors = {}
+    for audit in MasterAdminProjectAudit.objects.filter(action="created", project_number__in=ids).order_by("pk"):
+        authors.setdefault(audit.project_number, "Master Admin: " + audit.actor_name)
+    for audit in HRProjectAudit.objects.filter(action="created", project_number__in=ids).order_by("pk"):
+        authors[audit.project_number] = "HR: " + audit.actor_name
+    data = []
+    for item in items:
+        item.is_overdue = bool(item.deadline and item.deadline < today and item.status != "Completed")
+        item.recorded_by_name = authors.get(item.pk) or item.assigned_by.name
+        attachments = [{"name": f.file.name.split("/")[-1], "url": f.file.url} for f in item.files.all() if f.file]
+        attachments += [{"name": f.image.name.split("/")[-1], "url": f.image.url} for f in item.images.all() if f.image]
+        for field in [item.upload_file, item.upload_image]:
+            if field:
+                attachments.append({"name": field.name.split("/")[-1], "url": field.url})
+        data.append({"id": item.pk, **_master_project_snapshot(item), "assignee_name": item.assign_to.name,
+                     "owner_name": item.assigned_by.name, "department_name": item.department.name,
+                     "recorded_by": item.recorded_by_name, "attachments": attachments})
+    page.object_list = items
+    params = request.GET.copy()
+    params.pop("page", None)
+    people = list(_hr_project_people(scope))
+
+    def label(p):   # Kochi HR sees which branch each person belongs to
+        return f"{p.name} · {p.branch.name}" if scope["head"] and p.branch_id else p.name
+
+    return render(request, "hr/hr_project_assigning.html", {
+        "current_user": hr, "hr_active": "project_assigning",
+        "is_head": scope["head"], "branch_name": scope["branch"].name,
+        "page_obj": page, "project_items": data,
+        "query": query, "selected_department": department,
+        "selected_status": state, "selected_priority": priority, "filter_params": params.urlencode(),
+        "departments": Department.objects.order_by("name"),
+        "people": people, "people_data": [{"id": p.pk, "name": label(p),
+            "department": p.department_id, "role": p.project_role} for p in people],
+        "statuses": ProjectAssign.STATUS_CHOICES, "priorities": ProjectAssign.PRIORITY_CHOICES,
+        "total_projects": sum(counts.values()), "ongoing_projects": counts.get("In Progress", 0),
+        "completed_projects": counts.get("Completed", 0), "overdue_projects": overdue,
+    })
+
+
+@never_cache
+@require_POST
+def hr_project_update(request, pk):
+    hr, scope, denied = _hr_project_gate(request)
+    if denied:
+        return denied
+    with transaction.atomic():
+        project = ProjectAssign.objects.select_for_update().filter(pk=pk).first()
+        if project is None or not _hr_project_in_scope(project, scope):
+            return JsonResponse({"ok": False, "message": "Project no longer exists."}, status=404)
+        before = _master_project_snapshot(project)
+        data = request.POST
+        if data.get("mode") == "status":
+            status = data.get("status", "")
+            if status not in dict(ProjectAssign.STATUS_CHOICES):
+                return JsonResponse({"ok": False, "message": "Invalid project status."}, status=400)
+            project.status = status
+            project.save(update_fields=["status"])
+            _hr_project_audit(hr, project, "updated", before)
+            return JsonResponse({"ok": True, "message": "Project status updated successfully."})
+        form = HRProjectForm(data, instance=project, scope=scope)
+        files, images, error = _master_project_uploads(request)
+        if not form.is_valid() or error:
+            return JsonResponse({"ok": False, "message": error or "Please correct the highlighted fields.",
+                                 "errors": form.errors.get_json_data()}, status=400)
+        project = form.save()
+        _master_project_save_files(project, files, images)
+        _hr_project_audit(hr, project, "updated", before)
+    return JsonResponse({"ok": True, "message": "Project updated successfully."})
+
+
+@never_cache
+@require_http_methods(["DELETE"])
+def hr_project_delete(request, pk):
+    hr, scope, denied = _hr_project_gate(request)
+    if denied:
+        return denied
+    with transaction.atomic():
+        project = ProjectAssign.objects.select_for_update().filter(pk=pk).first()
+        if project is None or not _hr_project_in_scope(project, scope):
+            return JsonResponse({"ok": False, "message": "Project no longer exists."}, status=404)
+        _hr_project_audit(hr, project, "deleted", _master_project_snapshot(project))
+        project.delete()
+    return JsonResponse({"ok": True, "message": "Project deleted successfully."})
 
 
 @never_cache
@@ -15991,7 +16733,6 @@ def hr_notepad(request):
         response.status_code = 400
     return response
 
-
 @never_cache
 @require_http_methods(["DELETE"])
 def hr_notepad_delete(request, pk):
@@ -16003,10 +16744,1066 @@ def hr_notepad_delete(request, pk):
     note.delete()
     return JsonResponse({"ok": True, "message": "Note deleted successfully."})
 
-def hr_repository(request):        return _hr_render(request, "hr/hr_repository.html", "repository")
-def hr_chat(request):              return _hr_render(request, "hr/hr_chat.html", "chat")
-def hr_google_meet(request):       return _hr_render(request, "hr/hr_google_meet.html", "google_meet")
+def _hr_meet_denied(request, message="HR access required."):
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": message}, status=403)
+    return HttpResponseForbidden(message)
+
+
+def _hr_meet_gate(request):
+    """Returns (hr_user, scope, error_response)."""
+    hr = _hr_user(request)
+    if hr is None:
+        return None, None, _hr_meet_denied(request)
+    scope = _hr_scope(hr)
+    if scope is None:
+        return hr, None, _hr_meet_denied(request, "No branch is assigned to your account.")
+    return hr, scope, None
+
+
+def _hr_meet_people(scope):
+    """Team Leads + Team Members. Kochi (head office) HR -> all branches; others -> own branch."""
+    people = User.objects.filter(
+        Q(job_Position__iexact="Team Lead") | Q(job_Position__iexact="Team Member")
+    ).select_related("department", "branch")
+    if not scope["head"]:
+        people = people.filter(branch=scope["branch"])
+    return people.order_by("name", "pk")
+
+
+def _hr_meet_notify(meeting, hr, edited=False):
+    title = ("Meeting updated: " if edited else "Meeting scheduled: ") + meeting.purpose
+    message = f"{meeting.purpose}\n{meeting.date:%d %b %Y} at {meeting.time:%I:%M %p}\n{meeting.meeting_link}"
+    for user in meeting.participants.all():
+        role = (user.job_Position or "").strip().lower().replace("_", " ")
+        if role not in {"team lead", "team member"}:
+            continue
+        TeamLeadNotification.objects.update_or_create(
+            event_key=f"hr-meeting:{meeting.pk}:employee:{user.pk}",
+            defaults={"recipient": user, "title": title[:180], "message": message, "kind": "meeting",
+                      "is_read": False, "is_archived": False,
+                      "url": reverse("teamlead_google_meet" if role == "team lead" else "teammember_google_meet")})
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def hr_google_meet(request):
+    hr, scope, denied = _hr_meet_gate(request)
+    if denied:
+        return denied
+    eligible = _hr_meet_people(scope)
+
+    def fail(message, status=400):
+        return JsonResponse({"ok": False, "message": message}, status=status)
+
+    if request.method == "POST":
+        action = request.POST.get("action", "create_meeting")
+        if action not in {"create_meeting", "edit_meeting"}:
+            return fail("Invalid meeting action.")
+        purpose = request.POST.get("purpose", "").strip()
+        if not purpose or len(purpose) > 255:
+            return fail("Enter a meeting purpose with a maximum of 255 characters.")
+        try:
+            date = parse_date(request.POST.get("date", ""))
+            time = parse_time(request.POST.get("time", ""))
+        except (ValueError, TypeError):
+            return fail("Enter a valid date and time.")
+        if date is None or time is None or time.tzinfo:
+            return fail("Enter a valid date and time.")
+        link = request.POST.get("meeting_link", "").strip()
+        if not _master_meet_link(link):
+            return fail("Enter a valid https://meet.google.com/... meeting link.")
+
+        mode = request.POST.get("participant_type", "all")
+        if mode == "all":
+            employees = list(eligible)
+        elif mode == "leads":
+            employees = list(eligible.filter(job_Position__iexact="Team Lead"))
+        elif mode == "department":
+            try:
+                department = int(request.POST.get("department_id", ""))
+            except (TypeError, ValueError):
+                return fail("Choose a valid department.")
+            if not Department.objects.filter(pk=department).exists():
+                return fail("Choose a valid department.")
+            employees = list(eligible.filter(department_id=department))
+        elif mode == "selected":
+            try:
+                ids = set(map(int, request.POST.getlist("participants")))
+            except (TypeError, ValueError):
+                return fail("Choose valid participants.")
+            employees = list(eligible.filter(pk__in=ids))
+            if any(i <= 0 for i in ids) or len(employees) != len(ids):
+                return fail("A selected participant is no longer available.")
+        else:
+            return fail("Invalid participant selection.")
+        if not employees:
+            return fail("Choose at least one participant.")
+
+        scheduled = timezone.make_aware(datetime.combine(date, time), timezone.get_current_timezone())
+        if action == "create_meeting" and scheduled <= timezone.now():
+            return fail("Choose a future meeting date and time.")
+        with transaction.atomic():
+            if action == "edit_meeting":
+                try:
+                    pk = int(request.POST.get("meeting_id", ""))
+                except (TypeError, ValueError):
+                    return fail("Invalid meeting ID.")
+                # HR can only change meetings that this HR created.
+                meeting = GoogleMeeting.objects.select_for_update().filter(pk=pk, created_by=hr).first()
+                if meeting is None:
+                    return fail("Meeting no longer exists.", 404)
+                if meeting.meeting_status == "ended":
+                    return fail("An ended meeting cannot be edited.")
+                if (meeting.date != date or meeting.time != time) and scheduled <= timezone.now():
+                    return fail("Choose a future time when rescheduling.")
+            else:
+                meeting = GoogleMeeting(created_by=hr)
+            meeting.purpose, meeting.date, meeting.time, meeting.meeting_link = purpose, date, time, link
+            meeting.save()
+            meeting.participants.set(employees)
+            prefix = f"hr-meeting:{meeting.pk}:"
+            keys = {f"{prefix}employee:{u.pk}" for u in employees}
+            TeamLeadNotification.objects.filter(event_key__startswith=prefix) \
+                .exclude(event_key__in=keys).update(is_archived=True)
+            _hr_meet_notify(meeting, hr, edited=action == "edit_meeting")
+            _queue_google_meet_windows_push(meeting.pk, edited=(action == "edit_meeting"))
+        return JsonResponse({"ok": True,
+            "message": "Meeting updated successfully." if action == "edit_meeting" else "Meeting scheduled successfully.",
+            "id": meeting.pk}, status=200 if action == "edit_meeting" else 201)
+
+    meetings = list(GoogleMeeting.objects.filter(created_by=hr).prefetch_related("participants"))
+    now = timezone.now()
+
+    def priority(meeting):
+        start = meeting.scheduled_datetime
+        if start + timedelta(hours=1) <= now:
+            return (2, -start.timestamp(), -meeting.pk)
+        return (0 if start <= now else 1, start.timestamp(), -meeting.pk)
+
+    meetings.sort(key=priority)
+    for meeting in meetings:
+        people = list(meeting.participants.all())
+        meeting.participant_ids = ",".join(str(u.pk) for u in people)
+        meeting.participant_names = ", ".join(u.name for u in people)
+        meeting.participant_total = len(people)
+    return render(request, "hr/hr_google_meet.html", {
+        "current_user": hr, "hr_active": "google_meet",
+        "is_head": scope["head"], "branch_name": scope["branch"].name,
+        "meetings": meetings, "team_members": list(eligible),
+        "departments": Department.objects.order_by("name"),
+    })
+
+
+@never_cache
+@require_http_methods(["DELETE"])
+def hr_google_meet_delete(request, pk):
+    hr, scope, denied = _hr_meet_gate(request)
+    if denied:
+        return denied
+    with transaction.atomic():
+        meeting = GoogleMeeting.objects.select_for_update().filter(pk=pk, created_by=hr).first()
+        if meeting is None:
+            return JsonResponse({"ok": False, "message": "Meeting no longer exists."}, status=404)
+        TeamLeadNotification.objects.filter(event_key__startswith=f"hr-meeting:{meeting.pk}:").update(is_archived=True)
+        meeting.delete()
+    return JsonResponse({"ok": True, "message": "Meeting removed from the portal."})
+
+
+@never_cache
+def hr_profile(request):
+    current_user = _hr_user(request)
+
+    if current_user is None:
+        return HttpResponseForbidden(
+            "You do not have access to this HR page."
+        )
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "edit_profile" and request.FILES.get("profile_image"):
+            image = request.FILES["profile_image"]
+
+            if not image.content_type.startswith("image/"):
+                return JsonResponse({
+                    "success": False,
+                    "error": "Please upload a valid image."
+                }, status=400)
+
+            current_user.profile_image = image
+            current_user.save(update_fields=["profile_image"])
+
+            return JsonResponse({
+                "success": True,
+                "image_url": current_user.profile_image.url
+            })
+
+        elif action == "edit_profile":
+            name = request.POST.get("name", "").strip()
+            email = request.POST.get("email", "").strip()
+            phone = request.POST.get("phone", "").strip()
+
+            if not name or not email:
+                messages.error(
+                    request,
+                    "Name and email are required."
+                )
+                return redirect("hr_profile")
+
+            if User.objects.filter(email=email).exclude(
+                pk=current_user.pk
+            ).exists():
+                messages.error(
+                    request,
+                    "This email address is already in use."
+                )
+                return redirect("hr_profile")
+
+            current_user.name = name
+            current_user.email = email
+            current_user.phone = phone or None
+
+            current_user.save(
+                update_fields=["name", "email", "phone"]
+            )
+
+            messages.success(
+                request,
+                "Profile updated successfully!"
+            )
+
+            return redirect("hr_profile")
+
+    response = render(
+        request,
+        "hr/hr_profile.html",
+        {
+            "current_user": current_user,
+            "hr_active": "profile",
+        }
+    )
+
+    response["Cache-Control"] = (
+        "no-store, no-cache, must-revalidate, max-age=0"
+    )
+    response["Pragma"] = "no-cache"
+    response["Expires"] = "0"
+
+    return response
+
+# =====================================================================
+# HR TASKS  -  paste in views.py, in the HR section.
+# Delete the old one-line `def hr_tasks(...)` first.
+# Re-uses (already in views.py): _hr_user, _hr_scope, Branch, Task, TeamLeadNotification,
+# MasterAdminTaskForm, _master_task_snapshot, MasterAdminTaskAudit (read only)
+# =====================================================================
+
+def _hr_task_denied(request, message="HR access required."):
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": message}, status=403)
+    return HttpResponseForbidden(message)
+
+
+def _hr_task_gate(request):
+    """Returns (hr_user, scope, error_response)."""
+    hr = _hr_user(request)
+    if hr is None:
+        return None, None, _hr_task_denied(request)
+    scope = _hr_scope(hr)
+    if scope is None:
+        return hr, None, _hr_task_denied(request, "No branch is assigned to your account.")
+    return hr, scope, None
+
+
+def _hr_task_people(scope):
+    """Team Leads + Team Members. Kochi (head office) HR -> all branches; others -> own branch."""
+    people = User.objects.annotate(task_role=Lower(Trim("job_Position"))).filter(
+        task_role__in=["team lead", "team_lead", "team member", "team_member"]
+    ).select_related("department", "branch").order_by("name", "pk")
+    return people if scope["head"] else people.filter(branch=scope["branch"])
+
+
+def _hr_task_in_scope(task, scope):
+    return scope["head"] or task.assigned_to.branch_id == scope["branch"].pk
+
+
+class HRTaskForm(MasterAdminTaskForm):
+    """Same validation as Master Admin; assignee limited to HR's scope."""
+
+    def __init__(self, *args, scope=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["assigned_to"].queryset = _hr_task_people(scope)
+
+
+def _hr_task_notify(hr, task, action, before=None):
+    recipients = {task.assigned_to_id}
+    if before and before.get("assigned_to"):
+        recipients.add(before["assigned_to"])
+    assignee = task.assigned_to
+    role = str(assignee.job_Position or "").strip().lower().replace("_", " ")
+    # New task for a Team Member -> also tell that department's Team Lead(s) of the same branch.
+    if action == "created" and role == "team member" and assignee.department_id:
+        recipients.update(User.objects.annotate(r=Lower(Trim("job_Position"))).filter(
+            department_id=assignee.department_id, branch_id=assignee.branch_id,
+            r__in=["team lead", "team_lead"]).values_list("pk", flat=True))
+    for person in User.objects.annotate(r=Lower(Trim("job_Position"))).filter(pk__in=recipients):
+        TeamLeadNotification.objects.create(
+            recipient=person, kind="task", title=f"Task {action}",
+            message=f"HR {hr.name} {action} task #{task.pk}: {task.title}",
+            url=reverse("teamlead_task" if person.r in {"team lead", "team_lead"} else "teammember_task"))
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def hr_tasks(request):
+    hr, scope, denied = _hr_task_gate(request)
+    if denied:
+        return denied
+    if request.method == "POST":
+        form = HRTaskForm(request.POST, scope=scope)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                                 "errors": form.errors.get_json_data()}, status=400)
+        with transaction.atomic():
+            task = form.save(commit=False)
+            task.created_by = hr
+            task.save()
+            _hr_task_notify(hr, task, "created")
+        return JsonResponse({"ok": True, "message": "Task assigned successfully.", "id": task.pk}, status=201)
+
+    tasks = Task.objects.select_related("assigned_to__department", "assigned_to__branch", "created_by").annotate(
+        task_role=Lower(Trim("assigned_to__job_Position")))
+    if not scope["head"]:
+        tasks = tasks.filter(assigned_to__branch=scope["branch"])
+    branch = request.GET.get("branch", "") if scope["head"] else ""
+    if branch.isdigit():
+        tasks = tasks.filter(assigned_to__branch_id=int(branch))
+    else:
+        branch = ""
+    tab = request.GET.get("tab", "all")
+    if tab not in {"all", "leads", "members"}:
+        tab = "all"
+    if tab == "leads":
+        tasks = tasks.filter(task_role__in=["team lead", "team_lead"])
+    elif tab == "members":
+        tasks = tasks.filter(task_role__in=["team member", "team_member"])
+    query = request.GET.get("q", "").strip()[:200]
+    if query:
+        tasks = tasks.filter(Q(title__icontains=query) | Q(description__icontains=query)
+            | Q(assigned_to__name__icontains=query) | Q(created_by__name__icontains=query))
+    state = request.GET.get("status", "")
+    if state in dict(Task.STATUS_CHOICES):
+        tasks = tasks.filter(status=state)
+    else:
+        state = ""
+    counts = dict(tasks.order_by().values_list("status").annotate(total=Count("pk")))
+    page = Paginator(tasks.order_by("-created_at", "-pk"), 20).get_page(request.GET.get("page"))
+    items = list(page.object_list)
+    creators = {}
+    for audit in MasterAdminTaskAudit.objects.filter(
+            action="created", task_number__in=[i.pk for i in items]).order_by("pk"):
+        creators.setdefault(audit.task_number, audit.actor_name)
+    data = []
+    for item in items:
+        item.creator_label = (item.created_by.name if item.created_by else
+            "Master Admin: " + creators[item.pk] if item.pk in creators else "Not recorded")
+        item.assignee_label = item.assigned_to.name + (
+            f" · {item.assigned_to.branch.name}" if scope["head"] and item.assigned_to.branch_id else "")
+        data.append({"id": item.pk, **_master_task_snapshot(item), "assignee": item.assignee_label,
+                     "creator": item.creator_label})
+    page.object_list = items
+    params = request.GET.copy()
+    for key in ("page", "fragment", "tab", "team"):
+        params.pop(key, None)
+    people = list(_hr_task_people(scope))
+
+    def label(p):
+        base = f"{p.name} — {p.job_Position}"
+        return base + (f" · {p.branch.name}" if scope["head"] and p.branch_id else "")
+
+    return render(request, "hr/hr_tasks.html", {
+        "current_user": hr, "hr_active": "tasks",
+        "is_head": scope["head"], "branch_name": scope["branch"].name,
+        "branches": Branch.objects.filter(is_active=True).order_by("-is_head_office", "name") if scope["head"] else [],
+        "selected_branch": branch,
+        "task_tab": tab, "query": query, "selected_status": state, "people": people,
+        "people_data": [{"id": p.pk, "label": label(p), "branch": p.branch_id} for p in people],
+        "page_obj": page, "task_items": data, "filter_params": params.urlencode(),
+        "total_tasks": sum(counts.values()), "pending_tasks": counts.get("pending", 0),
+        "in_progress_tasks": counts.get("in_progress", 0), "completed_tasks": counts.get("completed", 0),
+    })
+
+
+@never_cache
+@require_POST
+def hr_task_update(request, pk):
+    hr, scope, denied = _hr_task_gate(request)
+    if denied:
+        return denied
+    with transaction.atomic():
+        task = Task.objects.select_for_update().filter(pk=pk).first()
+        if task is None or not _hr_task_in_scope(task, scope):
+            return JsonResponse({"ok": False, "message": "Task no longer exists."}, status=404)
+        before = _master_task_snapshot(task)
+        data = request.POST.copy()
+        if data.get("mode") == "status":
+            status = data.get("status")
+            data = {**before, "status": status,
+                    "progress": {"pending": 0, "in_progress": 50, "completed": 100}.get(status, task.progress)}
+        form = HRTaskForm(data, instance=task, scope=scope)
+        if not form.is_valid():
+            return JsonResponse({"ok": False, "message": "Please correct the highlighted fields.",
+                                 "errors": form.errors.get_json_data()}, status=400)
+        task = form.save()
+        if before != _master_task_snapshot(task):
+            _hr_task_notify(hr, task, "updated", before)
+    return JsonResponse({"ok": True, "message": "Task updated successfully."})
+
+
+@never_cache
+@require_http_methods(["DELETE"])
+def hr_task_delete(request, pk):
+    from django.db.models.deletion import ProtectedError, RestrictedError
+    hr, scope, denied = _hr_task_gate(request)
+    if denied:
+        return denied
+    try:
+        with transaction.atomic():
+            task = Task.objects.select_for_update().filter(pk=pk).first()
+            if task is None or not _hr_task_in_scope(task, scope):
+                return JsonResponse({"ok": False, "message": "Task no longer exists. Refresh the task list."}, status=404)
+            _hr_task_notify(hr, task, "deleted", _master_task_snapshot(task))
+            task.delete()
+    except (ProtectedError, RestrictedError):
+        return JsonResponse({"ok": False, "message": "This task is linked to protected records and cannot be deleted."}, status=409)
+    return JsonResponse({"ok": True, "message": "Task deleted successfully.", "id": pk})
+
+# =====================================================================
+# HR REPORTS  -  paste in views.py, in the HR section.
+# 1) Delete the old one-line:  def hr_reports(request): return _hr_render(...)
+# 2) Add these imports at the top of views.py if missing:
+#       from collections import Counter
+#       from .models import MorningReport, EveningReport
+# Re-uses (already in views.py): _hr_user, _hr_scope, _hr_recipient_base,
+#   Branch, Department, User, Paginator, parse_date, transaction, timezone,
+#   never_cache, require_http_methods, JsonResponse, HttpResponseForbidden
+# The URL name stays "hr_reports", so urls.py needs no change.
+# =====================================================================
+
+HR_REPORT_MODELS = {"morning": MorningReport, "evening": EveningReport}
+HR_REPORT_TEXT_LIMIT = 5000
+HR_REPORT_ROW_CAP = 500          # max rows loaded per report type per request
+
+
+def _hr_report_denied(request, message="HR access required."):
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return JsonResponse({"ok": False, "message": message}, status=403)
+    return HttpResponseForbidden(message)
+
+
+def _hr_report_date(raw, default):
+    try:
+        return parse_date(raw or "") or default
+    except ValueError:          # e.g. 2026-02-30
+        return default
+
+
+def _hr_report_submit(request, hr):
+    """HR submits their OWN morning/evening report (one per type per day)."""
+    def fail(message, status=400):
+        return JsonResponse({"ok": False, "message": message}, status=status)
+
+    kind = request.POST.get("report_type", "")
+    if kind not in HR_REPORT_MODELS:
+        return fail("Choose Morning or Evening report.")
+    model = HR_REPORT_MODELS[kind]
+
+    text = (request.POST.get("report_text") or "").strip()
+    if not text:
+        return fail("Please write your report.")
+    if len(text) > HR_REPORT_TEXT_LIMIT:
+        return fail(f"Report must be {HR_REPORT_TEXT_LIMIT} characters or fewer.")
+
+    status = request.POST.get("status", "Pending")
+    if status not in dict(model.STATUS_CHOICES):
+        return fail("Invalid status.")
+
+    today = timezone.localdate()
+    with transaction.atomic():
+        # Lock the HR row so a double-click cannot create two reports.
+        locked = User.objects.select_for_update().select_related("department", "team").get(pk=hr.pk)
+        if model.objects.filter(user=locked, created_at__date=today).exists():
+            return fail(f"You have already submitted today's {kind} report.", 409)
+        model.objects.create(
+            user=locked,
+            department=locked.department.name if locked.department_id else "HR",
+            team=locked.team.name if locked.team_id else "-",
+            report_text=text,
+            status=status,
+        )
+    return JsonResponse({"ok": True, "message": f"{kind.title()} report submitted successfully."}, status=201)
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def hr_reports(request):
+    hr = _hr_user(request)
+    if hr is None:
+        return _hr_report_denied(request)
+
+    if request.method == "POST":
+        return _hr_report_submit(request, hr)
+
+    scope = _hr_scope(hr)                    # None when HR has no branch
+    is_head = bool(scope and scope["head"])  # Kochi / head office HR
+
+    tab = request.GET.get("tab", "my")
+    if tab not in {"my", "leads", "members"}:
+        tab = "my"
+    kind = request.GET.get("type", "")
+    if kind not in HR_REPORT_MODELS:
+        kind = ""
+
+    today = timezone.localdate()
+    default_from = today - timedelta(days=30) if tab == "my" else today
+    date_from = _hr_report_date(request.GET.get("from"), default_from)
+    date_to = _hr_report_date(request.GET.get("to"), today)
+    if date_from > date_to:
+        date_from, date_to = date_to, date_from
+
+    # ---- Who's reports may this HR see?  (enforced here, on the server) ----
+    branch = department = query = ""
+    if tab == "my":
+        people = User.objects.filter(pk=hr.pk)
+    elif scope is None:
+        people = User.objects.none()
+    else:
+        # _hr_recipient_base: Kochi HR -> all branches, other HR -> own branch only.
+        people = _hr_recipient_base(scope).filter(
+            job_Position__iexact="Team Lead" if tab == "leads" else "Team Member")
+        branch = request.GET.get("branch", "") if is_head else ""   # only head office may filter by branch
+        if branch.isdigit():
+            people = people.filter(branch_id=int(branch))
+        else:
+            branch = ""
+        department = request.GET.get("department", "")
+        if department.isdigit():
+            people = people.filter(department_id=int(department))
+        else:
+            department = ""
+        query = request.GET.get("q", "").strip()[:200]
+        if query:
+            people = people.filter(Q(name__icontains=query) | Q(employee_id__icontains=query))
+
+    state = request.GET.get("status", "")
+    if state not in {"Pending", "In Progress", "Completed"}:
+        state = ""
+
+    people_ids = people.order_by().values("pk")
+    rows = []
+    for key, model in HR_REPORT_MODELS.items():
+        if kind and kind != key:
+            continue
+        reports = model.objects.filter(
+            user__in=people_ids,
+            created_at__date__range=(date_from, date_to),
+        ).select_related("user__branch", "user__department")
+        if state:
+            reports = reports.filter(status=state)
+        for r in reports.order_by("-created_at", "-pk")[:HR_REPORT_ROW_CAP]:
+            rows.append({
+                "id": r.pk,
+                "kind": key,
+                "kind_label": key.title(),
+                "name": r.user.name,
+                "role": r.user.job_Position,
+                "branch": r.user.branch.name if r.user.branch_id else "-",
+                "department": r.department,
+                "team": r.team,
+                "text": r.report_text,
+                "status": r.status,
+                "created_at": r.created_at,
+            })
+    rows.sort(key=lambda row: row["created_at"], reverse=True)
+
+    counts = Counter(row["status"] for row in rows)
+    page = Paginator(rows, 25).get_page(request.GET.get("page"))
+    params = request.GET.copy()
+    params.pop("page", None)
+
+    return render(request, "hr/hr_reports.html", {
+        "current_user": hr, "hr_active": "reports",
+        "tab": tab, "page_obj": page,
+        "no_branch": scope is None,
+        "is_head": is_head,
+        "branch_name": scope["branch"].name if scope else "",
+        "branches": Branch.objects.filter(is_active=True).order_by("-is_head_office", "name") if is_head else [],
+        "departments": Department.objects.order_by("name"),
+        "selected_branch": branch, "selected_department": department,
+        "selected_type": kind, "selected_status": state, "query": query,
+        "date_from": date_from.isoformat(), "date_to": date_to.isoformat(),
+        "total_reports": len(rows),
+        "pending_reports": counts.get("Pending", 0),
+        "in_progress_reports": counts.get("In Progress", 0),
+        "completed_reports": counts.get("Completed", 0),
+        "filter_params": params.urlencode(),
+        "today_done": {
+            key: model.objects.filter(user=hr, created_at__date=today).exists()
+            for key, model in HR_REPORT_MODELS.items()
+        },
+    })
+
+
+
+@never_cache
+def hr_group_chat_view(request, group_id):
+    import logging
+
+    from asgiref.sync import async_to_sync
+    from channels.layers import get_channel_layer
+
+    from .chat_receipts import broadcast_chat_activity
+    from .member_chat_actions import chat_action
+
+    user_id = request.session.get("user_id")
+
+    position = (
+        str(request.session.get("position", ""))
+        .strip()
+        .lower()
+        .replace(" ", "_")
+    )
+
+    if not user_id or position != "hr":
+        return redirect("index")
+
+    current_user = get_object_or_404(
+        User,
+        pk=user_id,
+        job_Position__iexact="HR",
+    )
+
+    group = get_object_or_404(Group, pk=group_id)
+
+    membership = get_object_or_404(
+        GroupMember,
+        group=group,
+        user=current_user,
+    )
+
+    can_manage = (
+        group.created_by_id == current_user.pk
+        or membership.role == "admin"
+    )
+
+    def member_state():
+        current_membership = GroupMember.objects.filter(
+            group=group,
+            user=current_user,
+        ).first()
+
+        permitted = bool(
+            current_membership
+            and (
+                group.created_by_id == current_user.pk
+                or current_membership.role == "admin"
+            )
+        )
+
+        entries = list(
+            GroupMember.objects.filter(group=group)
+            .select_related("user")
+            .order_by("user__name", "pk")
+        )
+
+        available_users = []
+
+        if permitted:
+            available_users = [
+                {
+                    "id": person.pk,
+                    "name": person.name,
+                }
+                for person in User.objects.exclude(
+                    group_memberships__group=group
+                ).order_by("name", "pk")
+            ]
+
+        return {
+            "ok": True,
+            "can_manage": permitted,
+            "count": len(entries),
+            "members": [
+                {
+                    "id": entry.user_id,
+                    "name": entry.user.name,
+                    "role": entry.role,
+                    "is_creator": (
+                        entry.user_id == group.created_by_id
+                    ),
+                    "is_self": (
+                        entry.user_id == current_user.pk
+                    ),
+                    "profile": (
+                        entry.user.profile_image.url
+                        if entry.user.profile_image
+                        else None
+                    ),
+                }
+                for entry in entries
+            ],
+            "all_users": available_users,
+        }
+
+    def notify_members():
+        layer = get_channel_layer()
+
+        if layer:
+            try:
+                async_to_sync(layer.group_send)(
+                    f"group_{group.pk}",
+                    {"type": "chat_change"},
+                )
+            except Exception:
+                logging.getLogger(__name__).exception(
+                    "Group membership update delivery failed."
+                )
+
+        async_to_sync(broadcast_chat_activity)(
+            True,
+            group.pk,
+        )
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+
+        if action == "create_group":
+            return _member_chat_create_group(
+                request,
+                current_user,
+                group_view_name="hr_group_chat_view",
+            )
+
+        if action in {
+            "edit_message",
+            "delete_for_me",
+            "delete_for_everyone",
+            "clear_chat",
+        }:
+            return chat_action(
+                request,
+                current_user,
+                group,
+                group=True,
+            )
+
+        if action not in {
+            "add_member",
+            "remove_member",
+            "make_admin",
+            "remove_admin",
+        }:
+            return _member_chat_error("Invalid action.")
+
+        if not can_manage:
+            return _member_chat_error(
+                "Only the group creator or an admin "
+                "can manage members.",
+                403,
+            )
+
+        try:
+            target_id = int(
+                request.POST.get("user_id", "")
+            )
+        except (ValueError, TypeError):
+            return _member_chat_error(
+                "Select a valid member."
+            )
+
+        with transaction.atomic():
+            locked_group = (
+                Group.objects.select_for_update()
+                .get(pk=group.pk)
+            )
+
+            membership = get_object_or_404(
+                GroupMember,
+                group=group,
+                user=current_user,
+            )
+
+            if (
+                locked_group.created_by_id != current_user.pk
+                and membership.role != "admin"
+            ):
+                return _member_chat_error(
+                    "You no longer have permission "
+                    "to manage this group.",
+                    403,
+                )
+
+            if action == "add_member":
+                target_user = get_object_or_404(
+                    User,
+                    pk=target_id,
+                )
+
+                _, created = (
+                    GroupMember.objects.get_or_create(
+                        group=group,
+                        user=target_user,
+                    )
+                )
+
+                notice = (
+                    f"{target_user.name} added to the group."
+                    if created
+                    else f"{target_user.name} is already a member."
+                )
+
+            else:
+                target = get_object_or_404(
+                    GroupMember.objects.select_related("user"),
+                    group=group,
+                    user_id=target_id,
+                )
+
+                if target_id == locked_group.created_by_id:
+                    return _member_chat_error(
+                        "The group creator cannot be "
+                        "removed or demoted."
+                    )
+
+                if target_id == current_user.pk:
+                    return _member_chat_error(
+                        "You cannot remove yourself or "
+                        "change your own admin role here."
+                    )
+
+                if action == "remove_member":
+                    member_count = (
+                        GroupMember.objects.filter(
+                            group=group
+                        ).count()
+                    )
+
+                    if member_count <= 2:
+                        return _member_chat_error(
+                            "Keep at least two people "
+                            "in the group."
+                        )
+
+                    name = target.user.name
+                    target.delete()
+
+                    notice = (
+                        f"{name} removed from the group."
+                    )
+
+                else:
+                    target.role = (
+                        "admin"
+                        if action == "make_admin"
+                        else "member"
+                    )
+
+                    target.save(update_fields=["role"])
+
+                    notice = (
+                        f"{target.user.name} is now an admin."
+                        if action == "make_admin"
+                        else (
+                            "Admin access removed for "
+                            f"{target.user.name}."
+                        )
+                    )
+
+            transaction.on_commit(notify_members)
+
+        return JsonResponse({
+            **member_state(),
+            "message": notice,
+        })
+
+    if request.GET.get("members") == "1":
+        return JsonResponse(member_state())
+
+    messages_qs = (
+        GroupMessage.objects.filter(group=group)
+        .exclude(hidden_for=current_user)
+        .select_related("sender")
+        .order_by("timestamp", "pk")
+    )
+
+    if request.GET.get("messages") == "1":
+        return JsonResponse({
+            "ok": True,
+            "items": [
+                _member_chat_payload(message, True)
+                for message in messages_qs
+            ],
+        })
+
+    context = _member_chat_context(current_user)
+
+    context.update({
+        "user_role": "hr",
+        "group": group,
+        "messages": messages_qs,
+        "members": (
+            GroupMember.objects.filter(group=group)
+            .select_related("user")
+            .order_by("user__name", "pk")
+        ),
+        "all_users": (
+            User.objects.exclude(
+                group_memberships__group=group
+            ).order_by("name", "pk")
+        ),
+        "can_manage_group": can_manage,
+    })
+
+    return render(
+        request,
+        "hr/hr_group_chat.html",
+        context,
+    )
+
+
+
+@never_cache
+def hr_chat_room(request, user_id):
+    from .member_chat_actions import chat_action
+
+    session_user_id = request.session.get("user_id")
+
+    position = (
+        str(request.session.get("position", ""))
+        .strip()
+        .lower()
+        .replace(" ", "_")
+    )
+
+    if not session_user_id or position != "hr":
+        return redirect("index")
+
+    current_user = get_object_or_404(
+        User,
+        pk=session_user_id,
+        job_Position__iexact="HR",
+    )
+
+    other_user = get_object_or_404(
+        User,
+        pk=user_id,
+    )
+
+    if current_user.pk == other_user.pk:
+        return redirect("hr_chat")
+
+    room = (
+        Conversation.objects.filter(
+            Q(user1=current_user, user2=other_user)
+            | Q(user1=other_user, user2=current_user)
+        )
+        .order_by("pk")
+        .first()
+    )
+
+    if room is None:
+        first, second = sorted(
+            [current_user, other_user],
+            key=lambda person: person.pk,
+        )
+
+        room, _ = Conversation.objects.get_or_create(
+            user1=first,
+            user2=second,
+        )
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "create_group":
+            return _member_chat_create_group(
+                request,
+                current_user,
+                group_view_name="hr_group_chat_view",
+            )
+
+        return chat_action(
+            request,
+            current_user,
+            room,
+            group=False,
+        )
+
+    messages_qs = (
+        room.messages
+        .exclude(hidden_for=current_user)
+        .select_related("sender")
+        .order_by("created_at", "pk")
+    )
+
+    if request.GET.get("messages") == "1":
+        return JsonResponse({
+            "ok": True,
+            "items": [
+                _member_chat_payload(message)
+                for message in messages_qs
+            ],
+        })
+
+    context = _member_chat_context(current_user)
+
+    context.update({
+        "user_role": "hr",
+        "room": room,
+        "other_user": other_user,
+        "messages": messages_qs,
+    })
+
+    return render(
+        request,
+        "hr/hr_chat_room.html",
+        context,
+    )
+
+@never_cache
+def hr_chat(request):
+    from django.db import transaction
+
+    current_user = _hr_user(request)
+    if current_user is None:
+        return HttpResponseForbidden("You do not have access to this HR page.")
+
+    if request.method == "POST":
+        if request.POST.get("action") == "create_group":
+            return _member_chat_create_group(
+                request,
+                current_user,
+                group_view_name="hr_group_chat_view",
+            )
+
+        return _member_chat_error("Invalid action.")
+
+    context = {
+        "current_user": current_user,
+        "hr_active": "chat",
+        "user": current_user,
+        "users": User.objects.exclude(
+            pk=current_user.pk
+        ).order_by("name", "pk"),
+        "groups": Group.objects.filter(
+            memberships__user=current_user
+        ).distinct().order_by("name"),
+        "user_role": "hr",
+    }
+
+    return render(request, "hr/hr_chat.html", context)
+
 def hr_reminders(request):         return _hr_render(request, "hr/hr_reminders.html", "reminders")
 def hr_notifications(request):     return _hr_render(request, "hr/hr_notifications.html", "notifications")
-def hr_profile(request):           return _hr_render(request, "hr/hr_profile.html", "profile")
 

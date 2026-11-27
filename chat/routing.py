@@ -7,6 +7,8 @@ from .consumers import (
     AdminChatConsumer,
     AdminGroupChatConsumer,
     LeadGroupChatConsumer,
+    HRChatConsumer,
+    HRGroupChatConsumer,
 )
 from .receipt_consumers import ChatUpdatesConsumer
 
@@ -43,4 +45,13 @@ websocket_urlpatterns += [
     re_path(r"^ws/master/chat/(?P<conversation_id>\d+)/$", MasterAdminChatConsumer.as_asgi()),
     re_path(r"^ws/master/group/(?P<group_id>\d+)/$", MasterAdminGroupChatConsumer.as_asgi()),
     re_path(r"^ws/master/chat-updates/$", MasterAdminChatUpdatesConsumer.as_asgi()),
+
+    re_path(
+        r"^ws/hr/chat/(?P<conversation_id>\d+)/$",
+        HRChatConsumer.as_asgi(),
+    ),
+    re_path(
+        r"^ws/hr/group/(?P<group_id>\d+)/$",
+        HRGroupChatConsumer.as_asgi(),
+    ),
 ]
