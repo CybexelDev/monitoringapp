@@ -8,7 +8,6 @@
 <style>
     
     *{box-sizing:border-box;}
-    .hr-chat-layout{margin-left:0;height:100%;min-height:0;padding:0;min-width:0;}
     .hr-chat-layout>.dashboard-box{height:100%;min-height:0;min-width:0;margin:0;padding:0;}
     .hr-chat-menu{display:none;position:fixed;top:10px;left:12px;z-index:1001;width:34px;height:34px;align-items:center;justify-content:center;border:1px solid #61417d;border-radius:9px;background:#261b32;color:#e1d0f2;}
     .hr-chat-menu svg{width:18px;height:18px;}
@@ -177,7 +176,7 @@
 </style>
 <style>
 /* Keep the existing theme; constrain chat to the available viewport. */
-.hr-chat-layout{height:var(--hr-chat-height,100dvh);}
+.hr-chat-layout{margin-left:0;height:100%;min-height:0;padding:0;min-width:0;}
 #memberChatPage .chat-conversation-header{flex-shrink:0;}
 #memberChatPage .conversation-name,#memberChatPage .conversation-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #memberChatPage .conversation-user,#memberChatPage .chat-user-info{min-width:0;}
