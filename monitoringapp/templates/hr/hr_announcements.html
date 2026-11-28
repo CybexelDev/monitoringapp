@@ -2432,10 +2432,7 @@
   const form = document.getElementById('hrAnnForm');
   if (!form) { window.lucide?.createIcons(); return; }
   const box = document.getElementById('announcementRecipients');
-  const notify = (m, t = 'success') => {
-    if (typeof window.showToast === 'function') { try { window.showToast(m, t); return; } catch (_) {} }
-    alert(m);
-  };
+
   const csrf = () => form.querySelector('[name=csrfmiddlewaretoken]').value;
 
   function toggle() {
@@ -2471,8 +2468,8 @@
     const btn = form.querySelector('.post-button'); btn.disabled = true;
     try {
       const d = await call({method: 'POST', body: new FormData(form)});
-      form.reset(); toggle(); notify(d.message); await reloadHistory();
-    } catch (err) { notify(err.message, 'error'); }
+      form.reset(); toggle(); await reloadHistory();
+    } catch (err) { }
     finally { btn.disabled = false; }
   });
 
@@ -2483,8 +2480,8 @@
     try {
       const u = new URL(url, location.origin); u.searchParams.set('announcement_id', b.dataset.hrDelete);
       const d = await call({method: 'DELETE', url: u});
-      notify(d.message); await reloadHistory();
-    } catch (err) { notify(err.message, 'error'); b.disabled = false; }
+       await reloadHistory();
+    } catch (err) { b.disabled = false; }
   });
   window.lucide?.createIcons();
 })();
