@@ -543,22 +543,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!form || !input || !container || !photo || !initials) return;
 
-    const toast = (message, error = false) => {
-        const existing = document.querySelector(".profile-live-toast");
-        if (existing) existing.remove();
-
-        const node = document.createElement("div");
-        node.className = "profile-live-toast";
-        node.setAttribute("role", "status");
-        node.textContent = message;
-
-        if (error) {
-            node.style.borderColor = "#dc6b78";
-        }
-
-        document.body.appendChild(node);
-        setTimeout(() => node.remove(), 4500);
-    };
 
     function setPhoto(src) {
         photo.src = src;
