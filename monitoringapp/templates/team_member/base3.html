@@ -1305,6 +1305,8 @@ html {background:#08070b;color-scheme:dark;}
                 <span class="sidebar-icon"><i data-lucide="chart-no-axes-combined"></i></span>
                 <span>Reports</span>
             </a>
+            <a href="{% url 'member_leave' %}" class="sidebar-item {% if request.resolver_match.url_name == 'member_leave' %}active{% endif %}">
+    <span class="sidebar-icon"><i data-lucide="calendar-check"></i></span><span>My Leave</span></a>
             <!-- Projects -->
             <a
                 href="{% url 'teammember_project' %}"

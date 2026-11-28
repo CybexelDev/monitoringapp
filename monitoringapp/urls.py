@@ -114,6 +114,7 @@ urlpatterns = [
     path(
         "api/user-status/<int:user_id>/", views.get_user_status, name="get_user_status"
     ),
+    path("admin-panel/leave-history/", views.admin_leave_history, name="admin_leave_history"),
     # <----------- Team lead ---------------->
     path("teamlead/dashboard/", views.teamlead_dashboard, name="teamlead_dashboard"),
     path("teamlead_reports", views.teamlead_reports, name="teamlead_reports"),
@@ -252,6 +253,7 @@ urlpatterns = [
         views.teamlead_delete_client,
         name="teamlead_delete_client",
     ),
+    path("teamlead/leave-management/", views.teamlead_leave, name="teamlead_leave"),
     # <---TEAM MEMBERS--->
     path("teammember/logout/", views.teammember_logout, name="teammember_logout"),
     path(
@@ -335,6 +337,7 @@ urlpatterns = [
         chat_receipts.chat_mark_read,
         name="chat_mark_read",
     ),
+    path("teammember/leave-management/", views.member_leave, name="member_leave"),
     # <----------------------ACCOUNTS TEAM--------------------->
     path("accounts/dashboard/", views.accounts_dashboard, name="accounts_dashboard"),
     path("accounts/logout/", views.accounts_logout, name="accounts_logout"),
@@ -747,6 +750,7 @@ path(
         chat_push.unsubscribe,
         name="chat_push_unsubscribe",
     ),
+    path("masteradmin/leave-history/", views.masteradmin_leave_history, name="masteradmin_leave_history"),
     # <----HR------>
     path("hr/dashboard/", views.hr_dashboard, name="hr_dashboard"),
     path("hr/logout/", views.hr_logout, name="hr_logout"),
@@ -786,8 +790,18 @@ path("hr/tasks/delete/<int:pk>/", views.hr_task_delete, name="hr_task_delete"),
         views.hr_google_meet_delete,
         name="hr_google_meet_delete",
     ),
-    path("hr/reminders/", views.hr_reminders, name="hr_reminders"),
     path("hr/notifications/", views.hr_notifications, name="hr_notifications"),
+    path(
+    "hr/notifications/read-all/",
+    views.hr_notifications_read_all,
+    name="hr_notifications_read_all",
+),
+
+path(
+    "hr/notifications/<int:notification_id>/",
+    views.hr_notification_open,
+    name="hr_notification_open",
+),
     path("hr/profile/", views.hr_profile, name="hr_profile"),
     path("hr/chat/", views.hr_chat, name="hr_chat"),
 
@@ -802,4 +816,20 @@ path(
     views.hr_group_chat_view,
     name="hr_group_chat_view",
 ),
+
+path("hr/leave-management/", views.hr_leave_management, name="hr_leave_management"),
+path("hr/leave-management/<int:pk>/approve/", views.hr_leave_approve, name="hr_leave_approve"),
+path("hr/leave-management/<int:pk>/reject/", views.hr_leave_reject, name="hr_leave_reject"),
+
+path(
+    "hr/reminders/",
+    views.hr_reminders,
+    name="hr_reminders",
+),
+path(
+    "hr/reminders/<int:pk>/delete/",
+    views.hr_reminder_delete,
+    name="hr_reminder_delete",
+),
+
 ]

@@ -1669,3 +1669,91 @@ class AccountsQuotation(models.Model):
 
     def __str__(self):
         return f"{self.quotation_number} - {self.customer_name}"
+
+
+
+from django.db import models
+
+
+class LeaveRequest(models.Model):
+    TYPE_CHOICES = [("Casual", "Casual"), ("Sick", "Sick"), ("LOP", "Loss of Pay")]
+    DURATION_CHOICES = [("Full Day", "Full Day"), ("Half Day", "Half Day")]
+    SESSION_CHOICES = [("Morning", "Morning"), ("Afternoon", "Afternoon")]
+    STATUS_CHOICES = [("Pending", "Pending"), ("Approved", "Approved"), ("Rejected", "Rejected")]
+
+    user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="leave_requests")
+    # Copied from user.branch when the request is created. Never taken from the form.
+    branch = models.ForeignKey("Branch", on_delete=models.PROTECT, related_name="leave_requests")
+    leave_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    duration = models.CharField(max_length=10, choices=DURATION_CHOICES, default="Full Day")
+    session = models.CharField(max_length=10, choices=SESSION_CHOICES, blank=True)  # Half Day only
+    from_date = models.DateField()
+    to_date = models.DateField()  # same as from_date for Half Day
+    days = models.DecimalField(max_digits=4, decimal_places=1, default=1)  # 0.5 for Half Day
+    reason = models.TextField(max_length=500)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="Pending")
+    hr_note = models.CharField(max_length=300, blank=True)  # filled only when rejected
+    actioned_by = models.ForeignKey("User", null=True, blank=True,
+                                    on_delete=models.SET_NULL, related_name="leave_actions")
+    actioned_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["branch", "status"])]
+
+    @property
+    def period_label(self):
+        f = lambda d: d.strftime("%d %b %Y")
+        if self.duration == "Half Day":
+            return f"{f(self.from_date)} · Half Day ({self.session})"
+        if self.from_date == self.to_date:
+            return f"{f(self.from_date)} · Full Day"
+        return f"{f(self.from_date)} – {f(self.to_date)}"
+
+
+
+
+class HRReminder(models.Model):
+    owner = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="hr_reminders",
+    )
+    title = models.CharField(max_length=180)
+    description = models.TextField(blank=True)
+    event_at = models.DateTimeField(db_index=True)
+    remind_at = models.DateTimeField(db_index=True)
+    is_completed = models.BooleanField(default=False)
+    notified_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["event_at", "id"]
+
+class HRNotification(models.Model):
+    recipient = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        related_name="hr_notifications"
+    )
+    kind = models.CharField(max_length=40, db_index=True)
+    title = models.CharField(max_length=180)
+    message = models.TextField(blank=True)
+    url = models.CharField(max_length=500, blank=True)
+    event_key = models.CharField(
+        max_length=180,
+        unique=True,
+        null=True,
+        blank=True
+    )
+    is_read = models.BooleanField(default=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    is_archived = models.BooleanField(default=False, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.recipient.name}: {self.title}"

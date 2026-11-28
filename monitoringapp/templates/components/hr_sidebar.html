@@ -23,6 +23,9 @@
 
         <a href="{% url 'hr_reports' %}" class="sidebar-item {% if active_route == 'hr_reports' %}active{% endif %}">
             <span class="sidebar-icon"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span><span>Reports</span></a>
+        
+            <a href="{% url 'hr_leave_management' %}" class="sidebar-item {% if active_route == 'hr_leave_management' %}active{% endif %}" {% if active_route == 'hr_leave_management' %}aria-current="page"{% endif %}>
+    <span class="sidebar-icon"><i data-lucide="calendar-check" aria-hidden="true"></i></span><span>Leave Management</span></a>
 
         <a href="{% url 'hr_project_assigning' %}" class="sidebar-item {% if active_route == 'hr_project_assigning' %}active{% endif %}">
             <span class="sidebar-icon"><i data-lucide="folder-kanban" aria-hidden="true"></i></span><span>Project Assigning</span></a>

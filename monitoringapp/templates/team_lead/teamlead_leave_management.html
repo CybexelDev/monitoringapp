@@ -1,0 +1,234 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Lead Leave - Cybexel</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+/* ===== Same base as Team Lead Reports ===== */
+html, body { width:100%; height:100%; margin:0; overflow:hidden !important; }
+body { min-height:100vh; color:#fff; background:radial-gradient(circle at 15% 10%, rgba(92,47,145,.16), transparent 28%), radial-gradient(circle at 85% 15%, rgba(40,88,160,.12), transparent 30%), #08080d; font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+/* ===== Sidebar (copy of the Team Lead page block; delete if your sidebar CSS already loads from admin.css) ===== */
+.glass-sidebar { position:fixed; top:18px; left:16px; bottom:18px; width:242px; z-index:100; display:flex; flex-direction:column; padding:18px 14px; border-radius:27px; background:linear-gradient(145deg, rgba(38,24,49,.96), rgba(14,14,21,.96)); border:1px solid rgba(255,255,255,.12); box-shadow:0 25px 70px rgba(0,0,0,.42); overflow:hidden; }
+.sidebar-profile { display:flex; flex-direction:column; align-items:center; padding:2px 5px 20px; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,.07); }
+.sidebar-logo { width:86px; height:86px; display:flex; align-items:center; justify-content:center; margin-bottom:8px; border-radius:23px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); }
+.sidebar-logo img { width:68px; height:68px; object-fit:contain; }
+.sidebar-profile-text { text-align:center; }
+.sidebar-profile-text h3 { margin:0; font-size:15px; font-weight:800; letter-spacing:1px; }
+.sidebar-profile-text span { display:block; margin-top:3px; color:#898592; font-size:7px; letter-spacing:1.7px; font-weight:600; }
+.sidebar-nav { display:flex; flex-direction:column; gap:5px; margin-top:8px; min-height:0; overflow-y:auto; flex:1; scrollbar-width:none; }
+.sidebar-item { display:flex; align-items:center; gap:12px; min-height:44px; padding:0 14px; border-radius:13px; color:#aaa6b2; text-decoration:none; font-size:12px; font-weight:600; border:1px solid transparent; transition:all .25s ease; }
+.sidebar-item:hover { color:#fff; background:rgba(255,255,255,.055); transform:translateX(3px); }
+.sidebar-item.active { color:#fff; background:linear-gradient(135deg, rgba(111,76,190,.82), rgba(63,79,153,.72)); border-color:rgba(154,122,255,.38); }
+.sidebar-icon { width:20px; display:inline-flex; align-items:center; justify-content:center; color:#8d8995; }
+.sidebar-icon svg { width:19px; height:19px; stroke-width:1.8; }
+.sidebar-item.active .sidebar-icon { color:#fff; }
+.sidebar-bottom { margin-top:auto; padding-top:14px; }
+.sidebar-logout { display:flex; align-items:center; gap:12px; min-height:43px; padding:0 14px; border-radius:13px; color:#ff9ba4; text-decoration:none; font-size:12px; font-weight:600; background:rgba(255,70,85,.055); border:1px solid rgba(255,70,85,.13); }
+
+/* ===== Main area ===== */
+.main-area { position:fixed; inset:0 0 0 275px; padding:18px 20px; overflow:hidden; }
+.dashboard-box { width:100%; height:100%; overflow-y:auto; overflow-x:hidden; padding:16px; border-radius:28px; background:linear-gradient(145deg, rgba(17,16,24,.94), rgba(8,9,14,.96)); border:1px solid rgba(255,255,255,.10); box-shadow:0 25px 80px rgba(0,0,0,.35); scrollbar-width:thin; scrollbar-color:rgba(151,112,235,.65) transparent; }
+.dashboard-header { position:relative; min-height:168px; display:flex; align-items:center; padding:30px 32px; border-radius:25px; overflow:hidden; background:linear-gradient(110deg, rgba(44,32,55,.62), rgba(18,23,31,.72), rgba(30,31,59,.62)); border:1px solid rgba(255,255,255,.10); }
+.dashboard-header-content { width:100%; display:flex; align-items:center; justify-content:space-between; gap:25px; flex-wrap:wrap; }
+.dashboard-eyebrow { margin-bottom:15px; color:#a78bfa; font-size:10px; font-weight:800; letter-spacing:3px; }
+.dashboard-header h1 { margin:0; font-size:clamp(34px,4vw,52px); line-height:1; font-weight:900; letter-spacing:-2px; background:linear-gradient(90deg,#fff 0%,#c4b5fd 45%,#67c8ff 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.dashboard-header p { margin:18px 0 0; color:#96939e; font-size:14px; }
+.system-status { display:flex; align-items:center; gap:9px; padding:10px 18px; border-radius:30px; color:#c4b5fd; font-size:12px; background:rgba(139,92,246,.07); border:1px solid rgba(167,139,250,.25); }
+.status-dot { width:8px; height:8px; border-radius:50%; background:#a78bfa; box-shadow:0 0 12px rgba(167,139,250,.75); }
+.dashboard-content { padding:28px 0 35px; }
+
+/* ===== Tabs ===== */
+.report-role-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; margin:0 0 20px; padding:6px; border:1px solid rgba(171,140,244,.15); border-radius:15px; background:rgba(255,255,255,.035); }
+.report-role-tab { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:48px; padding:9px 14px; border:1px solid transparent; border-radius:10px; color:#a9a2b8; font-size:13px; font-weight:700; text-decoration:none; transition:background .2s, color .2s; }
+.report-role-tab:hover { color:#f5f0ff; background:rgba(139,92,246,.10); }
+.report-role-tab.is-active { color:#fff; background:linear-gradient(110deg, rgba(116,68,200,.34), rgba(81,68,167,.24)); border-color:rgba(181,146,255,.28); }
+.report-role-tab svg { width:17px; height:17px; }
+.tab-count { padding:1px 8px; border-radius:99px; font-size:11px; background:rgba(255,255,255,.08); }
+
+/* ===== Request form ===== */
+.leave-form { max-width:640px; padding:22px; border-radius:20px; background:linear-gradient(145deg, rgba(27,26,34,.90), rgba(16,16,22,.92)); border:1px solid rgba(255,255,255,.09); box-shadow:0 20px 50px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.035); }
+.field { margin-bottom:16px; min-width:0; }
+.field > label { display:block; margin-bottom:7px; color:#85818d; font-size:10px; font-weight:800; letter-spacing:1px; text-transform:uppercase; }
+.field input[type=date], .field select, .field textarea { width:100%; min-height:42px; padding:0 13px; box-sizing:border-box; border-radius:12px; color:#f7f3ff; font:inherit; font-size:13px; outline:none; color-scheme:dark; background:rgba(5,5,11,.78); border:1px solid rgba(255,255,255,.10); transition:border-color .2s, box-shadow .2s; }
+.field textarea { min-height:92px; padding:11px 13px; resize:vertical; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color:rgba(139,92,246,.70); box-shadow:0 0 0 3px rgba(139,92,246,.10); }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.seg { display:grid; grid-template-columns:1fr 1fr; gap:6px; padding:5px; border-radius:13px; background:rgba(255,255,255,.035); border:1px solid rgba(171,140,244,.15); }
+.seg input { position:absolute; opacity:0; pointer-events:none; }
+.seg span { display:flex; align-items:center; justify-content:center; min-height:40px; border-radius:9px; color:#a9a2b8; font-size:12px; font-weight:700; cursor:pointer; border:1px solid transparent; transition:all .2s; }
+.seg input:checked + span { color:#fff; background:linear-gradient(110deg, rgba(116,68,200,.34), rgba(81,68,167,.24)); border-color:rgba(181,146,255,.28); }
+.seg input:focus-visible + span { outline:2px solid #a78bfa; outline-offset:2px; }
+.glass-button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:42px; padding:0 20px; border-radius:12px; color:#fff; font:inherit; font-size:12px; font-weight:700; cursor:pointer; border:1px solid rgba(167,139,250,.35); background:linear-gradient(135deg,#7c4bd4,#5b32a7); box-shadow:0 10px 25px rgba(124,75,212,.18); transition:transform .22s; }
+.glass-button:hover { transform:translateY(-2px); }
+.glass-button svg { width:16px; height:16px; }
+
+/* ===== My leaves ===== */
+.leave-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px,1fr)); gap:14px; }
+.leave-card { padding:18px; border-radius:20px; min-width:0; background:linear-gradient(145deg, rgba(27,26,34,.90), rgba(16,16,22,.92)); border:1px solid rgba(255,255,255,.09); box-shadow:0 20px 50px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.035); }
+.leave-card-top { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.leave-when { font-size:14px; font-weight:700; color:#ece7f5; }
+.status-badge { display:inline-flex; padding:5px 10px; border-radius:9px; font-size:10px; font-weight:700; color:#ffd28a; background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.3); }
+.status-badge.status-approved { color:#9ee7ba; background:rgba(52,211,153,.1); border-color:rgba(52,211,153,.28); }
+.status-badge.status-rejected { color:#ff9ba4; background:rgba(255,70,85,.1); border-color:rgba(255,70,85,.28); }
+.leave-type { margin-top:6px; color:#85818d; font-size:11px; }
+.leave-reason { margin:10px 0 0; color:#b8b4be; font-size:13px; line-height:1.6; overflow-wrap:anywhere; }
+.leave-note { margin:10px 0 0; padding:9px 12px; border-left:3px solid #8b5cf6; border-radius:6px; font-size:12px; color:#d9ccf3; background:rgba(139,92,246,.08); overflow-wrap:anywhere; }
+.empty-state { padding:60px 10px; text-align:center; color:#77727e; font-size:13px; border-radius:20px; border:1px dashed rgba(255,255,255,.10); }
+
+@media (max-width:768px) {
+    .glass-sidebar { top:10px; left:10px; bottom:10px; width:250px; transform:translateX(-120%); transition:transform .3s ease; }
+    .glass-sidebar.open { transform:translateX(0); }
+    .mobile-menu-button { display:flex; position:fixed; top:18px; left:18px; z-index:200; width:42px; height:42px; align-items:center; justify-content:center; border:1px solid rgba(255,255,255,.10); border-radius:13px; color:#fff; background:rgba(25,20,32,.88); cursor:pointer; }
+    .main-area { inset:0; padding:10px; }
+    .dashboard-box { padding:12px; border-radius:22px; }
+    .dashboard-header { min-height:auto; padding:25px 20px; }
+    .dashboard-header h1 { font-size:30px; letter-spacing:-1px; }
+    .grid2, .leave-grid { grid-template-columns:1fr; }
+    .report-role-tab { font-size:11px; padding:8px 4px; }
+}
+@media (min-width:769px) { .mobile-menu-button { display:none; } }
+@media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+</style>
+</head>
+
+<body class="tl-reports-page">
+
+<button class="menu-toggle mobile-menu-button" type="button" aria-label="Open menu">☰</button>
+
+    {% include "components/teamlead_sidebar.html" %}
+
+<main class="main-area">
+<div class="dashboard-box">
+
+    <section class="dashboard-header">
+        <div class="dashboard-header-content">
+            <div>
+                <div class="dashboard-eyebrow">{{ eyebrow }}</div>
+                <h1>MY LEAVE</h1>
+                <p>Send a leave request to your branch HR and track its status.</p>
+            </div>
+            <div class="system-status">
+                <span class="status-dot"></span>
+                <span>{% if branch_name %}Goes to {{ branch_name }} HR{% else %}No branch assigned{% endif %}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-content">
+
+        <nav class="report-role-tabs" aria-label="Leave">
+            <a href="{% url url_name %}?tab=request" class="report-role-tab{% if tab == 'request' %} is-active{% endif %}" {% if tab == 'request' %}aria-current="page"{% endif %}>
+                <i data-lucide="send"></i> Request Leave
+            </a>
+            <a href="{% url url_name %}?tab=mine" class="report-role-tab{% if tab == 'mine' %} is-active{% endif %}" {% if tab == 'mine' %}aria-current="page"{% endif %}>
+                <i data-lucide="calendar-check"></i> My Leaves
+                {% if pending_count %}<span class="tab-count">{{ pending_count }} pending</span>{% endif %}
+            </a>
+        </nav>
+
+        {% if tab == 'request' %}
+        <form method="post" action="{% url url_name %}?tab=request" class="leave-form" id="leaveForm">
+            {% csrf_token %}
+
+            <div class="field">
+                <label>Duration</label>
+                <div class="seg">
+                    <label><input type="radio" name="duration" value="Full Day" {% if form.duration != 'Half Day' %}checked{% endif %}><span>Full Day</span></label>
+                    <label><input type="radio" name="duration" value="Half Day" {% if form.duration == 'Half Day' %}checked{% endif %}><span>Half Day</span></label>
+                </div>
+            </div>
+
+            <div class="grid2">
+                <div class="field">
+                    <label for="from_date" id="fromLabel">From</label>
+                    <input type="date" id="from_date" name="from_date" min="{{ today }}" value="{{ form.from_date }}" required>
+                </div>
+                <div class="field" id="toField">
+                    <label for="to_date">To</label>
+                    <input type="date" id="to_date" name="to_date" min="{{ today }}" value="{{ form.to_date }}">
+                </div>
+            </div>
+
+            <div class="field" id="sessionField" hidden>
+                <label>Session</label>
+                <div class="seg">
+                    <label><input type="radio" name="session" value="Morning" {% if form.session != 'Afternoon' %}checked{% endif %}><span>Morning</span></label>
+                    <label><input type="radio" name="session" value="Afternoon" {% if form.session == 'Afternoon' %}checked{% endif %}><span>Afternoon</span></label>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="leave_type">Leave type</label>
+                <select id="leave_type" name="leave_type">
+                    <option value="Casual" {% if form.leave_type == 'Casual' %}selected{% endif %}>Casual</option>
+                    <option value="Sick" {% if form.leave_type == 'Sick' %}selected{% endif %}>Sick</option>
+                    <option value="LOP" {% if form.leave_type == 'LOP' %}selected{% endif %}>Loss of Pay</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="reason">Reason</label>
+                <textarea id="reason" name="reason" maxlength="500" required>{{ form.reason }}</textarea>
+            </div>
+
+            <button type="submit" class="glass-button"><i data-lucide="send"></i> Send to HR</button>
+        </form>
+
+        {% else %}
+            {% if leaves %}
+            <div class="leave-grid">
+                {% for leave in leaves %}
+                <article class="leave-card">
+                    <div class="leave-card-top">
+                        <div class="leave-when">{{ leave.period_label }}</div>
+                        <span class="status-badge status-{{ leave.status|lower }}">{{ leave.status }}</span>
+                    </div>
+                    <div class="leave-type">{{ leave.get_leave_type_display }} leave · Sent {{ leave.created_at|date:"d M, h:i A" }}</div>
+                    <p class="leave-reason">{{ leave.reason }}</p>
+                    {% if leave.status == "Rejected" and leave.hr_note %}
+                    <div class="leave-note">HR reason: {{ leave.hr_note }}</div>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">No leave requests yet. Use “Request Leave” to send one.</div>
+            {% endif %}
+        {% endif %}
+
+    </section>
+</div>
+</main>
+
+<script src="{% static 'js/admin.js' %}"></script>
+<script src="{% static 'js/activity.js' %}"></script>
+{% include "components/toast_notification.html" %}
+<script>
+(function () {
+    var form = document.getElementById("leaveForm");
+    if (form) {
+        var toField = document.getElementById("toField"), sessionField = document.getElementById("sessionField"),
+            fromLabel = document.getElementById("fromLabel"), fromDate = document.getElementById("from_date"), toDate = document.getElementById("to_date");
+        function sync() {
+            var half = form.querySelector('input[name="duration"]:checked').value === "Half Day";
+            toField.hidden = half; sessionField.hidden = !half;
+            fromLabel.textContent = half ? "Date" : "From";
+            if (half) toDate.value = "";
+        }
+        form.querySelectorAll('input[name="duration"]').forEach(function (r) { r.addEventListener("change", sync); });
+        fromDate.addEventListener("change", function () { toDate.min = fromDate.value || toDate.min; });
+        sync();
+    }
+    window.lucide && lucide.createIcons();
+})();
+</script>
+</body>
+</html>

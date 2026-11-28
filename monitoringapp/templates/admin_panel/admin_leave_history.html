@@ -1,0 +1,149 @@
+{% extends 'admin_panel/base.html' %}
+{# CHANGE the line above to the first line of your Admin reports template, and change "content" below if that template uses a different block name #}
+{% block content %}
+<style>
+.lh .leave-counts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+.lh .leave-count{padding:16px 18px;border-radius:18px;background:linear-gradient(145deg,rgba(27,26,34,.90),rgba(16,16,22,.92));border:1px solid rgba(255,255,255,.09)}
+.lh .leave-count b{display:block;font-size:30px;font-weight:900;line-height:1.1}
+.lh .leave-count span{color:#85818d;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.lh .filter-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end;margin-bottom:20px;padding:18px;border-radius:20px;background:linear-gradient(145deg,rgba(27,26,34,.90),rgba(16,16,22,.92));border:1px solid rgba(255,255,255,.09)}
+.lh .filter-bar label{display:block;margin-bottom:7px;color:#85818d;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase}
+.lh .filter-bar input,.lh .filter-bar select{width:100%;height:42px;padding:0 13px;box-sizing:border-box;border-radius:12px;color:#f7f3ff;font:inherit;font-size:12px;outline:none;color-scheme:dark;background:rgba(5,5,11,.78);border:1px solid rgba(255,255,255,.10)}
+.lh .filter-bar input:focus,.lh .filter-bar select:focus{border-color:rgba(139,92,246,.70);box-shadow:0 0 0 3px rgba(139,92,246,.10)}
+.lh .filter-actions{display:flex;gap:9px;flex-wrap:wrap}
+.lh .glass-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:0 16px;border-radius:12px;color:#fff;font:inherit;font-size:12px;font-weight:700;text-decoration:none;cursor:pointer;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.045);transition:transform .22s}
+.lh .glass-button:hover{transform:translateY(-2px)}
+.lh .glass-button.primary{background:linear-gradient(135deg,#7c4bd4,#5b32a7);border-color:rgba(167,139,250,.35)}
+.lh .glass-button svg{width:16px;height:16px}
+.lh .report-card{border-radius:20px;overflow:hidden;background:linear-gradient(145deg,rgba(27,26,34,.90),rgba(16,16,22,.92));border:1px solid rgba(255,255,255,.09)}
+body.admin-workspace .lh .table-wrapper{max-height:560px;border:0;border-radius:0;background:transparent}
+.lh .report-table{width:100%;min-width:1040px;border-collapse:collapse}
+.lh .report-table th{height:47px;padding:0 16px;color:#85818d;text-align:left;font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.07)}
+.lh .report-table td{height:auto;padding:14px 16px;color:#dedbe2;font-size:12px;border-bottom:1px solid rgba(255,255,255,.055);vertical-align:top}
+.lh .report-table tbody tr:last-child td{border-bottom:none}
+.lh .user-name{display:flex;align-items:center;gap:9px;font-weight:700;color:#fff}
+.lh .user-dot{width:7px;height:7px;flex-shrink:0;border-radius:50%;background:#a78bfa;box-shadow:0 0 9px rgba(167,139,250,.65)}
+.lh .status-badge{display:inline-flex;padding:5px 10px;border-radius:9px;font-size:10px;font-weight:700;color:#ffd28a;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3)}
+.lh .status-badge.status-approved{color:#9ee7ba;background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.28)}
+.lh .status-badge.status-rejected{color:#ff9ba4;background:rgba(255,70,85,.1);border-color:rgba(255,70,85,.28)}
+.lh .report-text{max-width:300px;line-height:1.6;color:#b8b4be;overflow-wrap:anywhere}
+.lh .sub-text{margin-top:3px;color:#85818d;font-size:11px;overflow-wrap:anywhere}
+.lh .empty-row{height:100px;text-align:center;color:#77727e!important;vertical-align:middle!important}
+.lh .pager{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;color:#85818d;font-size:12px}
+.lh .pager-links{display:flex;gap:9px}
+@media(max-width:768px){.lh .leave-counts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+
+<div class="dashboard-box lh">
+
+    <section class="dashboard-header">
+        <div class="dashboard-header-content">
+            <div>
+                <div class="dashboard-eyebrow">{{ eyebrow }}</div>
+                <h1>LEAVE HISTORY</h1>
+                <p>Read-only view of leave requests from all branches.</p>
+            </div>
+            <div class="system-status">
+                <span class="status-dot"></span>
+                <span>Read only</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-content">
+
+        <div class="leave-counts">
+            <div class="leave-count"><b>{{ total }}</b><span>Total</span></div>
+            <div class="leave-count"><b>{{ counts.Pending|default:0 }}</b><span>Pending</span></div>
+            <div class="leave-count"><b>{{ counts.Approved|default:0 }}</b><span>Approved</span></div>
+            <div class="leave-count"><b>{{ counts.Rejected|default:0 }}</b><span>Rejected</span></div>
+        </div>
+
+        <form method="get" action="{% url url_name %}" class="filter-bar">
+            <div>
+                <label for="f-branch">Branch</label>
+                <select id="f-branch" name="branch">
+                    <option value="">All branches</option>
+                    {% for b in branches %}
+                    <option value="{{ b.pk }}" {% if selected_branch == b.pk|stringformat:"s" %}selected{% endif %}>{{ b.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="f-status">Status</label>
+                <select id="f-status" name="status">
+                    <option value="">All</option>
+                    <option value="Pending" {% if selected_status == "Pending" %}selected{% endif %}>Pending</option>
+                    <option value="Approved" {% if selected_status == "Approved" %}selected{% endif %}>Approved</option>
+                    <option value="Rejected" {% if selected_status == "Rejected" %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+            <div>
+                <label for="f-from">Leave from</label>
+                <input type="date" id="f-from" name="from" value="{{ date_from }}">
+            </div>
+            <div>
+                <label for="f-to">Leave to</label>
+                <input type="date" id="f-to" name="to" value="{{ date_to }}">
+            </div>
+            <div>
+                <label for="f-q">Name / Employee ID</label>
+                <input type="text" id="f-q" name="q" value="{{ query }}" maxlength="200" placeholder="Search">
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="glass-button primary"><i data-lucide="filter"></i> Filter</button>
+                <a href="{% url url_name %}" class="glass-button"><i data-lucide="rotate-ccw"></i> Reset</a>
+            </div>
+        </form>
+
+        <div class="report-card">
+            <div class="table-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th><th>Branch</th><th>Leave</th><th>Type</th>
+                            <th>Status</th><th>Reason</th><th>HR decision</th><th>Applied</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in page_obj %}
+                        <tr>
+                            <td>
+                                <div class="user-name"><span class="user-dot"></span>{{ leave.user.name }}</div>
+                                <div class="sub-text">{{ leave.user.job_Position }}</div>
+                            </td>
+                            <td>{{ leave.branch.name }}</td>
+                            <td>{{ leave.period_label }}</td>
+                            <td>{{ leave.get_leave_type_display }}</td>
+                            <td><span class="status-badge status-{{ leave.status|lower }}">{{ leave.status }}</span></td>
+                            <td><div class="report-text">{{ leave.reason }}</div></td>
+                            <td>
+                                {% if leave.status != "Pending" %}
+                                    {{ leave.actioned_by.name|default:"HR" }}
+                                    <div class="sub-text">{{ leave.actioned_at|date:"d M Y, h:i A" }}</div>
+                                    {% if leave.hr_note %}<div class="sub-text">Reason: {{ leave.hr_note }}</div>{% endif %}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>{{ leave.created_at|date:"d M Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="empty-row">No leave requests found</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="pager">
+            <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} · {{ total }} requests</span>
+            <div class="pager-links">
+                {% if page_obj.has_previous %}<a class="glass-button" href="?{{ filter_params }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+                {% if page_obj.has_next %}<a class="glass-button" href="?{{ filter_params }}&amp;page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+    </section>
+</div>
+{% endblock %}

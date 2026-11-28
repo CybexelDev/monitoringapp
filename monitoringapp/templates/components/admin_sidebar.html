@@ -42,6 +42,8 @@
             <span class="sidebar-icon"><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i></span>
             <span>Reports</span>
         </a>
+        <a href="{% url 'admin_leave_history' %}" class="sidebar-item {% if request.resolver_match.url_name == 'admin_leave_history' %}active{% endif %}">
+    <span class="sidebar-icon"><i data-lucide="calendar-check" aria-hidden="true"></i></span><span>Leave History</span></a>
         <a href="{% url 'admin_notepad' %}" class="sidebar-item {% if active_route == 'admin_notepad' %}active{% endif %}" {% if active_route == 'admin_notepad' %}aria-current="page"{% endif %}>
             <span class="sidebar-icon"><i data-lucide="notebook-pen" aria-hidden="true"></i></span>
             <span>Notepad</span>

@@ -936,6 +936,23 @@ html { background: #08070b; color-scheme: dark; }
     <span>Client Details</span>
 
 </a>
+        <!-- My Leave -->
+
+        <a
+
+            href="{% url 'teamlead_leave' %}"
+
+            class="sidebar-item {% if request.resolver_match.url_name == 'teamlead_leave' %}active{% endif %}">
+
+            <span class="sidebar-icon">
+
+                <i data-lucide="calendar-check"></i>
+
+            </span>
+
+            <span>My Leave</span>
+
+        </a>
 
         <!-- Project Assigning -->
 

@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from datetime import date
 from django.urls import reverse
 import openpyxl
+from django.utils.dateparse import parse_date
 from django.views.decorators.http import (
     require_GET,
     require_POST,
@@ -7044,6 +7045,22 @@ def _notification_teamlead(request):
     return User.objects.filter(
         pk=request.session["user_id"]
     ).first()
+    
+
+
+def _notification_hr(request):
+    if (
+        not request.session.get("user_id")
+        or str(request.session.get("position", "")).strip().lower()
+        not in {"hr", "hr_team"}
+    ):
+        return None
+
+    return User.objects.filter(
+        pk=request.session["user_id"]
+    ).first()
+
+
 
 @never_cache
 def teamlead_notifications(request):
@@ -7341,6 +7358,250 @@ def teamlead_reminder_delete(request, pk):
 
     reminder.delete()
     return JsonResponse({"ok": True, "message": "Reminder deleted."})
+
+# from datetime import datetime
+# from decimal import Decimal
+
+# from django.contrib import messages
+# from django.shortcuts import redirect, render
+# from django.urls import reverse
+# from django.utils import timezone
+# from django.views.decorators.cache import never_cache
+# from django.views.decorators.http import require_http_methods
+
+# LEAVE_TYPES = {"Casual", "Sick", "LOP"}
+
+
+# # def _leave_user(request, position):
+# #     """
+# #     !!! REPLACE THE BODY OF THIS FUNCTION !!!
+# #     Copy the way your teamlead_reports view finds the logged-in user
+# #     (I could not see that code, so the session key below is a guess).
+# #     Must return the User, or None if not logged in / not this position.
+# #     """
+# #     uid = request.session.get("user_id")                     # <- check this key
+# #     user = User.objects.filter(pk=uid).first() if uid else None
+# #     if user and (user.job_Position or "").strip().lower() == position.lower():
+# #         return user
+# #     return None
+
+
+# # def _leave_user(request, position):
+# #     uid = request.session.get("user_id")
+
+# #     user = User.objects.filter(pk=uid).first() if uid else None
+
+# #     if not user:
+# #         return None
+
+# #     actual_position = (user.job_Position or "").strip().lower()
+# #     expected_position = position.replace("_", " ").strip().lower()
+
+# #     if actual_position == expected_position:
+# #         return user
+
+# #     return None
+
+# def _leave_user(request, position):
+#     uid = request.session.get("user_id")
+#     user = User.objects.filter(pk=uid).first() if uid else None
+
+#     print("SESSION:", dict(request.session))                                   # താൽക്കാലികം
+#     print("USER:", user, "| job_Position =", repr(user.job_Position) if user else None)   # താൽക്കാലികം
+
+#     if not user:
+#         return None
+
+#     actual_position = (user.job_Position or "").strip().lower()
+#     expected_position = position.replace("_", " ").strip().lower()
+
+#     if actual_position == expected_position:
+#         return user
+
+#     return None
+
+# def _parse_date(value):
+#     try:
+#         return datetime.strptime(value, "%Y-%m-%d").date()
+#     except (TypeError, ValueError):
+#         return None
+
+
+# def _clean_leave(user, form, today):
+#     """Validate the form. Returns (error_message, values). error_message is "" when valid."""
+#     if user.branch_id is None:
+#         return "Your account has no branch, so HR can’t receive this request. Contact HR.", None
+#     if form["duration"] not in ("Full Day", "Half Day"):
+#         return "Choose Full Day or Half Day.", None
+#     if form["leave_type"] not in LEAVE_TYPES:
+#         return "Choose a leave type.", None
+
+#     start = _parse_date(form["from_date"])
+#     if start is None:
+#         return "Choose a valid date.", None
+#     if start < today:
+#         return "You can’t request leave for a past date.", None
+
+#     if form["duration"] == "Half Day":
+#         if form["session"] not in ("Morning", "Afternoon"):
+#             return "Choose Morning or Afternoon for a half day.", None
+#         end, days, session = start, Decimal("0.5"), form["session"]
+#     else:
+#         end = _parse_date(form["to_date"]) or start
+#         if end < start:
+#             return "The end date can’t be before the start date.", None
+#         days, session = Decimal((end - start).days + 1), ""
+
+#     if not form["reason"]:
+#         return "Write a short reason.", None
+#     if len(form["reason"]) > 500:
+#         return "Keep the reason under 500 characters.", None
+
+#     clash = LeaveRequest.objects.filter(
+#         user=user, status__in=["Pending", "Approved"],
+#         from_date__lte=end, to_date__gte=start,
+#     ).exists()
+#     if clash:
+#         return "You already have a pending or approved leave on these dates.", None
+
+#     return "", {"from_date": start, "to_date": end, "days": days, "session": session}
+
+
+# def _my_leave_page(request, user, *, sidebar, url_name, eyebrow):
+#     today = timezone.localdate()
+#     tab = request.GET.get("tab", "request")
+#     if tab not in ("request", "mine"):
+#         tab = "request"
+
+#     form = {"duration": "Full Day", "session": "Morning", "leave_type": "Casual",
+#             "from_date": "", "to_date": "", "reason": ""}
+
+#     if request.method == "POST":
+#         tab = "request"
+#         form.update({key: request.POST.get(key, "").strip() for key in form})
+#         error, values = _clean_leave(user, form, today)
+#         if error:
+#             messages.error(request, error)
+#         else:
+#             LeaveRequest.objects.create(
+#                 user=user,
+#                 branch=user.branch,            # taken from the account, never from the form
+#                 leave_type=form["leave_type"],
+#                 duration=form["duration"],
+#                 reason=form["reason"],
+#                 **values,
+#             )
+#             messages.success(request, "Leave request sent to HR.")
+#             return redirect(f"{reverse(url_name)}?tab=mine")
+
+#     mine = LeaveRequest.objects.filter(user=user).order_by("-created_at")
+#     return render(request, "team_lead/teamlead_leave_management.html", {
+#         "current_user": user,
+#         "sidebar": sidebar, "url_name": url_name, "eyebrow": eyebrow,
+#         "tab": tab, "form": form, "today": today.isoformat(),
+#         "branch_name": user.branch.name if user.branch_id else "",
+#         "leaves": list(mine) if tab == "mine" else [],
+#         "pending_count": mine.filter(status="Pending").count(),
+#     })
+
+
+# @never_cache
+# @require_http_methods(["GET", "POST"])
+# def teamlead_leave(request):
+#     user = _leave_user(request, "Team Lead")
+#     if user is None:
+#         return redirect("/login/")
+#     return _my_leave_page(
+#         request, user,
+#         sidebar="components/teamlead_sidebar.html",
+#         url_name="teamlead_leave",
+#         eyebrow="CYBEXEL TEAM LEAD PANEL",
+#     )
+
+
+
+# ============================================================
+# Replace these 4 functions in views.py.
+# _parse_date and _clean_leave stay exactly as they are.
+# ============================================================
+
+def _leave_user(request, position):
+    """Logged-in User whose job_Position matches ("Team Lead" / "team_member"), else None."""
+    uid = request.session.get("user_id")
+    user = User.objects.filter(pk=uid).first() if uid else None
+    if not user:
+        return None
+    actual = (user.job_Position or "").strip().lower()
+    expected = position.replace("_", " ").strip().lower()
+    return user if actual == expected else None
+
+
+def _my_leave_page(request, user, *, template, url_name, eyebrow):
+    today = timezone.localdate()
+    tab = request.GET.get("tab", "request")
+    if tab not in ("request", "mine"):
+        tab = "request"
+
+    form = {"duration": "Full Day", "session": "Morning", "leave_type": "Casual",
+            "from_date": "", "to_date": "", "reason": ""}
+
+    if request.method == "POST":
+        tab = "request"
+        form.update({key: request.POST.get(key, "").strip() for key in form})
+        error, values = _clean_leave(user, form, today)
+        if error:
+            messages.error(request, error)
+        else:
+            LeaveRequest.objects.create(
+                user=user,
+                branch=user.branch,            # taken from the account, never from the form
+                leave_type=form["leave_type"],
+                duration=form["duration"],
+                reason=form["reason"],
+                **values,
+            )
+            messages.success(request, "Leave request sent to HR.")
+            return redirect(f"{reverse(url_name)}?tab=mine")
+
+    mine = LeaveRequest.objects.filter(user=user).order_by("-created_at")
+    return render(request, template, {
+        "current_user": user, "user": user,    # your sidebars read "user"
+        "url_name": url_name, "eyebrow": eyebrow,
+        "tab": tab, "form": form, "today": today.isoformat(),
+        "branch_name": user.branch.name if user.branch_id else "",
+        "leaves": list(mine) if tab == "mine" else [],
+        "pending_count": mine.filter(status="Pending").count(),
+    })
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def teamlead_leave(request):
+    user = _leave_user(request, "Team Lead")
+    if user is None:
+        return redirect("index")
+    return _my_leave_page(
+        request, user,
+        template="team_lead/teamlead_leave_management.html",
+        url_name="teamlead_leave",
+        eyebrow="CYBEXEL TEAM LEAD PANEL",
+    )
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def member_leave(request):
+    user = _leave_user(request, "team_member")
+    if user is None:
+        return redirect("index")
+    return _my_leave_page(
+        request, user,
+        template="team_member/teammember_leave_management.html",   # <- the new Team Member file
+        url_name="member_leave",
+        eyebrow="CYBEXEL TEAM MEMBER PANEL",
+    )
+
+
 
 
 from django.http import JsonResponse
@@ -16037,15 +16298,108 @@ def _hr_user(request):
     session_role = str(request.session.get("position", "")).strip().lower().replace(" ", "_")
     return user if database_role in roles and session_role in roles else None
 
-def hr_dashboard(request):
-    current_user = _hr_user(request)
-    if current_user is None:
-        return HttpResponseForbidden("You do not have access to the HR dashboard.")
-    return render(request, "hr/hr_dashboard.html", {
-        "current_user": current_user,
-        "hr_active": "dashboard",
-    })  
+# =====================================================================
+# HR DASHBOARD  -  paste in views.py, in the HR section.
+# Delete the old `def hr_dashboard(request): ...` first.
+# Re-uses (already in views.py): _hr_user, _hr_scope, User, Lower, Trim, Count,
+# MorningReport, EveningReport, TeamReportLeave, ProjectAssign, Task,
+# GoogleMeeting, Announcement, timezone, never_cache
+# =====================================================================
 
+_HR_DASH_LEAD_ROLES = ["team lead", "team_lead"]
+_HR_DASH_MEMBER_ROLES = ["team member", "team_member"]
+
+
+@never_cache
+def hr_dashboard(request):
+    hr = _hr_user(request)
+    if hr is None:
+        return HttpResponseForbidden("You do not have access to the HR dashboard.")
+    scope = _hr_scope(hr)                     # None -> HR has no branch
+    is_head = bool(scope and scope["head"])
+    today = timezone.localdate()
+
+    # ---- people in HR's scope (Kochi HR: all branches, others: own branch) ----
+    people = User.objects.annotate(dash_role=Lower(Trim("job_Position"))).filter(
+        dash_role__in=_HR_DASH_LEAD_ROLES + _HR_DASH_MEMBER_ROLES
+    ).select_related("branch", "department")
+    if scope is None:
+        people = people.none()
+    elif not is_head:
+        people = people.filter(branch=scope["branch"])
+    people = list(people.order_by("name", "pk"))
+    lead_total = sum(1 for p in people if p.dash_role in _HR_DASH_LEAD_ROLES)
+    member_total = len(people) - lead_total
+    ids = [p.pk for p in people]
+
+    # ---- who has / has not reported today (holiday-aware, like the Team Lead page) ----
+    leaves = list(TeamReportLeave.objects.filter(date=today).values(
+        "team_lead_id", "morning_leave", "evening_leave"))
+    lead_department = dict(User.objects.filter(
+        pk__in=[l["team_lead_id"] for l in leaves]).values_list("pk", "department_id"))
+
+    def on_leave(person, kind):
+        for leave in leaves:
+            if not leave[f"{kind}_leave"]:
+                continue
+            if person.pk == leave["team_lead_id"]:
+                return True
+            if (person.dash_role in _HR_DASH_MEMBER_ROLES and person.department_id
+                    and person.department_id == lead_department.get(leave["team_lead_id"])):
+                return True
+        return False
+
+    report_status = {}
+    for kind, model in (("morning", MorningReport), ("evening", EveningReport)):
+        done = set(model.objects.filter(user_id__in=ids, created_at__date=today)
+                   .values_list("user_id", flat=True))
+        expected = [p for p in people if not on_leave(p, kind)]
+        missing = [p for p in expected if p.pk not in done]
+        report_status[kind] = {
+            "expected": len(expected), "done": len(expected) - len(missing),
+            "missing_total": len(missing), "missing": missing[:8],
+        }
+
+    # ---- projects / tasks (same branch rule as the Projects and Tasks pages) ----
+    projects = ProjectAssign.objects.all()
+    tasks = Task.objects.all()
+    if scope is None:
+        projects, tasks = projects.none(), tasks.none()
+    elif not is_head:
+        projects = projects.filter(assign_to__branch=scope["branch"])
+        tasks = tasks.filter(assigned_to__branch=scope["branch"])
+    overdue_qs = projects.filter(deadline__lt=today).exclude(status="Completed")
+    overdue = list(overdue_qs.select_related("assign_to__branch").order_by("deadline", "pk")[:5])
+    for project in overdue:
+        project.days_late = (today - project.deadline).days
+    task_counts = dict(tasks.order_by().values_list("status").annotate(total=Count("pk")))
+
+    # ---- HR's own things ----
+    # meeting_status is a property on GoogleMeeting (not a DB field), so filter in Python.
+    meetings = [m for m in GoogleMeeting.objects.filter(created_by=hr, date__gte=today)
+                .order_by("date", "time")[:20] if m.meeting_status != "ended"][:4]
+    announcements = list(Announcement.objects.filter(
+        created_by=hr, is_admin_announcement=False,
+        is_master_admin_announcement=False, is_active=True,
+    ).annotate(recipient_count=Count("recipients")).order_by("-created_at", "-pk")[:3])
+    my_done = {
+        "morning": MorningReport.objects.filter(user=hr, created_at__date=today).exists(),
+        "evening": EveningReport.objects.filter(user=hr, created_at__date=today).exists(),
+    }
+
+    return render(request, "hr/hr_dashboard.html", {
+        "current_user": hr, "hr_active": "dashboard",
+        "no_branch": scope is None, "is_head": is_head,
+        "branch_name": scope["branch"].name if scope else "",
+        "today": today,
+        "lead_total": lead_total, "member_total": member_total,
+        "morning": report_status["morning"], "evening": report_status["evening"],
+        "ongoing_projects": projects.filter(status="In Progress").count(),
+        "overdue_total": overdue_qs.count(), "overdue": overdue,
+        "pending_tasks": task_counts.get("pending", 0),
+        "in_progress_tasks": task_counts.get("in_progress", 0),
+        "meetings": meetings, "announcements": announcements, "my_done": my_done,
+    })
 
 def hr_logout(request):
     request.session.flush()
@@ -16968,10 +17322,7 @@ def hr_profile(request):
                 update_fields=["name", "email", "phone"]
             )
 
-            messages.success(
-                request,
-                "Profile updated successfully!"
-            )
+
 
             return redirect("hr_profile")
 
@@ -17804,6 +18155,577 @@ def hr_chat(request):
 
     return render(request, "hr/hr_chat.html", context)
 
-def hr_reminders(request):         return _hr_render(request, "hr/hr_reminders.html", "reminders")
-def hr_notifications(request):     return _hr_render(request, "hr/hr_notifications.html", "notifications")
 
+from django.contrib import messages
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods, require_POST
+
+LEAVE_TABS = {"pending": "Pending", "approved": "Approved", "rejected": "Rejected"}
+
+
+def _leave_back(tab="pending"):
+    return redirect(f"{reverse('hr_leave_management')}?tab={tab}")
+
+
+@never_cache
+@require_http_methods(["GET"])
+def hr_leave_management(request):
+    hr = _hr_user(request)
+    if hr is None:
+        return _hr_report_denied(request)
+
+    scope = _hr_scope(hr)                      # None when HR has no branch
+    branch = scope["branch"] if scope else None
+
+    # Only this HR's own branch is ever queried (enforced on the server).
+    if branch is None:
+        base = LeaveRequest.objects.none()
+    else:
+        base = LeaveRequest.objects.filter(branch=branch)
+    base = base.select_related("user", "actioned_by")
+
+    tab = request.GET.get("tab", "pending")
+    if tab not in LEAVE_TABS:
+        tab = "pending"
+
+    order = "created_at" if tab == "pending" else "-actioned_at"
+    leaves = list(base.filter(status=LEAVE_TABS[tab]).order_by(order))
+
+    if tab == "pending":                       # clash warning shown on each card
+        approved = base.filter(status="Approved")
+        for leave in leaves:
+            leave.others_on_leave = (
+                approved.filter(from_date__lte=leave.to_date, to_date__gte=leave.from_date)
+                .exclude(user=leave.user).count()
+            )
+
+    counts = {key: base.filter(status=label).count() for key, label in LEAVE_TABS.items()}
+
+    return render(request, "hr/hr_leave_management.html", {
+        "current_user": hr, "hr_active": "leave",
+        "no_branch": branch is None,
+        "branch_name": branch.name if branch else "",
+        "tab": tab, "leaves": leaves, "counts": counts,
+    })
+
+
+@never_cache
+@require_POST
+def hr_leave_approve(request, pk):
+    hr = _hr_user(request)
+    if hr is None:
+        return _hr_report_denied(request)
+    scope = _hr_scope(hr)
+    if scope is None:
+        raise Http404
+
+    # 404 if the request is from another branch or already decided.
+    leave = get_object_or_404(LeaveRequest, pk=pk, branch=scope["branch"], status="Pending")
+    leave.status = "Approved"
+    leave.actioned_by = hr
+    leave.actioned_at = timezone.now()
+    leave.save(update_fields=["status", "actioned_by", "actioned_at"])
+    messages.success(request, f"Approved leave for {leave.user.name}.")
+    return _leave_back("pending")
+
+
+@never_cache
+@require_POST
+def hr_leave_reject(request, pk):
+    hr = _hr_user(request)
+    if hr is None:
+        return _hr_report_denied(request)
+    scope = _hr_scope(hr)
+    if scope is None:
+        raise Http404
+
+    leave = get_object_or_404(LeaveRequest, pk=pk, branch=scope["branch"], status="Pending")
+    note = request.POST.get("note", "").strip()
+    if not note:
+        messages.error(request, "Write a reason to reject this leave.")
+        return _leave_back("pending")
+
+    leave.status = "Rejected"
+    leave.hr_note = note[:300]
+    leave.actioned_by = hr
+    leave.actioned_at = timezone.now()
+    leave.save(update_fields=["status", "hr_note", "actioned_by", "actioned_at"])
+    messages.success(request, f"Rejected leave for {leave.user.name}.")
+    return _leave_back("pending")
+
+
+@never_cache
+@require_http_methods(["GET", "POST"])
+def hr_reminders(request):
+    hr_user = _notification_hr(request)
+
+    if hr_user is None:
+        return redirect("login_view")
+
+    # Only this HR user's reminders.
+    reminders = HRReminder.objects.filter(owner=hr_user)
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+        reminder = None
+
+        if action in {"update", "complete", "reopen"}:
+            reminder = get_object_or_404(
+                reminders,
+                pk=request.POST.get("reminder_id"),
+            )
+
+        if action in {"complete", "reopen"}:
+            reminder.is_completed = action == "complete"
+            reminder.save(
+                update_fields=["is_completed", "updated_at"]
+            )
+
+            response_message = (
+                "Reminder completed."
+                if reminder.is_completed
+                else "Reminder reopened."
+            )
+
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse({
+                    "ok": True,
+                    "id": reminder.pk,
+                    "is_completed": reminder.is_completed,
+                    "message": response_message,
+                })
+
+            reminder_messages.success(request, response_message)
+            return redirect("hr_reminders")
+
+        if action not in {"create", "update"}:
+            reminder_messages.error(request, "Invalid reminder action.")
+            return redirect("hr_reminders")
+
+        title = request.POST.get("title", "").strip()
+        description = request.POST.get("description", "").strip()
+
+        event_at = _parse_reminder_datetime(
+            request.POST.get("event_at")
+        )
+        remind_at = _parse_reminder_datetime(
+            request.POST.get("remind_at")
+        )
+
+        if not title or len(title) > 180:
+            reminder_messages.error(
+                request,
+                "Enter a title with a maximum of 180 characters.",
+            )
+            return redirect("hr_reminders")
+
+        if event_at is None or remind_at is None:
+            reminder_messages.error(
+                request,
+                "Enter valid event and reminder dates and times.",
+            )
+            return redirect("hr_reminders")
+
+        if remind_at > event_at:
+            reminder_messages.error(
+                request,
+                "Reminder time must be on or before the event time.",
+            )
+            return redirect("hr_reminders")
+
+        if remind_at <= reminder_timezone.now():
+            reminder_messages.error(
+                request,
+                "Choose a future reminder time.",
+            )
+            return redirect("hr_reminders")
+
+        if reminder is None:
+            reminder = HRReminder(owner=hr_user)
+
+        schedule_changed = (
+            reminder.pk is None
+            or reminder.event_at != event_at
+            or reminder.remind_at != remind_at
+        )
+
+        reminder.title = title
+        reminder.description = description
+        reminder.event_at = event_at
+        reminder.remind_at = remind_at
+
+        if schedule_changed:
+            reminder.notified_at = None
+            reminder.is_completed = False
+
+        reminder.save()
+
+        reminder_messages.success(
+            request,
+            "Reminder created."
+            if action == "create"
+            else "Reminder updated.",
+        )
+        return redirect("hr_reminders")
+
+    today = reminder_timezone.localdate()
+
+    try:
+        selected_month = reminder_datetime.strptime(
+            request.GET.get("month", today.strftime("%Y-%m")),
+            "%Y-%m",
+        ).date()
+    except (ValueError, TypeError):
+        selected_month = today.replace(day=1)
+
+    month_reminders = reminders.filter(
+        event_at__year=selected_month.year,
+        event_at__month=selected_month.month,
+    ).order_by("event_at", "id")
+
+    calendar_items = []
+
+    for reminder in month_reminders:
+        local_event = reminder_timezone.localtime(reminder.event_at)
+        local_remind = reminder_timezone.localtime(reminder.remind_at)
+
+        calendar_items.append({
+            "id": reminder.pk,
+            "title": reminder.title,
+            "description": reminder.description,
+            "date": local_event.strftime("%Y-%m-%d"),
+            "event_at": local_event.strftime("%Y-%m-%dT%H:%M"),
+            "remind_at": local_remind.strftime("%Y-%m-%dT%H:%M"),
+            "is_completed": reminder.is_completed,
+        })
+
+    return render(
+        request,
+        "hr/hr_reminders.html",
+        {
+            "selected_month": selected_month.strftime("%Y-%m"),
+            "month_label": selected_month.strftime("%B %Y"),
+            "calendar_weeks": calendar.monthcalendar(
+                selected_month.year,
+                selected_month.month,
+            ),
+            "calendar_items": calendar_items,
+            "today": today.isoformat(),
+            "reminders": month_reminders,
+        },
+    )
+
+
+@never_cache
+@require_http_methods(["DELETE"])
+def hr_reminder_delete(request, pk):
+    hr_user = _notification_hr(request)
+
+    if hr_user is None:
+        return JsonResponse(
+            {"ok": False, "message": "Please sign in again."},
+            status=403,
+        )
+
+    reminder = HRReminder.objects.filter(
+        pk=pk,
+        owner=hr_user,
+    ).first()
+
+    if reminder is None:
+        return JsonResponse(
+            {"ok": False, "message": "Reminder not found."},
+            status=404,
+        )
+
+    reminder.delete()
+
+    return JsonResponse({
+        "ok": True,
+        "message": "Reminder deleted.",
+    })
+
+@never_cache
+def hr_notifications(request):
+    current_user = _hr_user(request)
+
+    if current_user is None:
+        return HttpResponseForbidden(
+            "You do not have access to this HR page."
+        )
+
+    notifications = HRNotification.objects.filter(
+        recipient=current_user
+    ).order_by("-created_at", "-id")
+
+    return render(
+        request,
+        "hr/hr_notifications.html",
+        {
+            "current_user": current_user,
+            "hr_active": "notifications",
+            "items": notifications,
+            "unread_count": notifications.filter(
+                is_read=False,
+                is_archived=False,
+            ).count(),
+        },
+    )
+
+
+@require_POST
+def hr_notifications_read_all(request):
+    current_user = _hr_user(request)
+
+    if current_user is None:
+        return HttpResponseForbidden(
+            "You do not have access to this HR page."
+        )
+
+    HRNotification.objects.filter(
+        recipient=current_user,
+        is_read=False,
+        is_archived=False,
+    ).update(is_read=True)
+
+    return redirect("hr_notifications")
+
+
+@require_POST
+def hr_notification_open(request, notification_id):
+    current_user = _hr_user(request)
+
+    if current_user is None:
+        return HttpResponseForbidden(
+            "You do not have access to this HR page."
+        )
+
+    notification = get_object_or_404(
+        HRNotification,
+        pk=notification_id,
+        recipient=current_user,
+    )
+
+    action = request.POST.get("action", "open")
+
+    changes = {
+        "mark_read": {"is_read": True},
+        "mark_unread": {"is_read": False},
+        "archive": {"is_archived": True},
+        "restore": {"is_archived": False},
+    }
+
+    if action in changes:
+        HRNotification.objects.filter(
+            pk=notification.pk,
+            recipient=current_user,
+        ).update(**changes[action])
+
+        return redirect("hr_notifications")
+
+    if action != "open":
+        return redirect("hr_notifications")
+
+    if not notification.is_read:
+        notification.is_read = True
+        notification.save(update_fields=["is_read"])
+
+    if notification.url and url_has_allowed_host_and_scheme(
+        notification.url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(notification.url)
+
+    return redirect("hr_notifications")
+
+
+
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
+from django.shortcuts import redirect, render
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods
+
+HISTORY_STATUSES = ("Pending", "Approved", "Rejected")
+
+from datetime import datetime
+
+
+def _parse_date(value):
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        return None
+
+def _leave_history_page(request, user, *, sidebar, url_name, eyebrow):
+    qs = LeaveRequest.objects.select_related("user", "branch", "actioned_by")
+
+    # ---- filters (all optional, all validated) ----
+    branch = request.GET.get("branch", "")
+    if branch.isdigit():
+        qs = qs.filter(branch_id=int(branch))
+    else:
+        branch = ""
+
+    status = request.GET.get("status", "")
+    if status in HISTORY_STATUSES:
+        qs = qs.filter(status=status)
+    else:
+        status = ""
+
+    date_from = _parse_date(request.GET.get("from"))
+    date_to = _parse_date(request.GET.get("to"))
+    if date_from and date_to and date_from > date_to:
+        date_from, date_to = date_to, date_from
+    if date_from:                       # leave that ends on/after "from"
+        qs = qs.filter(to_date__gte=date_from)
+    if date_to:                         # leave that starts on/before "to"
+        qs = qs.filter(from_date__lte=date_to)
+
+    query = request.GET.get("q", "").strip()[:200]
+    if query:
+        qs = qs.filter(Q(user__name__icontains=query) | Q(user__employee_id__icontains=query))
+
+    # ---- counts follow the filters ----
+    counts = {row["status"]: row["n"] for row in qs.order_by().values("status").annotate(n=Count("pk"))}
+    total = sum(counts.values())
+
+    page = Paginator(qs.order_by("-created_at", "-pk"), 25).get_page(request.GET.get("page"))
+    params = request.GET.copy()
+    params.pop("page", None)
+
+    return render(request, "leave/leave_history.html", {
+        "current_user": user, "user": user,
+        "sidebar": sidebar, "url_name": url_name, "eyebrow": eyebrow,
+        "page_obj": page, "total": total, "counts": counts,
+        "branches": Branch.objects.filter(is_active=True).order_by("-is_head_office", "name"),
+        "selected_branch": branch, "selected_status": status, "query": query,
+        "date_from": date_from.isoformat() if date_from else "",
+        "date_to": date_to.isoformat() if date_to else "",
+        "filter_params": params.urlencode(),
+    })
+
+
+
+from datetime import datetime
+
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
+from django.shortcuts import redirect, render
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_http_methods
+
+HISTORY_STATUSES = ("Pending", "Approved", "Rejected")
+
+
+def _history_date(value):
+    """'2026-11-28' -> date, anything else -> None."""
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        return None
+
+
+def _leave_history_page(request, user, *, template, sidebar, url_name, eyebrow):
+    qs = LeaveRequest.objects.select_related("user", "branch", "actioned_by")
+
+    # ---- filters (all optional, all validated) ----
+    branch = request.GET.get("branch", "")
+    if branch.isdigit():
+        qs = qs.filter(branch_id=int(branch))
+    else:
+        branch = ""
+
+    status = request.GET.get("status", "")
+    if status in HISTORY_STATUSES:
+        qs = qs.filter(status=status)
+    else:
+        status = ""
+
+    date_from = _history_date(request.GET.get("from"))
+    date_to = _history_date(request.GET.get("to"))
+    if date_from and date_to and date_from > date_to:
+        date_from, date_to = date_to, date_from
+    if date_from:                       # leave that ends on/after "from"
+        qs = qs.filter(to_date__gte=date_from)
+    if date_to:                         # leave that starts on/before "to"
+        qs = qs.filter(from_date__lte=date_to)
+
+    query = request.GET.get("q", "").strip()[:200]
+    if query:
+        qs = qs.filter(Q(user__name__icontains=query) | Q(user__employee_id__icontains=query))
+
+    # ---- counts follow the filters ----
+    counts = {row["status"]: row["n"] for row in qs.order_by().values("status").annotate(n=Count("pk"))}
+    total = sum(counts.values())
+
+    page = Paginator(qs.order_by("-created_at", "-pk"), 25).get_page(request.GET.get("page"))
+    params = request.GET.copy()
+    params.pop("page", None)
+
+    return render(request, template, {
+        "current_user": user, "user": user,
+        "sidebar": sidebar, "url_name": url_name, "eyebrow": eyebrow,
+        "page_obj": page, "total": total, "counts": counts,
+        "branches": Branch.objects.filter(is_active=True).order_by("-is_head_office", "name"),
+        "selected_branch": branch, "selected_status": status, "query": query,
+        "date_from": date_from.isoformat() if date_from else "",
+        "date_to": date_to.isoformat() if date_to else "",
+        "filter_params": params.urlencode(),
+    })
+
+ADMIN_POSITIONS = {"management", "admin"}
+
+
+def _leave_admin_user(request, level):
+    """
+    Master Admin -> Django login (request.user), must be a superuser.
+    Admin        -> project session login (session["user_id"]) whose
+                    job_Position is in ADMIN_POSITIONS.
+    Returns the user, or None.
+    """
+    if level == "master_admin":
+        u = request.user
+        return u if (u.is_authenticated and u.is_active and u.is_superuser) else None
+
+    if level == "admin":
+        uid = request.session.get("user_id")
+        user = User.objects.filter(pk=uid).first() if uid else None
+        if user and (user.job_Position or "").strip().lower() in ADMIN_POSITIONS:
+            return user
+    return None
+
+
+@never_cache
+@require_http_methods(["GET"])          # GET only: nothing can be changed from this page
+def masteradmin_leave_history(request):
+    user = _leave_admin_user(request, "master_admin")
+    if user is None:
+        return redirect("index")
+    return _leave_history_page(
+        request, user,
+        template="master_admin/master_admin_leave_history.html",   # <- Master Admin folder / file
+        sidebar="components/master_admin_sidebar.html",   # <- your real sidebar file
+        url_name="masteradmin_leave_history",
+        eyebrow="CYBEXEL MASTER ADMIN PANEL",
+    )
+
+
+@never_cache
+@require_http_methods(["GET"])
+def admin_leave_history(request):
+    user = _leave_admin_user(request, "admin")
+    if user is None:
+        return redirect("index")
+    return _leave_history_page(
+        request, user,
+        template="admin_panel/admin_leave_history.html",         # <- Admin folder / file
+        sidebar="components/admin_sidebar.html",         # <- your real sidebar file
+        url_name="admin_leave_history",
+        eyebrow="CYBEXEL ADMIN PANEL",
+    )
